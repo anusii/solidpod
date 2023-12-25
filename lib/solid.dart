@@ -1,3 +1,3 @@
 library solid;
 
-export 'src/calculator.dart.~1~' show Calculator;
+export 'src/calculator.dart' show Calculator;
