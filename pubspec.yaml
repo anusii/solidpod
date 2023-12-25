@@ -1,6 +1,6 @@
 name: solid
 description: A new Flutter package project.
-version: 0.0.1
+version: 0.0.2
 homepage:
 
 environment:
@@ -12,6 +12,10 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
+  dart_code_metrics:
+    git:
+      url: https://github.com/anusii/dart-code-metrics.git
+      ref: main
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
