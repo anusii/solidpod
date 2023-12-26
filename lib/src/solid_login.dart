@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Monday 2023-12-25 15:39:56 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2023-12-26 12:07:26 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: AUTHORS
+/// Authors: Graham Williams
 
 library;
 
@@ -36,11 +36,7 @@ import 'package:flutter/material.dart';
 ///
 /// This widget currently does no more than to return the widget that is
 /// supplied as its argument. This is the starting point of its implementation.
-///
-/// TODO 20231225 gjw This was moved into here from a demo in the keypod app
-/// into which it can now be imported. It is the starting point for getting the
-/// framework set up.
-///
+/// See https://github.com/anusii/solid/issues/1.
 
 class SolidLogin extends StatelessWidget {
   final Widget child;
