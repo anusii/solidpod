@@ -1,6 +1,6 @@
-/// Support for flutter apps accessing solid PODs.
+/// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Monday 2023-12-25 21:29:33 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2023-12-26 12:07:26 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -28,7 +28,23 @@
 ///
 /// Authors: Graham Williams
 
-library solid;
+library;
 
-export 'src/calculator.dart' show Calculator;
-export 'src/solid_login.dart' show SolidLogin;
+import 'package:flutter/material.dart';
+
+/// A widget to login to a Solid server for a user's token to access their POD.
+///
+/// This widget currently does no more than to return the widget that is
+/// supplied as its argument. This is the starting point of its implementation.
+/// See https://github.com/anusii/solid/issues/1.
+
+class SolidLogin extends StatelessWidget {
+  final Widget child;
+
+  const SolidLogin({required this.child, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return child;
+  }
+}
