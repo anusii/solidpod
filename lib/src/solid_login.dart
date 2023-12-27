@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Tuesday 2023-12-26 12:07:26 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2023-12-26 15:51:01 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -33,6 +33,10 @@ library;
 import 'package:flutter/material.dart';
 
 /// A widget to login to a Solid server for a user's token to access their POD.
+///
+/// The login screen will be the intiial screen of the app when access to the
+/// user's POD is required for any of the functionality of the app requires
+/// access to the user's POD.
 ///
 /// This widget currently does no more than to return the widget that is
 /// supplied as its argument. This is the starting point of its implementation.
