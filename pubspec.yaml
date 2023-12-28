@@ -1,6 +1,6 @@
 name: solid
 description: Support access to a Solid server for securing personal online data.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/anusii/solid
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  url_launcher:
+  url_launcher: ^6.2.2
     
 dev_dependencies:
   dart_code_metrics:
@@ -25,16 +25,18 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+
 flutter:
 
   # To add assets to your package, add an assets section, like this:
+
   assets:
     - assets/images/default_image.jpg
     - assets/images/default_logo.png
   #  - assets/images/default_logo.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-  #
+
   # For details regarding assets in packages, see
   # https://flutter.dev/assets-and-images/#from-packages
   #
