@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 12:30:27 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 14:30:03 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -32,6 +32,10 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solid/src/utils/is_narrow_screen.dart';
+
+const _defaultImage = AssetImage('assets/images/default_image.jpg');
+
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
 /// The login screen will be the intiial screen of the app when access to the
@@ -51,9 +55,24 @@ class SolidLogin extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Scaffolding"),
+        title: const Text(
+            "Scaffolding - Content of supplied Widget is below - This app bar to be removed:"),
       ),
-      body: child,
+      // TODO 20231228 gjw EXPLAIN WHY USING A SafeArea.
+      body: SafeArea(
+        child: Container(
+          // The image is the background for a narrow screen or else later it is
+          // the left panel.
+          decoration: isNarrowScreen(context)
+              ? const BoxDecoration(
+                  image: DecorationImage(
+                  image: _defaultImage,
+                  fit: BoxFit.cover,
+                ))
+              : null,
+          child: child,
+        ),
+      ),
     );
   }
 }
