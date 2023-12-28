@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 14:52:50 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 14:57:43 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -31,10 +31,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:solid/src/utils/is_narrow_screen.dart';
-
-// TODO 20231228 gjw CURRENTLY THE IMAGE IS NOT BEING FOUND. IS THERE SOMETHING
-// SPECIAL REQUIRED FOR A PACKAGE RATHER THAN AN APP? OR SOME OTHER ERROR I'VE
-// MADE? THIS NEEDS TO BE IN REFERENCE TO THE SOLID PACKAGE NOT THE KEYPOD APP?
 
 const _defaultImage =
     AssetImage('assets/images/default_image.jpg', package: 'solid');
@@ -72,7 +68,15 @@ class SolidLogin extends StatelessWidget {
           // later it is the left panel.
 
           decoration: isNarrowScreen(context) ? loginBoxDecor : null,
-          child: const Text("child"),
+          child: const Row(
+            children: <Widget>[
+              Expanded(
+                child: Center(
+                  child: Text("child"),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
