@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 15:00:37 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 16:07:39 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -78,7 +78,19 @@ class SolidLogin extends StatelessWidget {
           // later it is the left panel.
 
           decoration: isNarrowScreen(context) ? loginBoxDecor : null,
-          child: actualChildEventually,
+          child: Row(
+            children: [
+              isNarrowScreen(context)
+                  ? Container()
+                  : Expanded(
+                      flex: 7,
+                      child: Container(
+                        decoration: loginBoxDecor,
+                      ),
+                    ),
+              actualChildEventually,
+            ],
+          ),
         ),
       ),
     );
