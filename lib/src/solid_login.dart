@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 14:48:20 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 14:49:30 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -63,10 +63,6 @@ class SolidLogin extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-            "Scaffolding - Content of supplied Widget is below - This app bar to be removed:"),
-      ),
       // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea HERE.
 
       body: SafeArea(
