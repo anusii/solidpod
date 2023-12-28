@@ -1,6 +1,6 @@
-/// The SolidLogin widget to obtain a Solid token to access the user's POD.
+/// A widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 20:34:37 +1100 Graham Williams>
+// Time-stamp: <Friday 2023-12-29 08:43:20 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -35,13 +35,19 @@ import 'package:url_launcher/url_launcher.dart';
 import 'constants/colours.dart';
 
 // The following are the constant default values for the parameters for the
-// SolidLogin class. These are the aspects that a user is allowed to override
-// from the defaults to tune to their own liking.
+// SolidLogin class. These defaults can be overriden by a user to tune to their
+// own liking and style.
+
+// The default image to be displayed as the left panel or else the background
+// on a narrow screen.
 
 const _defaultImage = AssetImage(
   'assets/images/default_image.jpg',
   package: 'solid',
 );
+
+// The default logo to be displayed at the top of the login panel on the right
+// of the screen or centered for narrow screens.
 
 const _defaultLogo = AssetImage(
   //'assets/images/default_logo.png',
@@ -49,11 +55,15 @@ const _defaultLogo = AssetImage(
   package: 'solid',
 );
 
+// The default message to be displayed within the login panel.
+
 const _defaultTitle = 'LOGIN WITH YOUR POD';
+
+// The default URI for the SOlid server that is suggested for the app.
 
 const _defaultWebID = 'https://pods.solidcommunity.au';
 
-// Screen size support funtions.
+// Screen size support funtions to identify narrow and very narrow screens.
 
 const int narrowScreenLimit = 1175;
 const int veryNarrowScreenLimit = 750;
@@ -83,7 +93,8 @@ class SolidLogin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The login box's default image Widget.
+    // The login box's default image Widget for the left/background panel
+    // depending on screen width.
 
     const BoxDecoration loginBoxDecor = BoxDecoration(
       image: DecorationImage(
@@ -92,20 +103,13 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // A dummy widget for the actual child that we proceed to after the
-    // authentication, eventually.
-
-    const Row actualChildEventually = Row(
-      children: <Widget>[
-        Expanded(
-          child: Center(
-            child: Text("child"),
-          ),
-        ),
-      ],
-    );
+    // Text controller for the URI of the solid server to which an authenticate
+    // request is sent.
 
     final webIdController = TextEditingController()..text = _defaultWebID;
+
+    // A GET A POD button that when pressed will launch a browser to
+    // the releveant link with instructions to get a POD.
 
     TextButton getPodButton = TextButton(
       style: TextButton.styleFrom(
@@ -116,8 +120,10 @@ class SolidLogin extends StatelessWidget {
         ),
       ),
       onPressed: null,
-// TODO 20231228 gjw GET getIssuer FROM solid-auth BUT NOW BE PART OF THIS
-// PACKAGE.
+//
+// TODO 20231228 gjw GET getIssuer FROM solid-auth BUT PERHAPS IT IS NOW PART OF
+// THIS PACKAGE BUT FOR NOW USE IT FROM solid-auth. WHY USE lauchIssuerReg
+// RATHER THAN launchURL?
 //
 //      onPressed: () async =>
 //         launchIssuerReg((await getIssuer(webIdController.text)).toString()),
@@ -132,6 +138,11 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
+    // A LOGIN button that when pressed will proceed to attempt to connect to
+    // the URI through a browser to allow the user to authenticate
+    // themselves. On return from the authentication, if successful, the class
+    // provided child widget is instantiated.
+
     TextButton loginButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
@@ -141,8 +152,10 @@ class SolidLogin extends StatelessWidget {
         ),
       ),
       onPressed: null,
-      // TODO 20231228 gjw THE FOLLOWING FUNCTIONALITY NEEDS TO BE MIGRATED INTO
-      // THIS solid PACKAGE.
+      //
+      // TODO 20231228 gjw THE FOLLOWING FUNCTIONALITY FROM solid-auth NEEDS TO
+      // BE MIGRATED INTO THIS solid PACKAGE IF THAT IS NOT A BIG TASK BUT THE
+      // FIRST APPROACH MAY BE TO USE solid-auth FOR NOW.
       //
       // onPressed: () async {
       //   showAnimationDialog(
@@ -240,7 +253,8 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // TODO 20231228 gjw EXTRACT THE BELOW INTO linkTo and versionDisplay
+    // An Information link that is conditionally displayed within the login
+    // panel.
 
     Widget linkTo = GestureDetector(
       onTap: () => launchUrl(Uri.parse("SOLID_PROJECT_URL")),
@@ -263,6 +277,8 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
+    // A version text that is conditionally displayed within the login panel.
+
     Widget versionDisplay = Container(
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
@@ -283,7 +299,7 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // Login panel decor.
+    // Build the login panel docrations from the comonent parts.
 
     Container loginPanelDecor = Container(
       height: 650,
@@ -348,7 +364,7 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // The login panel's offset depends on the screen size.
+    // The final login panel's offset depends on the screen size.
 
     // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN THE RATIONALE BEHIND THE LOGIC
     // HERE FOR THE PANEL WIDTH.
@@ -356,7 +372,7 @@ class SolidLogin extends StatelessWidget {
     double loginPanelInset =
         (isVeryNarrowScreen(context) || !isNarrowScreen(context)) ? 0.05 : 0.25;
 
-    // Create a widget for the actual login panel.
+    // Create the actual login panel around the deocrated login panel.
 
     Container loginPanel = Container(
       margin: EdgeInsets.symmetric(
@@ -372,7 +388,8 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // Now bring them all together to return within a Scaffold.
+    // Bring the two top level comonents together to build the final Scaffold as
+    // the return Widget for solidLogin.
 
     return Scaffold(
       // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea HERE.
