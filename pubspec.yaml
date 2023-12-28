@@ -29,6 +29,8 @@ flutter:
   # To add assets to your package, add an assets section, like this:
   assets:
     - assets/images/default_image.jpg
+    - assets/images/default_logo.png
+  #  - assets/images/default_logo.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   #
