@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 14:30:03 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 14:48:20 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -28,11 +28,13 @@
 ///
 /// Authors: Graham Williams
 
-library;
-
 import 'package:flutter/material.dart';
 
 import 'package:solid/src/utils/is_narrow_screen.dart';
+
+// TODO 20231228 gjw CURRENTLY THE IMAGE IS NOT BEING FOUND. IS THERE SOMETHING
+// SPECIAL REQUIRED FOR A PACKAGE RATHER THAN AN APP? OR SOME OTHER ERROR I'VE
+// MADE?
 
 const _defaultImage = AssetImage('assets/images/default_image.jpg');
 
@@ -53,24 +55,27 @@ class SolidLogin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const BoxDecoration loginBoxDecor = BoxDecoration(
+      image: DecorationImage(
+        image: _defaultImage,
+        fit: BoxFit.cover,
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
             "Scaffolding - Content of supplied Widget is below - This app bar to be removed:"),
       ),
-      // TODO 20231228 gjw EXPLAIN WHY USING A SafeArea.
+      // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea HERE.
+
       body: SafeArea(
         child: Container(
-          // The image is the background for a narrow screen or else later it is
-          // the left panel.
-          decoration: isNarrowScreen(context)
-              ? const BoxDecoration(
-                  image: DecorationImage(
-                  image: _defaultImage,
-                  fit: BoxFit.cover,
-                ))
-              : null,
-          child: child,
+          // The image is used as the background for a narrow screen or else
+          // later it is the left panel.
+
+          decoration: isNarrowScreen(context) ? loginBoxDecor : null,
+          child: const Text("child"),
         ),
       ),
     );
