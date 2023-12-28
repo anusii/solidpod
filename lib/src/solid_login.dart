@@ -1,6 +1,6 @@
 /// The SolidLogin widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Tuesday 2023-12-26 15:51:01 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 12:23:21 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -49,6 +49,8 @@ class SolidLogin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child;
+    return Scaffold(
+      body: child,
+    );
   }
 }
