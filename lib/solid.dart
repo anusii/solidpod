@@ -1,6 +1,6 @@
 /// Support for flutter apps accessing solid PODs.
 //
-// Time-stamp: <Monday 2023-12-25 21:29:33 +1100 Graham Williams>
+// Time-stamp: <Thursday 2023-12-28 12:16:43 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -30,5 +30,4 @@
 
 library solid;
 
-export 'src/calculator.dart' show Calculator;
 export 'src/solid_login.dart' show SolidLogin;
