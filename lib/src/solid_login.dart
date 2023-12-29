@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Friday 2023-12-29 14:47:26 +1100 Graham Williams>
+// Time-stamp: <Friday 2023-12-29 16:53:56 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -32,14 +32,12 @@ import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
-import 'constants/colours.dart';
+// The following are the constant default values, mostly for the parameters for
+// the SolidLogin class. These defaults can be overriden by a user to tune to
+// their own liking and style.
 
-// The following are the constant default values for the parameters for the
-// SolidLogin class. These defaults can be overriden by a user to tune to their
-// own liking and style.
-
-// The default image to be displayed as the left panel or else the background
-// on a narrow screen.
+/// The default image to be displayed as the left panel or else the background
+/// on a narrow screen.
 
 const _defaultImage = AssetImage(
   'assets/images/default_image.jpg',
@@ -55,13 +53,39 @@ const _defaultLogo = AssetImage(
   package: 'solid',
 );
 
+// The Visit link for the app.
+
+const _defaultLink = 'https://solidproject.org';
+
 // The default message to be displayed within the login panel.
 
 const _defaultTitle = 'LOGIN WITH YOUR POD';
 
+/// The default login panale card background colour.
+
+const _defaultLoginPanelCardColour = Color(0xFFF2F4FC);
+
+/// The default login button background colour.
+
+const _defaultGetPodButtonBG = Color(0xFF9152CE);
+
+/// The default login button text colour.
+
+const _defaultGetPodButtonFG = Color(0xFF50084D);
+
+/// The default login button background colour.
+
+const _defaultLoginButtonBG = Color.fromARGB(255, 120, 219, 137);
+
 // The default URI for the SOlid server that is suggested for the app.
 
 const _defaultWebID = 'https://pods.solidcommunity.au';
+
+// The package version string.
+
+// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml.
+
+const _defaultVersion = "Version 0.0.0";
 
 // Screen size support funtions to identify narrow and very narrow screens.
 
@@ -114,23 +138,24 @@ class SolidLogin extends StatelessWidget {
     TextButton getPodButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        backgroundColor: lightBlue,
+        backgroundColor: _defaultGetPodButtonBG,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-      onPressed: null,
-//
-// TODO 20231228 gjw GET getIssuer FROM solid-auth BUT PERHAPS IT IS NOW PART OF
-// THIS PACKAGE BUT FOR NOW USE IT FROM solid-auth. WHY USE lauchIssuerReg
-// RATHER THAN launchURL?
-//
-//      onPressed: () async =>
-//         launchIssuerReg((await getIssuer(webIdController.text)).toString()),
+
+      // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT REGISTER
+      // ADDRESS WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED TO BE
+      // OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. USE getIssuer()
+      // FROM solid-auth PERHAPS WITH lauchIssuerReg()?
+
+      onPressed: () => launchUrl(
+          Uri.parse('$_defaultWebID/.account/login/password/register/')),
+
       child: const Text(
         'GET A POD',
         style: TextStyle(
-          color: titleAsh,
+          color: _defaultGetPodButtonFG,
           letterSpacing: 2.0,
           fontSize: 15.0,
           fontWeight: FontWeight.bold,
@@ -146,7 +171,7 @@ class SolidLogin extends StatelessWidget {
     TextButton loginButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        backgroundColor: lightGreen,
+        backgroundColor: _defaultLoginButtonBG,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -257,15 +282,15 @@ class SolidLogin extends StatelessWidget {
     // panel.
 
     Widget linkTo = GestureDetector(
-      onTap: () => launchUrl(Uri.parse("SOLID_PROJECT_URL")),
+      onTap: () => launchUrl(Uri.parse(_defaultLink)),
       child: Container(
         margin: const EdgeInsets.only(left: 0, right: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             const Text('Visit '),
-            Text(
-              "SOLID_PROJECT_URL",
+            SelectableText(
+              _defaultLink,
               textAlign: TextAlign.right,
               style: TextStyle(
                   fontSize: screenWidth(context) > 400 ? 15 : 13,
@@ -292,8 +317,8 @@ class SolidLogin extends StatelessWidget {
       ),
       height: smallTextContainerHeight,
       child: const Center(
-        child: Text(
-          "APP_VERSION",
+        child: SelectableText(
+          _defaultVersion,
           style: TextStyle(
             color: stripTextColor,
             fontSize: smallTextSize,
@@ -353,15 +378,20 @@ class SolidLogin extends StatelessWidget {
               ),
             ],
           ),
-          // TODO 20231228 gjw ADD THE LINK AND THE VERSION ALL WITHIN THE SAME
-          // PANEL.
+          // Leave alittle space before the link.
+          const SizedBox(
+            height: 20.0,
+          ),
           Align(
             alignment: Alignment.centerRight,
             child: linkTo,
           ),
-          versionDisplay,
-          const SizedBox(
-            height: 20.0,
+          // Expand to the bottom of the login panel.
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: versionDisplay,
+            ),
           ),
         ],
       ),
@@ -383,7 +413,7 @@ class SolidLogin extends StatelessWidget {
       child: SingleChildScrollView(
         child: Card(
           elevation: 5,
-          color: loginPanelCardColour,
+          color: _defaultLoginPanelCardColour,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
