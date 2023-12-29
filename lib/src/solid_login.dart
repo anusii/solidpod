@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Friday 2023-12-29 08:43:20 +1100 Graham Williams>
+// Time-stamp: <Friday 2023-12-29 14:47:26 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -259,11 +259,11 @@ class SolidLogin extends StatelessWidget {
     Widget linkTo = GestureDetector(
       onTap: () => launchUrl(Uri.parse("SOLID_PROJECT_URL")),
       child: Container(
-//        margin: EdgeInsets.only(left: 0, right: 20),
+        margin: const EdgeInsets.only(left: 0, right: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text('Visit '),
+            const Text('Visit '),
             Text(
               "SOLID_PROJECT_URL",
               textAlign: TextAlign.right,
@@ -279,22 +279,25 @@ class SolidLogin extends StatelessWidget {
 
     // A version text that is conditionally displayed within the login panel.
 
+    const double smallTextContainerHeight = 20;
+    const double smallTextSize = 14.0;
+    const stripTextColor = Color(0xFF757575);
+
     Widget versionDisplay = Container(
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(15),
           bottomRight: Radius.circular(15),
         ),
-//        color: stripBackgroundColor,
       ),
-//      height: smallTextContainerHeight,
+      height: smallTextContainerHeight,
       child: const Center(
         child: Text(
           "APP_VERSION",
           style: TextStyle(
-//            color: stripTextColor,
-//            fontSize: smallTextSize,
-              ),
+            color: stripTextColor,
+            fontSize: smallTextSize,
+          ),
         ),
       ),
     );
