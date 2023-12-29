@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Friday 2023-12-29 21:54:35 +1100 Graham Williams>
+// Time-stamp: <Friday 2023-12-29 21:56:40 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -180,12 +180,8 @@ class SolidLogin extends StatelessWidget {
       //
       // TODO 20231228 gjw THE FOLLOWING FUNCTIONALITY FROM solid-auth NEEDS TO
       // BE MIGRATED INTO THIS solid PACKAGE IF THAT IS NOT A BIG TASK BUT THE
-<<<<<<< HEAD
-      // FIRST APPROACH MAY BE TO USE solid-auth FOR NOW.
-=======
       // FIRST APPROACH MAY BE TO USE solid-auth. ALSO THIS IS BETTER AS A
       // SEPARATE FUNCTION.
->>>>>>> b3d1c6d (Minor updates.)
       //
       // onPressed: () async {
       //   showAnimationDialog(
