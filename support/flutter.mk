@@ -44,6 +44,8 @@ flutter:
   test	    Run `flutter test` for testing.
   itest	    Run `flutter test integration_test` for interation testing.
   qtest	    Run above test with PAUSE=0.
+  coverage  Run with `--coverage`.
+    coview  View the generated html coverage in browser.
 
   riverpod  Setup `pubspec.yaml` to support riverpod.
   runner    Build the auto generated code as *.g.dart files.
@@ -101,7 +103,7 @@ macos: $(BUILD_RUNNER)
 
 .PHONY: android
 android: $(BUILD_RUNNER)
-	flutter run --device-id $(shell flutter devices | grep android | cut -d " " -f 5)
+	flutter run --device-id $(shell flutter devices | grep android | tr '•' '|' | tr -s '|' | tr -s ' ' | cut -d'|' -f2 | tr -d ' ')
 
 .PHONY: emu
 emu:
@@ -117,7 +119,7 @@ linux_config:
 	flutter config --enable-linux-desktop
 
 .PHONY: prep
-prep: fix format dcm analyze ignore license
+prep: fix format dcm analyze ignore license todo
 	@echo "ADVISORY: make tests docs"
 	@echo $(SEPARATOR)
 
@@ -180,13 +182,19 @@ analyze:
 .PHONY: ignore
 ignore:
 	@echo "Files that override lint checks with IGNORE:\n"
-	@if rgrep ignore: lib; then exit 1; else exit 0; fi
+	@-if rgrep -n ignore: lib; then exit 1; else exit 0; fi
+	@echo $(SEPARATOR)
+
+.PHONY: todo
+todo:
+	@echo "Files that include TODO items to be resolved:\n"
+	@-if rgrep -n ' TODO ' lib; then exit 1; else exit 0; fi
 	@echo $(SEPARATOR)
 
 .PHONY: license
 license:
 	@echo "Files without a LICENSE:\n"
-	@find lib -type f -not -name '*~' ! -exec grep -qE '^(/// .*|/// Copyright|/// Licensed)' {} \; -printf "\t%p\n"
+	@-find lib -type f -not -name '*~' ! -exec grep -qE '^(/// .*|/// Copyright|/// Licensed)' {} \; -printf "\t%p\n"
 	@echo $(SEPARATOR)
 
 .PHONY: riverpod
@@ -250,6 +258,22 @@ qtest:
 	flutter test --dart-define=PAUSE=0 --device-id \
 	$(shell flutter devices | grep desktop | perl -pe 's|^[^•]*• ([^ ]*) .*|\1|') \
 	integration_test/$*_test.dart
+
+.PHONY: coverage
+coverage:
+	@echo "COVERAGE"
+	@flutter test --coverage
+	@echo
+	@-/bin/bash support/coverage.sh
+	@echo $(SEPARATOR)
+
+.PHONY: coview
+coview:
+	@genhtml coverage/lcov.info -o coverage/html
+	@open coverage/html/index.html
+
+realclean::
+	rm -rf coverage
 
 targz: $(APP)-$(VER)-linux-x86_64.tar.gz
 

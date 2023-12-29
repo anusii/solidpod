@@ -1,6 +1,6 @@
-/// The SolidLogin widget to obtain a Solid token to access the user's POD.
+/// A widget to obtain a Solid token to access the user's POD.
 //
-// Time-stamp: <Thursday 2023-12-28 20:34:37 +1100 Graham Williams>
+// Time-stamp: <Friday 2023-12-29 16:53:56 +1100 Graham Williams>
 //
 /// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
@@ -32,16 +32,20 @@ import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
-import 'constants/colours.dart';
+// The following are the constant default values, mostly for the parameters for
+// the SolidLogin class. These defaults can be overriden by a user to tune to
+// their own liking and style.
 
-// The following are the constant default values for the parameters for the
-// SolidLogin class. These are the aspects that a user is allowed to override
-// from the defaults to tune to their own liking.
+/// The default image to be displayed as the left panel or else the background
+/// on a narrow screen.
 
 const _defaultImage = AssetImage(
   'assets/images/default_image.jpg',
   package: 'solid',
 );
+
+// The default logo to be displayed at the top of the login panel on the right
+// of the screen or centered for narrow screens.
 
 const _defaultLogo = AssetImage(
   //'assets/images/default_logo.png',
@@ -49,11 +53,41 @@ const _defaultLogo = AssetImage(
   package: 'solid',
 );
 
+// The Visit link for the app.
+
+const _defaultLink = 'https://solidproject.org';
+
+// The default message to be displayed within the login panel.
+
 const _defaultTitle = 'LOGIN WITH YOUR POD';
+
+/// The default login panale card background colour.
+
+const _defaultLoginPanelCardColour = Color(0xFFF2F4FC);
+
+/// The default login button background colour.
+
+const _defaultGetPodButtonBG = Color(0xFF9152CE);
+
+/// The default login button text colour.
+
+const _defaultGetPodButtonFG = Color(0xFF50084D);
+
+/// The default login button background colour.
+
+const _defaultLoginButtonBG = Color.fromARGB(255, 120, 219, 137);
+
+// The default URI for the SOlid server that is suggested for the app.
 
 const _defaultWebID = 'https://pods.solidcommunity.au';
 
-// Screen size support funtions.
+// The package version string.
+
+// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml.
+
+const _defaultVersion = "Version 0.0.0";
+
+// Screen size support funtions to identify narrow and very narrow screens.
 
 const int narrowScreenLimit = 1175;
 const int veryNarrowScreenLimit = 750;
@@ -83,7 +117,8 @@ class SolidLogin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The login box's default image Widget.
+    // The login box's default image Widget for the left/background panel
+    // depending on screen width.
 
     const BoxDecoration loginBoxDecor = BoxDecoration(
       image: DecorationImage(
@@ -92,39 +127,35 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // A dummy widget for the actual child that we proceed to after the
-    // authentication, eventually.
-
-    const Row actualChildEventually = Row(
-      children: <Widget>[
-        Expanded(
-          child: Center(
-            child: Text("child"),
-          ),
-        ),
-      ],
-    );
+    // Text controller for the URI of the solid server to which an authenticate
+    // request is sent.
 
     final webIdController = TextEditingController()..text = _defaultWebID;
+
+    // A GET A POD button that when pressed will launch a browser to
+    // the releveant link with instructions to get a POD.
 
     TextButton getPodButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        backgroundColor: lightBlue,
+        backgroundColor: _defaultGetPodButtonBG,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-      onPressed: null,
-// TODO 20231228 gjw GET getIssuer FROM solid-auth BUT NOW BE PART OF THIS
-// PACKAGE.
-//
-//      onPressed: () async =>
-//         launchIssuerReg((await getIssuer(webIdController.text)).toString()),
+
+      // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT REGISTER
+      // ADDRESS WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED TO BE
+      // OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. USE getIssuer()
+      // FROM solid-auth PERHAPS WITH lauchIssuerReg()?
+
+      onPressed: () => launchUrl(
+          Uri.parse('$_defaultWebID/.account/login/password/register/')),
+
       child: const Text(
         'GET A POD',
         style: TextStyle(
-          color: titleAsh,
+          color: _defaultGetPodButtonFG,
           letterSpacing: 2.0,
           fontSize: 15.0,
           fontWeight: FontWeight.bold,
@@ -132,17 +163,24 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
+    // A LOGIN button that when pressed will proceed to attempt to connect to
+    // the URI through a browser to allow the user to authenticate
+    // themselves. On return from the authentication, if successful, the class
+    // provided child widget is instantiated.
+
     TextButton loginButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        backgroundColor: lightGreen,
+        backgroundColor: _defaultLoginButtonBG,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
       ),
       onPressed: null,
-      // TODO 20231228 gjw THE FOLLOWING FUNCTIONALITY NEEDS TO BE MIGRATED INTO
-      // THIS solid PACKAGE.
+      //
+      // TODO 20231228 gjw THE FOLLOWING FUNCTIONALITY FROM solid-auth NEEDS TO
+      // BE MIGRATED INTO THIS solid PACKAGE IF THAT IS NOT A BIG TASK BUT THE
+      // FIRST APPROACH MAY BE TO USE solid-auth FOR NOW.
       //
       // onPressed: () async {
       //   showAnimationDialog(
@@ -240,18 +278,19 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // TODO 20231228 gjw EXTRACT THE BELOW INTO linkTo and versionDisplay
+    // An Information link that is conditionally displayed within the login
+    // panel.
 
     Widget linkTo = GestureDetector(
-      onTap: () => launchUrl(Uri.parse("SOLID_PROJECT_URL")),
+      onTap: () => launchUrl(Uri.parse(_defaultLink)),
       child: Container(
-//        margin: EdgeInsets.only(left: 0, right: 20),
+        margin: const EdgeInsets.only(left: 0, right: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text('Visit '),
-            Text(
-              "SOLID_PROJECT_URL",
+            const Text('Visit '),
+            SelectableText(
+              _defaultLink,
               textAlign: TextAlign.right,
               style: TextStyle(
                   fontSize: screenWidth(context) > 400 ? 15 : 13,
@@ -263,27 +302,32 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
+    // A version text that is conditionally displayed within the login panel.
+
+    const double smallTextContainerHeight = 20;
+    const double smallTextSize = 14.0;
+    const stripTextColor = Color(0xFF757575);
+
     Widget versionDisplay = Container(
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(15),
           bottomRight: Radius.circular(15),
         ),
-//        color: stripBackgroundColor,
       ),
-//      height: smallTextContainerHeight,
+      height: smallTextContainerHeight,
       child: const Center(
-        child: Text(
-          "APP_VERSION",
+        child: SelectableText(
+          _defaultVersion,
           style: TextStyle(
-//            color: stripTextColor,
-//            fontSize: smallTextSize,
-              ),
+            color: stripTextColor,
+            fontSize: smallTextSize,
+          ),
         ),
       ),
     );
 
-    // Login panel decor.
+    // Build the login panel docrations from the comonent parts.
 
     Container loginPanelDecor = Container(
       height: 650,
@@ -334,21 +378,26 @@ class SolidLogin extends StatelessWidget {
               ),
             ],
           ),
-          // TODO 20231228 gjw ADD THE LINK AND THE VERSION ALL WITHIN THE SAME
-          // PANEL.
+          // Leave alittle space before the link.
+          const SizedBox(
+            height: 20.0,
+          ),
           Align(
             alignment: Alignment.centerRight,
             child: linkTo,
           ),
-          versionDisplay,
-          const SizedBox(
-            height: 20.0,
+          // Expand to the bottom of the login panel.
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: versionDisplay,
+            ),
           ),
         ],
       ),
     );
 
-    // The login panel's offset depends on the screen size.
+    // The final login panel's offset depends on the screen size.
 
     // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN THE RATIONALE BEHIND THE LOGIC
     // HERE FOR THE PANEL WIDTH.
@@ -356,7 +405,7 @@ class SolidLogin extends StatelessWidget {
     double loginPanelInset =
         (isVeryNarrowScreen(context) || !isNarrowScreen(context)) ? 0.05 : 0.25;
 
-    // Create a widget for the actual login panel.
+    // Create the actual login panel around the deocrated login panel.
 
     Container loginPanel = Container(
       margin: EdgeInsets.symmetric(
@@ -364,7 +413,7 @@ class SolidLogin extends StatelessWidget {
       child: SingleChildScrollView(
         child: Card(
           elevation: 5,
-          color: loginPanelCardColour,
+          color: _defaultLoginPanelCardColour,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
@@ -372,7 +421,8 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // Now bring them all together to return within a Scaffold.
+    // Bring the two top level comonents together to build the final Scaffold as
+    // the return Widget for solidLogin.
 
     return Scaffold(
       // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea HERE.
