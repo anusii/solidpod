@@ -11,12 +11,25 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Solid is an open standard for a server hosting personal online data
+stores (PODs). Numerous providers of Solid Server hosting are emerging
+allowing users to host and migrate their PODs on any such 
+servers (or to run their own server. 
+
+This package supports high level access for apps to
+authenticate users and then to access the user's data from their
+PODs through Flutter Widgets. 
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
++ Standard widget to support authentication against a Solid server:
+
+<div align="center">
+	<img
+	src="https://github.com/anusii/solid/blob/main/images/solid_login.png"
+	alt="Solid Login" width="400">
+</div>
+
 
 ## Getting started
 
