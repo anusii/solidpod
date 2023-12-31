@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2023-12-31 18:59:00 +1100 Graham Williams>
+// Time-stamp: <Sunday 2023-12-31 20:03:46 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -102,13 +102,9 @@ bool isVeryNarrowScreen(BuildContext context) =>
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
-/// The login screen will be the intiial screen of the app when access to the
+/// The login screen will be the initial screen of the app when access to the
 /// user's POD is required for any of the functionality of the app requires
 /// access to the user's POD.
-///
-/// This widget currently does no more than to return the widget that is
-/// supplied as its argument. This is the starting point of its implementation.
-/// See https://github.com/anusii/solid/issues/1.
 
 class SolidLogin extends StatelessWidget {
   final Widget child;
