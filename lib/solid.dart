@@ -1,12 +1,12 @@
 /// Support for flutter apps accessing solid PODs.
-//
-// Time-stamp: <Thursday 2023-12-28 12:16:43 +1100 Graham Williams>
-//
-/// Copyright (C) 2024, Software Innovation Institute, ANU
 ///
-/// Licensed under the MIT License (the "License");
+// Time-stamp: <Sunday 2023-12-31 18:58:22 +1100 Graham Williams>
 ///
-/// License: https://choosealicense.com/licenses/mit/
+/// Copyright (C) 2024, Software Innovation Institute, ANU.
+///
+/// Licensed under the MIT License (the "License").
+///
+/// License: https://choosealicense.com/licenses/mit/.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
