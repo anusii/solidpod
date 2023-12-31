@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2023-12-31 20:03:46 +1100 Graham Williams>
+// Time-stamp: <Sunday 2023-12-31 20:37:52 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,6 +27,7 @@
 // SOFTWARE.
 ///
 /// Authors: Graham Williams
+library;
 
 import 'package:flutter/material.dart';
 
@@ -85,7 +86,7 @@ const _defaultWebID = 'https://pods.solidcommunity.au';
 
 // TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml.
 
-const _defaultVersion = "Version 0.0.0";
+const _defaultVersion = 'Version 0.0.0';
 
 // Screen size support funtions to identify narrow and very narrow screens.
 
@@ -107,16 +108,15 @@ bool isVeryNarrowScreen(BuildContext context) =>
 /// access to the user's POD.
 
 class SolidLogin extends StatelessWidget {
-  final Widget child;
-
   const SolidLogin({required this.child, super.key});
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     // The login box's default image Widget for the left/background panel
     // depending on screen width.
 
-    const BoxDecoration loginBoxDecor = BoxDecoration(
+    const loginBoxDecor = BoxDecoration(
       image: DecorationImage(
         image: _defaultImage,
         fit: BoxFit.cover,
@@ -131,7 +131,7 @@ class SolidLogin extends StatelessWidget {
     // A GET A POD button that when pressed will launch a browser to
     // the releveant link with instructions to get a POD.
 
-    TextButton getPodButton = TextButton(
+    final getPodButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
         backgroundColor: _defaultGetPodButtonBG,
@@ -164,7 +164,7 @@ class SolidLogin extends StatelessWidget {
     // themselves. On return from the authentication, if successful, the class
     // provided child widget is instantiated.
 
-    TextButton loginButton = TextButton(
+    final loginButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
         backgroundColor: _defaultLoginButtonBG,
@@ -178,7 +178,7 @@ class SolidLogin extends StatelessWidget {
       // parallel implmentation of the app's GUI.
 
       onPressed: () async {
-        Navigator.pushReplacement(
+        await Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => child,
@@ -290,10 +290,10 @@ class SolidLogin extends StatelessWidget {
     // An Information link that is conditionally displayed within the login
     // panel.
 
-    Widget linkTo = GestureDetector(
+    final Widget linkTo = GestureDetector(
       onTap: () => launchUrl(Uri.parse(_defaultLink)),
       child: Container(
-        margin: const EdgeInsets.only(left: 0, right: 20),
+        margin: const EdgeInsets.only(right: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -313,11 +313,11 @@ class SolidLogin extends StatelessWidget {
 
     // A version text that is conditionally displayed within the login panel.
 
-    const double smallTextContainerHeight = 20;
-    const double smallTextSize = 14.0;
+    const smallTextContainerHeight = 20.0;
+    const smallTextSize = 14.0;
     const stripTextColor = Color(0xFF757575);
 
-    Widget versionDisplay = Container(
+    final Widget versionDisplay = Container(
       decoration: const BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(15),
@@ -338,7 +338,7 @@ class SolidLogin extends StatelessWidget {
 
     // Build the login panel docrations from the comonent parts.
 
-    Container loginPanelDecor = Container(
+    final loginPanelDecor = Container(
       height: 650,
       padding: const EdgeInsets.all(30),
       child: Column(
@@ -411,12 +411,12 @@ class SolidLogin extends StatelessWidget {
     // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN THE RATIONALE BEHIND THE LOGIC
     // HERE FOR THE PANEL WIDTH.
 
-    double loginPanelInset =
+    final loginPanelInset =
         (isVeryNarrowScreen(context) || !isNarrowScreen(context)) ? 0.05 : 0.25;
 
     // Create the actual login panel around the deocrated login panel.
 
-    Container loginPanel = Container(
+    final loginPanel = Container(
       margin: EdgeInsets.symmetric(
           horizontal: loginPanelInset * screenWidth(context)),
       child: SingleChildScrollView(
@@ -430,18 +430,21 @@ class SolidLogin extends StatelessWidget {
       ),
     );
 
-    // Bring the two top level comonents together to build the final Scaffold as
-    // the return Widget for solidLogin.
+    // Bring the two top level components, [loginBoxDecor] and [loginPanel],
+    // together to build the final [Scaffold] as the return [Widget] for
+    // [solidLogin].
 
     return Scaffold(
       // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea HERE.
 
       body: SafeArea(
-        child: Container(
-          // The image is used as the background for a narrow screen or else it
-          // is the left panel.
+        child: DecoratedBox(
+          // The image specified as [loginBoxDecor] is used as the background
+          // for a narrow screen or else it is the left panel image as specified
+          // shortly, and we create an empty BoxDecoration here in that case.
 
-          decoration: isNarrowScreen(context) ? loginBoxDecor : null,
+          decoration:
+              isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
           child: Row(
             children: [
               isNarrowScreen(context)
