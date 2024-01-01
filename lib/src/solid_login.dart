@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-01-01 11:40:21 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-01 15:57:15 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -68,7 +68,7 @@ const _defaultLoginPanelCardColour = Color(0xFFF2F4FC);
 
 /// The default login button background colour.
 
-const _defaultGetPodButtonBG = Color(0xFF9152CE);
+const _defaultGetPodButtonBG = Colors.orange;
 
 /// The default login button text colour.
 
@@ -76,7 +76,7 @@ const _defaultGetPodButtonFG = Color(0xFF50084D);
 
 /// The default login button background colour.
 
-const _defaultLoginButtonBG = Color.fromARGB(255, 120, 219, 137);
+const _defaultLoginButtonBG = Colors.teal;
 
 // The default URI for the SOlid server that is suggested for the app.
 
@@ -114,18 +114,51 @@ class SolidLogin extends StatelessWidget {
     this.image = _defaultImage,
     this.logo = _defaultLogo,
     this.title = _defaultTitle,
+    this.webID = _defaultWebID,
     this.link = _defaultLink,
     this.getpodBG = _defaultGetPodButtonBG,
     this.loginBG = _defaultLoginButtonBG,
+    this.version = _defaultVersion,
     super.key,
   });
 
+  /// The app's welcome image used on the left or background.
+  ///
+  /// For a desktop dimensions the image is displayed to the left on the login
+  /// screen, and for mobile dimensions it is the background
+
   final AssetImage image;
+
+  /// The app's logo as displayed in the login panel.
+
   final AssetImage logo;
+
+  /// The login title text indicating what we are loging in to.
+
   final String title;
+
+  /// Override the default webID.
+
+  final String webID;
+
+  /// A URL as the value of the Visit link.
+
   final String link;
+
+  /// The background colour of the GET POD button.
+
   final Color getpodBG;
+
+  /// The background colour of the LOGIN button.
+
   final Color loginBG;
+
+  /// The default version string can be overidden.
+
+  final String version;
+
+  /// The widget to hand over to once authentication is complete.
+
   final Widget child;
 
   @override
@@ -143,7 +176,7 @@ class SolidLogin extends StatelessWidget {
     // Text controller for the URI of the solid server to which an authenticate
     // request is sent.
 
-    final webIdController = TextEditingController()..text = _defaultWebID;
+    final webIdController = TextEditingController()..text = webID;
 
     // A GET A POD button that when pressed will launch a browser to
     // the releveant link with instructions to get a POD.
@@ -163,8 +196,8 @@ class SolidLogin extends StatelessWidget {
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
       // REQUIREMENT FOR THAT TOO?
 
-      onPressed: () => launchUrl(
-          Uri.parse('$_defaultWebID/.account/login/password/register/')),
+      onPressed: () =>
+          launchUrl(Uri.parse('$webID/.account/login/password/register/')),
 
       child: const Text(
         'GET A POD',
@@ -207,7 +240,29 @@ class SolidLogin extends StatelessWidget {
       //
       // TODO 20231228 gjw THE FOLLOWING SHOULD BE IN A SEPARATE FUNCTION. IT
       // USES FUNCTIONALITY FROM solid-auth THAT SHOULD BE RE_WRITTEN HERE IN
-      // solid WITH INSIGHT AND EXPLANATION SO OTHERS CAN UNDERSTAND IT.
+      // solid WITH INSIGHT AND EXPLANATION SO OTHERS CAN UNDERSTAND IT. THE
+      // MODULAR IMPLEMENTATION WILL CALL solidAuthenticate() WHICH IS A bool
+      // AND IS True IF AUTHENTICATION SUCCEEDED AND False IF FAILED. IF
+      // SUCCEEDED IT NEES TO RECORD THE AUTHTICATION INFORMATION SOMEWHERE FOR
+      // THE APP TO ACCESS IN FUTURE READ AND WRITE. THE SCHEMA IS LIKE:
+      //
+      // onPressed: () async {
+      //   if (solidAuthenticate(...)) {
+      //     // Authentication (and any initial setup) has succeeded so proceed to
+      //     // the app page.
+      //     await Navigator.pushReplacement(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => child,
+      //       ),
+      //     );
+      //   } else {
+      //     // Authentication has failed so popup a message and return to the
+      //     // SolidLogin page.
+      //   }
+      //
+      // THE ORIGINAL IMPLEMENTATION WAS AS BELOW WITH MOST OF THIS GOING INTO
+      // solidAuthenticate NOW.
       //
       // onPressed: () async {
       //   showAnimationDialog(
@@ -216,40 +271,40 @@ class SolidLogin extends StatelessWidget {
       //     'Logging in...',
       //     false,
       //   );
-
+      //
       //   // Get issuer URI.
-
+      //
       //   String issuerUri = await getIssuer(webIdTextController.text);
-
+      //
       //   // Define scopes. Also possible scopes -> webid, email, api.
-
+      //
       //   final List<String> scopes = <String>[
       //     'openid',
       //     'profile',
       //     'offline_access',
       //   ];
-
+      //
       //   // Authentication process for the POD issuer.
-
+      //
       //   var authData =
       //       await authenticate(Uri.parse(issuerUri), scopes, context);
-
+      //
       //   // Decode access token to get the correct webId.
-
+      //
       //   String accessToken = authData['accessToken'];
       //   Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
       //   String webId = decodedToken['webid'];
-
+      //
       //   // Perform check to see whether all required resources exists.
-
+      //
       //   List resCheckList = await initialStructureTest(authData);
       //   bool allExists = resCheckList.first;
-
+      //
       //   if (allExists) {
       //     imageCache.clear();
-
+      //
       //     // Get profile information.
-
+      //
       //     var rsaInfo = authData['rsaInfo'];
       //     var rsaKeyPair = rsaInfo['rsa'];
       //     var publicKeyJwk = rsaInfo['pubKeyJwk'];
@@ -257,22 +312,22 @@ class SolidLogin extends StatelessWidget {
       //     String profCardUrl = webId.replaceAll('#me', '');
       //     String dPopToken =
       //         genDpopToken(profCardUrl, rsaKeyPair, publicKeyJwk, 'GET');
-
+      //
       //     String profData =
       //         await fetchPrvFile(profCardUrl, accessToken, dPopToken);
-
+      //
       //     Map profInfo = getFileContent(profData);
       //     authData['name'] = profInfo['fn'][1];
-
+      //
       //     // Check if master key is set in the local storage.
-
+      //
       //     bool isKeyExist = await secureStorage.containsKey(
       //       key: webId,
       //     );
       //     authData['keyExist'] = isKeyExist;
-
+      //
       //     // Navigate to the profile through main screen.
-
+      //
       //     Navigator.pushReplacement(
       //       context,
       //       MaterialPageRoute(
@@ -293,6 +348,7 @@ class SolidLogin extends StatelessWidget {
       //     );
       //   }
       // },
+
       child: const Text(
         'LOGIN',
         style: TextStyle(
@@ -343,10 +399,10 @@ class SolidLogin extends StatelessWidget {
         ),
       ),
       height: smallTextContainerHeight,
-      child: const Center(
+      child: Center(
         child: SelectableText(
-          _defaultVersion,
-          style: TextStyle(
+          version,
+          style: const TextStyle(
             color: stripTextColor,
             fontSize: smallTextSize,
           ),
