@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2023-12-31 20:37:52 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-01 11:40:21 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -54,13 +54,13 @@ const _defaultLogo = AssetImage(
   package: 'solid',
 );
 
-// The Visit link for the app.
-
-const _defaultLink = 'https://solidproject.org';
-
-// The default message to be displayed within the login panel.
+/// The default message to be displayed within the login panel.
 
 const _defaultTitle = 'LOGIN WITH YOUR POD';
+
+/// The Visit link for the app.
+
+const _defaultLink = 'https://solidproject.org';
 
 /// The default login panale card background colour.
 
@@ -84,7 +84,8 @@ const _defaultWebID = 'https://pods.solidcommunity.au';
 
 // The package version string.
 
-// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml.
+// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
+// THE APP'S VERSION NOT THE SOLID PACKAGE'S VERSION.
 
 const _defaultVersion = 'Version 0.0.0';
 
@@ -108,7 +109,23 @@ bool isVeryNarrowScreen(BuildContext context) =>
 /// access to the user's POD.
 
 class SolidLogin extends StatelessWidget {
-  const SolidLogin({required this.child, super.key});
+  const SolidLogin({
+    required this.child,
+    this.image = _defaultImage,
+    this.logo = _defaultLogo,
+    this.title = _defaultTitle,
+    this.link = _defaultLink,
+    this.getpodBG = _defaultGetPodButtonBG,
+    this.loginBG = _defaultLoginButtonBG,
+    super.key,
+  });
+
+  final AssetImage image;
+  final AssetImage logo;
+  final String title;
+  final String link;
+  final Color getpodBG;
+  final Color loginBG;
   final Widget child;
 
   @override
@@ -116,9 +133,9 @@ class SolidLogin extends StatelessWidget {
     // The login box's default image Widget for the left/background panel
     // depending on screen width.
 
-    const loginBoxDecor = BoxDecoration(
+    final loginBoxDecor = BoxDecoration(
       image: DecorationImage(
-        image: _defaultImage,
+        image: image,
         fit: BoxFit.cover,
       ),
     );
@@ -134,16 +151,17 @@ class SolidLogin extends StatelessWidget {
     final getPodButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        backgroundColor: _defaultGetPodButtonBG,
+        backgroundColor: getpodBG,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
       ),
 
-      // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT REGISTER
-      // ADDRESS WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED TO BE
-      // OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. USE getIssuer()
-      // FROM solid-auth PERHAPS WITH lauchIssuerReg()?
+      // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
+      // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
+      // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
+      // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
+      // REQUIREMENT FOR THAT TOO?
 
       onPressed: () => launchUrl(
           Uri.parse('$_defaultWebID/.account/login/password/register/')),
@@ -167,7 +185,7 @@ class SolidLogin extends StatelessWidget {
     final loginButton = TextButton(
       style: TextButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        backgroundColor: _defaultLoginButtonBG,
+        backgroundColor: loginBG,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
@@ -189,7 +207,7 @@ class SolidLogin extends StatelessWidget {
       //
       // TODO 20231228 gjw THE FOLLOWING SHOULD BE IN A SEPARATE FUNCTION. IT
       // USES FUNCTIONALITY FROM solid-auth THAT SHOULD BE RE_WRITTEN HERE IN
-      // solid.
+      // solid WITH INSIGHT AND EXPLANATION SO OTHERS CAN UNDERSTAND IT.
       //
       // onPressed: () async {
       //   showAnimationDialog(
@@ -290,26 +308,26 @@ class SolidLogin extends StatelessWidget {
     // An Information link that is conditionally displayed within the login
     // panel.
 
-    final Widget linkTo = GestureDetector(
-      onTap: () => launchUrl(Uri.parse(_defaultLink)),
-      child: Container(
-        margin: const EdgeInsets.only(right: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Text('Visit '),
-            SelectableText(
-              _defaultLink,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  fontSize: screenWidth(context) > 400 ? 15 : 13,
-                  color: Colors.blue,
-                  decoration: TextDecoration.underline),
+    Widget linkTo(String link) => GestureDetector(
+          onTap: () => launchUrl(Uri.parse(link)),
+          child: Container(
+            margin: const EdgeInsets.only(right: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Visit '),
+                SelectableText(
+                  link,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      fontSize: screenWidth(context) > 400 ? 15 : 13,
+                      color: Colors.blue,
+                      decoration: TextDecoration.underline),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
 
     // A version text that is conditionally displayed within the login panel.
 
@@ -343,8 +361,8 @@ class SolidLogin extends StatelessWidget {
       padding: const EdgeInsets.all(30),
       child: Column(
         children: [
-          const Image(
-            image: _defaultLogo,
+          Image(
+            image: logo,
             width: 200,
           ),
           const SizedBox(
@@ -354,9 +372,9 @@ class SolidLogin extends StatelessWidget {
           const SizedBox(
             height: 50.0,
           ),
-          const Text(_defaultTitle,
+          Text(title,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
                 color: Colors.black,
@@ -393,7 +411,7 @@ class SolidLogin extends StatelessWidget {
           ),
           Align(
             alignment: Alignment.centerRight,
-            child: linkTo,
+            child: linkTo(link),
           ),
           // Expand to the bottom of the login panel.
           Expanded(
@@ -435,7 +453,8 @@ class SolidLogin extends StatelessWidget {
     // [solidLogin].
 
     return Scaffold(
-      // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea HERE.
+      // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea
+      // HERE. WHAT MOTIVATED ITS USE?
 
       body: SafeArea(
         child: DecoratedBox(
