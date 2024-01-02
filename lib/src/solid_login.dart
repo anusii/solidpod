@@ -30,7 +30,11 @@
 library;
 
 import 'package:flutter/material.dart';
-
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:solid/src/constants/login.dart';
+import 'package:solid/src/login/widgets/loading_animation.dart';
+import 'package:solid/src/screens/home_screen.dart';
+import 'package:solid_auth/solid_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // The following are the constant default values, mostly for the parameters for
@@ -226,13 +230,53 @@ class SolidLogin extends StatelessWidget {
 
       // For now 20231230 simply go to the provided child widget on tap of the
       // LOGIN button until the authentication is implemented. This will allow
-      // parallel implmentation of the app's GUI.
+      // parallel implementation of the app's GUI.
 
       onPressed: () async {
+        showAnimationDialog(
+          context,
+          7,
+          'Logging in...',
+          false,
+        );
+
+        // Get issuer URI.
+
+        final issuerUri = await getIssuer(webID);
+
+        // Authentication process for the POD issuer.
+
+        final authData =
+            await authenticate(Uri.parse(issuerUri), scopes, context);
+
+        // Decode access token to get the correct webId.
+
+        final accessToken = authData['accessToken'].toString();
+        final Map<String, dynamic> decodedToken =
+            JwtDecoder.decode(accessToken);
+        String webId = decodedToken['webid'].toString();
+
+        // var rsaInfo = authData['rsaInfo'];
+        // var rsaKeyPair = rsaInfo['rsa'];
+        // var publicKeyJwk = rsaInfo['pubKeyJwk'];
+        // String profCardUrl = webId.replaceAll('#me', '');
+        // String dPopToken = genDpopToken(
+        //     profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+
+        // String profData =
+        //     await fetchPrvFile(profCardUrl, accessToken, dPopToken);
+
+        // final profInfo = getFileContent(profData);
+        // authData['name'] = profInfo['fn'][1];
+
         await Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => child,
+            builder: (context) => Scaffold(
+                body: HomeScreen(
+              webId: webId,
+              authData: authData,
+            )),
           ),
         );
       },
