@@ -31,7 +31,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-Future<dynamic> updateFileDialog(BuildContext context, String content) {
+Future<dynamic> popupWarning(BuildContext context, String content) {
   return showDialog(
     context: context,
     builder: (context) {
