@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-01-01 15:57:15 +1100 Graham Williams>
+// Time-stamp: <Wednesday 2024-01-03 16:04:45 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -229,6 +229,12 @@ class SolidLogin extends StatelessWidget {
       // For now 20231230 simply go to the provided child widget on tap of the
       // LOGIN button until the authentication is implemented. This will allow
       // parallel implementation of the app's GUI.
+
+      // TODO 20240103 gjw A `flutter analyze` FLAGS THE FOLLOWING
+      // showAnimationDialog AS `unawaited_futures` AND THE AUTOMATIC FIX
+      // INSERTS AN `await` BUT THEN THE AUTHENTICATION DOES NOT
+      // WORK. UNDERSTAND WHAT IS GOING ON HERE AND EXPLAIN AND THEN, AND ONLY
+      // THEN, IF THIS IS THE BEST IMPLEMENTATION, ADD AN IGNORE.
 
       onPressed: () async {
         showAnimationDialog(
