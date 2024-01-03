@@ -298,15 +298,20 @@ class SolidLogin extends StatelessWidget {
     // An Information link that is conditionally displayed within the login
     // panel.
 
-    Widget linkTo(String link) => GestureDetector(
-          onTap: () => launchUrl(Uri.parse(link)),
-          child: Container(
-            margin: const EdgeInsets.only(right: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text('Visit '),
-                SelectableText(
+    Widget linkTo(String link) => Container(
+          margin: const EdgeInsets.only(right: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Text('Visit '),
+
+              // Listener is a lower-level widget for handling pointer events,
+              // which allows the SelectableText to remain selectable while also
+              // responding to taps to launch the URL.
+
+              Listener(
+                onPointerUp: (_) => launchUrl(Uri.parse(link)),
+                child: SelectableText(
                   link,
                   textAlign: TextAlign.right,
                   style: TextStyle(
@@ -314,8 +319,8 @@ class SolidLogin extends StatelessWidget {
                       color: Colors.blue,
                       decoration: TextDecoration.underline),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
 
