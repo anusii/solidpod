@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Wednesday 2024-01-03 16:04:45 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 07:08:41 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -176,12 +176,16 @@ class SolidLogin extends StatelessWidget {
     );
 
     // Text controller for the URI of the solid server to which an authenticate
-    // request is sent.
+    // request is sent. Its default value is the [webID] which has a default
+    // value or else overridden by the call to the widget.
 
     final webIdController = TextEditingController()..text = webID;
 
-    // A GET A POD button that when pressed will launch a browser to
-    // the releveant link with instructions to get a POD.
+    // The GET A POD button that when pressed will launch a browser to the
+    // releveant link from where a user can register for a POD on the Solid
+    // server. The default location is relative to the [webID], and is currently
+    // a fixed path but needs to be obtained from the server meta data, as was
+    // done in solid_auth through [getIssuer].
 
     final getPodButton = TextButton(
       style: TextButton.styleFrom(
@@ -225,43 +229,17 @@ class SolidLogin extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-
-      // For now 20231230 simply go to the provided child widget on tap of the
-      // LOGIN button until the authentication is implemented. This will allow
-      // parallel implementation of the app's GUI.
-
-      // TODO 20240103 gjw A `flutter analyze` FLAGS THE FOLLOWING
-      // showAnimationDialog AS `unawaited_futures` AND THE AUTOMATIC FIX
-      // INSERTS AN `await` BUT THEN THE AUTHENTICATION DOES NOT
-      // WORK. UNDERSTAND WHAT IS GOING ON HERE AND EXPLAIN AND THEN, AND ONLY
-      // THEN, IF THIS IS THE BEST IMPLEMENTATION, ADD AN IGNORE.
-      // Solve by wrapping showAnimationDialog with a method showAnimationProcess().
-
       onPressed: () async {
-        // Method of navigating to child widget that requires BuildContext.
-        // To address the issue of not using BuildContext across asynchronous
-        // gaps without referencing the BuildContext after the async gap.
+        // Authenticate against the Solid server.
 
-        void navigateToAppPage() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => child),
-          );
-        }
+        // Method to show busy animation requiring BuildContext.
+        //
+        // This approach of creating a local method will address the `flutter
+        // analyze` issue `use_build_context_synchronously`, identifying the use
+        // of a BuildContext across asynchronous gaps, without referencing the
+        // BuildContext after the async gap.
 
-        // Method of showing auth failing popup window that requires BuildContext.
-        // To address the issue of not using BuildContext across asynchronous
-        // gaps without referencing the BuildContext after the async gap.
-
-        void showAuthFailedPopup() {
-          popupWarning(context, 'Authentication has failed!');
-        }
-
-        // Method of showing animation process that requires BuildContext.
-        // To address the issue of not using BuildContext across asynchronous
-        // gaps without referencing the BuildContext after the async gap.
-
-        void showAnimationProcess() {
+        void showBusyAnimation() {
           showAnimationDialog(
             context,
             7,
@@ -270,19 +248,33 @@ class SolidLogin extends StatelessWidget {
           );
         }
 
-        showAnimationProcess();
+        showBusyAnimation();
 
         final authResult = await solidAuthenticate(webID, context);
 
+        // Method to navigate to a child widget requiring BuildContext.
+
+        void navigateToApp() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => child),
+          );
+        }
+
+        // Method to show show auth faileding popup requiring BuildContext.
+
+        void showAuthFailedPopup() {
+          popupWarning(context, 'Authentication has failed!');
+        }
+
         if (authResult != null) {
           // Call the action that needs BuildContext
-          navigateToAppPage();
+          navigateToApp();
         } else {
           // Call the action that needs BuildContext
           showAuthFailedPopup();
         }
       },
-
       child: const Text(
         'LOGIN',
         style: TextStyle(
