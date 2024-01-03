@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-04 10:42:58 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 10:48:09 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -44,7 +44,7 @@ import 'package:solid/src/widgets/show_animation_dialog.dart';
 // THE APP'S VERSION NOT THE SOLID PACKAGE'S
 // VERSION. https://github.com/anusii/solid/issues/18
 
-const _defaultVersion = 'Version 0.0.0';
+const appVersion = 'Version 0.0.0';
 
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -64,8 +64,8 @@ bool isVeryNarrowScreen(BuildContext context) =>
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
 /// The login screen will be the initial screen of the app when access to the
-/// user's POD is required for any of the functionality of the app requires
-/// access to the user's POD.
+/// user's POD is required when the app requires access to the user's POD for
+/// any of its functionality.
 
 class SolidLogin extends StatelessWidget {
   const SolidLogin({
@@ -85,7 +85,7 @@ class SolidLogin extends StatelessWidget {
     this.getpodBG = Colors.orange,
     this.loginFG = Colors.white,
     this.loginBG = Colors.teal,
-    this.version = _defaultVersion,
+    this.version = appVersion,
     super.key,
   });
 
@@ -135,7 +135,7 @@ class SolidLogin extends StatelessWidget {
 
   final Color loginBG;
 
-  /// The default version string can be overidden.
+  /// The version of the app..
 
   final String version;
 
