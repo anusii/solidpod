@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-04 10:33:33 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 10:42:58 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -167,12 +167,18 @@ class SolidLogin extends StatelessWidget {
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
+    const buttonLetterSpacing = 2.0;
+    const buttonFontSize = 15.0;
+    const buttonFontWeight = FontWeight.bold;
+    const buttonPadding = EdgeInsets.all(20);
+    final buttonBorderRadius = BorderRadius.circular(10);
+
     final getPodButton = TextButton(
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.all(20),
+        padding: buttonPadding,
         backgroundColor: getpodBG,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: buttonBorderRadius,
         ),
       ),
 
@@ -189,9 +195,9 @@ class SolidLogin extends StatelessWidget {
         'GET A POD',
         style: TextStyle(
           color: getpodFG,
-          letterSpacing: 2.0,
-          fontSize: 15.0,
-          fontWeight: FontWeight.bold,
+          letterSpacing: buttonLetterSpacing,
+          fontSize: buttonFontSize,
+          fontWeight: buttonFontWeight,
         ),
       ),
     );
@@ -203,10 +209,10 @@ class SolidLogin extends StatelessWidget {
 
     final loginButton = TextButton(
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.all(20),
+        padding: buttonPadding,
         backgroundColor: loginBG,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: buttonBorderRadius,
         ),
       ),
       onPressed: () async {
@@ -264,9 +270,9 @@ class SolidLogin extends StatelessWidget {
         'LOGIN',
         style: TextStyle(
           color: loginFG,
-          letterSpacing: 2.0,
-          fontSize: 15.0,
-          fontWeight: FontWeight.bold,
+          letterSpacing: buttonLetterSpacing,
+          fontSize: buttonFontSize,
+          fontWeight: buttonFontWeight,
           // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
           // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
           // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
