@@ -42,6 +42,8 @@ const _lightBlue = Color(0xFF61B2CE);
 const _darkCopper = Color(0xFFBE4E0E);
 const _titleAsh = Color(0xFF30384D);
 
+/// The list contains a series of custom color variables.
+
 List<Color> _defaultPodColors = const [
   _darkBlue,
   _darkGreen,
@@ -49,6 +51,14 @@ List<Color> _defaultPodColors = const [
   _titleAsh,
   _lightBlue,
 ];
+
+/// An asynchronous utility designed to display a custom animation dialog.
+/// [context] locates the widget in the widget tree and display the dialog accordingly.
+/// [animationIndex] determines the type of animation. 
+/// This index is used to select from a predefined list of animations (Indicator.values).
+/// [alertMsg] is the message text displayed within the dialog. 
+/// [showPathBackground] is a boolean flag to decide whether to show a background for 
+/// the animation path or not.
 
 Future<void> showAnimationDialog(
   BuildContext context,

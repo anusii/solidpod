@@ -31,6 +31,11 @@ library;
 
 import 'package:flutter/material.dart';
 
+/// An asynchronous function used to display a warning dialog.
+/// The [BuildContext] is necessary for rendering the dialog within
+/// the widget tree, while the String parameter [content] allows
+/// for custom text to be displayed within the dialog.
+
 Future<dynamic> popupWarning(BuildContext context, String content) {
   return showDialog(
     context: context,

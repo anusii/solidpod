@@ -43,6 +43,18 @@ final List<String> _scopes = <String>[
   'offline_access',
 ];
 
+/// An asynchronous function designed to authenticate a user
+/// against a Solid server.
+/// [serverId] is an issuer URI and is essential for the
+/// authentication process with the POD (Personal Online Datastore) issuer.
+/// [context] is used in the authenticate method. 
+/// The authentication process requires the context of the current widget.
+/// 
+/// The function returns a list containing authentication data, the user's webId,
+/// and their profile data.
+/// Error Handling: The function has a broad error handling mechanism (on ()), which returns null
+/// if any exception occurs during the authentication process.
+
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
   try {
