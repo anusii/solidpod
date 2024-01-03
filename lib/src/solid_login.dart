@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-04 07:26:15 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 07:50:48 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -39,7 +39,7 @@ import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
 
 // The following are the constant default values, mostly for the parameters for
-// the SolidLogin class. These defaults can be overriden by a user to tune to
+// the [SolidLogin] class. These defaults can be overriden by a user to tune to
 // their own liking and style.
 
 /// The default image to be displayed as the left panel or else the background
@@ -50,8 +50,8 @@ const _defaultImage = AssetImage(
   package: 'solid',
 );
 
-// The default logo to be displayed at the top of the login panel on the right
-// of the screen or centered for narrow screens.
+// The default logo to be displayed at the top of the login panel. The login
+// panel is on the right of the screen or centered for narrow screens.
 
 const _defaultLogo = AssetImage(
   //'assets/images/default_logo.png',
@@ -90,7 +90,8 @@ const _defaultWebID = 'https://pods.solidcommunity.au';
 // The package version string.
 
 // TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
-// THE APP'S VERSION NOT THE SOLID PACKAGE'S VERSION.
+// THE APP'S VERSION NOT THE SOLID PACKAGE'S
+// VERSION. https://github.com/anusii/solid/issues/18
 
 const _defaultVersion = 'Version 0.0.0';
 
@@ -203,7 +204,7 @@ class SolidLogin extends StatelessWidget {
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO?
+      // REQUIREMENT FOR THAT TOO? https://github.com/anusii/solid/issues/25.
 
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
@@ -258,7 +259,7 @@ class SolidLogin extends StatelessWidget {
 
         final authResult = await solidAuthenticate(webID, context);
 
-        // Method to navigate to a child widget requiring BuildContext.
+        // Method to navigate to the child widget, requiring BuildContext.
 
         void navigateToApp() {
           Navigator.pushReplacement(
@@ -267,17 +268,19 @@ class SolidLogin extends StatelessWidget {
           );
         }
 
-        // Method to show auth failed popup requiring BuildContext.
+        // Method to show auth failed popup, requiring BuildContext.
 
         void showAuthFailedPopup() {
           popupWarning(context, 'Authentication has failed!');
         }
 
+        // Check that the authentication succeeded, and if so navigate to the
+        // app itself. If it failed then notify the user and stay on the
+        // SolidLogin page.
+
         if (authResult != null) {
-          // Call the action that needs BuildContext
           navigateToApp();
         } else {
-          // Call the action that needs BuildContext
           showAuthFailedPopup();
         }
       },
@@ -288,6 +291,9 @@ class SolidLogin extends StatelessWidget {
           letterSpacing: 2.0,
           fontSize: 15.0,
           fontWeight: FontWeight.bold,
+          // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
+          // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
+          // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
           fontFamily: 'Poppins',
         ),
       ),
