@@ -38,7 +38,7 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
   g.parseTurtle(fileInfo);
   final fileContentMap = {};
   final fileContentList = [];
-  for (Triple t in g.triples.cast<Triple>()) {
+  for (final t in g.triples.cast<Triple>()) {
     /**
      * Use
      *  - t.sub -> Subject
