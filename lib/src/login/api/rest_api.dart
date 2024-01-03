@@ -1,4 +1,4 @@
-/// Functions with restful APIs. 
+/// Functions with restful APIs.
 ///
 // Time-stamp: <Tuesday 2024-01-02 15:57:15 +1100 Zheyuan Xu>
 ///
