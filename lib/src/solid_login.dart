@@ -31,8 +31,8 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:solid/src/login/solid_authenticate.dart';
-import 'package:solid/src/login/widgets/show_animation_dialog.dart';
 import 'package:solid/src/login/widgets/popup_warning.dart';
+import 'package:solid/src/login/widgets/show_animation_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // The following are the constant default values, mostly for the parameters for
@@ -237,29 +237,48 @@ class SolidLogin extends StatelessWidget {
       // THEN, IF THIS IS THE BEST IMPLEMENTATION, ADD AN IGNORE.
 
       onPressed: () async {
-        showAnimationDialog(
-          context,
-          7,
-          'Logging in...',
-          false,
-        );
+        // Method of navigating to child widget that requires BuildContext.
+        // To address the issue of not using BuildContext across asynchronous
+        // gaps without referencing the BuildContext after the async gap.
+
+        void navigateToAppPage() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => child),
+          );
+        }
+
+        // Method of showing auth failing popup window that requires BuildContext.
+        // To address the issue of not using BuildContext across asynchronous
+        // gaps without referencing the BuildContext after the async gap.
+
+        void showAuthFailedPopup() {
+          popupWarning(context, 'Authentication has failed!');
+        }
+
+        // Method of showing animation process that requires BuildContext.
+        // To address the issue of not using BuildContext across asynchronous
+        // gaps without referencing the BuildContext after the async gap.
+
+        void showAnimationProcess() {
+          showAnimationDialog(
+            context,
+            7,
+            'Logging in...',
+            false,
+          );
+        }
+
+        showAnimationProcess();
 
         final authResult = await solidAuthenticate(webID, context);
 
         if (authResult != null) {
-          // Authentication (and any initial setup) has succeeded so proceed to
-          // the app page.
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => child,
-            ),
-          );
+          // Call the action that needs BuildContext
+          navigateToAppPage();
         } else {
-          // Authentication has failed so popup a message and return to the
-          // SolidLogin page.
-
-          await popupWarning(context, 'Authentication has failed!');
+          // Call the action that needs BuildContext
+          showAuthFailedPopup();
         }
       },
 
