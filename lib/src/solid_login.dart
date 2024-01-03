@@ -31,7 +31,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:solid/src/login/solid_authenticate.dart';
-import 'package:solid/src/login/widgets/loading_animation.dart';
+import 'package:solid/src/login/widgets/show_animation_dialog.dart';
 import 'package:solid/src/login/widgets/popup_warning.dart';
 import 'package:url_launcher/url_launcher.dart';
 
