@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Wednesday 2024-01-03 16:04:45 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 07:50:48 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,17 +26,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Graham Williams, Zheyuan Xu
+
 library;
 
 import 'package:flutter/material.dart';
-import 'package:solid/src/login/solid_authenticate.dart';
-import 'package:solid/src/login/widgets/popup_warning.dart';
-import 'package:solid/src/login/widgets/show_animation_dialog.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:solid/src/login/solid_authenticate.dart';
+import 'package:solid/src/widgets/popup_warning.dart';
+import 'package:solid/src/widgets/show_animation_dialog.dart';
+
 // The following are the constant default values, mostly for the parameters for
-// the SolidLogin class. These defaults can be overriden by a user to tune to
+// the [SolidLogin] class. These defaults can be overriden by a user to tune to
 // their own liking and style.
 
 /// The default image to be displayed as the left panel or else the background
@@ -47,8 +50,8 @@ const _defaultImage = AssetImage(
   package: 'solid',
 );
 
-// The default logo to be displayed at the top of the login panel on the right
-// of the screen or centered for narrow screens.
+// The default logo to be displayed at the top of the login panel. The login
+// panel is on the right of the screen or centered for narrow screens.
 
 const _defaultLogo = AssetImage(
   //'assets/images/default_logo.png',
@@ -87,7 +90,8 @@ const _defaultWebID = 'https://pods.solidcommunity.au';
 // The package version string.
 
 // TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
-// THE APP'S VERSION NOT THE SOLID PACKAGE'S VERSION.
+// THE APP'S VERSION NOT THE SOLID PACKAGE'S
+// VERSION. https://github.com/anusii/solid/issues/18
 
 const _defaultVersion = 'Version 0.0.0';
 
@@ -176,12 +180,16 @@ class SolidLogin extends StatelessWidget {
     );
 
     // Text controller for the URI of the solid server to which an authenticate
-    // request is sent.
+    // request is sent. Its default value is the [webID] which has a default
+    // value or else overridden by the call to the widget.
 
     final webIdController = TextEditingController()..text = webID;
 
-    // A GET A POD button that when pressed will launch a browser to
-    // the releveant link with instructions to get a POD.
+    // The GET A POD button that when pressed will launch a browser to the
+    // releveant link from where a user can register for a POD on the Solid
+    // server. The default location is relative to the [webID], and is currently
+    // a fixed path but needs to be obtained from the server meta data, as was
+    // done in solid_auth through [getIssuer].
 
     final getPodButton = TextButton(
       style: TextButton.styleFrom(
@@ -196,7 +204,7 @@ class SolidLogin extends StatelessWidget {
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO?
+      // REQUIREMENT FOR THAT TOO? https://github.com/anusii/solid/issues/25.
 
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
@@ -225,43 +233,17 @@ class SolidLogin extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-
-      // For now 20231230 simply go to the provided child widget on tap of the
-      // LOGIN button until the authentication is implemented. This will allow
-      // parallel implementation of the app's GUI.
-
-      // TODO 20240103 gjw A `flutter analyze` FLAGS THE FOLLOWING
-      // showAnimationDialog AS `unawaited_futures` AND THE AUTOMATIC FIX
-      // INSERTS AN `await` BUT THEN THE AUTHENTICATION DOES NOT
-      // WORK. UNDERSTAND WHAT IS GOING ON HERE AND EXPLAIN AND THEN, AND ONLY
-      // THEN, IF THIS IS THE BEST IMPLEMENTATION, ADD AN IGNORE.
-      // Solve by wrapping showAnimationDialog with a method showAnimationProcess().
-
       onPressed: () async {
-        // Method of navigating to child widget that requires BuildContext.
-        // To address the issue of not using BuildContext across asynchronous
-        // gaps without referencing the BuildContext after the async gap.
+        // Authenticate against the Solid server.
 
-        void navigateToAppPage() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => child),
-          );
-        }
+        // Method to show busy animation requiring BuildContext.
+        //
+        // This approach of creating a local method will address the `flutter
+        // analyze` issue `use_build_context_synchronously`, identifying the use
+        // of a BuildContext across asynchronous gaps, without referencing the
+        // BuildContext after the async gap.
 
-        // Method of showing auth failing popup window that requires BuildContext.
-        // To address the issue of not using BuildContext across asynchronous
-        // gaps without referencing the BuildContext after the async gap.
-
-        void showAuthFailedPopup() {
-          popupWarning(context, 'Authentication has failed!');
-        }
-
-        // Method of showing animation process that requires BuildContext.
-        // To address the issue of not using BuildContext across asynchronous
-        // gaps without referencing the BuildContext after the async gap.
-
-        void showAnimationProcess() {
+        void showBusyAnimation() {
           showAnimationDialog(
             context,
             7,
@@ -270,19 +252,38 @@ class SolidLogin extends StatelessWidget {
           );
         }
 
-        showAnimationProcess();
+        showBusyAnimation();
+
+        // Perform the actual authentication by contacting the server at
+        // [WebID].
 
         final authResult = await solidAuthenticate(webID, context);
 
+        // Method to navigate to the child widget, requiring BuildContext.
+
+        void navigateToApp() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => child),
+          );
+        }
+
+        // Method to show auth failed popup, requiring BuildContext.
+
+        void showAuthFailedPopup() {
+          popupWarning(context, 'Authentication has failed!');
+        }
+
+        // Check that the authentication succeeded, and if so navigate to the
+        // app itself. If it failed then notify the user and stay on the
+        // SolidLogin page.
+
         if (authResult != null) {
-          // Call the action that needs BuildContext
-          navigateToAppPage();
+          navigateToApp();
         } else {
-          // Call the action that needs BuildContext
           showAuthFailedPopup();
         }
       },
-
       child: const Text(
         'LOGIN',
         style: TextStyle(
@@ -290,6 +291,9 @@ class SolidLogin extends StatelessWidget {
           letterSpacing: 2.0,
           fontSize: 15.0,
           fontWeight: FontWeight.bold,
+          // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
+          // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
+          // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
           fontFamily: 'Poppins',
         ),
       ),
