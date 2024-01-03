@@ -1,6 +1,6 @@
 /// Solid authenticate function, return null if authenticate function fails.
 ///
-// Time-stamp: <Tuesday 2024-01-03 10:57:15 +1100 Zheyuan Xu>
+// Time-stamp: <Wednesday 2024-01-03 10:57:15 +1100 Zheyuan Xu>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -32,9 +32,16 @@ library;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:solid/src/constants/login.dart';
 import 'package:solid/src/login/api/rest_api.dart';
 import 'package:solid_auth/solid_auth.dart';
+
+// Scopes variables used in the authentication process.
+
+final List<String> _scopes = <String>[
+  'openid',
+  'profile',
+  'offline_access',
+];
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
@@ -44,7 +51,7 @@ Future<List<dynamic>?> solidAuthenticate(
     // Authentication process for the POD issuer.
 
     // ignore: use_build_context_synchronously
-    final authData = await authenticate(Uri.parse(issuerUri), scopes, context);
+    final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
     final accessToken = authData['accessToken'].toString();
     final decodedToken = JwtDecoder.decode(accessToken);

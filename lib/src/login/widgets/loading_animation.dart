@@ -32,7 +32,23 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:loading_indicator/loading_indicator.dart';
-import 'package:solid/src/constants/login.dart';
+
+// The following are the constant default values, mostly for colors
+// of loading animation widget.
+
+const _darkBlue = Color.fromARGB(255, 7, 87, 153);
+const _darkGreen = Color.fromARGB(255, 64, 163, 81);
+const _lightBlue = Color(0xFF61B2CE);
+const _darkCopper = Color(0xFFBE4E0E);
+const _titleAsh = Color(0xFF30384D);
+
+List<Color> _defaultPodColors = const [
+  _darkBlue,
+  _darkGreen,
+  _darkCopper,
+  _titleAsh,
+  _lightBlue,
+];
 
 Future<void> showAnimationDialog(
   BuildContext context,
@@ -54,7 +70,7 @@ Future<void> showAnimationDialog(
               children: [
                 LoadingIndicator(
                   indicatorType: Indicator.values[animationIndex],
-                  colors: defaultPodColors,
+                  colors: _defaultPodColors,
                   strokeWidth: 4.0,
                   pathBackgroundColor: showPathBackground
                       ? const Color.fromARGB(59, 0, 0, 0)
