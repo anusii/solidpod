@@ -30,11 +30,9 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:solid/src/constants/login.dart';
+import 'package:solid/src/login/solid_authenticate.dart';
 import 'package:solid/src/login/widgets/loading_animation.dart';
-import 'package:solid/src/screens/home_screen.dart';
-import 'package:solid_auth/solid_auth.dart';
+import 'package:solid/src/login/widgets/show_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // The following are the constant default values, mostly for the parameters for
@@ -240,158 +238,24 @@ class SolidLogin extends StatelessWidget {
           false,
         );
 
-        // Get issuer URI.
+        final authResult = await solidAuthenticate(webID, context);
 
-        final issuerUri = await getIssuer(webID);
+        if (authResult != null) {
+          // Authentication (and any initial setup) has succeeded so proceed to
+          // the app page.
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => child,
+            ),
+          );
+        } else {
+          // Authentication has failed so popup a message and return to the
+          // SolidLogin page.
 
-        // Authentication process for the POD issuer.
-
-        final authData =
-            await authenticate(Uri.parse(issuerUri), scopes, context);
-
-        // Decode access token to get the correct webId.
-
-        final accessToken = authData['accessToken'].toString();
-        final Map<String, dynamic> decodedToken =
-            JwtDecoder.decode(accessToken);
-        String webId = decodedToken['webid'].toString();
-
-        // var rsaInfo = authData['rsaInfo'];
-        // var rsaKeyPair = rsaInfo['rsa'];
-        // var publicKeyJwk = rsaInfo['pubKeyJwk'];
-        // String profCardUrl = webId.replaceAll('#me', '');
-        // String dPopToken = genDpopToken(
-        //     profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-
-        // String profData =
-        //     await fetchPrvFile(profCardUrl, accessToken, dPopToken);
-
-        // final profInfo = getFileContent(profData);
-        // authData['name'] = profInfo['fn'][1];
-
-        await Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Scaffold(
-                body: HomeScreen(
-              webId: webId,
-              authData: authData,
-            )),
-          ),
-        );
+          await updateFileDialog(context, 'Authentication has failed!');
+        }
       },
-
-      //
-      // TODO 20231228 gjw THE FOLLOWING SHOULD BE IN A SEPARATE FUNCTION. IT
-      // USES FUNCTIONALITY FROM solid-auth THAT SHOULD BE RE_WRITTEN HERE IN
-      // solid WITH INSIGHT AND EXPLANATION SO OTHERS CAN UNDERSTAND IT. THE
-      // MODULAR IMPLEMENTATION WILL CALL solidAuthenticate() WHICH IS A bool
-      // AND IS True IF AUTHENTICATION SUCCEEDED AND False IF FAILED. IF
-      // SUCCEEDED IT NEES TO RECORD THE AUTHTICATION INFORMATION SOMEWHERE FOR
-      // THE APP TO ACCESS IN FUTURE READ AND WRITE. THE SCHEMA IS LIKE:
-      //
-      // onPressed: () async {
-      //   if (solidAuthenticate(...)) {
-      //     // Authentication (and any initial setup) has succeeded so proceed to
-      //     // the app page.
-      //     await Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //         builder: (context) => child,
-      //       ),
-      //     );
-      //   } else {
-      //     // Authentication has failed so popup a message and return to the
-      //     // SolidLogin page.
-      //   }
-      //
-      // THE ORIGINAL IMPLEMENTATION WAS AS BELOW WITH MOST OF THIS GOING INTO
-      // solidAuthenticate NOW.
-      //
-      // onPressed: () async {
-      //   showAnimationDialog(
-      //     context,
-      //     7,
-      //     'Logging in...',
-      //     false,
-      //   );
-      //
-      //   // Get issuer URI.
-      //
-      //   String issuerUri = await getIssuer(webIdTextController.text);
-      //
-      //   // Define scopes. Also possible scopes -> webid, email, api.
-      //
-      //   final List<String> scopes = <String>[
-      //     'openid',
-      //     'profile',
-      //     'offline_access',
-      //   ];
-      //
-      //   // Authentication process for the POD issuer.
-      //
-      //   var authData =
-      //       await authenticate(Uri.parse(issuerUri), scopes, context);
-      //
-      //   // Decode access token to get the correct webId.
-      //
-      //   String accessToken = authData['accessToken'];
-      //   Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-      //   String webId = decodedToken['webid'];
-      //
-      //   // Perform check to see whether all required resources exists.
-      //
-      //   List resCheckList = await initialStructureTest(authData);
-      //   bool allExists = resCheckList.first;
-      //
-      //   if (allExists) {
-      //     imageCache.clear();
-      //
-      //     // Get profile information.
-      //
-      //     var rsaInfo = authData['rsaInfo'];
-      //     var rsaKeyPair = rsaInfo['rsa'];
-      //     var publicKeyJwk = rsaInfo['pubKeyJwk'];
-      //     String accessToken = authData['accessToken'];
-      //     String profCardUrl = webId.replaceAll('#me', '');
-      //     String dPopToken =
-      //         genDpopToken(profCardUrl, rsaKeyPair, publicKeyJwk, 'GET');
-      //
-      //     String profData =
-      //         await fetchPrvFile(profCardUrl, accessToken, dPopToken);
-      //
-      //     Map profInfo = getFileContent(profData);
-      //     authData['name'] = profInfo['fn'][1];
-      //
-      //     // Check if master key is set in the local storage.
-      //
-      //     bool isKeyExist = await secureStorage.containsKey(
-      //       key: webId,
-      //     );
-      //     authData['keyExist'] = isKeyExist;
-      //
-      //     // Navigate to the profile through main screen.
-      //
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //           builder: (context) => NavigationScreen(
-      //                 webId: webId,
-      //                 authData: authData,
-      //                 page: 'home',
-      //               )),
-      //     );
-      //   } else {
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //           builder: (context) => InitialSetupScreen(
-      //                 authData: authData,
-      //                 webId: webId,
-      //               )),
-      //     );
-      //   }
-      // },
 
       child: const Text(
         'LOGIN',

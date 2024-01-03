@@ -1,6 +1,6 @@
-/// A method to show animation page in the process of loading.
+/// Warning popup window.
 ///
-// Time-stamp: <Tuesday 2024-01-02 13:19:25 +1100 Zheyuan Xu>
+// Time-stamp: <Wednesday 2024-01-03 11:19:25 +1100 Zheyuan Xu>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,52 +27,29 @@
 // SOFTWARE.
 ///
 /// Authors: Zheyuan Xu
-
 library;
 
 import 'package:flutter/material.dart';
-import 'package:loading_indicator/loading_indicator.dart';
-import 'package:solid/src/constants/login.dart';
 
-Future<void> showAnimationDialog(
-  BuildContext context,
-  int animationIndex,
-  String alertMsg,
-  bool showPathBackground,
-) {
+Future<dynamic> updateFileDialog(BuildContext context, String content) {
   return showDialog(
-    barrierDismissible: false,
     context: context,
     builder: (context) {
-      return Padding(
-        padding: const EdgeInsets.all(50),
-        child: Center(
-          child: SizedBox(
-            width: 150,
-            height: 250,
-            child: Column(
-              children: [
-                LoadingIndicator(
-                  indicatorType: Indicator.values[animationIndex],
-                  colors: defaultPodColors,
-                  strokeWidth: 4.0,
-                  pathBackgroundColor: showPathBackground
-                      ? const Color.fromARGB(59, 0, 0, 0)
-                      : null,
-                ),
-                DefaultTextStyle(
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                  child: Text(
-                    alertMsg,
-                  ),
-                ),
-              ],
-            ),
-          ),
+      return AlertDialog(
+        title: const Text('Warning'),
+        content: Text(
+          content,
         ),
+        actions: [
+          TextButton(
+            child: const Text(
+              'Ok',
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
       );
     },
   );

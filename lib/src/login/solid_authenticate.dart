@@ -1,6 +1,6 @@
-/// A method to show animation page in the process of loading.
+/// Solid authenticate function, return null if authenticate function fails.
 ///
-// Time-stamp: <Tuesday 2024-01-02 13:19:25 +1100 Zheyuan Xu>
+// Time-stamp: <Tuesday 2024-01-03 10:57:15 +1100 Zheyuan Xu>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,53 +27,40 @@
 // SOFTWARE.
 ///
 /// Authors: Zheyuan Xu
-
 library;
 
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
-import 'package:loading_indicator/loading_indicator.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid/src/constants/login.dart';
+import 'package:solid/src/login/api/rest_api.dart';
+import 'package:solid_auth/solid_auth.dart';
 
-Future<void> showAnimationDialog(
-  BuildContext context,
-  int animationIndex,
-  String alertMsg,
-  bool showPathBackground,
-) {
-  return showDialog(
-    barrierDismissible: false,
-    context: context,
-    builder: (context) {
-      return Padding(
-        padding: const EdgeInsets.all(50),
-        child: Center(
-          child: SizedBox(
-            width: 150,
-            height: 250,
-            child: Column(
-              children: [
-                LoadingIndicator(
-                  indicatorType: Indicator.values[animationIndex],
-                  colors: defaultPodColors,
-                  strokeWidth: 4.0,
-                  pathBackgroundColor: showPathBackground
-                      ? const Color.fromARGB(59, 0, 0, 0)
-                      : null,
-                ),
-                DefaultTextStyle(
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                  child: Text(
-                    alertMsg,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
+Future<List<dynamic>?> solidAuthenticate(
+    String serverId, BuildContext context) async {
+  try {
+    final issuerUri = await getIssuer(serverId);
+
+    // Authentication process for the POD issuer.
+
+    // ignore: use_build_context_synchronously
+    final authData = await authenticate(Uri.parse(issuerUri), scopes, context);
+
+    final accessToken = authData['accessToken'].toString();
+    final decodedToken = JwtDecoder.decode(accessToken);
+    final webId = decodedToken['webid'].toString();
+
+    final rsaInfo = authData['rsaInfo'];
+    final rsaKeyPair = rsaInfo['rsa'];
+    final publicKeyJwk = rsaInfo['pubKeyJwk'];
+    final profCardUrl = webId.replaceAll('#me', '');
+    final dPopToken =
+        genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+
+    final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
+
+    return [authData, webId, profData];
+  } on () {
+    return null;
+  }
 }
