@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-04 07:08:41 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 07:26:15 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,14 +26,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Graham Williams, Zheyuan Xu
+
 library;
 
 import 'package:flutter/material.dart';
+
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:solid/src/login/solid_authenticate.dart';
 import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 // The following are the constant default values, mostly for the parameters for
 // the SolidLogin class. These defaults can be overriden by a user to tune to
@@ -250,6 +253,9 @@ class SolidLogin extends StatelessWidget {
 
         showBusyAnimation();
 
+        // Perform the actual authentication by contacting the server at
+        // [WebID].
+
         final authResult = await solidAuthenticate(webID, context);
 
         // Method to navigate to a child widget requiring BuildContext.
@@ -261,7 +267,7 @@ class SolidLogin extends StatelessWidget {
           );
         }
 
-        // Method to show show auth faileding popup requiring BuildContext.
+        // Method to show auth failed popup requiring BuildContext.
 
         void showAuthFailedPopup() {
           popupWarning(context, 'Authentication has failed!');
