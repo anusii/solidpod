@@ -235,6 +235,8 @@ class SolidLogin extends StatelessWidget {
       // INSERTS AN `await` BUT THEN THE AUTHENTICATION DOES NOT
       // WORK. UNDERSTAND WHAT IS GOING ON HERE AND EXPLAIN AND THEN, AND ONLY
       // THEN, IF THIS IS THE BEST IMPLEMENTATION, ADD AN IGNORE.
+      // Solve by wrapping showAnimationDialog with a method showAnimationProcess().
+
 
       onPressed: () async {
         // Method of navigating to child widget that requires BuildContext.
