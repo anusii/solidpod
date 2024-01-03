@@ -237,7 +237,6 @@ class SolidLogin extends StatelessWidget {
       // THEN, IF THIS IS THE BEST IMPLEMENTATION, ADD AN IGNORE.
       // Solve by wrapping showAnimationDialog with a method showAnimationProcess().
 
-
       onPressed: () async {
         // Method of navigating to child widget that requires BuildContext.
         // To address the issue of not using BuildContext across asynchronous

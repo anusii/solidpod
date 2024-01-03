@@ -54,10 +54,10 @@ List<Color> _defaultPodColors = const [
 
 /// An asynchronous utility designed to display a custom animation dialog.
 /// [context] locates the widget in the widget tree and display the dialog accordingly.
-/// [animationIndex] determines the type of animation. 
+/// [animationIndex] determines the type of animation.
 /// This index is used to select from a predefined list of animations (Indicator.values).
-/// [alertMsg] is the message text displayed within the dialog. 
-/// [showPathBackground] is a boolean flag to decide whether to show a background for 
+/// [alertMsg] is the message text displayed within the dialog.
+/// [showPathBackground] is a boolean flag to decide whether to show a background for
 /// the animation path or not.
 
 Future<void> showAnimationDialog(

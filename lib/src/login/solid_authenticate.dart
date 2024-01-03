@@ -47,9 +47,9 @@ final List<String> _scopes = <String>[
 /// against a Solid server.
 /// [serverId] is an issuer URI and is essential for the
 /// authentication process with the POD (Personal Online Datastore) issuer.
-/// [context] is used in the authenticate method. 
+/// [context] is used in the authenticate method.
 /// The authentication process requires the context of the current widget.
-/// 
+///
 /// The function returns a list containing authentication data, the user's webId,
 /// and their profile data.
 /// Error Handling: The function has a broad error handling mechanism (on ()), which returns null

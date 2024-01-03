@@ -32,10 +32,10 @@ library;
 
 import 'package:http/http.dart' as http;
 
-/// The fetchPrvFile function is an asynchronous function designed to fetch 
-/// profile data from a specified URL [profCardUrl]. 
-/// It takes three parameters: [profCardUrl] (the URL to fetch data from), 
-/// [accessToken] (used for authorization), and [dPopToken] (another form 
+/// The fetchPrvFile function is an asynchronous function designed to fetch
+/// profile data from a specified URL [profCardUrl].
+/// It takes three parameters: [profCardUrl] (the URL to fetch data from),
+/// [accessToken] (used for authorization), and [dPopToken] (another form
 /// of token used in headers for enhanced security).
 
 Future<String> fetchPrvFile(
