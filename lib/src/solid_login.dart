@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-04 10:48:09 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 09:02:57 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -40,9 +40,9 @@ import 'package:solid/src/widgets/show_animation_dialog.dart';
 
 // The default package version string as the version of the app.
 
-// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
-// THE APP'S VERSION NOT THE SOLID PACKAGE'S
-// VERSION. https://github.com/anusii/solid/issues/18
+// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml WHICH WILL BE THE
+// APP'S VERSION NOT THE SOLID PACKAGE'S VERSION USING
+// package_info_plus. https://github.com/anusii/solid/issues/18
 
 const appVersion = 'Version 0.0.0';
 
@@ -70,7 +70,8 @@ bool isVeryNarrowScreen(BuildContext context) =>
 class SolidLogin extends StatelessWidget {
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs,
-    // except for version which is TO BE calculated.
+    // except for version which is obtained from the importing app's
+    // pubspec.yaml by default.
 
     required this.child,
     this.image =
@@ -135,7 +136,8 @@ class SolidLogin extends StatelessWidget {
 
   final Color loginBG;
 
-  /// The version of the app..
+  /// The version of the app. The default is obtained from the app's
+  /// pubspec.yaml.
 
   final String version;
 
