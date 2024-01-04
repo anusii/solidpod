@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-01-01 15:57:15 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 07:50:48 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,15 +26,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Graham Williams, Zheyuan Xu
+
 library;
 
 import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:solid/src/login/solid_authenticate.dart';
+import 'package:solid/src/widgets/popup_warning.dart';
+import 'package:solid/src/widgets/show_animation_dialog.dart';
+
 // The following are the constant default values, mostly for the parameters for
-// the SolidLogin class. These defaults can be overriden by a user to tune to
+// the [SolidLogin] class. These defaults can be overriden by a user to tune to
 // their own liking and style.
 
 /// The default image to be displayed as the left panel or else the background
@@ -45,8 +50,8 @@ const _defaultImage = AssetImage(
   package: 'solid',
 );
 
-// The default logo to be displayed at the top of the login panel on the right
-// of the screen or centered for narrow screens.
+// The default logo to be displayed at the top of the login panel. The login
+// panel is on the right of the screen or centered for narrow screens.
 
 const _defaultLogo = AssetImage(
   //'assets/images/default_logo.png',
@@ -85,7 +90,8 @@ const _defaultWebID = 'https://pods.solidcommunity.au';
 // The package version string.
 
 // TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
-// THE APP'S VERSION NOT THE SOLID PACKAGE'S VERSION.
+// THE APP'S VERSION NOT THE SOLID PACKAGE'S
+// VERSION. https://github.com/anusii/solid/issues/18
 
 const _defaultVersion = 'Version 0.0.0';
 
@@ -174,12 +180,16 @@ class SolidLogin extends StatelessWidget {
     );
 
     // Text controller for the URI of the solid server to which an authenticate
-    // request is sent.
+    // request is sent. Its default value is the [webID] which has a default
+    // value or else overridden by the call to the widget.
 
     final webIdController = TextEditingController()..text = webID;
 
-    // A GET A POD button that when pressed will launch a browser to
-    // the releveant link with instructions to get a POD.
+    // The GET A POD button that when pressed will launch a browser to the
+    // releveant link from where a user can register for a POD on the Solid
+    // server. The default location is relative to the [webID], and is currently
+    // a fixed path but needs to be obtained from the server meta data, as was
+    // done in solid_auth through [getIssuer].
 
     final getPodButton = TextButton(
       style: TextButton.styleFrom(
@@ -194,7 +204,7 @@ class SolidLogin extends StatelessWidget {
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO?
+      // REQUIREMENT FOR THAT TOO? https://github.com/anusii/solid/issues/25.
 
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
@@ -223,132 +233,57 @@ class SolidLogin extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-
-      // For now 20231230 simply go to the provided child widget on tap of the
-      // LOGIN button until the authentication is implemented. This will allow
-      // parallel implmentation of the app's GUI.
-
       onPressed: () async {
-        await Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => child,
-          ),
-        );
+        // Authenticate against the Solid server.
+
+        // Method to show busy animation requiring BuildContext.
+        //
+        // This approach of creating a local method will address the `flutter
+        // analyze` issue `use_build_context_synchronously`, identifying the use
+        // of a BuildContext across asynchronous gaps, without referencing the
+        // BuildContext after the async gap.
+
+        void showBusyAnimation() {
+          showAnimationDialog(
+            context,
+            7,
+            'Logging in...',
+            false,
+          );
+        }
+
+        showBusyAnimation();
+
+        // Perform the actual authentication by contacting the server at
+        // [WebID].
+
+        final authResult = await solidAuthenticate(webID, context);
+
+        // Method to navigate to the child widget, requiring BuildContext.
+
+        void navigateToApp() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => child),
+          );
+        }
+
+        // Method to show auth failed popup, requiring BuildContext.
+
+        void showAuthFailedPopup() {
+          popupWarning(context, 'Authentication has failed!');
+        }
+
+        // Check that the authentication succeeded, and if so navigate to the
+        // app itself. If it failed then notify the user and stay on the
+        // SolidLogin page.
+
+        if (authResult != null) {
+          navigateToApp();
+        } else {
+          showAuthFailedPopup();
+        }
       },
-
-      //
-      // TODO 20231228 gjw THE FOLLOWING SHOULD BE IN A SEPARATE FUNCTION. IT
-      // USES FUNCTIONALITY FROM solid-auth THAT SHOULD BE RE_WRITTEN HERE IN
-      // solid WITH INSIGHT AND EXPLANATION SO OTHERS CAN UNDERSTAND IT. THE
-      // MODULAR IMPLEMENTATION WILL CALL solidAuthenticate() WHICH IS A bool
-      // AND IS True IF AUTHENTICATION SUCCEEDED AND False IF FAILED. IF
-      // SUCCEEDED IT NEES TO RECORD THE AUTHTICATION INFORMATION SOMEWHERE FOR
-      // THE APP TO ACCESS IN FUTURE READ AND WRITE. THE SCHEMA IS LIKE:
-      //
-      // onPressed: () async {
-      //   if (solidAuthenticate(...)) {
-      //     // Authentication (and any initial setup) has succeeded so proceed to
-      //     // the app page.
-      //     await Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //         builder: (context) => child,
-      //       ),
-      //     );
-      //   } else {
-      //     // Authentication has failed so popup a message and return to the
-      //     // SolidLogin page.
-      //   }
-      //
-      // THE ORIGINAL IMPLEMENTATION WAS AS BELOW WITH MOST OF THIS GOING INTO
-      // solidAuthenticate NOW.
-      //
-      // onPressed: () async {
-      //   showAnimationDialog(
-      //     context,
-      //     7,
-      //     'Logging in...',
-      //     false,
-      //   );
-      //
-      //   // Get issuer URI.
-      //
-      //   String issuerUri = await getIssuer(webIdTextController.text);
-      //
-      //   // Define scopes. Also possible scopes -> webid, email, api.
-      //
-      //   final List<String> scopes = <String>[
-      //     'openid',
-      //     'profile',
-      //     'offline_access',
-      //   ];
-      //
-      //   // Authentication process for the POD issuer.
-      //
-      //   var authData =
-      //       await authenticate(Uri.parse(issuerUri), scopes, context);
-      //
-      //   // Decode access token to get the correct webId.
-      //
-      //   String accessToken = authData['accessToken'];
-      //   Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-      //   String webId = decodedToken['webid'];
-      //
-      //   // Perform check to see whether all required resources exists.
-      //
-      //   List resCheckList = await initialStructureTest(authData);
-      //   bool allExists = resCheckList.first;
-      //
-      //   if (allExists) {
-      //     imageCache.clear();
-      //
-      //     // Get profile information.
-      //
-      //     var rsaInfo = authData['rsaInfo'];
-      //     var rsaKeyPair = rsaInfo['rsa'];
-      //     var publicKeyJwk = rsaInfo['pubKeyJwk'];
-      //     String accessToken = authData['accessToken'];
-      //     String profCardUrl = webId.replaceAll('#me', '');
-      //     String dPopToken =
-      //         genDpopToken(profCardUrl, rsaKeyPair, publicKeyJwk, 'GET');
-      //
-      //     String profData =
-      //         await fetchPrvFile(profCardUrl, accessToken, dPopToken);
-      //
-      //     Map profInfo = getFileContent(profData);
-      //     authData['name'] = profInfo['fn'][1];
-      //
-      //     // Check if master key is set in the local storage.
-      //
-      //     bool isKeyExist = await secureStorage.containsKey(
-      //       key: webId,
-      //     );
-      //     authData['keyExist'] = isKeyExist;
-      //
-      //     // Navigate to the profile through main screen.
-      //
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //           builder: (context) => NavigationScreen(
-      //                 webId: webId,
-      //                 authData: authData,
-      //                 page: 'home',
-      //               )),
-      //     );
-      //   } else {
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //           builder: (context) => InitialSetupScreen(
-      //                 authData: authData,
-      //                 webId: webId,
-      //               )),
-      //     );
-      //   }
-      // },
-
       child: const Text(
         'LOGIN',
         style: TextStyle(
@@ -356,6 +291,9 @@ class SolidLogin extends StatelessWidget {
           letterSpacing: 2.0,
           fontSize: 15.0,
           fontWeight: FontWeight.bold,
+          // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
+          // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
+          // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
           fontFamily: 'Poppins',
         ),
       ),
@@ -364,15 +302,20 @@ class SolidLogin extends StatelessWidget {
     // An Information link that is conditionally displayed within the login
     // panel.
 
-    Widget linkTo(String link) => GestureDetector(
-          onTap: () => launchUrl(Uri.parse(link)),
-          child: Container(
-            margin: const EdgeInsets.only(right: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text('Visit '),
-                SelectableText(
+    Widget linkTo(String link) => Container(
+          margin: const EdgeInsets.only(right: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Text('Visit '),
+
+              // Listener is a lower-level widget for handling pointer events,
+              // which allows the SelectableText to remain selectable while also
+              // responding to taps to launch the URL.
+
+              Listener(
+                onPointerUp: (_) => launchUrl(Uri.parse(link)),
+                child: SelectableText(
                   link,
                   textAlign: TextAlign.right,
                   style: TextStyle(
@@ -380,8 +323,8 @@ class SolidLogin extends StatelessWidget {
                       color: Colors.blue,
                       decoration: TextDecoration.underline),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
 
