@@ -1,6 +1,6 @@
-/// Solid authenticate function, return null if authenticate function fails.
+/// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Wednesday 2024-01-03 10:57:15 +1100 Zheyuan Xu>
+// Time-stamp: <Thursday 2024-01-04 10:57:50 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,14 +26,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu
+/// Authors: Zheyuan Xu, Graham Williams
+
 library;
 
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:solid/src/login/api/rest_api.dart';
 import 'package:solid_auth/solid_auth.dart';
+
+import 'package:solid/src/login/api/rest_api.dart';
 
 // Scopes variables used in the authentication process.
 
@@ -43,17 +46,18 @@ final List<String> _scopes = <String>[
   'offline_access',
 ];
 
-/// An asynchronous function designed to authenticate a user
-/// against a Solid server.
+/// Asynchronously authenticate a user against a Solid server [serverID].
+///
 /// [serverId] is an issuer URI and is essential for the
 /// authentication process with the POD (Personal Online Datastore) issuer.
-/// [context] is used in the authenticate method.
-/// The authentication process requires the context of the current widget.
 ///
-/// The function returns a list containing authentication data, the user's webId,
-/// and their profile data.
-/// Error Handling: The function has a broad error handling mechanism (on ()), which returns null
-/// if any exception occurs during the authentication process.
+/// [context] of the current widget is required for the authenticate process.
+///
+/// Return a list containing authentication data: user's webId; profile data.
+///
+/// Error Handling: The function has a broad error handling mechanism through
+/// using `on ()`, which returns null if any exception occurs during the
+/// authentication process.
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
