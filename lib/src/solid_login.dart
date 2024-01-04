@@ -44,7 +44,6 @@ import 'package:solid/src/widgets/show_animation_dialog.dart';
 // THE APP'S VERSION NOT THE SOLID PACKAGE'S
 // VERSION. https://github.com/anusii/solid/issues/18
 
-const appVersion = 'Version 0.0.0';
 
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -73,6 +72,7 @@ class SolidLogin extends StatelessWidget {
     // except for version which is TO BE calculated.
 
     required this.child,
+    required this.version,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
@@ -85,7 +85,6 @@ class SolidLogin extends StatelessWidget {
     this.getpodBG = Colors.orange,
     this.loginFG = Colors.white,
     this.loginBG = Colors.teal,
-    this.version = appVersion,
     super.key,
   });
 
@@ -323,7 +322,7 @@ class SolidLogin extends StatelessWidget {
       height: boxTextHeight,
       child: Center(
         child: SelectableText(
-          version,
+          'Version $version',
           style: const TextStyle(
             color: versionTextColor,
           ),
