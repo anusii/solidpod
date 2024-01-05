@@ -30,20 +30,17 @@
 library;
 
 import 'package:flutter/material.dart';
-
-import 'package:url_launcher/url_launcher.dart';
-
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solid/src/login/solid_authenticate.dart';
 import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // The default package version string as the version of the app.
 
 // TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml WHICH WILL BE THE
 // APP'S VERSION NOT THE SOLID PACKAGE'S VERSION USING
 // package_info_plus. https://github.com/anusii/solid/issues/18
-
-const appVersion = 'Version 0.0.0';
 
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -66,7 +63,7 @@ bool isVeryNarrowScreen(BuildContext context) =>
 /// user's POD is required when the app requires access to the user's POD for
 /// any of its functionality.
 
-class SolidLogin extends StatelessWidget {
+class SolidLogin extends StatefulWidget {
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs,
     // except for version which is obtained from the importing app's
@@ -80,7 +77,6 @@ class SolidLogin extends StatelessWidget {
     this.title = 'LOG IN TO YOUR POD',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
-    this.version = appVersion,
     super.key,
   });
 
@@ -109,13 +105,35 @@ class SolidLogin extends StatelessWidget {
 
   final String link;
 
-  /// pubspec.yaml.
-
-  final String version;
-
-  /// The widget to hand over to once authentication is complete.
+  /// The child widget after logging in.
 
   final Widget child;
+  @override
+  State<SolidLogin> createState() => _SolidLoginState();
+}
+
+class _SolidLoginState extends State<SolidLogin> {
+  // This string will hold the application version number.
+  // Initially, it's an empty string because the actual version number
+  // will be obtained asynchronously from the package information.
+
+  String appVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  // Fetches the package information.
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+
+    setState(() {
+      appVersion = info.version;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +142,7 @@ class SolidLogin extends StatelessWidget {
 
     final loginBoxDecor = BoxDecoration(
       image: DecorationImage(
-        image: image,
+        image: widget.image,
         fit: BoxFit.cover,
       ),
     );
@@ -132,7 +150,7 @@ class SolidLogin extends StatelessWidget {
     // Text controller for the URI of the solid server to which an authenticate
     // request is sent.
 
-    final webIdController = TextEditingController()..text = webID;
+    final webIdController = TextEditingController()..text = widget.webID;
 
     // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
@@ -155,8 +173,8 @@ class SolidLogin extends StatelessWidget {
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
       // REQUIREMENT FOR THAT TOO?
 
-      onPressed: () =>
-          launchUrl(Uri.parse('$webID/.account/login/password/register/')),
+      onPressed: () => launchUrl(
+          Uri.parse('${widget.webID}/.account/login/password/register/')),
 
       child: const Text('GET A POD', style: buttonTextStyle),
     );
@@ -196,14 +214,14 @@ class SolidLogin extends StatelessWidget {
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
-        final authResult = await solidAuthenticate(webID, context);
+        final authResult = await solidAuthenticate(widget.webID, context);
 
         // Method to navigate to the child widget, requiring BuildContext.
 
         void navigateToApp() {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => child),
+            MaterialPageRoute(builder: (context) => widget.child),
           );
         }
 
@@ -263,7 +281,7 @@ class SolidLogin extends StatelessWidget {
       height: boxTextHeight,
       child: Center(
         child: SelectableText(
-          version,
+          'Version $appVersion',
           style: const TextStyle(
             color: versionTextColor,
           ),
@@ -279,7 +297,7 @@ class SolidLogin extends StatelessWidget {
       child: Column(
         children: [
           Image(
-            image: logo,
+            image: widget.logo,
             width: 200,
           ),
           const SizedBox(
@@ -289,7 +307,7 @@ class SolidLogin extends StatelessWidget {
           const SizedBox(
             height: 50.0,
           ),
-          Text(title,
+          Text(widget.title,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
@@ -328,7 +346,7 @@ class SolidLogin extends StatelessWidget {
           ),
           Align(
             alignment: Alignment.centerRight,
-            child: linkTo(link),
+            child: linkTo(widget.link),
           ),
           // Expand to the bottom of the login panel.
           Expanded(

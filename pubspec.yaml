@@ -8,12 +8,13 @@ environment:
   flutter: '>=1.17.0'
 
 dependencies:
+  fast_rsa: ^3.6.1
   flutter:
     sdk: flutter
-
-  fast_rsa: ^3.6.1
+  http: ^1.1.2
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
+  package_info_plus: ^5.0.1
   solid_auth: ^0.1.13
   url_launcher: ^6.2.2
 
