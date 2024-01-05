@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-01-01 15:57:15 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 09:02:57 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -33,63 +33,21 @@ import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
-// The following are the constant default values, mostly for the parameters for
-// the SolidLogin class. These defaults can be overriden by a user to tune to
-// their own liking and style.
+import 'package:solid/src/login/solid_authenticate.dart';
+import 'package:solid/src/widgets/popup_warning.dart';
+import 'package:solid/src/widgets/show_animation_dialog.dart';
 
-/// The default image to be displayed as the left panel or else the background
-/// on a narrow screen.
+// The default package version string as the version of the app.
 
-const _defaultImage = AssetImage(
-  'assets/images/default_image.jpg',
-  package: 'solid',
-);
+// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml WHICH WILL BE THE
+// APP'S VERSION NOT THE SOLID PACKAGE'S VERSION USING
+// package_info_plus. https://github.com/anusii/solid/issues/18
 
-// The default logo to be displayed at the top of the login panel on the right
-// of the screen or centered for narrow screens.
+const appVersion = 'Version 0.0.0';
 
-const _defaultLogo = AssetImage(
-  //'assets/images/default_logo.png',
-  'assets/images/default_logo.png',
-  package: 'solid',
-);
-
-/// The default message to be displayed within the login panel.
-
-const _defaultTitle = 'LOGIN WITH YOUR POD';
-
-/// The Visit link for the app.
-
-const _defaultLink = 'https://solidproject.org';
-
-/// The default login panale card background colour.
-
-const _defaultLoginPanelCardColour = Color(0xFFF2F4FC);
-
-/// The default login button background colour.
-
-const _defaultGetPodButtonBG = Colors.orange;
-
-/// The default login button text colour.
-
-const _defaultGetPodButtonFG = Color(0xFF50084D);
-
-/// The default login button background colour.
-
-const _defaultLoginButtonBG = Colors.teal;
-
-// The default URI for the SOlid server that is suggested for the app.
-
-const _defaultWebID = 'https://pods.solidcommunity.au';
-
-// The package version string.
-
-// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
-// THE APP'S VERSION NOT THE SOLID PACKAGE'S VERSION.
-
-const _defaultVersion = 'Version 0.0.0';
-
-// Screen size support funtions to identify narrow and very narrow screens.
+// Screen size support funtions to identify narrow and very narrow screens. The
+// width dictates whether the Login panel is laid out on the right with the app
+// image on the left, or is on top of the app image.
 
 const int narrowScreenLimit = 1175;
 const int veryNarrowScreenLimit = 750;
@@ -105,55 +63,80 @@ bool isVeryNarrowScreen(BuildContext context) =>
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
 /// The login screen will be the initial screen of the app when access to the
-/// user's POD is required for any of the functionality of the app requires
-/// access to the user's POD.
+/// user's POD is required when the app requires access to the user's POD for
+/// any of its functionality.
 
 class SolidLogin extends StatelessWidget {
   const SolidLogin({
+    // Include the literals here so that they are exposed through the docs,
+    // except for version which is obtained from the importing app's
+    // pubspec.yaml by default.
+
     required this.child,
-    this.image = _defaultImage,
-    this.logo = _defaultLogo,
-    this.title = _defaultTitle,
-    this.webID = _defaultWebID,
-    this.link = _defaultLink,
-    this.getpodBG = _defaultGetPodButtonBG,
-    this.loginBG = _defaultLoginButtonBG,
-    this.version = _defaultVersion,
+    this.image =
+        const AssetImage('assets/images/default_image.jpg', package: 'solid'),
+    this.logo =
+        const AssetImage('assets/images/default_logo.png', package: 'solid'),
+    this.panelBG = const Color(0xFFF2F4FC),
+    this.title = 'LOG IN TO YOUR POD',
+    this.webID = 'https://pods.solidcommunity.au',
+    this.link = 'https://solidproject.org',
+    this.getpodFG = Colors.purple,
+    this.getpodBG = Colors.orange,
+    this.loginFG = Colors.white,
+    this.loginBG = Colors.teal,
+    this.version = appVersion,
     super.key,
   });
 
-  /// The app's welcome image used on the left or background.
+  /// The app's welcome image used as the left panel or the background.
   ///
-  /// For a desktop dimensions the image is displayed to the left on the login
-  /// screen, and for mobile dimensions it is the background
+  /// For a desktop dimensions the image is displayed as the left panel on the
+  /// login screen.  For mobile dimensions (narrow screen) the image forms the
+  /// background behind the Login panel.
 
   final AssetImage image;
 
-  /// The app's logo as displayed in the login panel.
+  /// The app's logo as displayed at the top of the login panel.
 
   final AssetImage logo;
 
-  /// The login title text indicating what we are loging in to.
+  /// The Login panel's background colour. The default background colour is a
+  /// very light grey as a sublte background.
+
+  final Color panelBG;
+
+  /// The login text indicating what we are loging in to.
 
   final String title;
 
-  /// Override the default webID.
+  /// The URI of the user's webID used to identify the Solid server to
+  /// authenticate against.
 
   final String webID;
 
-  /// A URL as the value of the Visit link.
+  /// The URL used as the value of the Visit link.
 
   final String link;
+
+  /// The foreground colour of the GET POD button.
+
+  final Color getpodFG;
 
   /// The background colour of the GET POD button.
 
   final Color getpodBG;
 
+  /// The foreground colour of the LOGIN button.
+
+  final Color loginFG;
+
   /// The background colour of the LOGIN button.
 
   final Color loginBG;
 
-  /// The default version string can be overidden.
+  /// The version of the app. The default is obtained from the app's
+  /// pubspec.yaml.
 
   final String version;
 
@@ -181,12 +164,18 @@ class SolidLogin extends StatelessWidget {
     // A GET A POD button that when pressed will launch a browser to
     // the releveant link with instructions to get a POD.
 
+    const buttonLetterSpacing = 2.0;
+    const buttonFontSize = 15.0;
+    const buttonFontWeight = FontWeight.bold;
+    const buttonPadding = EdgeInsets.all(20);
+    final buttonBorderRadius = BorderRadius.circular(10);
+
     final getPodButton = TextButton(
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.all(20),
+        padding: buttonPadding,
         backgroundColor: getpodBG,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: buttonBorderRadius,
         ),
       ),
 
@@ -199,13 +188,13 @@ class SolidLogin extends StatelessWidget {
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
 
-      child: const Text(
+      child: Text(
         'GET A POD',
         style: TextStyle(
-          color: _defaultGetPodButtonFG,
-          letterSpacing: 2.0,
-          fontSize: 15.0,
-          fontWeight: FontWeight.bold,
+          color: getpodFG,
+          letterSpacing: buttonLetterSpacing,
+          fontSize: buttonFontSize,
+          fontWeight: buttonFontWeight,
         ),
       ),
     );
@@ -217,10 +206,10 @@ class SolidLogin extends StatelessWidget {
 
     final loginButton = TextButton(
       style: TextButton.styleFrom(
-        padding: const EdgeInsets.all(20),
+        padding: buttonPadding,
         backgroundColor: loginBG,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: buttonBorderRadius,
         ),
       ),
 
@@ -236,133 +225,22 @@ class SolidLogin extends StatelessWidget {
           ),
         );
       },
-
-      //
-      // TODO 20231228 gjw THE FOLLOWING SHOULD BE IN A SEPARATE FUNCTION. IT
-      // USES FUNCTIONALITY FROM solid-auth THAT SHOULD BE RE_WRITTEN HERE IN
-      // solid WITH INSIGHT AND EXPLANATION SO OTHERS CAN UNDERSTAND IT. THE
-      // MODULAR IMPLEMENTATION WILL CALL solidAuthenticate() WHICH IS A bool
-      // AND IS True IF AUTHENTICATION SUCCEEDED AND False IF FAILED. IF
-      // SUCCEEDED IT NEES TO RECORD THE AUTHTICATION INFORMATION SOMEWHERE FOR
-      // THE APP TO ACCESS IN FUTURE READ AND WRITE. THE SCHEMA IS LIKE:
-      //
-      // onPressed: () async {
-      //   if (solidAuthenticate(...)) {
-      //     // Authentication (and any initial setup) has succeeded so proceed to
-      //     // the app page.
-      //     await Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //         builder: (context) => child,
-      //       ),
-      //     );
-      //   } else {
-      //     // Authentication has failed so popup a message and return to the
-      //     // SolidLogin page.
-      //   }
-      //
-      // THE ORIGINAL IMPLEMENTATION WAS AS BELOW WITH MOST OF THIS GOING INTO
-      // solidAuthenticate NOW.
-      //
-      // onPressed: () async {
-      //   showAnimationDialog(
-      //     context,
-      //     7,
-      //     'Logging in...',
-      //     false,
-      //   );
-      //
-      //   // Get issuer URI.
-      //
-      //   String issuerUri = await getIssuer(webIdTextController.text);
-      //
-      //   // Define scopes. Also possible scopes -> webid, email, api.
-      //
-      //   final List<String> scopes = <String>[
-      //     'openid',
-      //     'profile',
-      //     'offline_access',
-      //   ];
-      //
-      //   // Authentication process for the POD issuer.
-      //
-      //   var authData =
-      //       await authenticate(Uri.parse(issuerUri), scopes, context);
-      //
-      //   // Decode access token to get the correct webId.
-      //
-      //   String accessToken = authData['accessToken'];
-      //   Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-      //   String webId = decodedToken['webid'];
-      //
-      //   // Perform check to see whether all required resources exists.
-      //
-      //   List resCheckList = await initialStructureTest(authData);
-      //   bool allExists = resCheckList.first;
-      //
-      //   if (allExists) {
-      //     imageCache.clear();
-      //
-      //     // Get profile information.
-      //
-      //     var rsaInfo = authData['rsaInfo'];
-      //     var rsaKeyPair = rsaInfo['rsa'];
-      //     var publicKeyJwk = rsaInfo['pubKeyJwk'];
-      //     String accessToken = authData['accessToken'];
-      //     String profCardUrl = webId.replaceAll('#me', '');
-      //     String dPopToken =
-      //         genDpopToken(profCardUrl, rsaKeyPair, publicKeyJwk, 'GET');
-      //
-      //     String profData =
-      //         await fetchPrvFile(profCardUrl, accessToken, dPopToken);
-      //
-      //     Map profInfo = getFileContent(profData);
-      //     authData['name'] = profInfo['fn'][1];
-      //
-      //     // Check if master key is set in the local storage.
-      //
-      //     bool isKeyExist = await secureStorage.containsKey(
-      //       key: webId,
-      //     );
-      //     authData['keyExist'] = isKeyExist;
-      //
-      //     // Navigate to the profile through main screen.
-      //
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //           builder: (context) => NavigationScreen(
-      //                 webId: webId,
-      //                 authData: authData,
-      //                 page: 'home',
-      //               )),
-      //     );
-      //   } else {
-      //     Navigator.pushReplacement(
-      //       context,
-      //       MaterialPageRoute(
-      //           builder: (context) => InitialSetupScreen(
-      //                 authData: authData,
-      //                 webId: webId,
-      //               )),
-      //     );
-      //   }
-      // },
-
-      child: const Text(
+      child: Text(
         'LOGIN',
         style: TextStyle(
-          color: Colors.white,
-          letterSpacing: 2.0,
-          fontSize: 15.0,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Poppins',
+          color: loginFG,
+          letterSpacing: buttonLetterSpacing,
+          fontSize: buttonFontSize,
+          fontWeight: buttonFontWeight,
+          // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
+          // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
+          // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
+          // fontFamily: 'Poppins',
         ),
       ),
     );
 
-    // An Information link that is conditionally displayed within the login
-    // panel.
+    // An Information link that is displayed within the Login panel.
 
     Widget linkTo(String link) => GestureDetector(
           onTap: () => launchUrl(Uri.parse(link)),
@@ -385,32 +263,29 @@ class SolidLogin extends StatelessWidget {
           ),
         );
 
-    // A version text that is conditionally displayed within the login panel.
+    // A version text that is displayed within the login panel. The text box
+    // height is set to be just the height of the text, using [boxTextHeight],
+    // so that the box can be pushed down closer to the bottom of the Login
+    // panel, rather than the box taking up the available vertical space and so
+    // centering the text within the box. We choose a grey for the text, using
+    // [versionTextColor], as it is not to be a standout text in full black.
 
-    const smallTextContainerHeight = 20.0;
-    const smallTextSize = 14.0;
-    const stripTextColor = Color(0xFF757575);
+    const boxTextHeight = 20.0;
+    const versionTextColor = Colors.grey;
 
-    final Widget versionDisplay = Container(
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(15),
-          bottomRight: Radius.circular(15),
-        ),
-      ),
-      height: smallTextContainerHeight,
+    final Widget versionDisplay = SizedBox(
+      height: boxTextHeight,
       child: Center(
         child: SelectableText(
           version,
           style: const TextStyle(
-            color: stripTextColor,
-            fontSize: smallTextSize,
+            color: versionTextColor,
           ),
         ),
       ),
     );
 
-    // Build the login panel docrations from the comonent parts.
+    // Build the login panel decorations from the component parts.
 
     final loginPanelDecor = Container(
       height: 650,
@@ -461,7 +336,7 @@ class SolidLogin extends StatelessWidget {
               ),
             ],
           ),
-          // Leave alittle space before the link.
+          // Leave a little space before the link.
           const SizedBox(
             height: 20.0,
           ),
@@ -496,7 +371,7 @@ class SolidLogin extends StatelessWidget {
       child: SingleChildScrollView(
         child: Card(
           elevation: 5,
-          color: _defaultLoginPanelCardColour,
+          color: panelBG,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
