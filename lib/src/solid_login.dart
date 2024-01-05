@@ -31,12 +31,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
-import 'package:url_launcher/url_launcher.dart';
-
 import 'package:solid/src/login/solid_authenticate.dart';
 import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // The default package version string as the version of the app.
 
@@ -79,7 +77,6 @@ class SolidLogin extends StatefulWidget {
     this.title = 'LOG IN TO YOUR POD',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
-    this.version = appVersion,
     super.key,
   });
 
@@ -107,6 +104,13 @@ class SolidLogin extends StatefulWidget {
   /// The URL used as the value of the Visit link.
 
   final String link;
+
+  /// The child widget after logging in.
+
+  final Widget child;
+  @override
+  State<SolidLogin> createState() => _SolidLoginState();
+}
 
 class _SolidLoginState extends State<SolidLogin> {
   // This string will hold the application version number.
