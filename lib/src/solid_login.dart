@@ -26,8 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams, Zheyuan Xu
-
+/// Authors: Graham Williams
 library;
 
 import 'package:flutter/material.dart';
@@ -158,16 +157,12 @@ class SolidLogin extends StatelessWidget {
     );
 
     // Text controller for the URI of the solid server to which an authenticate
-    // request is sent. Its default value is the [webID] which has a default
-    // value or else overridden by the call to the widget.
+    // request is sent.
 
     final webIdController = TextEditingController()..text = webID;
 
-    // The GET A POD button that when pressed will launch a browser to the
-    // releveant link from where a user can register for a POD on the Solid
-    // server. The default location is relative to the [webID], and is currently
-    // a fixed path but needs to be obtained from the server meta data, as was
-    // done in solid_auth through [getIssuer].
+    // A GET A POD button that when pressed will launch a browser to
+    // the releveant link with instructions to get a POD.
 
     const buttonLetterSpacing = 2.0;
     const buttonFontSize = 15.0;
@@ -188,7 +183,7 @@ class SolidLogin extends StatelessWidget {
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO? https://github.com/anusii/solid/issues/25.
+      // REQUIREMENT FOR THAT TOO?
 
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
@@ -217,56 +212,18 @@ class SolidLogin extends StatelessWidget {
           borderRadius: buttonBorderRadius,
         ),
       ),
+
+      // For now 20231230 simply go to the provided child widget on tap of the
+      // LOGIN button until the authentication is implemented. This will allow
+      // parallel implmentation of the app's GUI.
+
       onPressed: () async {
-        // Authenticate against the Solid server.
-
-        // Method to show busy animation requiring BuildContext.
-        //
-        // This approach of creating a local method will address the `flutter
-        // analyze` issue `use_build_context_synchronously`, identifying the use
-        // of a BuildContext across asynchronous gaps, without referencing the
-        // BuildContext after the async gap.
-
-        void showBusyAnimation() {
-          showAnimationDialog(
-            context,
-            7,
-            'Logging in...',
-            false,
-          );
-        }
-
-        showBusyAnimation();
-
-        // Perform the actual authentication by contacting the server at
-        // [WebID].
-
-        final authResult = await solidAuthenticate(webID, context);
-
-        // Method to navigate to the child widget, requiring BuildContext.
-
-        void navigateToApp() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => child),
-          );
-        }
-
-        // Method to show auth failed popup, requiring BuildContext.
-
-        void showAuthFailedPopup() {
-          popupWarning(context, 'Authentication has failed!');
-        }
-
-        // Check that the authentication succeeded, and if so navigate to the
-        // app itself. If it failed then notify the user and stay on the
-        // SolidLogin page.
-
-        if (authResult != null) {
-          navigateToApp();
-        } else {
-          showAuthFailedPopup();
-        }
+        await Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => child,
+          ),
+        );
       },
       child: Text(
         'LOGIN',
@@ -285,20 +242,15 @@ class SolidLogin extends StatelessWidget {
 
     // An Information link that is displayed within the Login panel.
 
-    Widget linkTo(String link) => Container(
-          margin: const EdgeInsets.only(right: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Text('Visit '),
-
-              // Listener is a lower-level widget for handling pointer events,
-              // which allows the SelectableText to remain selectable while also
-              // responding to taps to launch the URL.
-
-              Listener(
-                onPointerUp: (_) => launchUrl(Uri.parse(link)),
-                child: SelectableText(
+    Widget linkTo(String link) => GestureDetector(
+          onTap: () => launchUrl(Uri.parse(link)),
+          child: Container(
+            margin: const EdgeInsets.only(right: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Visit '),
+                SelectableText(
                   link,
                   textAlign: TextAlign.right,
                   style: TextStyle(
@@ -306,8 +258,8 @@ class SolidLogin extends StatelessWidget {
                       color: Colors.blue,
                       decoration: TextDecoration.underline),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
 
