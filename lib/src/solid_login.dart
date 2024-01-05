@@ -26,8 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams, Zheyuan Xu
-
+/// Authors: Graham Williams
 library;
 
 import 'package:flutter/material.dart';
@@ -131,8 +130,7 @@ class SolidLogin extends StatelessWidget {
     );
 
     // Text controller for the URI of the solid server to which an authenticate
-    // request is sent. Its default value is the [webID] which has a default
-    // value or else overridden by the call to the widget.
+    // request is sent.
 
     final webIdController = TextEditingController()..text = webID;
 
@@ -155,7 +153,7 @@ class SolidLogin extends StatelessWidget {
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO? https://github.com/anusii/solid/issues/25.
+      // REQUIREMENT FOR THAT TOO?
 
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
@@ -230,20 +228,15 @@ class SolidLogin extends StatelessWidget {
 
     // An Information link that is displayed within the Login panel.
 
-    Widget linkTo(String link) => Container(
-          margin: const EdgeInsets.only(right: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Text('Visit '),
-
-              // Listener is a lower-level widget for handling pointer events,
-              // which allows the SelectableText to remain selectable while also
-              // responding to taps to launch the URL.
-
-              Listener(
-                onPointerUp: (_) => launchUrl(Uri.parse(link)),
-                child: SelectableText(
+    Widget linkTo(String link) => GestureDetector(
+          onTap: () => launchUrl(Uri.parse(link)),
+          child: Container(
+            margin: const EdgeInsets.only(right: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Visit '),
+                SelectableText(
                   link,
                   textAlign: TextAlign.right,
                   style: TextStyle(
@@ -251,8 +244,8 @@ class SolidLogin extends StatelessWidget {
                       color: Colors.blue,
                       decoration: TextDecoration.underline),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
 
