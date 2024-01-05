@@ -32,6 +32,14 @@ Default style:
 	alt="Solid Login" width="400">
 </div>
 
+Optional version and visit link:
+
+<div align="center">
+	<img
+	src="images/podnotes_login.png"
+	alt="Solid Login" width="400">
+</div>
+
 Changing the image, logo, login text, colour scheme:
 
 <div align="center">
