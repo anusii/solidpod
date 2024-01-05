@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Thursday 2024-01-04 10:57:50 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-01-06 07:30:18 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -46,7 +46,7 @@ final List<String> _scopes = <String>[
   'offline_access',
 ];
 
-/// Asynchronously authenticate a user against a Solid server [serverID].
+/// Asynchronously authenticate a user against a Solid server [serverId].
 ///
 /// [serverId] is an issuer URI and is essential for the
 /// authentication process with the POD (Personal Online Datastore) issuer.
