@@ -5,20 +5,19 @@ homepage: https://github.com/anusii/solid
 
 environment:
   sdk: '>=3.2.3 <4.0.0'
-  flutter: ">=1.17.0"
+  flutter: '>=1.17.0'
 
 dependencies:
   flutter:
     sdk: flutter
+  fast_rsa: ^3.6.1
   http: ^1.1.2
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
-  openid_client: ^0.4.8
   package_info_plus: ^5.0.1
-  rdflib: ^0.2.8
   solid_auth: ^0.1.13
   url_launcher: ^6.2.2
-    
+
 dev_dependencies:
   dart_code_metrics:
     git:
@@ -35,7 +34,6 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 
 flutter:
-
   # To add assets to your package, add an assets section, like this:
 
   assets:
