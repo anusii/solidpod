@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Friday 2024-01-05 13:14:41 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 16:17:24 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -136,6 +136,14 @@ class SolidLogin extends StatelessWidget {
 
     final webIdController = TextEditingController()..text = webID;
 
+    // Define a common style for the text of the two buttons, GET POD and LOGIN.
+
+    const buttonTextStyle = TextStyle(
+      fontSize: 15.0,
+      letterSpacing: 2.0,
+      fontWeight: FontWeight.bold,
+    );
+
     // The GET A POD button that when pressed will launch a browser to the
     // releveant link from where a user can register for a POD on the Solid
     // server. The default location is relative to the [webID], and is currently
@@ -152,7 +160,7 @@ class SolidLogin extends StatelessWidget {
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
 
-      child: const Text('GET A POD'),
+      child: const Text('GET A POD', style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -217,7 +225,7 @@ class SolidLogin extends StatelessWidget {
           showAuthFailedPopup();
         }
       },
-      child: const Text('LOGIN'),
+      child: const Text('LOGIN', style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
@@ -355,7 +363,7 @@ class SolidLogin extends StatelessWidget {
           horizontal: loginPanelInset * screenWidth(context)),
       child: SingleChildScrollView(
         child: Card(
-          elevation: 5,
+          elevation: 50,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
