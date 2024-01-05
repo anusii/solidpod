@@ -1,6 +1,6 @@
 /// Solid authenticate function, return null if authenticate function fails.
 ///
-// Time-stamp: <Wednesday 2024-01-03 10:57:15 +1100 Zheyuan Xu>
+// Time-stamp: <Saturday 2024-01-06 06:59:15 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,13 +27,16 @@
 // SOFTWARE.
 ///
 /// Authors: Zheyuan Xu
+
 library;
 
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:solid/src/login/api/rest_api.dart';
 import 'package:solid_auth/solid_auth.dart';
+
+import 'package:solid/src/solid/api/rest_api.dart';
 
 // Scopes variables used in the authentication process.
 
