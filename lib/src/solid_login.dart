@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Friday 2024-01-05 21:18:37 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-01-06 06:34:16 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -238,24 +238,53 @@ class _SolidLoginState extends State<SolidLogin> {
 
     // An Information link that is displayed within the Login panel.
 
-    Widget linkTo(String link) => GestureDetector(
-          onTap: () => launchUrl(Uri.parse(link)),
-          child: Container(
-            margin: const EdgeInsets.only(right: 20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                const Text('Visit '),
-                SelectableText(
-                  link,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                      fontSize: screenWidth(context) > 400 ? 15 : 13,
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline),
+    Widget linkTo(String link) => Container(
+          margin: const EdgeInsets.only(right: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Text('Visit '),
+
+              // Listener is a lower-level widget for handling pointer events,
+              // which allows the SelectableText to remain selectable while also
+              // responding to taps to launch the URL.
+
+              // TODO 20240106 gjw CAN THE onPointerUp CONDITIONALLY launchUrl
+              // IF TEH TEXT HAS NO SELECTION. THEN WE MIGHT BE ABLE TO
+              // DISTINGUISH BETWEEN A CLICK AND A SELECTION OF THE TEXT. WITH A
+              // CLICK WE launchUrl() AND WITH A SELECTION WE DON'T.
+
+              // Listener(
+              //   onPointerUp: (_) => launchUrl(Uri.parse(link)),
+              //   child: SelectableText(
+              //     'xx', //link,
+              //     textAlign: TextAlign.right,
+              //     style: TextStyle(
+              //         fontSize: screenWidth(context) > 400 ? 15 : 13,
+              //         color: Colors.blue,
+              //         decoration: TextDecoration.underline),
+              //   ),
+              // ),
+
+              // TODO 20240106 gjw THIS ONE WORKS BETTER BUT STILL DOES A
+              // launchUrl() ON A DOUBLE TAP THAT MIGHT BE USED TO SELECT A
+              // WORK. HOW TO STOP DOUBLE TAP OPENING THE URL?
+
+              SelectableText(
+                link,
+                onTap: () async {
+                  if (await canLaunchUrl(Uri.parse(link))) {
+                    await launchUrl(Uri.parse(link));
+                  } else {
+                    throw 'Could not launch $link';
+                  }
+                },
+                style: const TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
 
