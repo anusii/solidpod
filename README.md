@@ -26,13 +26,13 @@ PODs through Flutter Widgets.
 
 <div align="center">
 	<img
-	src="https://github.com/anusii/solid/blob/main/images/solid_login.png"
+	src="images/solid_login.png"
 	alt="Solid Login" width="400">
 </div>
 
 <div align="center">
 	<img
-	src="https://github.com/anusii/solid/blob/dev/images/keypod_login.png"
+	src="images/keypod_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
