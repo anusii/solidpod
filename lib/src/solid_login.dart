@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Friday 2024-01-05 16:17:24 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 21:18:37 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -36,12 +36,6 @@ import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-// The default package version string as the version of the app.
-
-// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml WHICH WILL BE THE
-// APP'S VERSION NOT THE SOLID PACKAGE'S VERSION USING
-// package_info_plus. https://github.com/anusii/solid/issues/18
-
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
 // image on the left, or is on top of the app image.
@@ -65,9 +59,7 @@ bool isVeryNarrowScreen(BuildContext context) =>
 
 class SolidLogin extends StatefulWidget {
   const SolidLogin({
-    // Include the literals here so that they are exposed through the docs,
-    // except for version which is obtained from the importing app's
-    // pubspec.yaml by default.
+    // Include the literals here so that they are exposed through the docs.
 
     required this.child,
     this.image =
@@ -113,9 +105,9 @@ class SolidLogin extends StatefulWidget {
 }
 
 class _SolidLoginState extends State<SolidLogin> {
-  // This string will hold the application version number.
-  // Initially, it's an empty string because the actual version number
-  // will be obtained asynchronously from the package information.
+  // This string will hold the application version number.  Initially, it's an
+  // empty string because the actual version number will be obtained
+  // asynchronously from the app's package information.
 
   String appVersion = '';
 
@@ -125,7 +117,7 @@ class _SolidLoginState extends State<SolidLogin> {
     _initPackageInfo();
   }
 
-  // Fetches the package information.
+  // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
     final info = await PackageInfo.fromPlatform();
