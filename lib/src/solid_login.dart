@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Friday 2024-01-05 09:02:57 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 16:17:24 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,8 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams, Zheyuan Xu
-
+/// Authors: Graham Williams
 library;
 
 import 'package:flutter/material.dart';
@@ -77,14 +76,10 @@ class SolidLogin extends StatefulWidget {
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
-    this.panelBG = const Color(0xFFF2F4FC),
     this.title = 'LOG IN TO YOUR POD',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
-    this.getpodFG = Colors.purple,
-    this.getpodBG = Colors.orange,
-    this.loginFG = Colors.white,
-    this.loginBG = Colors.teal,
+    this.version = appVersion,
     super.key,
   });
 
@@ -100,11 +95,6 @@ class SolidLogin extends StatefulWidget {
 
   final AssetImage logo;
 
-  /// The Login panel's background colour. The default background colour is a
-  /// very light grey as a sublte background.
-
-  final Color panelBG;
-
   /// The login text indicating what we are loging in to.
 
   final String title;
@@ -117,28 +107,6 @@ class SolidLogin extends StatefulWidget {
   /// The URL used as the value of the Visit link.
 
   final String link;
-
-  /// The foreground colour of the GET POD button.
-
-  final Color getpodFG;
-
-  /// The background colour of the GET POD button.
-
-  final Color getpodBG;
-
-  /// The foreground colour of the LOGIN button.
-
-  final Color loginFG;
-
-  /// The background colour of the LOGIN button.
-
-  final Color loginBG;
-
-  final Widget child;
-
-  @override
-  State<SolidLogin> createState() => _SolidLoginState();
-}
 
 class _SolidLoginState extends State<SolidLogin> {
   // This string will hold the application version number.
@@ -176,10 +144,17 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // Text controller for the URI of the solid server to which an authenticate
-    // request is sent. Its default value is the [webID] which has a default
-    // value or else overridden by the call to the widget.
+    // request is sent.
 
     final webIdController = TextEditingController()..text = widget.webID;
+
+    // Define a common style for the text of the two buttons, GET POD and LOGIN.
+
+    const buttonTextStyle = TextStyle(
+      fontSize: 15.0,
+      letterSpacing: 2.0,
+      fontWeight: FontWeight.bold,
+    );
 
     // The GET A POD button that when pressed will launch a browser to the
     // releveant link from where a user can register for a POD on the Solid
@@ -187,39 +162,17 @@ class _SolidLoginState extends State<SolidLogin> {
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
-    const buttonLetterSpacing = 2.0;
-    const buttonFontSize = 15.0;
-    const buttonFontWeight = FontWeight.bold;
-    const buttonPadding = EdgeInsets.all(20);
-    final buttonBorderRadius = BorderRadius.circular(10);
-
-    final getPodButton = TextButton(
-      style: TextButton.styleFrom(
-        padding: buttonPadding,
-        backgroundColor: widget.getpodBG,
-        shape: RoundedRectangleBorder(
-          borderRadius: buttonBorderRadius,
-        ),
-      ),
-
+    final getPodButton = ElevatedButton(
       // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
       // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO? https://github.com/anusii/solid/issues/25.
+      // REQUIREMENT FOR THAT TOO?
 
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: Text(
-        'GET A POD',
-        style: TextStyle(
-          color: widget.getpodFG,
-          letterSpacing: buttonLetterSpacing,
-          fontSize: buttonFontSize,
-          fontWeight: buttonFontWeight,
-        ),
-      ),
+      child: const Text('GET A POD', style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -227,20 +180,18 @@ class _SolidLoginState extends State<SolidLogin> {
     // themselves. On return from the authentication, if successful, the class
     // provided child widget is instantiated.
 
-    final loginButton = TextButton(
-      style: TextButton.styleFrom(
-        padding: buttonPadding,
-        backgroundColor: widget.loginBG,
-        shape: RoundedRectangleBorder(
-          borderRadius: buttonBorderRadius,
-        ),
-      ),
+    final loginButton = ElevatedButton(
+      // style: TextButton.styleFrom(
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: buttonBorderRadius,
+      //   ),
+      // ),
       onPressed: () async {
         // Authenticate against the Solid server.
 
         // Method to show busy animation requiring BuildContext.
         //
-        // This approach of creating a local method will address the `flutter
+        // This approach of creating a local method will avoid the `flutter
         // analyze` issue `use_build_context_synchronously`, identifying the use
         // of a BuildContext across asynchronous gaps, without referencing the
         // BuildContext after the async gap.
@@ -286,37 +237,20 @@ class _SolidLoginState extends State<SolidLogin> {
           showAuthFailedPopup();
         }
       },
-      child: Text(
-        'LOGIN',
-        style: TextStyle(
-          color: widget.loginFG,
-          letterSpacing: buttonLetterSpacing,
-          fontSize: buttonFontSize,
-          fontWeight: buttonFontWeight,
-          // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
-          // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
-          // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
-          // fontFamily: 'Poppins',
-        ),
-      ),
+      child: const Text('LOGIN', style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
 
-    Widget linkTo(String link) => Container(
-          margin: const EdgeInsets.only(right: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Text('Visit '),
-
-              // Listener is a lower-level widget for handling pointer events,
-              // which allows the SelectableText to remain selectable while also
-              // responding to taps to launch the URL.
-
-              Listener(
-                onPointerUp: (_) => launchUrl(Uri.parse(link)),
-                child: SelectableText(
+    Widget linkTo(String link) => GestureDetector(
+          onTap: () => launchUrl(Uri.parse(link)),
+          child: Container(
+            margin: const EdgeInsets.only(right: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Visit '),
+                SelectableText(
                   link,
                   textAlign: TextAlign.right,
                   style: TextStyle(
@@ -324,8 +258,8 @@ class _SolidLoginState extends State<SolidLogin> {
                       color: Colors.blue,
                       decoration: TextDecoration.underline),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
 
@@ -436,8 +370,7 @@ class _SolidLoginState extends State<SolidLogin> {
           horizontal: loginPanelInset * screenWidth(context)),
       child: SingleChildScrollView(
         child: Card(
-          elevation: 5,
-          color: widget.panelBG,
+          elevation: 50,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
