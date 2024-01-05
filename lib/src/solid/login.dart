@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Saturday 2024-01-06 06:57:49 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-01-06 07:10:17 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,6 +27,7 @@
 // SOFTWARE.
 ///
 /// Authors: Graham Williams
+
 library;
 
 import 'package:flutter/material.dart';

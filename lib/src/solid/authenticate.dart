@@ -1,6 +1,6 @@
-/// Solid authenticate function, return null if authenticate function fails.
+/// Authenticate against a solid server, returning null if fail.
 ///
-// Time-stamp: <Saturday 2024-01-06 06:59:15 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-01-06 07:17:44 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -46,24 +46,33 @@ final List<String> _scopes = <String>[
   'offline_access',
 ];
 
-/// An asynchronous function designed to authenticate a user
-/// against a Solid server.
-/// [serverId] is an issuer URI and is essential for the
-/// authentication process with the POD (Personal Online Datastore) issuer.
-/// [context] is used in the authenticate method.
-/// The authentication process requires the context of the current widget.
+/// Asynchronously authenticate a user against a Solid server.
 ///
-/// The function returns a list containing authentication data, the user's webId,
-/// and their profile data.
-/// Error Handling: The function has a broad error handling mechanism (on ()), which returns null
-/// if any exception occurs during the authentication process.
+/// [serverId] is an issuer URI and is essential for the authentication process
+/// with the POD (Personal Online Datastore) issuer.
+///
+/// [context] is used in the authenticate method.  The authentication process
+/// requires the context of the current widget.
+///
+/// The function returns a list containing authentication data, the user's
+/// webId, and their profile data.
+///
+/// Error Handling: The function has a broad error handling mechanism (on ()),
+/// which returns null if any exception occurs during the authentication
+/// process.
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
   try {
+    // TODO 20240106 gjw MIGRATE getIssuer() FROM solid_auth INTO
+    // solid/issuer.dart as solidIssuer().
+
     final issuerUri = await getIssuer(serverId);
 
     // Authentication process for the POD issuer.
+
+    // TODO 20240106 gjw MIGRATER authenticate() FROM solid_auth. RESOLVE THE
+    // ignore:
 
     // ignore: use_build_context_synchronously
     final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
@@ -76,9 +85,10 @@ Future<List<dynamic>?> solidAuthenticate(
     final rsaKeyPair = rsaInfo['rsa'];
     final publicKeyJwk = rsaInfo['pubKeyJwk'];
     final profCardUrl = webId.replaceAll('#me', '');
+    // TODO 20240106 gjw MIGRATER genDpopToken() FROM solid_auth.
     final dPopToken =
         genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-
+    // TODO 20240106 gjw MIGRATER fetchPrvFile() FROM solid_auth to podFetchProfile().
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     return [authData, webId, profData];
