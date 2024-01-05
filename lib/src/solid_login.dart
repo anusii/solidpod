@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-04 10:48:09 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 09:02:57 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -41,9 +41,9 @@ import 'package:solid/src/widgets/show_animation_dialog.dart';
 
 // The default package version string as the version of the app.
 
-// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml. IDEALLY THIS IS
-// THE APP'S VERSION NOT THE SOLID PACKAGE'S
-// VERSION. https://github.com/anusii/solid/issues/18
+// TODO 20231229 gjw GET THE ACTUAL VERSION FROM pubspec.yaml WHICH WILL BE THE
+// APP'S VERSION NOT THE SOLID PACKAGE'S VERSION USING
+// package_info_plus. https://github.com/anusii/solid/issues/18
 
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -69,7 +69,8 @@ bool isVeryNarrowScreen(BuildContext context) =>
 class SolidLogin extends StatefulWidget {
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs,
-    // except for version which is TO BE calculated.
+    // except for version which is obtained from the importing app's
+    // pubspec.yaml by default.
 
     required this.child,
     this.image =
@@ -132,8 +133,6 @@ class SolidLogin extends StatefulWidget {
   /// The background colour of the LOGIN button.
 
   final Color loginBG;
-
-  /// The widget to hand over to once authentication is complete.
 
   final Widget child;
 
