@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Friday 2024-01-05 09:02:57 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-05 16:17:24 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -77,14 +77,9 @@ class SolidLogin extends StatelessWidget {
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
-    this.panelBG = const Color(0xFFF2F4FC),
     this.title = 'LOG IN TO YOUR POD',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
-    this.getpodFG = Colors.purple,
-    this.getpodBG = Colors.orange,
-    this.loginFG = Colors.white,
-    this.loginBG = Colors.teal,
     this.version = appVersion,
     super.key,
   });
@@ -101,11 +96,6 @@ class SolidLogin extends StatelessWidget {
 
   final AssetImage logo;
 
-  /// The Login panel's background colour. The default background colour is a
-  /// very light grey as a sublte background.
-
-  final Color panelBG;
-
   /// The login text indicating what we are loging in to.
 
   final String title;
@@ -119,23 +109,6 @@ class SolidLogin extends StatelessWidget {
 
   final String link;
 
-  /// The foreground colour of the GET POD button.
-
-  final Color getpodFG;
-
-  /// The background colour of the GET POD button.
-
-  final Color getpodBG;
-
-  /// The foreground colour of the LOGIN button.
-
-  final Color loginFG;
-
-  /// The background colour of the LOGIN button.
-
-  final Color loginBG;
-
-  /// The version of the app. The default is obtained from the app's
   /// pubspec.yaml.
 
   final String version;
@@ -161,24 +134,21 @@ class SolidLogin extends StatelessWidget {
 
     final webIdController = TextEditingController()..text = webID;
 
-    // A GET A POD button that when pressed will launch a browser to
-    // the releveant link with instructions to get a POD.
+    // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
-    const buttonLetterSpacing = 2.0;
-    const buttonFontSize = 15.0;
-    const buttonFontWeight = FontWeight.bold;
-    const buttonPadding = EdgeInsets.all(20);
-    final buttonBorderRadius = BorderRadius.circular(10);
+    const buttonTextStyle = TextStyle(
+      fontSize: 15.0,
+      letterSpacing: 2.0,
+      fontWeight: FontWeight.bold,
+    );
 
-    final getPodButton = TextButton(
-      style: TextButton.styleFrom(
-        padding: buttonPadding,
-        backgroundColor: getpodBG,
-        shape: RoundedRectangleBorder(
-          borderRadius: buttonBorderRadius,
-        ),
-      ),
+    // The GET A POD button that when pressed will launch a browser to the
+    // releveant link from where a user can register for a POD on the Solid
+    // server. The default location is relative to the [webID], and is currently
+    // a fixed path but needs to be obtained from the server meta data, as was
+    // done in solid_auth through [getIssuer].
 
+    final getPodButton = ElevatedButton(
       // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
@@ -188,15 +158,7 @@ class SolidLogin extends StatelessWidget {
       onPressed: () =>
           launchUrl(Uri.parse('$webID/.account/login/password/register/')),
 
-      child: Text(
-        'GET A POD',
-        style: TextStyle(
-          color: getpodFG,
-          letterSpacing: buttonLetterSpacing,
-          fontSize: buttonFontSize,
-          fontWeight: buttonFontWeight,
-        ),
-      ),
+      child: const Text('GET A POD', style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -204,40 +166,64 @@ class SolidLogin extends StatelessWidget {
     // themselves. On return from the authentication, if successful, the class
     // provided child widget is instantiated.
 
-    final loginButton = TextButton(
-      style: TextButton.styleFrom(
-        padding: buttonPadding,
-        backgroundColor: loginBG,
-        shape: RoundedRectangleBorder(
-          borderRadius: buttonBorderRadius,
-        ),
-      ),
-
-      // For now 20231230 simply go to the provided child widget on tap of the
-      // LOGIN button until the authentication is implemented. This will allow
-      // parallel implmentation of the app's GUI.
-
+    final loginButton = ElevatedButton(
+      // style: TextButton.styleFrom(
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: buttonBorderRadius,
+      //   ),
+      // ),
       onPressed: () async {
-        await Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => child,
-          ),
-        );
+        // Authenticate against the Solid server.
+
+        // Method to show busy animation requiring BuildContext.
+        //
+        // This approach of creating a local method will avoid the `flutter
+        // analyze` issue `use_build_context_synchronously`, identifying the use
+        // of a BuildContext across asynchronous gaps, without referencing the
+        // BuildContext after the async gap.
+
+        void showBusyAnimation() {
+          showAnimationDialog(
+            context,
+            7,
+            'Logging in...',
+            false,
+          );
+        }
+
+        showBusyAnimation();
+
+        // Perform the actual authentication by contacting the server at
+        // [WebID].
+
+        final authResult = await solidAuthenticate(webID, context);
+
+        // Method to navigate to the child widget, requiring BuildContext.
+
+        void navigateToApp() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => child),
+          );
+        }
+
+        // Method to show auth failed popup, requiring BuildContext.
+
+        void showAuthFailedPopup() {
+          popupWarning(context, 'Authentication has failed!');
+        }
+
+        // Check that the authentication succeeded, and if so navigate to the
+        // app itself. If it failed then notify the user and stay on the
+        // SolidLogin page.
+
+        if (authResult != null) {
+          navigateToApp();
+        } else {
+          showAuthFailedPopup();
+        }
       },
-      child: Text(
-        'LOGIN',
-        style: TextStyle(
-          color: loginFG,
-          letterSpacing: buttonLetterSpacing,
-          fontSize: buttonFontSize,
-          fontWeight: buttonFontWeight,
-          // TODO 20240104 gjw WHY THE CHOICE OF THIS SPECIFIC FONT? THIS WILL
-          // OVERRIDE ANY THEMES AND SO COULD CAUSE THE BUTTON TO LOOK RATHER
-          // DIFFERENT TO EVERYTHING ELSE WITHOUT A USER BEING ABLE TO FIX IT?
-          // fontFamily: 'Poppins',
-        ),
-      ),
+      child: const Text('LOGIN', style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
@@ -370,8 +356,7 @@ class SolidLogin extends StatelessWidget {
           horizontal: loginPanelInset * screenWidth(context)),
       child: SingleChildScrollView(
         child: Card(
-          elevation: 5,
-          color: panelBG,
+          elevation: 50,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
