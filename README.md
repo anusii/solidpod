@@ -32,7 +32,7 @@ Default style:
 	alt="Solid Login" width="400">
 </div>
 
-Changing the image and logo:
+Changing the image, logo, login text, colour scheme:
 
 <div align="center">
 	<img
@@ -40,7 +40,7 @@ Changing the image and logo:
 	alt="KeyPod Login" width="400">
 </div>
 
-Change the image, logo, button style, colours:
+Change the image, logo, login text, button style, colour scheme:
 
 <div align="center">
 	<img
