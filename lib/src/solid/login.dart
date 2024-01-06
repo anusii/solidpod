@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:21:34 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 08:33:23 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -249,18 +249,20 @@ class _SolidLoginState extends State<SolidLogin> {
 
               // Use a GestureDetector to capture a double tap to open the URL,
               // and then within the SelectableText capture the single tap to
-              // display the URL. A longer tap will then select the text. I did
-              // try a Listener, which is a lower-level widget for handling
-              // pointer events, which allows the SelectableText, as its child,
-              // to remain selectable while also responding to taps to launch
-              // the URL, but it will always open the URL onPointerUp and had no
-              // simple onDoubleTap access.
+              // display the URL. A longer tap will then select the text,
+              // ensuring we ignore it from the GestureDetector point of view,
+              // so it won;t be treated as a tap. I did try a Listener, which is
+              // a lower-level widget for handling pointer events, which allows
+              // the SelectableText, as its child, to remain selectable while
+              // also responding to taps to launch the URL, but it will always
+              // open the URL onPointerUp and had no simple onDoubleTap access.
 
               // TODO 20240106 gjw Put the async anonymous function to launch
               // the URL into a named function and call it twice in the below
               // rather than repeating the code. DRY principle.
 
               GestureDetector(
+                onLongPress: () => {},
                 onDoubleTap: () async {
                   if (await canLaunchUrl(Uri.parse(link))) {
                     await launchUrl(Uri.parse(link));
