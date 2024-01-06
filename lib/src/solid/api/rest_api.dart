@@ -1,6 +1,6 @@
-/// Support for flutter apps accessing solid PODs.
+/// Functions with restful APIs.
 ///
-// Time-stamp: <Saturday 2024-01-06 07:04:42 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-01-02 15:57:15 +1100 Zheyuan Xu>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,8 +26,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Zheyuan Xu
 
-library solid;
+library;
 
-export 'src/solid/login.dart' show SolidLogin;
+import 'package:http/http.dart' as http;
+
+/// The fetchPrvFile function is an asynchronous function designed to fetch
+/// profile data from a specified URL [profCardUrl].
+/// It takes three parameters: [profCardUrl] (the URL to fetch data from),
+/// [accessToken] (used for authorization), and [dPopToken] (another form
+/// of token used in headers for enhanced security).
+
+Future<String> fetchPrvFile(
+  String profCardUrl,
+  String accessToken,
+  String dPopToken,
+) async {
+  final profResponse = await http.get(
+    Uri.parse(profCardUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (profResponse.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return profResponse.body;
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    //print(profResponse.body);
+    throw Exception('Failed to load profile data! Try again in a while.');
+  }
+}

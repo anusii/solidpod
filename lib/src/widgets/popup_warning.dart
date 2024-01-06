@@ -1,6 +1,6 @@
-/// Support for flutter apps accessing solid PODs.
+/// Warning popup window.
 ///
-// Time-stamp: <Saturday 2024-01-06 07:04:42 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-04 11:46:24 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,8 +26,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Zheyuan Xu
 
-library solid;
+library;
 
-export 'src/solid/login.dart' show SolidLogin;
+import 'package:flutter/material.dart';
+
+/// An asynchronous function used to display a warning dialog.
+/// The [BuildContext] is necessary for rendering the dialog within
+/// the widget tree, while the String parameter [content] allows
+/// for custom text to be displayed within the dialog.
+
+Future<dynamic> popupWarning(BuildContext context, String content) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Warning'),
+        content: Text(
+          content,
+        ),
+        actions: [
+          TextButton(
+            child: const Text(
+              'Ok',
+            ),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}

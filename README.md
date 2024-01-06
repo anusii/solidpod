@@ -22,17 +22,37 @@ PODs through Flutter Widgets.
 
 ## Features
 
-+ Standard widget to support authentication against a Solid server:
++ Standard widget [SolidLogin] to support authentication against a Solid server:
+
+Default style:
 
 <div align="center">
 	<img
-	src="https://github.com/anusii/solid/blob/main/images/solid_login.png"
+	src="images/solid_login.png"
 	alt="Solid Login" width="400">
 </div>
 
+Optional version and visit link:
+
 <div align="center">
 	<img
-	src="https://github.com/anusii/solid/blob/dev/images/keypod_login.png"
+	src="images/podnotes_login.png"
+	alt="Solid Login" width="400">
+</div>
+
+Changing the image, logo, login text, colour scheme:
+
+<div align="center">
+	<img
+	src="images/tomy_login.png"
+	alt="KeyPod Login" width="400">
+</div>
+
+Change the image, logo, login text, button style, colour scheme:
+
+<div align="center">
+	<img
+	src="images/keypod_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
