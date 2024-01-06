@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Saturday 2024-01-06 17:28:14 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 08:21:34 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -30,11 +30,13 @@
 library;
 
 import 'package:flutter/material.dart';
+
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:solid/src/login/solid_authenticate.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:solid/src/solid/authenticate.dart';
 import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
