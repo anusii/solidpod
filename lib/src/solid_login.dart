@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Saturday 2024-01-06 17:23:24 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-01-06 17:28:14 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -246,7 +246,7 @@ class _SolidLoginState extends State<SolidLogin> {
               const Text('Visit '),
 
               // Use a GestureDetector to capture a double tap to open the URL,
-              // and then within the SelectableText capture the singl tap to
+              // and then within the SelectableText capture the single tap to
               // display the URL. A longer tap will then select the text. I did
               // try a Listener, which is a lower-level widget for handling
               // pointer events, which allows the SelectableText, as its child,
