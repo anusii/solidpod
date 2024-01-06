@@ -1,6 +1,6 @@
 /// Authenticate against a solid server, returning null if fail.
 ///
-// Time-stamp: <Saturday 2024-01-06 16:19:52 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-01-06 16:20:42 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -88,7 +88,7 @@ Future<List<dynamic>?> solidAuthenticate(
     // TODO 20240106 gjw MIGRATE genDpopToken() FROM solid_auth.
     final dPopToken =
         genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-    // TODO 20240106 gjw MIGRATE fetchPrvFile() FROM solid_auth to podFetchProfile().
+    // TODO 20240106 gjw MIGRATE fetchPrvFile() FROM solid_auth to podFetchFile().
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     return [authData, webId, profData];
