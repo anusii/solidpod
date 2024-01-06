@@ -1,6 +1,6 @@
 /// Warning popup window.
 ///
-// Time-stamp: <Wednesday 2024-01-03 11:19:25 +1100 Zheyuan Xu>
+// Time-stamp: <Thursday 2024-01-04 11:46:24 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,6 +27,7 @@
 // SOFTWARE.
 ///
 /// Authors: Zheyuan Xu
+
 library;
 
 import 'package:flutter/material.dart';

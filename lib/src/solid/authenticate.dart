@@ -1,6 +1,6 @@
-/// Authenticate against a solid server, returning null if fail.
+/// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Saturday 2024-01-06 16:20:42 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 08:36:06 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu
+/// Authors: Zheyuan Xu, Graham Williams
 
 library;
 
@@ -46,20 +46,18 @@ final List<String> _scopes = <String>[
   'offline_access',
 ];
 
-/// Asynchronously authenticate a user against a Solid server.
+/// Asynchronously authenticate a user against a Solid server [serverId].
 ///
-/// [serverId] is an issuer URI and is essential for the authentication process
-/// with the POD (Personal Online Datastore) issuer.
+/// [serverId] is an issuer URI and is essential for the
+/// authentication process with the POD (Personal Online Datastore) issuer.
 ///
-/// [context] is used in the authenticate method.  The authentication process
-/// requires the context of the current widget.
+/// [context] of the current widget is required for the authenticate process.
 ///
-/// The function returns a list containing authentication data, the user's
-/// webId, and their profile data.
+/// Return a list containing authentication data: user's webId; profile data.
 ///
-/// Error Handling: The function has a broad error handling mechanism (on ()),
-/// which returns null if any exception occurs during the authentication
-/// process.
+/// Error Handling: The function has a broad error handling mechanism through
+/// using `on ()`, which returns null if any exception occurs during the
+/// authentication process.
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
