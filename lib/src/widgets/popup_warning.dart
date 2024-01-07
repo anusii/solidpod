@@ -1,6 +1,6 @@
 /// Warning popup window.
 ///
-// Time-stamp: <Thursday 2024-01-04 11:46:24 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 12:47:38 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -47,12 +47,19 @@ Future<dynamic> popupWarning(BuildContext context, String content) {
           content,
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
             child: const Text(
               'Ok',
             ),
             onPressed: () {
+              // TODO 20240107 gjw ONE SOLUTION TO THE BSUY ANIMATION STAYING
+              // AROUND WAS TO POP TWICE. THIS WORKS FOR THE FAILED LOGIN
+              // AUTHENTICATION WHERE WE POP THE POPUP AND THEN POP THE
+              // ANIMATION BACK TO THE ORIGINAL SOLID LOGIN WIDGET. DECIDED TO
+              // NOT DISPLAY THIS POPUP BUT GO BACK DIRECTLY TO THE LOGIN
+              // SCREEN.
               Navigator.pop(context);
+              // Navigator.pop(context);
             },
           ),
         ],

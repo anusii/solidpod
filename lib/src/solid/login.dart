@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:33:23 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 12:56:54 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -210,7 +210,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
         final authResult = await solidAuthenticate(widget.webID, context);
 
-        // Method to navigate to the child widget, requiring BuildContext.
+        // Method to navigate to the child widget, requiring BuildContext, and
+        // so avoiding the "don't use BuildContext across async gaps" warning.
 
         void navigateToApp() {
           Navigator.pushReplacement(
@@ -219,6 +220,16 @@ class _SolidLoginState extends State<SolidLogin> {
           );
         }
 
+        // Method to navigate back to the login widget, requiring BuildContext,
+        // and so avoiding the "don't use BuildContext across async gaps"
+        // warning.
+
+        void navigateToLogin() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget),
+          );
+        }
         // Method to show auth failed popup, requiring BuildContext.
 
         void showAuthFailedPopup() {
@@ -232,7 +243,11 @@ class _SolidLoginState extends State<SolidLogin> {
         if (authResult != null) {
           navigateToApp();
         } else {
+          // TODO 20240107 gjw THE showAuthFailedPopup IS LOST BECAUSE OF THE
+          // Naviagator CALL. MAYBE WE DON'T NEED A POPUP AND SO THE CODE IS
+          // MUCH SIMPLER AND THE USER INTERACTION IS PROBABLY CLEAR.
           showAuthFailedPopup();
+          navigateToLogin();
         }
       },
       child: const Text('LOGIN', style: buttonTextStyle),
