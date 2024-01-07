@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:27:47 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 11:53:59 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -55,9 +55,8 @@ final List<String> _scopes = <String>[
 ///
 /// Return a list containing authentication data: user's webId; profile data.
 ///
-/// Error Handling: The function has a broad error handling mechanism through
-/// using `on ()`, which returns null if any exception occurs during the
-/// authentication process.
+/// Error Handling: The function has a catch all to return null if any exception
+/// occurs during the authentication process.
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
@@ -67,6 +66,7 @@ Future<List<dynamic>?> solidAuthenticate(
     // Authentication process for the POD issuer.
 
     // ignore: use_build_context_synchronously
+
     final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
     final accessToken = authData['accessToken'].toString();
@@ -83,7 +83,7 @@ Future<List<dynamic>?> solidAuthenticate(
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     return [authData, webId, profData];
-  } on () {
+  } catch (e) {
     return null;
   }
 }
