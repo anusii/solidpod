@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Sunday 2024-01-07 11:53:59 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 11:59:35 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -84,6 +84,7 @@ Future<List<dynamic>?> solidAuthenticate(
 
     return [authData, webId, profData];
   } catch (e) {
+    print('Solid Authenticate Failed: $e');
     return null;
   }
 }
