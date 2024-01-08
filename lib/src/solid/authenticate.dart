@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Monday 2024-01-08 14:36:01 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-08 14:41:54 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -76,6 +76,7 @@ Future<List<dynamic>?> solidAuthenticate(
     final rsaKeyPair = rsaInfo['rsa'];
     final publicKeyJwk = rsaInfo['pubKeyJwk'];
     final profCardUrl = webId.replaceAll('#me', '');
+
     final dPopToken =
         genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
 
