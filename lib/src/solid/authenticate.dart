@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Sunday 2024-01-07 11:59:35 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-08 14:36:01 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -66,7 +66,6 @@ Future<List<dynamic>?> solidAuthenticate(
     // Authentication process for the POD issuer.
 
     // ignore: use_build_context_synchronously
-
     final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
     final accessToken = authData['accessToken'].toString();
@@ -83,8 +82,13 @@ Future<List<dynamic>?> solidAuthenticate(
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     return [authData, webId, profData];
+    // TODO 20240108 gjw WHY DOES THIS RESULT IN
+    // avoid_catches_without_on_clauses CONTRAVENTION? IT SEEMS TO WANT AN ON
+    // CLAUSE YET COMPLAINS WHEN ADD ONE IN SINCE THE catch (e) IS A CATCHLL?
+    //
+    // ignore: avoid_catches_without_on_clauses
   } catch (e) {
-    print('Solid Authenticate Failed: $e');
+    debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
 }
