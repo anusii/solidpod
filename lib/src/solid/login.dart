@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:36:42 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-08 14:42:13 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -36,7 +36,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solid/src/solid/authenticate.dart';
-import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
 
 // Screen size support funtions to identify narrow and very narrow screens. The
@@ -164,9 +163,9 @@ class _SolidLoginState extends State<SolidLogin> {
     final getPodButton = ElevatedButton(
       // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
-      // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. MIGRATE
-      // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() IF THERE IS A
-      // REQUIREMENT FOR THAT TOO?
+      // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. THE
+      // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() COULD THEN BE
+      // USED AGAIN.
 
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
@@ -211,7 +210,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
         final authResult = await solidAuthenticate(widget.webID, context);
 
-        // Method to navigate to the child widget, requiring BuildContext.
+        // Method to navigate to the child widget, requiring BuildContext, and
+        // so avoiding the "don't use BuildContext across async gaps" warning.
 
         void navigateToApp() {
           Navigator.pushReplacement(
@@ -220,10 +220,15 @@ class _SolidLoginState extends State<SolidLogin> {
           );
         }
 
-        // Method to show auth failed popup, requiring BuildContext.
+        // Method to navigate back to the login widget, requiring BuildContext,
+        // and so avoiding the "don't use BuildContext across async gaps"
+        // warning.
 
-        void showAuthFailedPopup() {
-          popupWarning(context, 'Authentication has failed!');
+        void navigateToLogin() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget),
+          );
         }
 
         // Check that the authentication succeeded, and if so navigate to the
@@ -233,7 +238,16 @@ class _SolidLoginState extends State<SolidLogin> {
         if (authResult != null) {
           navigateToApp();
         } else {
-          showAuthFailedPopup();
+          // On moving to using navigateToLogin() the previously implemented
+          // asynchronous showAuthFailedPopup() is lost due to the immediately
+          // following Navigator. We probably don't need a popup and so the code
+          // is much simpler and the user interaction is probably clear enough
+          // for now that for some reason we remain on the Login screen. If
+          // there are non-obvious scneraiors where we fail to authenticate and
+          // revert to thte login screen then we can capture and report them
+          // later.
+
+          navigateToLogin();
         }
       },
       child: const Text('LOGIN', style: buttonTextStyle),

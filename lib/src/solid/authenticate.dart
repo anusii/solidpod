@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Monday 2024-01-08 12:10:52 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-08 14:41:54 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -55,9 +55,8 @@ final List<String> _scopes = <String>[
 ///
 /// Return a list containing authentication data: user's webId; profile data.
 ///
-/// Error Handling: The function has a broad error handling mechanism through
-/// using `on ()`, which returns null if any exception occurs during the
-/// authentication process.
+/// Error Handling: The function has a catch all to return null if any exception
+/// occurs during the authentication process.
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
@@ -84,7 +83,13 @@ Future<List<dynamic>?> solidAuthenticate(
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     return [authData, webId, profData];
-  } on () {
+    // TODO 20240108 gjw WHY DOES THIS RESULT IN
+    // avoid_catches_without_on_clauses CONTRAVENTION? IT SEEMS TO WANT AN ON
+    // CLAUSE YET COMPLAINS WHEN ADD ONE IN SINCE THE catch (e) IS A CATCHLL?
+    //
+    // ignore: avoid_catches_without_on_clauses
+  } catch (e) {
+    debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
 }
