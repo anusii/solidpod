@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:36:06 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-01-08 12:10:52 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -62,15 +62,9 @@ final List<String> _scopes = <String>[
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
   try {
-    // TODO 20240106 gjw MIGRATE getIssuer() FROM solid_auth INTO
-    // solid/issuer.dart as solidIssuer().
-
     final issuerUri = await getIssuer(serverId);
 
     // Authentication process for the POD issuer.
-
-    // TODO 20240106 gjw MIGRATE authenticate() FROM solid_auth. RESOLVE THE
-    // ignore:
 
     // ignore: use_build_context_synchronously
     final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
@@ -83,10 +77,10 @@ Future<List<dynamic>?> solidAuthenticate(
     final rsaKeyPair = rsaInfo['rsa'];
     final publicKeyJwk = rsaInfo['pubKeyJwk'];
     final profCardUrl = webId.replaceAll('#me', '');
-    // TODO 20240106 gjw MIGRATE genDpopToken() FROM solid_auth.
+
     final dPopToken =
         genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-    // TODO 20240106 gjw MIGRATE fetchPrvFile() FROM solid_auth to podFetchFile().
+
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     return [authData, webId, profData];
