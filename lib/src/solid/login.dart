@@ -31,25 +31,31 @@
 library;
 
 import 'package:flutter/material.dart';
-
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
-
+import 'package:solid/src/screens/initial_setup_screen.dart';
+import 'package:solid/src/solid/api/rest_api.dart';
 import 'package:solid/src/solid/authenticate.dart';
 import 'package:solid/src/widgets/popup_warning.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-// Screen size support funtions to identify narrow and very narrow screens. The
+// Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
 // image on the left, or is on top of the app image.
 
 const int narrowScreenLimit = 1175;
 const int veryNarrowScreenLimit = 750;
 
+/// Returns the width of the screen in logical pixels.
+
 double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+
+/// Checks if the screen width is less than a predefined limit.
 
 bool isNarrowScreen(BuildContext context) =>
     screenWidth(context) < narrowScreenLimit;
+
+/// Checks if the screen width is less than a very narrow predefined limit.
 
 bool isVeryNarrowScreen(BuildContext context) =>
     screenWidth(context) < veryNarrowScreenLimit;
@@ -113,6 +119,9 @@ class _SolidLoginState extends State<SolidLogin> {
   // asynchronously from the app's package information.
 
   String appVersion = '';
+  String appName = '';
+  List<String> defaultFolders = [];
+  Map<dynamic, dynamic> defaultFiles = {};
 
   @override
   void initState() {
@@ -127,6 +136,9 @@ class _SolidLoginState extends State<SolidLogin> {
 
     setState(() {
       appVersion = info.version;
+      appName = info.appName;
+      defaultFolders = generateDefaultFolders(appName);
+      defaultFiles = generateDefaultFiles(appName);
     });
   }
 
@@ -156,7 +168,7 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // The GET A POD button that when pressed will launch a browser to the
-    // releveant link from where a user can register for a POD on the Solid
+    // relevant link from where a user can register for a POD on the Solid
     // server. The default location is relative to the [webID], and is currently
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
@@ -211,13 +223,31 @@ class _SolidLoginState extends State<SolidLogin> {
 
         final authResult = await solidAuthenticate(widget.webID, context);
 
+        // Navigates to the Initial Setup Screen using the provided authentication data.
+
+        Future<void> navInitialSetupScreen(
+            Map<dynamic, dynamic> authData) async {
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => InitialSetupScreen(
+                      authData: authData,
+                      webId: widget.webID,
+                      appName: appName,
+                    )),
+          );
+        }
+
         // Method to navigate to the child widget, requiring BuildContext.
 
-        void navigateToApp() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          );
+        Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
+          final resCheckList = await initialStructureTest(
+              authData, appName, defaultFolders, defaultFiles);
+          final allExists = resCheckList.first as bool;
+
+          if (!allExists) {
+            await navInitialSetupScreen(authData);
+          }
         }
 
         // Method to show auth failed popup, requiring BuildContext.
@@ -230,8 +260,8 @@ class _SolidLoginState extends State<SolidLogin> {
         // app itself. If it failed then notify the user and stay on the
         // SolidLogin page.
 
-        if (authResult != null) {
-          navigateToApp();
+        if (authResult != null && authResult.isNotEmpty) {
+          await navigateToApp(authResult.first as Map);
         } else {
           showAuthFailedPopup();
         }
