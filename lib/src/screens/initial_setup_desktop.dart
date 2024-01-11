@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Monday 2024-01-08 12:10:52 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-01-12 09:42:28 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -30,10 +30,12 @@
 library;
 
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:fast_rsa/fast_rsa.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -41,6 +43,7 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_encrypt/solid_encrypt.dart';
+
 import 'package:solid/src/solid/api/rest_api.dart';
 import 'package:solid/src/solid/login.dart';
 import 'package:solid/src/widgets/build_message_container.dart';
@@ -55,8 +58,7 @@ const kTitleTextColor = Color(0xFF30384D);
 
 // Text string variables used in initial setup screen.
 
-const initialStructureWelcome =
-    'Welcome to PODNotes initial structure setup wizard!';
+const initialStructureWelcome = 'Welcome to the POD setup wizard!';
 const initialStructureTitle = 'Structure setup wizard!';
 const initialStructureMsg =
     'You are being re-directed to this page because you have either created'
