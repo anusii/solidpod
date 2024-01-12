@@ -30,18 +30,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-/// A utility class providing asset paths for the application.
-
-class AssetsPath {
-  static const String help = 'assets/types/help.svg';
-  static const String failure = 'assets/types/failure.svg';
-  static const String success = 'assets/types/success.svg';
-  static const String warning = 'assets/types/warning.svg';
-  static const String back = 'assets/types/back.svg';
-  static const String bubbles = 'assets/types/bubbles.svg';
-}
 
 /// The `Languages` class provides a collection of language codes.
 
@@ -87,25 +76,7 @@ Color getContentColour(String contentType) {
   }
 }
 
-/// Returns the appropriate SVG asset path based on the specified content type.
 
-String assetSVG(String contentType) {
-  if (contentType == 'failure') {
-    /// failure will show `CROSS`
-    return AssetsPath.failure;
-  } else if (contentType == 'success') {
-    /// success will show `CHECK`
-    return AssetsPath.success;
-  } else if (contentType == 'warning') {
-    /// warning will show `EXCLAMATION`
-    return AssetsPath.warning;
-  } else if (contentType == 'help') {
-    /// help will show `QUESTION MARK`
-    return AssetsPath.help;
-  } else {
-    return AssetsPath.failure;
-  }
-}
 
 /// Calculates the height of a widget based on the length of the provided content.
 ///
@@ -154,9 +125,6 @@ Container buildMsgBox(
   final isMobile = size.width <= 730;
   final isTablet = size.width > 730 && size.width <= 1050;
 
-  /// for reflecting different color shades in the SnackBar
-  final hsl = HSLColor.fromColor(getContentColour(msgType));
-  final hslDark = hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0));
 
   var horizontalPadding = 0.0;
   var leftSpace = size.width * 0.12;
@@ -194,51 +162,6 @@ Container buildMsgBox(
           ),
         ),
 
-        /// SVGs in body
-        Positioned(
-          bottom: 0,
-          left: 0,
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-            ),
-            child: SvgPicture.asset(
-              AssetsPath.bubbles,
-              height: size.height * 0.06,
-              width: size.width * 0.05,
-              colorFilter: ColorFilter.mode(hslDark.toColor(), BlendMode.srcIn),
-            ),
-          ),
-        ),
-
-        Positioned(
-          top: -size.height * 0.02,
-          left: !isRTL
-              ? leftSpace - (isMobile ? size.width * 0.075 : size.width * 0.035)
-              : null,
-          right: isRTL
-              ? rightSpace -
-                  (isMobile ? size.width * 0.075 : size.width * 0.035)
-              : null,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              SvgPicture.asset(
-                AssetsPath.back,
-                height: size.height * 0.06,
-                colorFilter:
-                    ColorFilter.mode(hslDark.toColor(), BlendMode.srcIn),
-              ),
-              Positioned(
-                top: size.height * 0.015,
-                child: SvgPicture.asset(
-                  assetSVG(msgType),
-                  height: size.height * 0.022,
-                ),
-              )
-            ],
-          ),
-        ),
 
         Positioned.fill(
           left: isRTL ? size.width * 0.03 : leftSpace,
