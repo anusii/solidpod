@@ -634,7 +634,7 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                             if (formKey.currentState
                                                     ?.saveAndValidate() ??
                                                 false) {
-                                              await showAnimationDialog(
+                                              showAnimationDialog(
                                                 context,
                                                 17,
                                                 'Creating resources!',
@@ -745,6 +745,8 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                   final folderPath = resNameStr
                                                       .replaceAll(resName, '');
 
+                                                  print(748);
+
                                                   final createDirRes =
                                                       await createItem(
                                                           false,
@@ -760,9 +762,8 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                 }
 
                                                 // Create files
-                                                for (final resLink in widget
-                                                        .resNeedToCreate[
-                                                    'files'] as List<String>) {
+                                                for (final resLink
+                                                    in resFilesLink) {
                                                   // Get base url
                                                   final serverUrl = widget.webId
                                                       .replaceAll(profCard, '');
