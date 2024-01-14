@@ -32,6 +32,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:solid/src/screens/home.dart';
 import 'package:solid/src/screens/initial_setup_screen.dart';
 import 'package:solid/src/solid/api/rest_api.dart';
 import 'package:solid/src/solid/authenticate.dart';
@@ -216,11 +217,13 @@ class _SolidLoginState extends State<SolidLogin> {
         }
 
         showBusyAnimation();
+        print(219);
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
         final authResult = await solidAuthenticate(widget.webID, context);
+        print(225);
 
         // Navigates to the Initial Setup Screen using the provided authentication data.
 
@@ -237,6 +240,24 @@ class _SolidLoginState extends State<SolidLogin> {
           );
         }
 
+        Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Scaffold(
+                      appBar: AppBar(
+                        // backgroundColor: lightGreen,
+                        centerTitle: true,
+                        title: const Text('POD Note Taker'),
+                      ),
+                      body: Home(
+                        authData: authData,
+                        webId: widget.webID,
+                      ),
+                    )),
+          );
+        }
+
         // Method to navigate to the child widget, requiring BuildContext, and
         // so avoiding the "don't use BuildContext across async gaps" warning.
 
@@ -248,6 +269,8 @@ class _SolidLoginState extends State<SolidLogin> {
           if (!allExists) {
             await navInitialSetupScreen(authData);
           }
+
+          await navHomeScreen(authData);
         }
 
         // Method to navigate back to the login widget, requiring BuildContext,
@@ -267,6 +290,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
         if (authResult != null && authResult.isNotEmpty) {
           await navigateToApp(authResult.first as Map);
+          print(272);
         } else {
           // On moving to using navigateToLogin() the previously implemented
           // asynchronous showAuthFailedPopup() is lost due to the immediately
@@ -276,6 +300,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // there are non-obvious scneraiors where we fail to authenticate and
           // revert to thte login screen then we can capture and report them
           // later.
+          print(283);
 
           navigateToLogin();
         }
