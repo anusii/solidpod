@@ -131,12 +131,6 @@ Future<List<dynamic>> initialStructureTest(Map<dynamic, dynamic> authData,
 Future<String> createItem(bool fileFlag, String itemName, String itemBody,
     String webId, Map<dynamic, dynamic> authData,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
-  print('fileFlag $fileFlag');
-  print('itemName $itemName');
-  print('itemBody $itemBody');
-  print('webId $webId');
-  print('fileLoc $fileLoc');
-  print('fileType $fileType');
 
   String? itemLoc = '';
   var itemSlug = '';
@@ -168,9 +162,6 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
       : fileFlag
           ? '$webId$itemLoc'
           : '$webId/$itemLoc';
-
-  print('encDataUrl $encDataUrl');
-  print('webId $webId');
 
   final dPopToken =
       genDpopToken(encDataUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'POST');

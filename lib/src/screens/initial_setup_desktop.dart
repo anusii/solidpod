@@ -43,7 +43,6 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_encrypt/solid_encrypt.dart';
-
 import 'package:solid/src/solid/api/rest_api.dart';
 import 'package:solid/src/solid/login.dart';
 import 'package:solid/src/widgets/build_message_container.dart';
@@ -744,8 +743,6 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                   // Get resource path
                                                   final folderPath = resNameStr
                                                       .replaceAll(resName, '');
-
-                                                  print(748);
 
                                                   final createDirRes =
                                                       await createItem(

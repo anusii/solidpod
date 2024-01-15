@@ -1,24 +1,54 @@
+/// Home page after user creating account.
+///
+// Time-stamp: <Friday 2024-01-12 09:42:28 +1100 Graham Williams>
+///
+/// Copyright (C) 2024, Software Innovation Institute, ANU.
+///
+/// Licensed under the MIT License (the "License").
+///
+/// License: https://choosealicense.com/licenses/mit/.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+///
+/// Authors: Zheyuan Xu
+
 library;
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-
-import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:intl/intl.dart';
-import 'package:markdown_editor_plus/markdown_editor_plus.dart';
-import 'package:solid/src/widgets/show_animation_dialog.dart';
+
+/// Defines a constant color `darkBlue` using ARGB values.
 
 const darkBlue = Color.fromARGB(255, 7, 87, 153);
 
+/// Widget represents the home screen of the application.
+///
+/// It requires [webId] and [authData] to be passed to it during initialization.
+/// These parameters are used for authentication and data retrieval.
+
 class Home extends StatefulWidget {
+
+  const Home({required this.webId, required this.authData, super.key});
   final String webId;
   final Map authData;
-
-  const Home({super.key, required this.webId, required this.authData});
 
   @override
   HomeState createState() => HomeState();
@@ -34,7 +64,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     super.initState();
     _textController = TextEditingController();
   }
-
 
   @override
   Widget build(BuildContext context) {
