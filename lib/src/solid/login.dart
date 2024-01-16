@@ -114,13 +114,19 @@ class SolidLogin extends StatefulWidget {
 }
 
 class _SolidLoginState extends State<SolidLogin> {
-  // This string will hold the application version number.  Initially, it's an
-  // empty string because the actual version number will be obtained
-  // asynchronously from the app's package information.
+  // This strings will hold the application version number and app name.
+  // Initially, it's an empty string because the actual version number
+  // will be obtained asynchronously from the app's package information.
 
   String appVersion = '';
   String appName = '';
+
+  /// Default folders will be generated after user logged in.
+
   List<String> defaultFolders = [];
+
+  /// Default files will be generated after user logged in.
+
   Map<dynamic, dynamic> defaultFiles = {};
 
   @override
@@ -217,13 +223,11 @@ class _SolidLoginState extends State<SolidLogin> {
         }
 
         showBusyAnimation();
-        print(219);
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
         final authResult = await solidAuthenticate(widget.webID, context);
-        print(225);
 
         // Navigates to the Initial Setup Screen using the provided authentication data.
 
@@ -240,6 +244,8 @@ class _SolidLoginState extends State<SolidLogin> {
           );
         }
 
+        // Navigates to the Home Screen if the account exits.
+
         Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
           await Navigator.pushReplacement(
             context,
@@ -252,6 +258,7 @@ class _SolidLoginState extends State<SolidLogin> {
                       ),
                       body: Home(
                         authData: authData,
+                        appName: appName,
                         webId: widget.webID,
                       ),
                     )),
@@ -290,7 +297,6 @@ class _SolidLoginState extends State<SolidLogin> {
 
         if (authResult != null && authResult.isNotEmpty) {
           await navigateToApp(authResult.first as Map);
-          print(272);
         } else {
           // On moving to using navigateToLogin() the previously implemented
           // asynchronous showAuthFailedPopup() is lost due to the immediately
@@ -300,7 +306,6 @@ class _SolidLoginState extends State<SolidLogin> {
           // there are non-obvious scneraiors where we fail to authenticate and
           // revert to thte login screen then we can capture and report them
           // later.
-          print(283);
 
           navigateToLogin();
         }

@@ -33,7 +33,41 @@ library;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:rdflib/rdflib.dart';
+import 'package:solid/src/screens/initial_setup_desktop.dart';
 import 'package:solid_auth/solid_auth.dart';
+
+/// Strings used as components of individual key files.
+
+String pathPred = 'path';
+String sessionKeyPred = 'sessionKey';
+
+/// Parses file information and extracts content into a map.
+///
+/// This function processes the provided file information, which is expected to be
+/// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
+/// to parse the Turtle data and extract key attributes and their values.
+
+Map<dynamic, dynamic> getFileContent(String fileInfo) {
+  final g = Graph();
+  g.parseTurtle(fileInfo);
+  final fileContentMap = {};
+  final fileContentList = [];
+  for (final t in g.triples as List<Triple>) {
+    final predicate = t.pre.value;
+    if (predicate.contains('#')) {
+      final subject = t.sub.value;
+      final attributeName = predicate.split('#')[1];
+      final attrVal = t.obj.value.toString();
+      if (attributeName != 'type') {
+        fileContentList.add([subject, attributeName, attrVal]);
+      }
+      fileContentMap[attributeName] = [subject, attrVal];
+    }
+  }
+
+  return fileContentMap;
+}
 
 /// The fetchPrvFile function is an asynchronous function designed to fetch
 /// profile data from a specified URL [profCardUrl].
@@ -124,14 +158,15 @@ Future<List<dynamic>> initialStructureTest(Map<dynamic, dynamic> authData,
   return [allExists, resNotExist];
 }
 
-/// Asynchronously creates a file or directory (item) on a server using HTTP requests.
+/// Asynchronously creates a file or directory (item) on a server using HTTP
+/// requests.
 ///
-/// This function is used to send HTTP POST or PUT requests to a server in order to create a new file or directory.
+/// This function is used to send HTTP POST or PUT requests to a server in
+/// order to create a new file or directory.
 
 Future<String> createItem(bool fileFlag, String itemName, String itemBody,
     String webId, Map<dynamic, dynamic> authData,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
-
   String? itemLoc = '';
   var itemSlug = '';
   var itemType = '';
@@ -323,4 +358,157 @@ Map<dynamic, dynamic> generateDefaultFiles(String appName) {
     encDirLoc: [encKeyFile, indKeyFile],
   };
   return files;
+}
+
+/// Updates a file on the server with the provided SPARQL query.
+///
+/// This asynchronous function sends a PATCH request to the server, targeting
+/// the file specified by [fileUrl]. It uses SPARQL (a query language for RDF data)
+/// to perform the update operation. This function is typically used in scenarios
+/// where RDF data stored on a Solid POD (Personal Online Datastore) needs to be
+/// modified.
+
+Future<String> updateFileByQuery(
+  String fileUrl,
+  String accessToken,
+  String dPopToken,
+  String query,
+) async {
+  final editResponse = await http.patch(
+    Uri.parse(fileUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'application/sparql-update',
+      'Content-Length': query.length.toString(),
+      'DPoP': dPopToken,
+    },
+    body: query,
+  );
+
+  if (editResponse.statusCode == 200 || editResponse.statusCode == 205) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return 'ok';
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to write profile data! Try again in a while.');
+  }
+}
+
+/// Updates an individual key file with encrypted session key information.
+///
+/// This asynchronous function is responsible for updating the key file located
+/// at a user's Solid POD (Personal Online Datastore) with new encrypted session
+/// key data. The function performs various checks and updates the file only if
+/// necessary to avoid redundant operations.
+
+Future<String> updateIndKeyFile(
+  String webId,
+  Map<dynamic, dynamic> authData,
+  String resName,
+  String encSessionKey,
+  String encNoteFilePath,
+  String encNoteIv,
+  String appName,
+) async {
+  var createUpdateRes = '';
+
+  const encDir = 'encryption';
+
+  final encDirLoc = '$appName/$encDir';
+
+  // Get indi key file url.
+
+  final keyFileUrl = webId.contains(profCard)
+      ? webId.replaceAll(profCard, '$encDirLoc/$indKeyFile')
+      : '$webId/$encDirLoc/$indKeyFile';
+
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'];
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'].toString();
+
+  final notesFile = '$webId/predicates/file#';
+  final notesTerms = '$webId/predicates/terms#';
+
+  // Update the file.
+  // First check if the file already contain the same value.
+
+  final dPopTokenKeyFile =
+      genDpopToken(keyFileUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+  final keyFileContent =
+      await fetchPrvFile(keyFileUrl, accessToken, dPopTokenKeyFile);
+  final keyFileDataMap = getFileContent(keyFileContent);
+
+  // Define query parameters.
+
+  final prefix1 = 'file: <$notesFile>';
+  final prefix2 = 'notesTerms: <$notesTerms>';
+
+  final subject = 'file:$resName';
+  final predObjPath = 'notesTerms:$pathPred "$encNoteFilePath";';
+  final predObjIv = 'notesTerms:$ivPred "$encNoteIv";';
+  final predObjKey = 'notesTerms:$sessionKeyPred "$encSessionKey".';
+
+  // Check if the resource is previously added or not.
+
+  if (keyFileDataMap.containsKey(resName)) {
+    final existPath = keyFileDataMap[resName][pathPred].toString();
+    final existIv = keyFileDataMap[resName][ivPred].toString();
+    final existKey = keyFileDataMap[resName][sessionKeyPred].toString();
+
+    // If file does not contain the same encrypted value then delete and update
+    // the file.
+    // NOTE: Public key encryption generates different hashes different time for same plaintext value.
+    // Therefore this always ends up deleting the previous and adding a new hash.
+    if (existKey != encSessionKey ||
+        existPath != encNoteFilePath ||
+        existIv != encNoteIv) {
+      final predObjPathPrev = 'notesTerms:$pathPred "$existPath";';
+      final predObjIvPrev = 'notesTerms:$ivPred "$existIv";';
+      final predObjKeyPrev = 'notesTerms:$sessionKeyPred "$existKey".';
+
+      // Generate update sparql query.
+
+      final query =
+          'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPathPrev $predObjIvPrev $predObjKeyPrev}; INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
+
+      // Generate DPoP token.
+
+      final dPopTokenKeyFilePatch =
+          genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+
+      // Run the query.
+
+      createUpdateRes = await updateFileByQuery(
+          keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+    } else {
+      // If the file contain same values, then no need to run anything.
+      createUpdateRes = 'ok';
+    }
+  } else {
+    // Generate insert only sparql query.
+
+    final query =
+        'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
+
+    // Generate DPoP token.
+
+    final dPopTokenKeyFilePatch =
+        genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+
+    // Run the query.
+
+    createUpdateRes = await updateFileByQuery(
+        keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+  }
+
+  if (createUpdateRes == 'ok') {
+    return createUpdateRes;
+  } else {
+    throw Exception('Failed to create/update the shared file.');
+  }
 }

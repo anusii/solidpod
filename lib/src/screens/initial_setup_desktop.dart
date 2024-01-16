@@ -49,13 +49,13 @@ import 'package:solid/src/widgets/build_message_container.dart';
 import 'package:solid/src/widgets/error_dialog.dart';
 import 'package:solid/src/widgets/show_animation_dialog.dart';
 
-// Color variables used in initial setup screen.
+/// Color variables used in initial setup screen.
 
 const lightGreen = Color.fromARGB(255, 120, 219, 137);
 const darkBlue = Color.fromARGB(255, 7, 87, 153);
 const kTitleTextColor = Color(0xFF30384D);
 
-// Text string variables used in initial setup screen.
+/// Text string variables used in initial setup screen.
 
 const initialStructureWelcome = 'Welcome to the POD setup wizard!';
 const initialStructureTitle = 'Structure setup wizard!';
@@ -74,7 +74,7 @@ const publicKeyMsg =
     'We will also create a random public/private key pair for secure data'
     ' sharing with other PODs.';
 
-// String terms used in files generating process.
+/// String terms used in files generating process.
 
 const String encKeyFile = 'enc-keys.ttl';
 const String pubKeyFile = 'public-key.ttl';
@@ -86,27 +86,27 @@ const String pubKeyPred = 'pubKey';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 
-// String link variables used in files generating process.
+/// String link variables used in files generating process.
 
-const String podnotesTerms = 'https://solidcommunity.au/predicates/terms#';
+const String appsTerms = 'https://solidcommunity.au/predicates/terms#';
 const String terms = 'http://purl.org/dc/terms/';
 const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String podnotesFile = 'https://solidcommunity.au/predicates/file#';
-const String podnotesLogId = 'https://solidcommunity.au/predicates/logid#';
+const String appsFile = 'https://solidcommunity.au/predicates/file#';
+const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 const String solid = 'http://www.w3.org/ns/solid/terms#';
 
-// Numeric variables used in initial setup screen.
+/// Numeric variables used in initial setup screen.
 
 const int longStrLength = 12;
 const double kDefaultPadding = 20.0;
 
-// Get the height of screen.
+/// Get the height of screen.
 
 double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
 
-// Initialize a constant instance of FlutterSecureStorage for secure data storage.
-// This instance provides encrypted storage to securely store key-value pairs.
+/// Initialize a constant instance of FlutterSecureStorage for secure data storage.
+/// This instance provides encrypted storage to securely store key-value pairs.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
@@ -146,7 +146,7 @@ String genEncKeyBody(
   // Create a ttl file body.
 
   final keyFileBody =
-      '<$resUrl> <$terms$titlePred> "Encryption keys";\n    <$podnotesTerms$ivPred> "$prvKeyIvz";\n    <$podnotesTerms$encKeyPred> "$encMasterKey";\n    <$podnotesTerms$prvKeyPred> "$prvKey".';
+      '<$resUrl> <$terms$titlePred> "Encryption keys";\n    <$appsTerms$ivPred> "$prvKeyIvz";\n    <$appsTerms$encKeyPred> "$encMasterKey";\n    <$appsTerms$prvKeyPred> "$prvKey".';
 
   return keyFileBody;
 }
@@ -213,7 +213,7 @@ String genPubDirAclBody() {
 
 String genIndKeyFileBody() {
   const keyFileBody =
-      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix terms: <$terms>.\n@prefix file: <$podnotesFile>.\n@prefix podnotesTerms: <$podnotesTerms>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Individual Encryption Keys".';
+      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix terms: <$terms>.\n@prefix file: <$appsFile>.\n@prefix appsTerms: <$appsTerms>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Individual Encryption Keys".';
 
   return keyFileBody;
 }
@@ -225,11 +225,11 @@ String genIndKeyFileBody() {
 ///
 /// The template includes a resource URL and a public key string, formatted
 /// with specific predicates and a title. The `<$terms$titlePred>` is used for the
-/// title "Public key" and `<$podnotesTerms$pubKeyPred>` for the public key itself.
+/// title "Public key" and `<$appsTerms$pubKeyPred>` for the public key itself.
 
 String genPubKeyFileBody(String resUrl, String pubKeyStr) {
   final keyFileBody =
-      '<$resUrl> <$terms$titlePred> "Public key";\n    <$podnotesTerms$pubKeyPred> "$pubKeyStr";';
+      '<$resUrl> <$terms$titlePred> "Public key";\n    <$appsTerms$pubKeyPred> "$pubKeyStr";';
 
   return keyFileBody;
 }
@@ -258,14 +258,14 @@ String genProfFileBody(
 ///
 /// This function constructs a string representing RDF data with specific prefixes
 /// and a structured layout. It defines a personal profile document with
-/// predefined namespaces (foaf, terms, logid, podnotesTerms) and a title.
+/// predefined namespaces (foaf, terms, logid, appsTerms) and a title.
 ///
 /// The resulting string is formatted for use in semantic web applications or
 /// any context where RDF data is required.
 
 String genLogFileBody() {
   const logFileBody =
-      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix terms: <$terms>.\n@prefix logid: <$podnotesLogId>.\n@prefix podnotesTerms: <$podnotesTerms>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Permissions Log".';
+      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix terms: <$terms>.\n@prefix logid: <$appsLogId>.\n@prefix appsTerms: <$appsTerms>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Permissions Log".';
 
   return logFileBody;
 }
@@ -847,7 +847,8 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                 }
                                               }
 
-                                              // Update the profile with new information
+                                              // Update the profile with new information.
+
                                               final profBody = genProfFileBody(
                                                   formData, widget.authData);
                                               final updateRes =
@@ -860,11 +861,13 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                   createDirSuccess &&
                                                   updateRes == 'ok') {
                                                 imageCache.clear();
-                                                // Add name to the authData
+                                                // Add name to the authData.
+
                                                 widget.authData['name'] =
                                                     formData['name'];
 
-                                                // Add encryption key to the local secure storage
+                                                // Add encryption key to the local secure storage.
+
                                                 final isKeyExist =
                                                     await secureStorage
                                                         .containsKey(
@@ -873,6 +876,7 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
 
                                                 // Since write() method does not automatically overwrite an existing value.
                                                 // To overwrite an existing value, call delete() first.
+
                                                 if (isKeyExist) {
                                                   await secureStorage.delete(
                                                     key: widget.webId,
@@ -927,7 +931,6 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           10))),
-                                          // color: Theme.of(context).colorScheme.secondary,
                                           child: const Text(
                                             'RESET',
                                             style:
@@ -963,7 +966,6 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                     ),
                   ),
                   onPressed: () async {
-                    // APP_STORAGE.deleteItem('encKey');
                     await logout(widget.authData['logoutUrl']);
                     // ignore: use_build_context_synchronously
                     await Navigator.pushReplacement(
@@ -991,6 +993,12 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
     );
   }
 
+  /// Creates a row widget displaying a piece of profile information.
+  ///
+  /// This function constructs a `Row` widget designed to display a single piece
+  /// of information in a profile UI. It is primarily used for laying out text-based
+  /// information such as names, titles, or other key details in the profile section.
+
   Row buildInfoRow(String profName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1008,6 +1016,13 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
       ],
     );
   }
+
+  /// Builds a row widget displaying a label and its corresponding value.
+  ///
+  /// This function creates a [Column] widget containing a [Row] with two text elements:
+  /// one for the label and the other for the profile name. It's used to display
+  /// information in a key-value pair format, where `labelName` is the key and
+  /// `profName` is the value.
 
   Column buildLabelRow(
       String labelName, String profName, BuildContext context) {
@@ -1039,7 +1054,6 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                         color: Colors.grey[800],
                         letterSpacing: 2.0,
                         fontSize: screenWidth(context) * 0.015,
-                        //fontFamily: 'Poppins',
                       ),
                     ),
                   )
