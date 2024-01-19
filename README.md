@@ -12,13 +12,13 @@ and the Flutter guide for
 -->
 
 Solid is an open standard for a server hosting personal online data
-stores (PODs). Numerous providers of Solid Server hosting are emerging
-allowing users to host and migrate their PODs on any such 
+stores (Pods). Numerous providers of Solid Server hosting are emerging
+allowing users to host and migrate their Pods on any such 
 servers (or to run their own server. 
 
 This package supports high level access for apps to
 authenticate users and then to access the user's data from their
-PODs through Flutter Widgets. 
+Pods through Flutter Widgets. 
 
 ## Features
 
@@ -58,20 +58,31 @@ Change the image, logo, login text, button style, colour scheme:
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+TODO: List prerequisites and provide or pointer to information on how
+to start using the package.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+A simple login screen is provided by the package to take care of the
+details for authenticating a user against a Solid server. If your
+own home widget is call `MyHome()` then simply wrap this within  the
+`SolidLogin()` widget:
 
+of the 
 ```dart
-const like = 'sample';
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'My Pod',
+      home: const SolidLogin(
+        child: Scaffold(body: MyHome()),
+      ),
+    );
+  }
 ```
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+TODO: More about the package: where to find more information, how to
+contribute to the package, how to file issues, what response they can
+expect from the package authors, and more.
