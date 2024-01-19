@@ -58,8 +58,8 @@ Change the image, logo, login text, button style, colour scheme:
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+TODO: List prerequisites and provide or pointer to information on how
+to start using the package.
 
 ## Usage
 
