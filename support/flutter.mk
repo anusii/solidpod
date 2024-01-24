@@ -175,7 +175,7 @@ metrics:
 .PHONY: analyze 
 analyze:
 	@echo "Futter ANALYZE"
-	-flutter analyze
+	-flutter analyze lib
 #	dart run custom_lint
 	@echo $(SEPARATOR)
 
@@ -288,3 +288,13 @@ $(APP)-$(VER)-linux-x86_64.tar.gz:
 realclean::
 	flutter clean
 	flutter pub get
+
+# Update the version sequence number prior to a push (relies on the
+# git.mk being loaded after this flutter.mk). This is only undertaken
+# through `make push` rather than a `git push` in any other way.
+
+VERSEQ=$(shell grep '^version: ' pubspec.yaml | cut -d'+' -f2 | awk '{print $$1+1}')
+
+push::
+	perl -pi -e 's|(^version: .*)\+.*|$$1+$(VERSEQ)|' pubspec.yaml
+	git commit -m "Bump sequence $(VERSEQ)" pubspec.yaml
