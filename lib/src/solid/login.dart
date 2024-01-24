@@ -53,6 +53,10 @@ bool isNarrowScreen(BuildContext context) =>
 bool isVeryNarrowScreen(BuildContext context) =>
     screenWidth(context) < veryNarrowScreenLimit;
 
+// Check whether the dialog was dismissed by the user.
+
+bool isDialogCanceled = false;
+
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
 /// The login screen will be the initial screen of the app when access to the
@@ -64,6 +68,7 @@ class SolidLogin extends StatefulWidget {
     // Include the literals here so that they are exposed through the docs.
 
     required this.child,
+    required this.allowSkip,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
@@ -102,6 +107,11 @@ class SolidLogin extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
+
+  /// The bool whether the login is allowed to be skipped.
+
+  final bool allowSkip;
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -126,6 +136,14 @@ class _SolidLoginState extends State<SolidLogin> {
 
     setState(() {
       appVersion = info.version;
+    });
+  }
+
+  // Function to update [isDialogCanceled].
+
+  void updateState() {
+    setState(() {
+      isDialogCanceled = true;
     });
   }
 
@@ -185,7 +203,11 @@ class _SolidLoginState extends State<SolidLogin> {
       //   ),
       // ),
       onPressed: () async {
-        // Authenticate against the Solid server.
+        // Reset the flag.
+
+        setState(() {
+          isDialogCanceled = false;
+        });
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -200,6 +222,8 @@ class _SolidLoginState extends State<SolidLogin> {
             7,
             'Logging in...',
             false,
+            widget.allowSkip,
+            updateState,
           );
         }
 

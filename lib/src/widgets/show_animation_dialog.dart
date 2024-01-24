@@ -59,12 +59,16 @@ List<Color> _defaultPodColors = const [
 /// [alertMsg] is the message text displayed within the dialog.
 /// [showPathBackground] is a boolean flag to decide whether to show a background for
 /// the animation path or not.
+/// [allowSkip] is a boolean flag to decide whether there is a cancel button to cancel
+/// the process.
 
 Future<void> showAnimationDialog(
   BuildContext context,
   int animationIndex,
   String alertMsg,
   bool showPathBackground,
+  bool allowSkip,
+  VoidCallback updateStateCallback,
 ) {
   return showDialog(
     barrierDismissible: false,
@@ -95,6 +99,22 @@ Future<void> showAnimationDialog(
                     alertMsg,
                   ),
                 ),
+                allowSkip
+                    ? Column(
+                        children: [
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              updateStateCallback();
+                              Navigator.of(context).pop(); // Close the dialog
+                            },
+                            child: const Text('Cancel'),
+                          ),
+                        ],
+                      )
+                    : Container()
               ],
             ),
           ),
