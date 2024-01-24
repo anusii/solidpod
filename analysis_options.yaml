@@ -1,6 +1,6 @@
-include: package:flutter_lints/flutter.yaml
+# include: package:flutter_lints/flutter.yaml
 include: package:ubuntu_lints/analysis_options.yaml
-include: package:solid_lints/analysis_options.yaml
+# include: package:solid_lints/analysis_options.yaml
 
 analyzer:
   exclude:

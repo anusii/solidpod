@@ -26,7 +26,9 @@ dev_dependencies:
   flutter_lints: ^3.0.1
   flutter_test:
     sdk: flutter
-  solid_lints: ^0.1.1
+  # Not yet use solid-lints. It requires analyze 6.2.0 and
+  # dart-code-metrics fails.
+  # solid_lints: ^0.1.1
   ubuntu_lints: ^0.3.0
 
 # For information on the generic Dart part of this file, see the
