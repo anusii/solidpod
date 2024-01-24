@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:33:23 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-25 10:16:57 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,6 +27,7 @@
 // SOFTWARE.
 ///
 /// Authors: Graham Williams
+
 library;
 
 import 'package:flutter/material.dart';
@@ -68,7 +69,7 @@ class SolidLogin extends StatefulWidget {
     // Include the literals here so that they are exposed through the docs.
 
     required this.child,
-    required this.allowSkip,
+    this.allowSkip = true,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
