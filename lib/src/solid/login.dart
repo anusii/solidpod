@@ -205,9 +205,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () async {
         // Reset the flag.
 
-        setState(() {
-          isDialogCanceled = false;
-        });
+        isDialogCanceled = false;
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -228,6 +226,8 @@ class _SolidLoginState extends State<SolidLogin> {
         }
 
         showBusyAnimation();
+
+        if (isDialogCanceled) return;
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
