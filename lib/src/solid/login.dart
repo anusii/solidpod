@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-25 10:16:57 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-25 19:42:56 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -108,7 +108,11 @@ class SolidLogin extends StatefulWidget {
 
   final Widget child;
 
-  /// The bool whether the login process is required.
+  /// The default is to require a Solid Pod authentication.
+  ///
+  /// If the app provides fnunctionality that does not or does not immediately
+  /// require access to Pod data then set this to false and a CONTINUE button
+  /// is available on the Login page.
 
   final bool requireLogin;
 
@@ -277,7 +281,8 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // A CONTINUE button that when pressed will proceed to operate without the
-    // need of a Pod or logging in. It will directly go to the app.
+    // need of a Pod and thus no requirement to authenticate. Proceed  directly
+    // go to the app (the child).
 
     final continueButton = ElevatedButton(
       onPressed: () {
@@ -403,14 +408,15 @@ class _SolidLoginState extends State<SolidLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Expanded(
-                child: getPodButton,
+                child: loginButton,
               ),
               const SizedBox(
                 width: 15.0,
               ),
-              Expanded(
-                child: loginButton,
-              ),
+              if (!widget.requireLogin)
+                Expanded(
+                  child: continueButton,
+                ),
               // if (!widget.requireLogin)
               //   const SizedBox(
               //     width: 15.0,
@@ -418,20 +424,19 @@ class _SolidLoginState extends State<SolidLogin> {
               // if (!widget.requireLogin) Expanded(child: continueButton),
             ],
           ),
-          if (!widget.requireLogin)
-            Column(
-              children: [
-                const SizedBox(
-                  height: 15.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    continueButton,
-                  ],
-                ),
-              ],
-            ),
+          Column(
+            children: [
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  getPodButton,
+                ],
+              ),
+            ],
+          ),
           // Leave a little space before the link.
           const SizedBox(
             height: 20.0,
