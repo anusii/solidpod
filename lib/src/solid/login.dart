@@ -68,7 +68,7 @@ class SolidLogin extends StatefulWidget {
     // Include the literals here so that they are exposed through the docs.
 
     required this.child,
-    this.allowSkip = true,
+    this.requireLogin = true,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
@@ -110,7 +110,7 @@ class SolidLogin extends StatefulWidget {
 
   /// The bool whether the login is allowed to be skipped.
 
-  final bool allowSkip;
+  final bool requireLogin;
 
   @override
   State<SolidLogin> createState() => _SolidLoginState();
@@ -220,7 +220,7 @@ class _SolidLoginState extends State<SolidLogin> {
             7,
             'Logging in...',
             false,
-            widget.allowSkip,
+            widget.requireLogin,
             updateState,
           );
         }
