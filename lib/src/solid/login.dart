@@ -108,7 +108,7 @@ class SolidLogin extends StatefulWidget {
 
   final Widget child;
 
-  /// The bool whether the login is allowed to be skipped.
+  /// The bool whether the login process is required.
 
   final bool requireLogin;
 
@@ -220,7 +220,6 @@ class _SolidLoginState extends State<SolidLogin> {
             7,
             'Logging in...',
             false,
-            widget.requireLogin,
             updateState,
           );
         }
@@ -275,6 +274,19 @@ class _SolidLoginState extends State<SolidLogin> {
         }
       },
       child: const Text('LOGIN', style: buttonTextStyle),
+    );
+
+    // A CONTINUE button that when pressed will proceed to operate without the
+    // need of a Pod or logging in. It will directly go to the app.
+
+    final continueButton = ElevatedButton(
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => widget.child),
+        );
+      },
+      child: const Text('CONTINUE', style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
@@ -399,8 +411,27 @@ class _SolidLoginState extends State<SolidLogin> {
               Expanded(
                 child: loginButton,
               ),
+              // if (!widget.requireLogin)
+              //   const SizedBox(
+              //     width: 15.0,
+              //   ),
+              // if (!widget.requireLogin) Expanded(child: continueButton),
             ],
           ),
+          if (!widget.requireLogin)
+            Column(
+              children: [
+                const SizedBox(
+                  height: 15.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    continueButton,
+                  ],
+                ),
+              ],
+            ),
           // Leave a little space before the link.
           const SizedBox(
             height: 20.0,
