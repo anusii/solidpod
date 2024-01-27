@@ -42,16 +42,16 @@ import 'package:solid/src/widgets/show_animation_dialog.dart';
 // width dictates whether the Login panel is laid out on the right with the app
 // image on the left, or is on top of the app image.
 
-const int narrowScreenLimit = 1175;
-const int veryNarrowScreenLimit = 750;
+const int _narrowScreenLimit = 1175;
+const int _veryNarrowScreenLimit = 750;
 
-double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
-bool isNarrowScreen(BuildContext context) =>
-    screenWidth(context) < narrowScreenLimit;
+bool _isNarrowScreen(BuildContext context) =>
+    _screenWidth(context) < _narrowScreenLimit;
 
-bool isVeryNarrowScreen(BuildContext context) =>
-    screenWidth(context) < veryNarrowScreenLimit;
+bool _isVeryNarrowScreen(BuildContext context) =>
+    _screenWidth(context) < _veryNarrowScreenLimit;
 
 // Check whether the dialog was dismissed by the user.
 
@@ -64,6 +64,8 @@ bool isDialogCanceled = false;
 /// any of its functionality.
 
 class SolidLogin extends StatefulWidget {
+  /// Parameters for authenticating to t Solid server.
+
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs.
 
@@ -462,13 +464,15 @@ class _SolidLoginState extends State<SolidLogin> {
     // HERE FOR THE PANEL WIDTH.
 
     final loginPanelInset =
-        (isVeryNarrowScreen(context) || !isNarrowScreen(context)) ? 0.05 : 0.25;
+        (_isVeryNarrowScreen(context) || !_isNarrowScreen(context))
+            ? 0.05
+            : 0.25;
 
     // Create the actual login panel around the deocrated login panel.
 
     final loginPanel = Container(
       margin: EdgeInsets.symmetric(
-          horizontal: loginPanelInset * screenWidth(context)),
+          horizontal: loginPanelInset * _screenWidth(context)),
       child: SingleChildScrollView(
         child: Card(
           elevation: 50,
@@ -494,10 +498,10 @@ class _SolidLoginState extends State<SolidLogin> {
           // shortly, and we create an empty BoxDecoration here in that case.
 
           decoration:
-              isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
+              _isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
           child: Row(
             children: [
-              isNarrowScreen(context)
+              _isNarrowScreen(context)
                   ? Container()
                   : Expanded(
                       flex: 7,
