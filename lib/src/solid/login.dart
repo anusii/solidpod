@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2024-01-30 08:59:00 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-01-30 09:40:04 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -76,7 +76,10 @@ class SolidLogin extends StatefulWidget {
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
     this.title = 'LOG IN TO YOUR POD',
+    this.loginText = 'LOGIN',
     this.continueText = 'CONTINUE',
+    this.podText = 'GET A POD',
+    this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
     super.key,
@@ -103,7 +106,31 @@ class SolidLogin extends StatefulWidget {
 
   final String webID;
 
+  /// The text to display on the LOGIN button.
+  ///
+  /// An app may override this if they prefer, for example, AUTHENTICATE.
+
+  final String loginText;
+
+  /// The text to display on the GET A POD button.
+  ///
+  /// An app may override this to be more suggestive. For example the app
+  /// developer may prefere REGISTER.
+
+  final String podText;
+
+  /// The text to display on the INFO button.
+  ///
+  /// An app may override this to be more suggestive. For example, it could be
+  /// HELP or README.
+
+  final String infoText;
+
   /// The text to display on the CONTINUE button.
+  ///
+  /// An app may override this to be ore suggestive of what is being continued
+  /// on to, suchas SESSION for an app the manages sessions, or KEYS for an app
+  /// that manages keys.
 
   final String continueText;
 
@@ -199,7 +226,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: const Text('GET A POD', style: buttonTextStyle),
+      child: Text(widget.podText, style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -284,7 +311,7 @@ class _SolidLoginState extends State<SolidLogin> {
           navigateToLogin();
         }
       },
-      child: const Text('LOGIN', style: buttonTextStyle),
+      child: Text(widget.loginText, style: buttonTextStyle),
     );
 
     // A CONTINUE button that when pressed will proceed to operate without the
