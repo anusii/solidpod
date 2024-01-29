@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-25 19:42:56 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-01-30 08:59:00 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -76,6 +76,7 @@ class SolidLogin extends StatefulWidget {
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
     this.title = 'LOG IN TO YOUR POD',
+    this.continueText = 'CONTINUE',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
     super.key,
@@ -101,6 +102,10 @@ class SolidLogin extends StatefulWidget {
   /// authenticate against.
 
   final String webID;
+
+  /// The text to display on the CONTINUE button.
+
+  final String continueText;
 
   /// The URL used as the value of the Visit link.
 
@@ -293,7 +298,7 @@ class _SolidLoginState extends State<SolidLogin> {
           MaterialPageRoute(builder: (context) => widget.child),
         );
       },
-      child: const Text('CONTINUE', style: buttonTextStyle),
+      child: Text(widget.continueText, style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
