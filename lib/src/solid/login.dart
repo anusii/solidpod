@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2024-01-30 09:40:04 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-01-30 09:42:36 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -55,7 +55,7 @@ bool _isVeryNarrowScreen(BuildContext context) =>
 
 // Check whether the dialog was dismissed by the user.
 
-bool isDialogCanceled = false;
+bool _isDialogCanceled = false;
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
@@ -177,11 +177,11 @@ class _SolidLoginState extends State<SolidLogin> {
     });
   }
 
-  // Function to update [isDialogCanceled].
+  // Function to update [_isDialogCanceled].
 
   void updateState() {
     setState(() {
-      isDialogCanceled = true;
+      _isDialogCanceled = true;
     });
   }
 
@@ -243,7 +243,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () async {
         // Reset the flag.
 
-        isDialogCanceled = false;
+        _isDialogCanceled = false;
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -264,7 +264,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
         showBusyAnimation();
 
-        if (isDialogCanceled) return;
+        if (_isDialogCanceled) return;
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
