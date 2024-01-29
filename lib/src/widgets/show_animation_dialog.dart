@@ -65,6 +65,7 @@ Future<void> showAnimationDialog(
   int animationIndex,
   String alertMsg,
   bool showPathBackground,
+  VoidCallback updateStateCallback,
 ) {
   return showDialog(
     barrierDismissible: false,
@@ -94,6 +95,16 @@ Future<void> showAnimationDialog(
                   child: Text(
                     alertMsg,
                   ),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    updateStateCallback();
+                    Navigator.of(context).pop(); // Close the dialog
+                  },
+                  child: const Text('Cancel'),
                 ),
               ],
             ),

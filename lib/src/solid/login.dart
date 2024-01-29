@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-25 09:24:58 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-01-25 19:42:56 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -53,6 +53,10 @@ bool _isNarrowScreen(BuildContext context) =>
 bool _isVeryNarrowScreen(BuildContext context) =>
     _screenWidth(context) < _veryNarrowScreenLimit;
 
+// Check whether the dialog was dismissed by the user.
+
+bool isDialogCanceled = false;
+
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
 /// The login screen will be the initial screen of the app when access to the
@@ -66,6 +70,7 @@ class SolidLogin extends StatefulWidget {
     // Include the literals here so that they are exposed through the docs.
 
     required this.child,
+    this.requireLogin = true,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
@@ -104,6 +109,15 @@ class SolidLogin extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
+
+  /// The default is to require a Solid Pod authentication.
+  ///
+  /// If the app provides fnunctionality that does not or does not immediately
+  /// require access to Pod data then set this to false and a CONTINUE button
+  /// is available on the Login page.
+
+  final bool requireLogin;
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -128,6 +142,14 @@ class _SolidLoginState extends State<SolidLogin> {
 
     setState(() {
       appVersion = info.version;
+    });
+  }
+
+  // Function to update [isDialogCanceled].
+
+  void updateState() {
+    setState(() {
+      isDialogCanceled = true;
     });
   }
 
@@ -187,7 +209,9 @@ class _SolidLoginState extends State<SolidLogin> {
       //   ),
       // ),
       onPressed: () async {
-        // Authenticate against the Solid server.
+        // Reset the flag.
+
+        isDialogCanceled = false;
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -202,10 +226,13 @@ class _SolidLoginState extends State<SolidLogin> {
             7,
             'Logging in...',
             false,
+            updateState,
           );
         }
 
         showBusyAnimation();
+
+        if (isDialogCanceled) return;
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
@@ -253,6 +280,20 @@ class _SolidLoginState extends State<SolidLogin> {
         }
       },
       child: const Text('LOGIN', style: buttonTextStyle),
+    );
+
+    // A CONTINUE button that when pressed will proceed to operate without the
+    // need of a Pod and thus no requirement to authenticate. Proceed  directly
+    // go to the app (the child).
+
+    final continueButton = ElevatedButton(
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => widget.child),
+        );
+      },
+      child: const Text('CONTINUE', style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
@@ -369,13 +410,32 @@ class _SolidLoginState extends State<SolidLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Expanded(
-                child: getPodButton,
+                child: loginButton,
               ),
               const SizedBox(
                 width: 15.0,
               ),
-              Expanded(
-                child: loginButton,
+              if (!widget.requireLogin)
+                Expanded(
+                  child: continueButton,
+                ),
+              // if (!widget.requireLogin)
+              //   const SizedBox(
+              //     width: 15.0,
+              //   ),
+              // if (!widget.requireLogin) Expanded(child: continueButton),
+            ],
+          ),
+          Column(
+            children: [
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  getPodButton,
+                ],
               ),
             ],
           ),
