@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Thursday 2024-01-25 19:42:56 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-01-30 09:42:36 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -55,7 +55,7 @@ bool _isVeryNarrowScreen(BuildContext context) =>
 
 // Check whether the dialog was dismissed by the user.
 
-bool isDialogCanceled = false;
+bool _isDialogCanceled = false;
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
@@ -76,6 +76,10 @@ class SolidLogin extends StatefulWidget {
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
     this.title = 'LOG IN TO YOUR POD',
+    this.loginText = 'LOGIN',
+    this.continueText = 'CONTINUE',
+    this.podText = 'GET A POD',
+    this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
     super.key,
@@ -101,6 +105,34 @@ class SolidLogin extends StatefulWidget {
   /// authenticate against.
 
   final String webID;
+
+  /// The text to display on the LOGIN button.
+  ///
+  /// An app may override this if they prefer, for example, AUTHENTICATE.
+
+  final String loginText;
+
+  /// The text to display on the GET A POD button.
+  ///
+  /// An app may override this to be more suggestive. For example the app
+  /// developer may prefere REGISTER.
+
+  final String podText;
+
+  /// The text to display on the INFO button.
+  ///
+  /// An app may override this to be more suggestive. For example, it could be
+  /// HELP or README.
+
+  final String infoText;
+
+  /// The text to display on the CONTINUE button.
+  ///
+  /// An app may override this to be ore suggestive of what is being continued
+  /// on to, suchas SESSION for an app the manages sessions, or KEYS for an app
+  /// that manages keys.
+
+  final String continueText;
 
   /// The URL used as the value of the Visit link.
 
@@ -145,11 +177,11 @@ class _SolidLoginState extends State<SolidLogin> {
     });
   }
 
-  // Function to update [isDialogCanceled].
+  // Function to update [_isDialogCanceled].
 
   void updateState() {
     setState(() {
-      isDialogCanceled = true;
+      _isDialogCanceled = true;
     });
   }
 
@@ -194,7 +226,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: const Text('GET A POD', style: buttonTextStyle),
+      child: Text(widget.podText, style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -211,7 +243,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () async {
         // Reset the flag.
 
-        isDialogCanceled = false;
+        _isDialogCanceled = false;
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -232,7 +264,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
         showBusyAnimation();
 
-        if (isDialogCanceled) return;
+        if (_isDialogCanceled) return;
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
@@ -279,7 +311,7 @@ class _SolidLoginState extends State<SolidLogin> {
           navigateToLogin();
         }
       },
-      child: const Text('LOGIN', style: buttonTextStyle),
+      child: Text(widget.loginText, style: buttonTextStyle),
     );
 
     // A CONTINUE button that when pressed will proceed to operate without the
@@ -293,7 +325,7 @@ class _SolidLoginState extends State<SolidLogin> {
           MaterialPageRoute(builder: (context) => widget.child),
         );
       },
-      child: const Text('CONTINUE', style: buttonTextStyle),
+      child: Text(widget.continueText, style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
