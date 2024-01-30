@@ -1,6 +1,6 @@
 name: solid
 description: Support access to a Solid server for securing personal online data.
-version: 0.3.1+6
+version: 0.3.1+7
 homepage: https://github.com/anusii/solid
 
 environment:
