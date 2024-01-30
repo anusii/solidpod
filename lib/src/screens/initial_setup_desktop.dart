@@ -105,6 +105,10 @@ const double kDefaultPadding = 20.0;
 
 double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
 
+/// Get the width of screen.
+
+double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
 
@@ -633,12 +637,13 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                             if (formKey.currentState
                                                     ?.saveAndValidate() ??
                                                 false) {
+                                              // ignore: unawaited_futures
                                               showAnimationDialog(
-                                                context,
-                                                17,
-                                                'Creating resources!',
-                                                false,
-                                              );
+                                                  context,
+                                                  17,
+                                                  'Creating resources!',
+                                                  false,
+                                                  null);
                                               final formData = formKey
                                                   .currentState?.value as Map;
 

@@ -1,4 +1,6 @@
+# include: package:flutter_lints/flutter.yaml
 include: package:ubuntu_lints/analysis_options.yaml
+# include: package:solid_lints/analysis_options.yaml
 
 analyzer:
   exclude:
@@ -11,3 +13,5 @@ linter:
   rules:
     avoid_print: true
     directives_ordering: false # I prefer grouped directive ordering
+    prefer_match_file_name: true
+    public_member_api_docs: true

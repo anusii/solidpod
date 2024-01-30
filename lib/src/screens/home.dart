@@ -204,11 +204,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   onPressed: () async {
                     if (formKey.currentState?.saveAndValidate() ?? false) {
                       // Loading animation
+                      // ignore: unawaited_futures
                       showAnimationDialog(
                         context,
                         17,
                         'Saving the note!',
-                        false,
+                        false,null
                       );
 
                       final formData = formKey.currentState?.value as Map;

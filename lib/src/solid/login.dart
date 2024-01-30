@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-01-08 14:42:13 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-01-30 09:42:36 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -43,22 +43,20 @@ import 'package:url_launcher/url_launcher.dart';
 // width dictates whether the Login panel is laid out on the right with the app
 // image on the left, or is on top of the app image.
 
-const int narrowScreenLimit = 1175;
-const int veryNarrowScreenLimit = 750;
+const int _narrowScreenLimit = 1175;
+const int _veryNarrowScreenLimit = 750;
 
-/// Returns the width of the screen in logical pixels.
+double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
-double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+bool _isNarrowScreen(BuildContext context) =>
+    _screenWidth(context) < _narrowScreenLimit;
 
-/// Checks if the screen width is less than a predefined limit.
+bool _isVeryNarrowScreen(BuildContext context) =>
+    _screenWidth(context) < _veryNarrowScreenLimit;
 
-bool isNarrowScreen(BuildContext context) =>
-    screenWidth(context) < narrowScreenLimit;
+// Check whether the dialog was dismissed by the user.
 
-/// Checks if the screen width is less than a very narrow predefined limit.
-
-bool isVeryNarrowScreen(BuildContext context) =>
-    screenWidth(context) < veryNarrowScreenLimit;
+bool _isDialogCanceled = false;
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
@@ -67,15 +65,22 @@ bool isVeryNarrowScreen(BuildContext context) =>
 /// any of its functionality.
 
 class SolidLogin extends StatefulWidget {
+  /// Parameters for authenticating to t Solid server.
+
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs.
 
     required this.child,
+    this.requireLogin = true,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
     this.title = 'LOG IN TO YOUR POD',
+    this.loginText = 'LOGIN',
+    this.continueText = 'CONTINUE',
+    this.podText = 'GET A POD',
+    this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
     super.key,
@@ -102,6 +107,34 @@ class SolidLogin extends StatefulWidget {
 
   final String webID;
 
+  /// The text to display on the LOGIN button.
+  ///
+  /// An app may override this if they prefer, for example, AUTHENTICATE.
+
+  final String loginText;
+
+  /// The text to display on the GET A POD button.
+  ///
+  /// An app may override this to be more suggestive. For example the app
+  /// developer may prefere REGISTER.
+
+  final String podText;
+
+  /// The text to display on the INFO button.
+  ///
+  /// An app may override this to be more suggestive. For example, it could be
+  /// HELP or README.
+
+  final String infoText;
+
+  /// The text to display on the CONTINUE button.
+  ///
+  /// An app may override this to be ore suggestive of what is being continued
+  /// on to, suchas SESSION for an app the manages sessions, or KEYS for an app
+  /// that manages keys.
+
+  final String continueText;
+
   /// The URL used as the value of the Visit link.
 
   final String link;
@@ -109,6 +142,15 @@ class SolidLogin extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
+
+  /// The default is to require a Solid Pod authentication.
+  ///
+  /// If the app provides fnunctionality that does not or does not immediately
+  /// require access to Pod data then set this to false and a CONTINUE button
+  /// is available on the Login page.
+
+  final bool requireLogin;
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -145,6 +187,14 @@ class _SolidLoginState extends State<SolidLogin> {
       appName = info.appName;
       defaultFolders = generateDefaultFolders(appName);
       defaultFiles = generateDefaultFiles(appName);
+    });
+  }
+
+  // Function to update [_isDialogCanceled].
+
+  void updateState() {
+    setState(() {
+      _isDialogCanceled = true;
     });
   }
 
@@ -189,7 +239,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: const Text('GET A POD', style: buttonTextStyle),
+      child: Text(widget.podText, style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -204,7 +254,9 @@ class _SolidLoginState extends State<SolidLogin> {
       //   ),
       // ),
       onPressed: () async {
-        // Authenticate against the Solid server.
+        // Reset the flag.
+
+        _isDialogCanceled = false;
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -219,10 +271,13 @@ class _SolidLoginState extends State<SolidLogin> {
             7,
             'Logging in...',
             false,
+            updateState,
           );
         }
 
         showBusyAnimation();
+
+        if (_isDialogCanceled) return;
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
@@ -310,7 +365,21 @@ class _SolidLoginState extends State<SolidLogin> {
           navigateToLogin();
         }
       },
-      child: const Text('LOGIN', style: buttonTextStyle),
+      child: Text(widget.loginText, style: buttonTextStyle),
+    );
+
+    // A CONTINUE button that when pressed will proceed to operate without the
+    // need of a Pod and thus no requirement to authenticate. Proceed  directly
+    // go to the app (the child).
+
+    final continueButton = ElevatedButton(
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => widget.child),
+        );
+      },
+      child: Text(widget.continueText, style: buttonTextStyle),
     );
 
     // An Information link that is displayed within the Login panel.
@@ -427,13 +496,32 @@ class _SolidLoginState extends State<SolidLogin> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Expanded(
-                child: getPodButton,
+                child: loginButton,
               ),
               const SizedBox(
                 width: 15.0,
               ),
-              Expanded(
-                child: loginButton,
+              if (!widget.requireLogin)
+                Expanded(
+                  child: continueButton,
+                ),
+              // if (!widget.requireLogin)
+              //   const SizedBox(
+              //     width: 15.0,
+              //   ),
+              // if (!widget.requireLogin) Expanded(child: continueButton),
+            ],
+          ),
+          Column(
+            children: [
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  getPodButton,
+                ],
               ),
             ],
           ),
@@ -462,13 +550,15 @@ class _SolidLoginState extends State<SolidLogin> {
     // HERE FOR THE PANEL WIDTH.
 
     final loginPanelInset =
-        (isVeryNarrowScreen(context) || !isNarrowScreen(context)) ? 0.05 : 0.25;
+        (_isVeryNarrowScreen(context) || !_isNarrowScreen(context))
+            ? 0.05
+            : 0.25;
 
     // Create the actual login panel around the deocrated login panel.
 
     final loginPanel = Container(
       margin: EdgeInsets.symmetric(
-          horizontal: loginPanelInset * screenWidth(context)),
+          horizontal: loginPanelInset * _screenWidth(context)),
       child: SingleChildScrollView(
         child: Card(
           elevation: 50,
@@ -494,10 +584,10 @@ class _SolidLoginState extends State<SolidLogin> {
           // shortly, and we create an empty BoxDecoration here in that case.
 
           decoration:
-              isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
+              _isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
           child: Row(
             children: [
-              isNarrowScreen(context)
+              _isNarrowScreen(context)
                   ? Container()
                   : Expanded(
                       flex: 7,
