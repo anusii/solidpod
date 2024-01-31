@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2024-01-30 09:42:36 +1100 Graham Williams>
+// Time-stamp: <Wednesday 2024-01-31 21:43:48 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -78,7 +78,7 @@ class SolidLogin extends StatefulWidget {
     this.title = 'LOG IN TO YOUR POD',
     this.loginText = 'LOGIN',
     this.continueText = 'CONTINUE',
-    this.podText = 'GET A POD',
+    this.registerText = 'GET A POD',
     this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
@@ -117,7 +117,7 @@ class SolidLogin extends StatefulWidget {
   /// An app may override this to be more suggestive. For example the app
   /// developer may prefere REGISTER.
 
-  final String podText;
+  final String registerText;
 
   /// The text to display on the INFO button.
   ///
@@ -128,7 +128,7 @@ class SolidLogin extends StatefulWidget {
 
   /// The text to display on the CONTINUE button.
   ///
-  /// An app may override this to be ore suggestive of what is being continued
+  /// An app may override this to be more suggestive of what is being continued
   /// on to, such as SESSION for an app the manages sessions, or KEYS for an app
   /// that manages keys.
 
@@ -217,7 +217,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
-    final getPodButton = ElevatedButton(
+    final registerButton = ElevatedButton(
       // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. THE
@@ -227,7 +227,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: Text(widget.podText, style: buttonTextStyle),
+      child: Text(widget.registerText, style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -408,7 +408,8 @@ class _SolidLoginState extends State<SolidLogin> {
                     width: 15.0,
                   ),
                   Expanded(
-                    child: widget.requireLogin ? getPodButton : continueButton,
+                    child:
+                        widget.requireLogin ? registerButton : continueButton,
                   ),
                 ],
               ),
@@ -421,7 +422,7 @@ class _SolidLoginState extends State<SolidLogin> {
                   widget.requireLogin
                       ? const Spacer()
                       : Expanded(
-                          child: getPodButton,
+                          child: registerButton,
                         ),
                   const SizedBox(
                     width: 15.0,
