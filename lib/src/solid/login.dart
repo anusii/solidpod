@@ -134,7 +134,7 @@ class SolidLogin extends StatefulWidget {
 
   final String continueText;
 
-  /// The URL used as the value of the Visit link. Visit the link by clicking 
+  /// The URL used as the value of the Visit link. Visit the link by clicking
   /// info button.
 
   final String link;
@@ -395,76 +395,44 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 20.0,
           ),
-          if (!widget.requireLogin)
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: loginButton,
-                    ),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    Expanded(
-                      child: continueButton,
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 15.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: getPodButton,
-                    ),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    Expanded(
-                      child: infoButton,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          if (widget.requireLogin)
-            Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: loginButton,
-                    ),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    Expanded(
-                      child: getPodButton,
-                    ),
-                  ],
-                ),
-                const SizedBox(
-                  height: 15.0,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    const Spacer(),
-                    const SizedBox(
-                      width: 15.0,
-                    ),
-                    Expanded(
-                      child: infoButton,
-                    ),
-                  ],
-                ),
-              ],
-            ),
+
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: loginButton,
+                  ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Expanded(
+                    child: widget.requireLogin ? getPodButton : continueButton,
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  widget.requireLogin
+                      ? const Spacer()
+                      : Expanded(
+                          child: getPodButton,
+                        ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Expanded(
+                    child: infoButton,
+                  ),
+                ],
+              ),
+            ],
+          ),
 
           const SizedBox(
             height: 20.0,
