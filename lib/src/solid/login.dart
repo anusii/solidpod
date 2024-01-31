@@ -328,56 +328,12 @@ class _SolidLoginState extends State<SolidLogin> {
       child: Text(widget.continueText, style: buttonTextStyle),
     );
 
-    // An Information link that is displayed within the Login panel.
+    // A INFO button that when pressed will proceed to visit a link.
 
-    Widget linkTo(String link) => Container(
-          margin: const EdgeInsets.only(right: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Text('Visit '),
-
-              // Use a GestureDetector to capture a double tap to open the URL,
-              // and then within the SelectableText capture the single tap to
-              // display the URL. A longer tap will then select the text,
-              // ensuring we ignore it from the GestureDetector point of view,
-              // so it won;t be treated as a tap. I did try a Listener, which is
-              // a lower-level widget for handling pointer events, which allows
-              // the SelectableText, as its child, to remain selectable while
-              // also responding to taps to launch the URL, but it will always
-              // open the URL onPointerUp and had no simple onDoubleTap access.
-
-              // TODO 20240106 gjw Put the async anonymous function to launch
-              // the URL into a named function and call it twice in the below
-              // rather than repeating the code. DRY principle.
-
-              GestureDetector(
-                onLongPress: () => {},
-                onDoubleTap: () async {
-                  if (await canLaunchUrl(Uri.parse(link))) {
-                    await launchUrl(Uri.parse(link));
-                  } else {
-                    throw 'Could not launch $link';
-                  }
-                },
-                child: SelectableText(
-                  link,
-                  onTap: () async {
-                    if (await canLaunchUrl(Uri.parse(link))) {
-                      await launchUrl(Uri.parse(link));
-                    } else {
-                      throw 'Could not launch $link';
-                    }
-                  },
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+    final infoButton = ElevatedButton(
+      onPressed: () => launchUrl(Uri.parse(widget.link)),
+      child: Text(widget.infoText, style: buttonTextStyle),
+    );
 
     // A version text that is displayed within the login panel. The text box
     // height is set to be just the height of the text, using [boxTextHeight],
@@ -438,47 +394,81 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 20.0,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: loginButton,
-              ),
-              const SizedBox(
-                width: 15.0,
-              ),
-              if (!widget.requireLogin)
-                Expanded(
-                  child: continueButton,
+          if (!widget.requireLogin)
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: loginButton,
+                    ),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    Expanded(
+                      child: continueButton,
+                    ),
+                  ],
                 ),
-              // if (!widget.requireLogin)
-              //   const SizedBox(
-              //     width: 15.0,
-              //   ),
-              // if (!widget.requireLogin) Expanded(child: continueButton),
-            ],
-          ),
-          Column(
-            children: [
-              const SizedBox(
-                height: 15.0,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  getPodButton,
-                ],
-              ),
-            ],
-          ),
-          // Leave a little space before the link.
+                const SizedBox(
+                  height: 15.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: getPodButton,
+                    ),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    Expanded(
+                      child: infoButton,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          if (widget.requireLogin)
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: loginButton,
+                    ),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    Expanded(
+                      child: getPodButton,
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15.0,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    const Spacer(),
+                    const SizedBox(
+                      width: 15.0,
+                    ),
+                    Expanded(
+                      child: infoButton,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
           const SizedBox(
             height: 20.0,
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: linkTo(widget.link),
-          ),
+
           // Expand to the bottom of the login panel.
           Expanded(
             child: Align(
