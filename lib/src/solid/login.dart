@@ -129,12 +129,13 @@ class SolidLogin extends StatefulWidget {
   /// The text to display on the CONTINUE button.
   ///
   /// An app may override this to be ore suggestive of what is being continued
-  /// on to, suchas SESSION for an app the manages sessions, or KEYS for an app
+  /// on to, such as SESSION for an app the manages sessions, or KEYS for an app
   /// that manages keys.
 
   final String continueText;
 
-  /// The URL used as the value of the Visit link.
+  /// The URL used as the value of the Visit link. Visit the link by clicking 
+  /// info button.
 
   final String link;
 
@@ -144,7 +145,7 @@ class SolidLogin extends StatefulWidget {
 
   /// The default is to require a Solid Pod authentication.
   ///
-  /// If the app provides fnunctionality that does not or does not immediately
+  /// If the app provides functionality that does not or does not immediately
   /// require access to Pod data then set this to false and a CONTINUE button
   /// is available on the Login page.
 
