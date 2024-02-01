@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2024-01-30 09:42:36 +1100 Graham Williams>
+// Time-stamp: <Wednesday 2024-01-31 21:43:48 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -78,7 +78,7 @@ class SolidLogin extends StatefulWidget {
     this.title = 'LOG IN TO YOUR POD',
     this.loginText = 'LOGIN',
     this.continueText = 'CONTINUE',
-    this.podText = 'GET A POD',
+    this.registerText = 'GET A POD',
     this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
@@ -117,7 +117,7 @@ class SolidLogin extends StatefulWidget {
   /// An app may override this to be more suggestive. For example the app
   /// developer may prefere REGISTER.
 
-  final String podText;
+  final String registerText;
 
   /// The text to display on the INFO button.
   ///
@@ -128,13 +128,14 @@ class SolidLogin extends StatefulWidget {
 
   /// The text to display on the CONTINUE button.
   ///
-  /// An app may override this to be ore suggestive of what is being continued
-  /// on to, suchas SESSION for an app the manages sessions, or KEYS for an app
+  /// An app may override this to be more suggestive of what is being continued
+  /// on to, such as SESSION for an app the manages sessions, or KEYS for an app
   /// that manages keys.
 
   final String continueText;
 
-  /// The URL used as the value of the Visit link.
+  /// The URL used as the value of the Visit link. Visit the link by clicking
+  /// info button.
 
   final String link;
 
@@ -144,7 +145,7 @@ class SolidLogin extends StatefulWidget {
 
   /// The default is to require a Solid Pod authentication.
   ///
-  /// If the app provides fnunctionality that does not or does not immediately
+  /// If the app provides functionality that does not or does not immediately
   /// require access to Pod data then set this to false and a CONTINUE button
   /// is available on the Login page.
 
@@ -216,7 +217,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
-    final getPodButton = ElevatedButton(
+    final registerButton = ElevatedButton(
       // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
       // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
       // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. THE
@@ -226,7 +227,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () => launchUrl(
           Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: Text(widget.podText, style: buttonTextStyle),
+      child: Text(widget.registerText, style: buttonTextStyle),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -328,56 +329,12 @@ class _SolidLoginState extends State<SolidLogin> {
       child: Text(widget.continueText, style: buttonTextStyle),
     );
 
-    // An Information link that is displayed within the Login panel.
+    // A INFO button that when pressed will proceed to visit a link.
 
-    Widget linkTo(String link) => Container(
-          margin: const EdgeInsets.only(right: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Text('Visit '),
-
-              // Use a GestureDetector to capture a double tap to open the URL,
-              // and then within the SelectableText capture the single tap to
-              // display the URL. A longer tap will then select the text,
-              // ensuring we ignore it from the GestureDetector point of view,
-              // so it won;t be treated as a tap. I did try a Listener, which is
-              // a lower-level widget for handling pointer events, which allows
-              // the SelectableText, as its child, to remain selectable while
-              // also responding to taps to launch the URL, but it will always
-              // open the URL onPointerUp and had no simple onDoubleTap access.
-
-              // TODO 20240106 gjw Put the async anonymous function to launch
-              // the URL into a named function and call it twice in the below
-              // rather than repeating the code. DRY principle.
-
-              GestureDetector(
-                onLongPress: () => {},
-                onDoubleTap: () async {
-                  if (await canLaunchUrl(Uri.parse(link))) {
-                    await launchUrl(Uri.parse(link));
-                  } else {
-                    throw 'Could not launch $link';
-                  }
-                },
-                child: SelectableText(
-                  link,
-                  onTap: () async {
-                    if (await canLaunchUrl(Uri.parse(link))) {
-                      await launchUrl(Uri.parse(link));
-                    } else {
-                      throw 'Could not launch $link';
-                    }
-                  },
-                  style: const TextStyle(
-                    color: Colors.blue,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+    final infoButton = ElevatedButton(
+      onPressed: () => launchUrl(Uri.parse(widget.link)),
+      child: Text(widget.infoText, style: buttonTextStyle),
+    );
 
     // A version text that is displayed within the login panel. The text box
     // height is set to be just the height of the text, using [boxTextHeight],
@@ -438,47 +395,50 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 20.0,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: loginButton,
-              ),
-              const SizedBox(
-                width: 15.0,
-              ),
-              if (!widget.requireLogin)
-                Expanded(
-                  child: continueButton,
-                ),
-              // if (!widget.requireLogin)
-              //   const SizedBox(
-              //     width: 15.0,
-              //   ),
-              // if (!widget.requireLogin) Expanded(child: continueButton),
-            ],
-          ),
+
           Column(
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: loginButton,
+                  ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Expanded(
+                    child:
+                        widget.requireLogin ? registerButton : continueButton,
+                  ),
+                ],
+              ),
               const SizedBox(
                 height: 15.0,
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  getPodButton,
+                  widget.requireLogin
+                      ? const Spacer()
+                      : Expanded(
+                          child: registerButton,
+                        ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Expanded(
+                    child: infoButton,
+                  ),
                 ],
               ),
             ],
           ),
-          // Leave a little space before the link.
+
           const SizedBox(
             height: 20.0,
           ),
-          Align(
-            alignment: Alignment.centerRight,
-            child: linkTo(widget.link),
-          ),
+
           // Expand to the bottom of the login panel.
           Expanded(
             child: Align(
