@@ -17,7 +17,8 @@
                        python: use pre-commit ruff hook to check on commit)
 - [ ] No lint check errors related to your changes
 - [ ] Tested on at least one device
-      - [ ] Android
+      - [ ] Android Phone
+      - [ ] Android Emulator
       - [ ] Chrome
       - [ ] iOS
       - [ ] Linux
