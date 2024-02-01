@@ -11,7 +11,6 @@
 [Use the check-list below to ensure your branch is ready for PR]
 
 - [ ] Changes adhere to the team style and coding guideline
-- [ ] The one line summary included in CHANGELOG.md
 - [ ] No confidential information
 - [ ] No duplicated content
 - [ ] No lint errors (`make prep` or `flutter analyze lib`
@@ -24,7 +23,7 @@
       - [ ] Linux
       - [ ] MacOS
       - [ ] Windows
-- [ ] Added 2 reviewers
+- [ ] Added 2 reviewers (1 for private repositories then they add another)
 
 Flutter Style Guide: https://survivor.togaware.com/gnulinux/flutter-style.html
 
@@ -34,5 +33,6 @@ Once PR discussion is complete and 2 reviewers have approved:
 
 - [ ] Merge dev into the branch
 - [ ] Resolve any conflicts
+- [ ] Add one line summary into CHANGELOG.md
 - [ ] Bump appropriate version number
 - [ ] Merge PR into dev
