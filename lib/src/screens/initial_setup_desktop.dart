@@ -83,6 +83,7 @@ const String ivPred = 'iv';
 const String titlePred = 'title';
 const String prvKeyPred = 'prvKey';
 const String pubKeyPred = 'pubKey';
+const String encKeyPred = 'encKey';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 
@@ -853,23 +854,24 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                               }
 
                                               // Update the profile with new information.
+                                              // av 20240201: We have removed the original name and gender data collection from the form.
+                                              // Therefore the following commented code does not work.
+                                              // final profBody = genProfFileBody(
+                                              //     formData, widget.authData);
 
-                                              final profBody = genProfFileBody(
-                                                  formData, widget.authData);
-                                              final updateRes =
-                                                  await initialProfileUpdate(
-                                                      profBody,
-                                                      widget.authData,
-                                                      widget.webId);
+                                              // final updateRes =
+                                              //     await initialProfileUpdate(
+                                              //         profBody,
+                                              //         widget.authData,
+                                              //         widget.webId);
 
                                               if (createFileSuccess &&
-                                                  createDirSuccess &&
-                                                  updateRes == 'ok') {
+                                                  createDirSuccess) {
                                                 imageCache.clear();
                                                 // Add name to the authData.
 
-                                                widget.authData['name'] =
-                                                    formData['name'];
+                                                //widget.authData['name'] =
+                                                //    formData['name'];
 
                                                 // Add encryption key to the local secure storage.
 
@@ -878,6 +880,8 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                         .containsKey(
                                                   key: widget.webId,
                                                 );
+
+                                                print('i am here1');
 
                                                 // Since write() method does not automatically overwrite an existing value.
                                                 // To overwrite an existing value, call delete() first.
