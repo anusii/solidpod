@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Friday 2024-01-12 09:42:28 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-02-02 09:08:08 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -66,10 +66,11 @@ const initialStructureMsg =
     ' and/or folders in your POD that will prevent you from using some functionalities'
     ' of the app, and therefore need to be re-created.';
 const requiredPwdMsg =
-    'We would also need a password (a master key) for the encryption of notes.'
-    ' For this password you can use the same password you use for login to your'
-    ' POD (not recommended) or a completely different password (highly recommended).'
-    ' Please enter your password below.';
+    'A password (also known as a master key) is use to make your data private'
+    ' (using encryption) when it is stored in you Solid Pod.'
+    ' This could be the same password you use to  login to your'
+    ' Solid Pod (not recommended) or a different password (highly recommended).'
+    ' Please enter your password and confirm it below.';
 const publicKeyMsg =
     'We will also create a random public/private key pair for secure data'
     ' sharing with other PODs.';
@@ -502,7 +503,7 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                           CrossAxisAlignment.start,
                                       children: <Widget>[
                                         const Text(
-                                          'Please fill-up the following form (all fields are required)',
+                                          'Please provide a personal password (required for private storage)',
                                           style: TextStyle(
                                             color: Colors.black,
                                             fontSize: 20,
@@ -512,18 +513,8 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                         const Divider(
                                           color: Colors.grey,
                                         ),
-                                        const SizedBox(height: 20),
-                                        const Text(
-                                          'PERSONAL',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 16,
-                                            letterSpacing: 1.5,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
                                         const SizedBox(
-                                          height: 30,
+                                          height: 20,
                                         ),
                                         const Text(
                                           requiredPwdMsg,
@@ -610,7 +601,7 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                               children: [
                                                 TextSpan(
                                                   text:
-                                                      'Please confirm that you agree to provide permission to create all the above resources! ',
+                                                      'I confirm the above resources to be created on my Solid Pod! ',
                                                   style: TextStyle(
                                                       color: Colors.black),
                                                 ),
