@@ -76,37 +76,39 @@ Future<void> showAnimationDialog(
         child: Center(
           child: SizedBox(
             width: 150,
-            height: 250,
-            child: Column(
-              children: [
-                LoadingIndicator(
-                  indicatorType: Indicator.values[animationIndex],
-                  colors: _defaultPodColors,
-                  strokeWidth: 4.0,
-                  pathBackgroundColor: showPathBackground
-                      ? const Color.fromARGB(59, 0, 0, 0)
-                      : null,
-                ),
-                DefaultTextStyle(
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
+            height: 280,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  LoadingIndicator(
+                    indicatorType: Indicator.values[animationIndex],
+                    colors: _defaultPodColors,
+                    strokeWidth: 100.0,
+                    pathBackgroundColor: showPathBackground
+                        ? const Color.fromARGB(59, 0, 0, 0)
+                        : null,
                   ),
-                  child: Text(
-                    alertMsg,
+                  DefaultTextStyle(
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                    child: Text(
+                      alertMsg,
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    updateStateCallback();
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                  child: const Text('Cancel'),
-                ),
-              ],
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      updateStateCallback();
+                      Navigator.of(context).pop(); // Close the dialog
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
