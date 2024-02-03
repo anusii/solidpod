@@ -56,6 +56,14 @@ Change the image, logo, login text, button style, colour scheme:
 	alt="KeyPod Login" width="400">
 </div>
 
+Fine tune to suit the theme of the app:
+
+<div align="center">
+	<img
+	src="images/innerpod_login.png"
+	alt="KeyPod Login" width="400">
+</div>
+
 ## Getting started
 
 TODO: List prerequisites and provide or pointer to information on how
