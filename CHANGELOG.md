@@ -1,9 +1,11 @@
-# Solid Package Changelog
+# SolidPod Package Changelog
 
-All notable changes to this project will be documented in this file.
+Notable changes to this project are recorded below.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## 0.3.2 2024-02-03 18:38
+
++ Rename the repository and package to `solidpod` as the name `solid`
+  is already taken on https://dev.pub.
 
 ## 0.3.1 2024-01-30 15:54
 
@@ -11,10 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.3.0 2024-01-05
 
-* Authentication implemented.
-* SolidLogin() initial version fully functional.
++ Authentication implemented.
++ SolidLogin() initial version fully functional.
 
 ## 0.2.1 2024-01-01
 
-* Initial implementation of SolidLogin widget with parameters.
-* Actual authentication yet to be implemented.
++ Initial implementation of SolidLogin widget with parameters.
++ Actual authentication yet to be implemented.
