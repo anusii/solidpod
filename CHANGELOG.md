@@ -2,7 +2,7 @@
 
 Notable changes to this project are recorded below.
 
-## 0.3.2 2024-02-03 18:38
+## 0.4.0 2024-02-03 18:38
 
 + Rename the repository and package to `solidpod` as the name `solid`
   is already taken on https://dev.pub.
