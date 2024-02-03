@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Saturday 2024-02-03 13:49:48 +1100 >
+// Time-stamp: <Saturday 2024-02-03 13:55:06 +1100 >
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -76,7 +76,7 @@ class SolidLogin extends StatefulWidget {
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
     this.title = 'LOG IN TO YOUR POD',
-    this.loginText = 'LOGINXXX',
+    this.loginText = 'LOGIN',
     this.continueText = 'CONTINUE',
     this.registerText = 'GET A POD',
     this.infoText = 'INFO',
