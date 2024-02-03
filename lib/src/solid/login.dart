@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Wednesday 2024-01-31 21:43:48 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-02-03 13:49:48 +1100 >
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -76,7 +76,7 @@ class SolidLogin extends StatefulWidget {
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
     this.title = 'LOG IN TO YOUR POD',
-    this.loginText = 'LOGIN',
+    this.loginText = 'LOGINXXX',
     this.continueText = 'CONTINUE',
     this.registerText = 'GET A POD',
     this.infoText = 'INFO',
@@ -205,8 +205,9 @@ class _SolidLoginState extends State<SolidLogin> {
 
     // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
-    const buttonTextStyle = TextStyle(
-      fontSize: 15.0,
+    var buttonTextStyle = TextStyle(
+      fontSize: 12.0,
+      // fontSize: MediaQuery.of(context).size.width * 0.03,
       letterSpacing: 2.0,
       fontWeight: FontWeight.bold,
     );
