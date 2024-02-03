@@ -1,6 +1,6 @@
 /// Support for flutter apps accessing solid PODs.
 ///
-// Time-stamp: <Saturday 2024-01-06 07:04:42 +1100 Graham Williams>
+// Time-stamp: <Saturday 2024-02-03 19:22:08 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -28,6 +28,6 @@
 ///
 /// Authors: Graham Williams
 
-library solid;
+library solidpod;
 
 export 'src/solid/login.dart' show SolidLogin;

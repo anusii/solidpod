@@ -35,8 +35,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:solid/src/solid/authenticate.dart';
-import 'package:solid/src/widgets/show_animation_dialog.dart';
+import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
 // Screen size support funtions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
