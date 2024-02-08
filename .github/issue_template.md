@@ -8,6 +8,9 @@ projects: 'Solid'
 status: 'New'
 
 ---
+
+_SELECT THE **SOLID** PROJECT AND STATUS **NEW**_
+
 ## User Story
 
 As a user of solidpod in my app ...
