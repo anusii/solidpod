@@ -68,48 +68,49 @@ Future<void> showAnimationDialog(
   VoidCallback? updateStateCallback,
 ) {
   return showDialog(
-    barrierDismissible: false,
-    context: context,
-    builder: (context) {
-      return Padding(
-        padding: const EdgeInsets.all(50),
-        child: Center(
-          child: SizedBox(
-            width: 150,
-            height: 280,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  LoadingIndicator(
-                    indicatorType: Indicator.values[animationIndex],
-                    colors: _defaultPodColors,
-                    strokeWidth: 100.0,
-                    pathBackgroundColor: showPathBackground
-                        ? const Color.fromARGB(59, 0, 0, 0)
-                        : null,
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return Padding(
+            padding: const EdgeInsets.all(50),
+            child: Center(
+              child: SizedBox(
+                width: 150,
+                height: 280,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      LoadingIndicator(
+                        indicatorType: Indicator.values[animationIndex],
+                        colors: _defaultPodColors,
+                        strokeWidth: 100.0,
+                        pathBackgroundColor: showPathBackground
+                            ? const Color.fromARGB(59, 0, 0, 0)
+                            : null,
+                      ),
+                      DefaultTextStyle(
+                        style: const TextStyle(
+                          fontSize: 20,
+                          color: Colors.white,
+                        ),
+                        child: Text(
+                          alertMsg,
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          updateStateCallback!();
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        child: const Text('Cancel'),
+                      ),
+                    ],
                   ),
-                  DefaultTextStyle(
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Colors.white,
-                    ),
-                    child: Text(
-                      alertMsg,
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      updateStateCallback();
-                      Navigator.of(context).pop(); // Close the dialog
-                    },
-                    child: const Text('Cancel'),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-  );
+            ));
+      });
 }

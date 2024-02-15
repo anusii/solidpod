@@ -31,9 +31,9 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:solid/src/screens/initial_setup_desktop.dart';
-import 'package:solid/src/solid/api/rest_api.dart';
-import 'package:solid/src/widgets/loading_screen.dart';
+import 'package:solidpod/src/screens/initial_setup_desktop.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/widgets/loading_screen.dart';
 
 // Numeric variables used in initial setup page.
 

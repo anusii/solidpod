@@ -38,11 +38,11 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:intl/intl.dart';
 import 'package:markdown_editor_plus/widgets/splitted_markdown_form_field.dart';
-import 'package:solid/src/screens/initial_setup_desktop.dart';
-import 'package:solid/src/solid/api/rest_api.dart';
-import 'package:solid/src/widgets/error_dialog.dart';
-import 'package:solid/src/widgets/loading_screen.dart';
-import 'package:solid/src/widgets/show_animation_dialog.dart';
+import 'package:solidpod/src/screens/initial_setup_desktop.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/widgets/error_dialog.dart';
+import 'package:solidpod/src/widgets/loading_screen.dart';
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
 /// Defines a constant color `darkBlue` using ARGB values.
 
@@ -206,18 +206,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       // Loading animation
                       // ignore: unawaited_futures
                       showAnimationDialog(
-                        context,
-                        17,
-                        'Saving the note!',
-                        false,null
-                      );
+                          context, 17, 'Saving the note!', false, null);
 
                       final formData = formKey.currentState?.value as Map;
                       final noteText = _textController!.text;
 
                       // Note title need to be spaceless as we are using that name
                       // to create a .acl file. And the acl file url cannot have spaces.
-                      
 
                       final noteTitle =
                           formData['noteTitle'].toString().replaceAll('\n', '');
@@ -249,7 +244,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       final indKey = encrypt.Key.fromSecureRandom(32);
 
                       // Encrypt markdown text using random session key.
-                      
+
                       final dataEncryptIv = encrypt.IV.fromLength(16);
                       final dataEncrypter = encrypt.Encrypter(
                           encrypt.AES(indKey, mode: encrypt.AESMode.cbc));

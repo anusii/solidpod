@@ -43,11 +43,11 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_encrypt/solid_encrypt.dart';
-import 'package:solid/src/solid/api/rest_api.dart';
-import 'package:solid/src/solid/login.dart';
-import 'package:solid/src/widgets/build_message_container.dart';
-import 'package:solid/src/widgets/error_dialog.dart';
-import 'package:solid/src/widgets/show_animation_dialog.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/login.dart';
+import 'package:solidpod/src/widgets/build_message_container.dart';
+import 'package:solidpod/src/widgets/error_dialog.dart';
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
 /// Color variables used in initial setup screen.
 
