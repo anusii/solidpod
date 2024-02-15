@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Friday 2024-02-02 09:08:08 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-02-16 10:49:25 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -67,9 +67,9 @@ const initialStructureMsg =
     ' and/or folders in your POD that will prevent you from using some functionalities'
     ' of the app, and therefore need to be re-created.';
 const requiredPwdMsg =
-    'A password (also known as a master key) is use to make your data private'
-    ' (using encryption) when it is stored in you Solid Pod.'
-    ' This could be the same password you use to  login to your'
+    'A password (also known as a master key) is used to make your data private'
+    ' (using encryption) when it is stored in your Solid Pod.'
+    ' This could be the same password you use to login to your'
     ' Solid Pod (not recommended) or a different password (highly recommended).'
     ' Please enter your password and confirm it below.';
 const publicKeyMsg =
@@ -604,7 +604,7 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                               children: [
                                                 TextSpan(
                                                   text:
-                                                      'I confirm the above resources to be created on my Solid Pod! ',
+                                                      'I note that the above resources will be created on my Solid Pod! ',
                                                   style: TextStyle(
                                                       color: Colors.black),
                                                 ),
