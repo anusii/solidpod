@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Friday 2024-02-16 10:49:25 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-02-16 10:57:01 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -59,13 +59,12 @@ const kTitleTextColor = Color(0xFF30384D);
 /// Text string variables used in initial setup screen.
 
 const initialStructureWelcome = 'Welcome to the POD setup wizard!';
-const initialStructureTitle = 'Structure setup wizard!';
-const initialStructureMsg =
-    'You are being re-directed to this page because you have either created'
-    ' a completely new POD and you will need to setup the initial resource'
-    ' structure to start using the app OR we have detected some missing files'
-    ' and/or folders in your POD that will prevent you from using some functionalities'
-    ' of the app, and therefore need to be re-created.';
+const initialStructureTitle =
+    ''; // TODO 20240216 gjw Probably redundant - remove.
+const initialStructureMsg = 'We notice that you have either created'
+    ' a new Solid Pod or your Pod has some missing files/folders.'
+    ' We will now setup the required resources to fully support'
+    ' the app functionalities.';
 const requiredPwdMsg =
     'A password (also known as a master key) is used to make your data private'
     ' (using encryption) when it is stored in your Solid Pod.'
