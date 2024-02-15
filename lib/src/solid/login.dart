@@ -312,7 +312,7 @@ class _SolidLoginState extends State<SolidLogin> {
                       appBar: AppBar(
                         // backgroundColor: lightGreen,
                         centerTitle: true,
-                        title: const Text('POD Note Taker'),
+                        title: Text(appName),
                       ),
                       body: Home(
                         authData: authData,
@@ -335,6 +335,10 @@ class _SolidLoginState extends State<SolidLogin> {
             await navInitialSetupScreen(authData);
           }
 
+          // await Navigator.pushReplacement(
+          //   context,
+
+          // );
           await navHomeScreen(authData);
         }
 

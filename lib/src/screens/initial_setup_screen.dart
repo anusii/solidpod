@@ -89,7 +89,8 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
               child: InitialSetupDesktop(
                   resNeedToCreate: resNeedToCreate,
                   authData: authData,
-                  webId: webId))
+                  webId: webId,
+                  appName: widget.appName))
         ],
       ),
     );

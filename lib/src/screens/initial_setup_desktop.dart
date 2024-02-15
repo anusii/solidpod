@@ -43,6 +43,7 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_encrypt/solid_encrypt.dart';
+import 'package:solidpod/src/screens/home.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/widgets/build_message_container.dart';
@@ -361,11 +362,13 @@ class InitialSetupDesktop extends StatefulWidget {
     required this.resNeedToCreate,
     required this.authData,
     required this.webId,
+    required this.appName,
     super.key,
   });
   final Map<dynamic, dynamic> resNeedToCreate;
   final Map<dynamic, dynamic> authData;
   final String webId;
+  final String appName;
 
   @override
   State<InitialSetupDesktop> createState() {
@@ -872,8 +875,6 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                   key: widget.webId,
                                                 );
 
-                                                print('i am here1');
-
                                                 // Since write() method does not automatically overwrite an existing value.
                                                 // To overwrite an existing value, call delete() first.
 
@@ -891,6 +892,28 @@ class _InitialSetupDesktopState extends State<InitialSetupDesktop> {
                                                 widget.authData['keyExist'] =
                                                     true;
                                               }
+
+                                              // ignore: use_build_context_synchronously
+                                              await Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        Scaffold(
+                                                          appBar: AppBar(
+                                                            // backgroundColor: lightGreen,
+                                                            centerTitle: true,
+                                                            title: Text(
+                                                                widget.appName),
+                                                          ),
+                                                          body: Home(
+                                                            authData:
+                                                                widget.authData,
+                                                            appName:
+                                                                widget.appName,
+                                                            webId: widget.webId,
+                                                          ),
+                                                        )),
+                                              );
                                             } else {
                                               await showErrDialog(context,
                                                   'Form validation failed! Please check your inputs.');
