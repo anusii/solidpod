@@ -17,13 +17,13 @@
                        python: use pre-commit ruff hook to check on commit)
 - [ ] No lint check errors related to your changes
 - [ ] Tested on at least one device
-      - [ ] Android Phone
-      - [ ] Android Emulator
-      - [ ] Chrome
-      - [ ] iOS
-      - [ ] Linux
-      - [ ] MacOS
-      - [ ] Windows
+  - [ ] Android Phone
+  - [ ] Android Emulator
+  - [ ] Chrome
+  - [ ] iOS
+  - [ ] Linux
+  - [ ] MacOS
+  - [ ] Windows
 - [ ] Added 2 reviewers (or 1 for private repositories then they add another)
 
 Flutter Style Guide: https://survivor.togaware.com/gnulinux/flutter-style.html
