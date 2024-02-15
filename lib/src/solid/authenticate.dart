@@ -34,7 +34,8 @@ import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
-import 'package:solid/src/solid/api/rest_api.dart';
+
+import 'package:solidpod/src/solid/api/rest_api.dart';
 
 // Scopes variables used in the authentication process.
 
