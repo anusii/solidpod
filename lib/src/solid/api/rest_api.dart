@@ -34,7 +34,7 @@ import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:rdflib/rdflib.dart';
-import 'package:solid/src/screens/initial_setup_desktop.dart';
+import 'package:solidpod/src/screens/initial_setup_desktop.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 /// Strings used as components of individual key files.
