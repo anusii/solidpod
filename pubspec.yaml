@@ -4,8 +4,8 @@ version: 0.4.0+14
 homepage: https://github.com/anusii/solidpod
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
-  flutter: '>=1.17.0'
+  sdk: ">=3.2.3 <4.0.0"
+  flutter: ">=1.17.0"
 
 dependencies:
   fast_rsa: ^3.6.1
@@ -30,6 +30,9 @@ dev_dependencies:
   # dart-code-metrics fails.
   # solid_lints: ^0.1.1
   ubuntu_lints: ^0.3.0
+
+dependency_overrides:
+  file: ^7.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
