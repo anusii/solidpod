@@ -1,6 +1,6 @@
 /// Initial loaded widget set up page.
 ///
-// Time-stamp: <Monday 2024-01-08 12:10:52 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-02-16 11:06:48 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -31,6 +31,7 @@
 library;
 
 import 'package:flutter/material.dart';
+
 import 'package:solidpod/src/screens/initial_setup_desktop.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
