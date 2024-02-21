@@ -15,6 +15,7 @@
 ///
 /// Authors: Kevin Wang
 
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
@@ -96,11 +97,11 @@ class PodService {
     Map<dynamic, dynamic> authData,
     BuildContext context,
   ) async {
-    String accessToken = authData[Constants.accessTokenKey];
+    String accessToken = authData[Constants.accessTokenKey] as String;
 
     Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-    String webId = decodedToken[Constants.webid];
-    dynamic rsa = authData[Constants.rsaInfo][Constants.rsa];
+    String webId = decodedToken[Constants.webid] as String;
+    KeyPair rsa = authData[Constants.rsaInfo][Constants.rsa] as KeyPair;
     dynamic pubKeyJwk = authData[Constants.rsaInfo][Constants.pubKeyJwk];
 
     String encDataUrl = webId.replaceAll(
@@ -143,11 +144,11 @@ class PodService {
     Map<dynamic, dynamic> authData,
     BuildContext context,
   ) async {
-    String accessToken = authData[Constants.accessTokenKey];
+    String accessToken = authData[Constants.accessTokenKey] as String;
 
     Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-    String webId = decodedToken[Constants.webid];
-    dynamic rsa = authData[Constants.rsaInfo][Constants.rsa];
+    String webId = decodedToken[Constants.webid] as String;
+    KeyPair rsa = authData[Constants.rsaInfo][Constants.rsa] as KeyPair;
     dynamic pubKeyJwk = authData[Constants.rsaInfo][Constants.pubKeyJwk];
 
     String encDataUrl = webId.replaceAll(
@@ -211,10 +212,10 @@ class PodService {
     String surveyName,
     BuildContext context,
   ) async {
-    String accessToken = authData[Constants.accessTokenKey];
+    String accessToken = authData[Constants.accessTokenKey] as String;
     Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-    String webId = decodedToken[Constants.webid];
-    dynamic rsa = authData[Constants.rsaInfo][Constants.rsa];
+    String webId = decodedToken[Constants.webid] as String;
+    KeyPair rsa = authData[Constants.rsaInfo][Constants.rsa] as KeyPair;
     dynamic pubKeyJwk = authData[Constants.rsaInfo][Constants.pubKeyJwk];
 
     String encDataUrl = webId.replaceAll(
@@ -265,8 +266,8 @@ class PodService {
     // Encrypt the plaintext file content.
 
     List encryptValRes = encryptClient.encryptVal(encryptKey, ttlString);
-    String encryptValStr = encryptValRes.first;
-    String ivValStr = encryptValRes[1];
+    String encryptValStr = encryptValRes.first as String;
+    String ivValStr = encryptValRes[1] as String;
 
     String dataToUpload =
         formatEncryptedData(encryptValStr, ivValStr, surveyName);
@@ -296,10 +297,10 @@ class PodService {
     String surveyName,
     BuildContext context,
   ) async {
-    String accessToken = authData[Constants.accessTokenKey];
+    String accessToken = authData[Constants.accessTokenKey] as String;
     Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-    String webId = decodedToken[Constants.webid];
-    dynamic rsa = authData[Constants.rsaInfo][Constants.rsa];
+    String webId = decodedToken[Constants.webid] as String;
+    KeyPair rsa = authData[Constants.rsaInfo][Constants.rsa] as KeyPair;
     dynamic pubKeyJwk = authData[Constants.rsaInfo][Constants.pubKeyJwk];
 
     String encDataUrl = webId.replaceAll(
@@ -350,8 +351,8 @@ class PodService {
     // Encrypt the plaintext file content.
 
     List encryptValRes = encryptClient.encryptVal(encryptKey, ttlString);
-    String encryptValStr = encryptValRes.first;
-    String ivValStr = encryptValRes[1];
+    String encryptValStr = encryptValRes.first as String;
+    String ivValStr = encryptValRes[1] as String;
 
     String dataToUpload =
         formatEncryptedData(encryptValStr, ivValStr, surveyName);

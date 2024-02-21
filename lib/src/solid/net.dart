@@ -16,6 +16,7 @@
 ///
 /// Authors: Ye Duan (Diabete's app), Kevin Wang
 
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart';
 import 'package:solid_auth/solid_auth.dart';
 
@@ -31,7 +32,7 @@ class HomePageNet {
   Future<void> updateFile(
     String fileURI,
     String accessToken,
-    dynamic rsaKeyPair,
+    KeyPair rsaKeyPair,
     dynamic publicKeyJwk,
     String content,
   ) async {
@@ -63,7 +64,7 @@ class HomePageNet {
   Future<void> touch(
     String containerURI,
     String accessToken,
-    dynamic rsaKeyPair,
+    KeyPair rsaKeyPair,
     dynamic pubKeyJwk,
     String fileName,
   ) async {
@@ -97,7 +98,7 @@ class HomePageNet {
   Future<void> mkdir(
     String rootURI,
     String accessToken,
-    dynamic rsaKeyPair,
+    KeyPair rsaKeyPair,
     dynamic publicKeyJwk,
     String containerName,
   ) async {
