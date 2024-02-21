@@ -11,11 +11,13 @@ dependencies:
   fast_rsa: ^3.6.1
   flutter:
     sdk: flutter
+  flutter_secure_storage: ^4.2.1
   http: ^1.1.2
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
   package_info_plus: ^5.0.1
   solid_auth: ^0.1.13
+  solid_encrypt: ^0.1.10
   url_launcher: ^6.2.4
 
 dev_dependencies:

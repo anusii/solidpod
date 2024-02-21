@@ -316,6 +316,13 @@ class _SolidLoginState extends State<SolidLogin> {
       child: Text(widget.loginText, style: buttonTextStyle),
     );
 
+    final popupLoginButton = ElevatedButton(
+      onPressed: () {
+        //TODO kevin popup login
+      },
+      child: Text(widget.loginText, style: buttonTextStyle),
+    );
+
     // A CONTINUE button that when pressed will proceed to operate without the
     // need of a Pod and thus no requirement to authenticate. Proceed  directly
     // go to the app (the child).
@@ -431,6 +438,24 @@ class _SolidLoginState extends State<SolidLogin> {
                   Expanded(
                     child: infoButton,
                   ),
+                ],
+              ),
+              const SizedBox(
+                height: 20.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: popupLoginButton,
+                  ),
+                  // const SizedBox(
+                  //   width: 15.0,
+                  // ),
+                  // Expanded(
+                  //   child:
+                  //       widget.requireLogin ? registerButton : continueButton,
+                  // ),
                 ],
               ),
             ],
