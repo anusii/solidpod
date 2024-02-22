@@ -34,13 +34,8 @@ import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/screens/initial_setup_desktop.dart';
+import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
-
-/// Strings used as components of individual key files.
-
-String pathPred = 'path';
-String sessionKeyPred = 'sessionKey';
 
 /// Parses file information and extracts content into a map.
 ///
@@ -510,5 +505,52 @@ Future<String> updateIndKeyFile(
     return createUpdateRes;
   } else {
     throw Exception('Failed to create/update the shared file.');
+  }
+}
+
+// Updates the initial profile data on the server.
+///
+/// This function sends a PUT request to update the user's profile information. It constructs the profile URL from the provided `webId`, generates a DPoP token using the RSA key pair and public key in JWK format from `authData`, and then sends the request with the `profBody` as the payload.
+///
+/// The `authData` map must contain `rsaInfo` (which includes `rsa` key pair and `pubKeyJwk`) and an `accessToken`. The function modifies the `webId` URL to target the appropriate resource on the server.
+///
+/// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
+
+Future<String> initialProfileUpdate(
+  String profBody,
+  Map<dynamic, dynamic> authData,
+  String webId,
+) async {
+  // Get authentication info
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'];
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'] as String;
+
+  final profUrl = webId.replaceAll('#me', '');
+  final dPopToken =
+      genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
+
+  // The PUT request will create the acl item in the server
+  final updateResponse = await http.put(
+    Uri.parse(profUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'text/turtle',
+      'Content-Length': profBody.length.toString(),
+      'DPoP': dPopToken,
+    },
+    body: profBody,
+  );
+
+  if (updateResponse.statusCode == 200 || updateResponse.statusCode == 205) {
+    // If the server did return a 205 Reset response,
+    return 'ok';
+  } else {
+    // If the server did not return a 205 response,
+    // then throw an exception.
+    throw Exception('Failed to update resource! Try again in a while.');
   }
 }

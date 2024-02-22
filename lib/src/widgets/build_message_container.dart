@@ -31,7 +31,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-
 /// The `Languages` class provides a collection of language codes.
 
 class Languages {
@@ -76,8 +75,6 @@ Color getContentColour(String contentType) {
   }
 }
 
-
-
 /// Calculates the height of a widget based on the length of the provided content.
 ///
 /// This function determines the height of a widget by evaluating the length of
@@ -121,10 +118,11 @@ Container buildMsgBox(
       }
     }
   }
+
   // screen dimensions
+
   final isMobile = size.width <= 730;
   final isTablet = size.width > 730 && size.width <= 1050;
-
 
   var horizontalPadding = 0.0;
   var leftSpace = size.width * 0.12;
@@ -161,7 +159,6 @@ Container buildMsgBox(
             borderRadius: BorderRadius.circular(20),
           ),
         ),
-
 
         Positioned.fill(
           left: isRTL ? size.width * 0.03 : leftSpace,

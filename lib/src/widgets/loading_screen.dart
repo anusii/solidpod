@@ -31,7 +31,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-// Color variables used in initial loading screen.
+/// Color variables used in initial loading screen.
 
 const lightBlue = Color(0xFF61B2CE);
 

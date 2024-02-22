@@ -1,4 +1,4 @@
-/// Initial loaded widget set up page.
+/// Initial loading widget set up page.
 ///
 // Time-stamp: <Friday 2024-02-16 11:06:48 +1100 Graham Williams>
 ///
@@ -26,17 +26,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu
+/// Authors: Zheyuan Xu, Anushka Vidanage
 
 library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/screens/initial_setup_desktop.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/widgets/loading_screen.dart';
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_content.dart';
 
-// Numeric variables used in initial setup page.
+/// Numeric variables used in initial setup page.
 
 const double normalLoadingScreenHeight = 200.0;
 
@@ -46,15 +44,31 @@ const double normalLoadingScreenHeight = 200.0;
 /// for authentication and setup, and manages the state and UI flow for setting up the application's initial environment.
 
 class InitialSetupScreen extends StatefulWidget {
+  /// Parameters for initla setup screen
+
   const InitialSetupScreen(
       {required this.authData,
       required this.webId,
       required this.appName,
+      required this.resCheckList,
       super.key});
 
+  /// Validated authentication data returing from the Solid server.
+  /// Includes Access token, Refresh token, logout URL, RSA info, Client info, etc.
+
   final Map<dynamic, dynamic> authData;
+
+  /// The authenticated user specific URI.
+
   final String webId;
+
+  /// Name of the app that the user is authenticating into
+
   final String appName;
+
+  /// A dynamic list of missing resources from the user's POD
+
+  final List<dynamic> resCheckList;
 
   @override
   State<InitialSetupScreen> createState() => _InitialSetupScreenState();
@@ -63,31 +77,21 @@ class InitialSetupScreen extends StatefulWidget {
 class _InitialSetupScreenState extends State<InitialSetupScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  static Future<dynamic>? _asyncDataFetch;
-
   @override
   void initState() {
-    final authData = widget.authData;
-    final appName = widget.appName;
-
-    final defaultFolders = generateDefaultFolders(appName);
-    final defaultFiles = generateDefaultFiles(appName);
-
-    _asyncDataFetch =
-        initialStructureTest(authData, appName, defaultFolders, defaultFiles);
     super.initState();
   }
 
-  Widget _loadedScreen(List<dynamic> resNotExist, String webId,
+  Widget _loadedScreen(List<dynamic> resCheckList, String webId,
       String logoutUrl, Map<dynamic, dynamic> authData) {
-    final resNeedToCreate = resNotExist.last as Map;
+    final resNeedToCreate = resCheckList.last as Map;
 
     return Container(
       color: Colors.white,
       child: Column(
         children: [
           Expanded(
-              child: InitialSetupDesktop(
+              child: InitialSetupScreenContent(
                   resNeedToCreate: resNeedToCreate,
                   authData: authData,
                   webId: webId,
@@ -106,19 +110,8 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
     return Scaffold(
       key: _scaffoldKey,
       body: SafeArea(
-        child: FutureBuilder(
-            future: _asyncDataFetch,
-            builder: (context, snapshot) {
-              Widget returnVal;
-              if (snapshot.connectionState == ConnectionState.done) {
-                returnVal = _loadedScreen(
-                    snapshot.data! as List, webId, logoutUrl, authData);
-              } else {
-                returnVal = loadingScreen(normalLoadingScreenHeight);
-              }
-              return returnVal;
-            }),
-      ),
+          child:
+              _loadedScreen(widget.resCheckList, webId, logoutUrl, authData)),
     );
   }
 }

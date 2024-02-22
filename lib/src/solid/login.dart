@@ -38,7 +38,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/home.dart';
-import 'package:solidpod/src/screens/initial_setup_screen.dart';
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 
 // Screen size support functions to identify narrow and very narrow screens. The
@@ -67,7 +67,7 @@ bool _isDialogCanceled = false;
 /// any of its functionality.
 
 class SolidLogin extends StatefulWidget {
-  /// Parameters for authenticating to t Solid server.
+  /// Parameters for authenticating to the Solid server.
 
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs.
@@ -291,7 +291,7 @@ class _SolidLoginState extends State<SolidLogin> {
         // Navigates to the Initial Setup Screen using the provided authentication data.
 
         Future<void> navInitialSetupScreen(
-            Map<dynamic, dynamic> authData) async {
+            Map<dynamic, dynamic> authData, List<dynamic> resCheckList) async {
           await Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -299,6 +299,7 @@ class _SolidLoginState extends State<SolidLogin> {
                       authData: authData,
                       webId: widget.webID,
                       appName: appName,
+                      resCheckList: resCheckList,
                     )),
           );
         }
@@ -333,7 +334,7 @@ class _SolidLoginState extends State<SolidLogin> {
           final allExists = resCheckList.first as bool;
 
           if (!allExists) {
-            await navInitialSetupScreen(authData);
+            await navInitialSetupScreen(authData, resCheckList);
           }
 
           // await Navigator.pushReplacement(
