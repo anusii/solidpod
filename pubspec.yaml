@@ -13,12 +13,12 @@ dependencies:
   fast_rsa: ^3.6.1
   flutter:
     sdk: flutter
-  flutter_form_builder: ^9.1.0
+  flutter_form_builder: ^9.2.1
   flutter_secure_storage: ^9.0.0
   flutter_svg: ^2.0.5
-  form_builder_validators: ^9.0.0
+  form_builder_validators: ^9.1.0
   http: ^1.1.2
-  intl: ^0.19.0
+  intl: ^0.18.0
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
   markdown_editor_plus: ^0.2.13
