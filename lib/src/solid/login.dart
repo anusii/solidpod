@@ -220,7 +220,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
     // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
-    var buttonTextStyle = TextStyle(
+    const buttonTextStyle = TextStyle(
       fontSize: 12.0,
       // fontSize: MediaQuery.of(context).size.width * 0.03,
       letterSpacing: 2.0,
