@@ -32,7 +32,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_content.dart';
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
 
 /// Numeric variables used in initial setup page.
 
@@ -91,7 +91,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
       child: Column(
         children: [
           Expanded(
-              child: InitialSetupScreenContent(
+              child: InitialSetupScreenBody(
                   resNeedToCreate: resNeedToCreate,
                   authData: authData,
                   webId: webId,

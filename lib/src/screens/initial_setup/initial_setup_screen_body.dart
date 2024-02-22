@@ -46,10 +46,10 @@ import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome
 /// This widget is responsible for rendering the initial setup UI, which includes forms for user input and displaying
 /// resources that will be created as part of the setup process.
 
-class InitialSetupScreenContent extends StatefulWidget {
+class InitialSetupScreenBody extends StatefulWidget {
   /// Initialising the [StatefulWidget]
 
-  const InitialSetupScreenContent({
+  const InitialSetupScreenBody({
     required this.resNeedToCreate,
     required this.authData,
     required this.webId,
@@ -74,12 +74,12 @@ class InitialSetupScreenContent extends StatefulWidget {
   final String appName;
 
   @override
-  State<InitialSetupScreenContent> createState() {
-    return _InitialSetupScreenContentState();
+  State<InitialSetupScreenBody> createState() {
+    return _InitialSetupScreenBodyState();
   }
 }
 
-class _InitialSetupScreenContentState extends State<InitialSetupScreenContent> {
+class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
   @override
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormBuilderState>();
