@@ -16,7 +16,6 @@
 /// Authors: Kevin Wang
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:solid_auth/solid_auth.dart';
 
@@ -29,12 +28,9 @@ class Constants {
 }
 
 class PodService {
-  final FlutterSecureStorage secureStorage;
   final HomePageNet networkService = HomePageNet();
 
-  PodService({
-    required this.secureStorage,
-  });
+  PodService();
 
   Future<String> getBaseUrl(String url) async {
     Uri uri = Uri.parse(url);

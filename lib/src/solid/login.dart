@@ -31,7 +31,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
@@ -323,17 +322,14 @@ class _SolidLoginState extends State<SolidLogin> {
         String webIdFromSettingPage =
             "https://pods.solidcommunity.au/kevin/profile/card#me";
 
-        //TODO kevin popup login
-        final podService = PodService(
-          secureStorage: const FlutterSecureStorage(),
-        );
+        final podService = PodService();
         Map<dynamic, dynamic> authData = await podService.authenticatePOD(
           webIdFromSettingPage,
           context,
         );
         print('authData  $authData');
       },
-      child: Text(widget.loginText, style: buttonTextStyle),
+      child: Text("Pop up Login", style: buttonTextStyle),
     );
 
     // A CONTINUE button that when pressed will proceed to operate without the
@@ -462,13 +458,6 @@ class _SolidLoginState extends State<SolidLogin> {
                   Expanded(
                     child: popupLoginButton,
                   ),
-                  // const SizedBox(
-                  //   width: 15.0,
-                  // ),
-                  // Expanded(
-                  //   child:
-                  //       widget.requireLogin ? registerButton : continueButton,
-                  // ),
                 ],
               ),
             ],
