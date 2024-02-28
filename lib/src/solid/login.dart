@@ -31,8 +31,10 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:solidpod/src/solid/pod_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -317,8 +319,19 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     final popupLoginButton = ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
+        String webIdFromSettingPage =
+            "https://pods.solidcommunity.au/kevin/profile/card#me";
+
         //TODO kevin popup login
+        final podService = PodService(
+          secureStorage: const FlutterSecureStorage(),
+        );
+        Map<dynamic, dynamic> authData = await podService.authenticatePOD(
+          webIdFromSettingPage,
+          context,
+        );
+        print('authData  $authData');
       },
       child: Text(widget.loginText, style: buttonTextStyle),
     );
