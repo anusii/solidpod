@@ -438,14 +438,6 @@ class _SolidLoginState extends State<SolidLogin> {
               const SizedBox(
                 height: 20.0,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: PopupLoginButton(buttonTextStyle: buttonTextStyle),
-                  ),
-                ],
-              ),
             ],
           ),
 
