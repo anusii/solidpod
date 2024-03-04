@@ -33,8 +33,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:solidpod/src/solid/pod_service.dart';
-import 'package:solidpod/src/widgets/popup_login.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -434,9 +432,6 @@ class _SolidLoginState extends State<SolidLogin> {
                     child: infoButton,
                   ),
                 ],
-              ),
-              const SizedBox(
-                height: 20.0,
               ),
             ],
           ),

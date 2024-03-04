@@ -19,8 +19,6 @@ import 'package:flutter/widgets.dart';
 
 import 'package:solid_auth/solid_auth.dart';
 
-import 'package:solidpod/src/solid/net.dart';
-
 class Constants {
   static const openid = 'openid';
   static const profile = 'profile';
@@ -28,8 +26,6 @@ class Constants {
 }
 
 class PodService {
-  final HomePageNet networkService = HomePageNet();
-
   PodService();
 
   Future<String> getBaseUrl(String url) async {
