@@ -34,6 +34,7 @@ import 'package:flutter/material.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
+import 'package:solidpod/src/widgets/popup_login.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -317,21 +318,6 @@ class _SolidLoginState extends State<SolidLogin> {
       child: Text(widget.loginText, style: buttonTextStyle),
     );
 
-    final popupLoginButton = ElevatedButton(
-      onPressed: () async {
-        String webIdFromSettingPage =
-            "https://pods.solidcommunity.au/kevin/profile/card#me";
-
-        final podService = PodService();
-        Map<dynamic, dynamic> authData = await podService.authenticatePOD(
-          webIdFromSettingPage,
-          context,
-        );
-        print('authData  $authData');
-      },
-      child: Text("Pop up Login", style: buttonTextStyle),
-    );
-
     // A CONTINUE button that when pressed will proceed to operate without the
     // need of a Pod and thus no requirement to authenticate. Proceed  directly
     // go to the app (the child).
@@ -456,7 +442,7 @@ class _SolidLoginState extends State<SolidLogin> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: popupLoginButton,
+                    child: PopupLoginButton(buttonTextStyle: buttonTextStyle),
                   ),
                 ],
               ),
