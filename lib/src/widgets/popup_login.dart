@@ -21,13 +21,12 @@ import 'package:solidpod/src/solid/pod_service.dart';
 
 class PopupLoginButton extends StatelessWidget {
   final TextStyle buttonTextStyle;
-  final String webIdFromSettingPage;
+  final String webID;
 
   const PopupLoginButton({
     Key? key,
     required this.buttonTextStyle,
-    this.webIdFromSettingPage =
-        "https://pods.solidcommunity.au/kevin/profile/card#me",
+    this.webID = "https://pods.solidcommunity.au/kevin/profile/card#me",
   }) : super(key: key);
 
   @override
@@ -36,7 +35,7 @@ class PopupLoginButton extends StatelessWidget {
       onPressed: () async {
         final podService = PodService();
         Map<dynamic, dynamic> authData = await podService.authenticatePOD(
-          webIdFromSettingPage,
+          webID,
           context,
         );
         print('authData  $authData');
