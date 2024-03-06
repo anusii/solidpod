@@ -1,6 +1,10 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
+<<<<<<< HEAD
 // Time-stamp: <Friday 2024-02-16 11:08:08 +1100 Graham Williams>
+=======
+// Time-stamp: <Monday 2024-03-04 15:45:47 +1100 Graham Williams>
+>>>>>>> dev
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -73,7 +77,7 @@ class SolidLogin extends StatefulWidget {
     // Include the literals here so that they are exposed through the docs.
 
     required this.child,
-    this.requireLogin = true,
+    this.required = true,
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
@@ -152,7 +156,7 @@ class SolidLogin extends StatefulWidget {
   /// require access to Pod data then set this to false and a CONTINUE button
   /// is available on the Login page.
 
-  final bool requireLogin;
+  final bool required;
 
   @override
   State<SolidLogin> createState() => _SolidLoginState();
@@ -470,8 +474,7 @@ class _SolidLoginState extends State<SolidLogin> {
                     width: 15.0,
                   ),
                   Expanded(
-                    child:
-                        widget.requireLogin ? registerButton : continueButton,
+                    child: widget.required ? registerButton : continueButton,
                   ),
                 ],
               ),
@@ -481,7 +484,7 @@ class _SolidLoginState extends State<SolidLogin> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  widget.requireLogin
+                  widget.required
                       ? const Spacer()
                       : Expanded(
                           child: registerButton,
