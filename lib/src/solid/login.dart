@@ -1,10 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-<<<<<<< HEAD
-// Time-stamp: <Friday 2024-02-16 11:08:08 +1100 Graham Williams>
-=======
 // Time-stamp: <Monday 2024-03-04 15:45:47 +1100 Graham Williams>
->>>>>>> dev
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
