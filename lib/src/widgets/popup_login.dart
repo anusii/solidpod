@@ -16,31 +16,69 @@
 /// Authors: Kevin Wang
 library;
 
+import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
 
-class PopupLoginButton extends StatelessWidget {
+import 'dart:convert';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solidpod/src/solid/pod_service.dart';
+
+class PopupLoginButton extends StatefulWidget {
   final TextStyle buttonTextStyle;
   final String webID;
 
   const PopupLoginButton({
     Key? key,
     required this.buttonTextStyle,
-    this.webID = "https://pods.solidcommunity.au/kevin/profile/card#me",
+    this.webID = "https://solid.empwr.au/u7274552/profile/card#me",
   }) : super(key: key);
+
+  @override
+  State<PopupLoginButton> createState() => _PopupLoginButtonState();
+}
+
+class _PopupLoginButtonState extends State<PopupLoginButton> {
+  // final FutureProvider<Map<dynamic, dynamic>> authDataProvider =
+  //     FutureProvider<Map<dynamic, dynamic>>((ref) async {
+  //   final podService = PodService();
+  //   final authData = await podService.authenticatePOD(widget.webID, context);
+  //   return authData;
+  // });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: () async {
         final podService = PodService();
-        Map<dynamic, dynamic> authData = await podService.authenticatePOD(
-          webID,
-          context,
-        );
-        print('authData  $authData');
+        final authData =
+            await podService.authenticatePOD(widget.webID, context);
+
+        // Here, you can handle the authData, e.g., store it locally, update the UI, etc.
+
+        // Assuming you want to print or store authData
+        print('authData: $authData');
+
+        // Optionally, serialize and save the data, handle navigation, show messages, etc.
       },
-      child: Text('Pop up Login', style: buttonTextStyle),
+      child: Text('Pop up Login', style: widget.buttonTextStyle),
     );
   }
+
+  // String serializeMap(Map<dynamic, dynamic> map) {
+  //   return map.entries.map((entry) => '${entry.key}:${entry.value}').join(',');
+  // }
+
+  // Map<dynamic, dynamic> deserializeMap(String serializedMap) {
+  //   return Map.fromIterable(
+  //     serializedMap.split(','),
+  //     key: (item) => item.split(':')[0],
+  //     value: (item) => item.split(':')[1],
+  //   );
+  // }
 }
