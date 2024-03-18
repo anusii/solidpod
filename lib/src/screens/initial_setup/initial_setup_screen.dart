@@ -51,6 +51,7 @@ class InitialSetupScreen extends StatefulWidget {
       required this.webId,
       required this.appName,
       required this.resCheckList,
+      required this.child,
       super.key});
 
   /// Validated authentication data returing from the Solid server.
@@ -69,6 +70,10 @@ class InitialSetupScreen extends StatefulWidget {
   /// A dynamic list of missing resources from the user's POD
 
   final List<dynamic> resCheckList;
+
+  /// The child widget after logging in.
+
+  final Widget child;
 
   @override
   State<InitialSetupScreen> createState() => _InitialSetupScreenState();
@@ -92,10 +97,12 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
         children: [
           Expanded(
               child: InitialSetupScreenBody(
-                  resNeedToCreate: resNeedToCreate,
-                  authData: authData,
-                  webId: webId,
-                  appName: widget.appName))
+            resNeedToCreate: resNeedToCreate,
+            authData: authData,
+            webId: webId,
+            appName: widget.appName,
+            child: widget.child,
+          ))
         ],
       ),
     );

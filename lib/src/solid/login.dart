@@ -37,7 +37,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
-import 'package:solidpod/src/screens/home.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 
@@ -300,6 +299,7 @@ class _SolidLoginState extends State<SolidLogin> {
                       webId: widget.webID,
                       appName: appName,
                       resCheckList: resCheckList,
+                      child: widget.child,
                     )),
           );
         }
@@ -309,19 +309,7 @@ class _SolidLoginState extends State<SolidLogin> {
         Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
           await Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-                builder: (context) => Scaffold(
-                      appBar: AppBar(
-                        // backgroundColor: lightGreen,
-                        centerTitle: true,
-                        title: Text(appName),
-                      ),
-                      body: Home(
-                        authData: authData,
-                        appName: appName,
-                        webId: widget.webID,
-                      ),
-                    )),
+            MaterialPageRoute(builder: (context) => widget.child),
           );
         }
 
@@ -337,10 +325,6 @@ class _SolidLoginState extends State<SolidLogin> {
             await navInitialSetupScreen(authData, resCheckList);
           }
 
-          // await Navigator.pushReplacement(
-          //   context,
-
-          // );
           await navHomeScreen(authData);
         }
 

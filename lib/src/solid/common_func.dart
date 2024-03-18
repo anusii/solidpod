@@ -30,6 +30,7 @@
 
 library;
 
+import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
 /// Truncates the given [text] to a predefined maximum length.
@@ -45,4 +46,60 @@ String truncateString(String text) {
       : text;
 
   return result;
+}
+
+/// Write the given [key], [value] pair to the secure storage.
+///
+/// If [key] already exisits then delete that first and then
+/// write again.
+
+Future<void> writeToSecureStorage(String key, String value) async {
+  final isKeyExist = await secureStorage.containsKey(
+    key: key,
+  );
+
+  // Since write() method does not automatically overwrite an existing value.
+  // To overwrite an existing value, call delete() first.
+
+  if (isKeyExist) {
+    await secureStorage.delete(
+      key: key,
+    );
+  }
+
+  await secureStorage.write(
+    key: key,
+    value: value,
+  );
+}
+
+/// Get encrypted file content.
+Map getEncFileContent(String fileInfo) {
+  Graph g = Graph();
+  g.parseTurtle(fileInfo);
+  Map fileContentMap = {};
+  for (final t in g.triples) {
+    /**
+     * Use
+     *  - t.sub -> Subject
+     *  - t.pre -> Predicate
+     *  - t.obj -> Object
+     */
+    String predicate = t.pre.value as String;
+    if (predicate.contains('#')) {
+      final subject = t.sub.value;
+      final fileName = subject.split('#')[1];
+      final attributeName = predicate.split('#')[1];
+      final attrVal = t.obj.value;
+      if (attributeName != 'type') {
+        if (fileContentMap.containsKey(fileName)) {
+          fileContentMap[fileName][attributeName] = attrVal;
+        } else {
+          fileContentMap[fileName] = {attributeName: attrVal};
+        }
+      }
+    }
+  }
+
+  return fileContentMap;
 }

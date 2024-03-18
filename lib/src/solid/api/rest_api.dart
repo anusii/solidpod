@@ -48,8 +48,8 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
   g.parseTurtle(fileInfo);
   final fileContentMap = {};
   final fileContentList = [];
-  for (final t in g.triples as List<Triple>) {
-    final predicate = t.pre.value;
+  for (final t in g.triples) {
+    final predicate = t.pre.value as String;
     if (predicate.contains('#')) {
       final subject = t.sub.value;
       final attributeName = predicate.split('#')[1];

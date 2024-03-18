@@ -31,3 +31,4 @@
 library solidpod;
 
 export 'src/solid/login.dart' show SolidLogin;
+export 'src/screens/view_data/view_keys.dart' show ShowKeys;
