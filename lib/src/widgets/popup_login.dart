@@ -63,11 +63,11 @@ class _PopupLoginButtonState extends State<PopupLoginButton> {
 
         String jsonStr = json.encode(authDataMap);
 
+        // Save the authData to the secure storage.
+
         FlutterSecureStorage storage = const FlutterSecureStorage();
 
         await storage.write(key: 'authData', value: jsonStr);
-
-        // Optionally, serialize and save the data, handle navigation, show messages, etc.
       },
       child: Text('Pop up Login', style: widget.buttonTextStyle),
     );
