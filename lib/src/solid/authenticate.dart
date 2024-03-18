@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Monday 2024-01-08 14:41:54 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-02-16 11:07:50 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///

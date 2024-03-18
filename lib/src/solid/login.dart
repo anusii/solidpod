@@ -37,8 +37,11 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+import 'package:solidpod/src/screens/home.dart';
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
 
-// Screen size support funtions to identify narrow and very narrow screens. The
+// Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
 // image on the left, or is on top of the app image.
 
@@ -64,7 +67,7 @@ bool _isDialogCanceled = false;
 /// any of its functionality.
 
 class SolidLogin extends StatefulWidget {
-  /// Parameters for authenticating to t Solid server.
+  /// Parameters for authenticating to the Solid server.
 
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs.
@@ -156,11 +159,20 @@ class SolidLogin extends StatefulWidget {
 }
 
 class _SolidLoginState extends State<SolidLogin> {
-  // This string will hold the application version number.  Initially, it's an
-  // empty string because the actual version number will be obtained
-  // asynchronously from the app's package information.
+  // This strings will hold the application version number and app name.
+  // Initially, it's an empty string because the actual version number
+  // will be obtained asynchronously from the app's package information.
 
   String appVersion = '';
+  String appName = '';
+
+  /// Default folders will be generated after user logged in.
+
+  List<String> defaultFolders = [];
+
+  /// Default files will be generated after user logged in.
+
+  Map<dynamic, dynamic> defaultFiles = {};
 
   @override
   void initState() {
@@ -175,6 +187,9 @@ class _SolidLoginState extends State<SolidLogin> {
 
     setState(() {
       appVersion = info.version;
+      appName = info.appName;
+      defaultFolders = generateDefaultFolders(appName);
+      defaultFiles = generateDefaultFiles(appName);
     });
   }
 
@@ -205,7 +220,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
     // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
-    var buttonTextStyle = TextStyle(
+    const buttonTextStyle = TextStyle(
       fontSize: 12.0,
       // fontSize: MediaQuery.of(context).size.width * 0.03,
       letterSpacing: 2.0,
@@ -213,7 +228,7 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // The GET A POD button that when pressed will launch a browser to the
-    // releveant link from where a user can register for a POD on the Solid
+    // relevant link from where a user can register for a POD on the Solid
     // server. The default location is relative to the [webID], and is currently
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
@@ -273,14 +288,60 @@ class _SolidLoginState extends State<SolidLogin> {
 
         final authResult = await solidAuthenticate(widget.webID, context);
 
+        // Navigates to the Initial Setup Screen using the provided authentication data.
+
+        Future<void> navInitialSetupScreen(
+            Map<dynamic, dynamic> authData, List<dynamic> resCheckList) async {
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => InitialSetupScreen(
+                      authData: authData,
+                      webId: widget.webID,
+                      appName: appName,
+                      resCheckList: resCheckList,
+                    )),
+          );
+        }
+
+        // Navigates to the Home Screen if the account exits.
+
+        Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Scaffold(
+                      appBar: AppBar(
+                        // backgroundColor: lightGreen,
+                        centerTitle: true,
+                        title: Text(appName),
+                      ),
+                      body: Home(
+                        authData: authData,
+                        appName: appName,
+                        webId: widget.webID,
+                      ),
+                    )),
+          );
+        }
+
         // Method to navigate to the child widget, requiring BuildContext, and
         // so avoiding the "don't use BuildContext across async gaps" warning.
 
-        void navigateToApp() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          );
+        Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
+          final resCheckList = await initialStructureTest(
+              authData, appName, defaultFolders, defaultFiles);
+          final allExists = resCheckList.first as bool;
+
+          if (!allExists) {
+            await navInitialSetupScreen(authData, resCheckList);
+          }
+
+          // await Navigator.pushReplacement(
+          //   context,
+
+          // );
+          await navHomeScreen(authData);
         }
 
         // Method to navigate back to the login widget, requiring BuildContext,
@@ -298,8 +359,8 @@ class _SolidLoginState extends State<SolidLogin> {
         // app itself. If it failed then notify the user and stay on the
         // SolidLogin page.
 
-        if (authResult != null) {
-          navigateToApp();
+        if (authResult != null && authResult.isNotEmpty) {
+          await navigateToApp(authResult.first as Map);
         } else {
           // On moving to using navigateToLogin() the previously implemented
           // asynchronous showAuthFailedPopup() is lost due to the immediately
