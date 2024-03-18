@@ -18,11 +18,7 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:solidpod/src/solid/pod_service.dart';
-
-import 'dart:convert';
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
@@ -42,13 +38,6 @@ class PopupLoginButton extends StatefulWidget {
 }
 
 class _PopupLoginButtonState extends State<PopupLoginButton> {
-  // final FutureProvider<Map<dynamic, dynamic>> authDataProvider =
-  //     FutureProvider<Map<dynamic, dynamic>>((ref) async {
-  //   final podService = PodService();
-  //   final authData = await podService.authenticatePOD(widget.webID, context);
-  //   return authData;
-  // });
-
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
@@ -57,26 +46,26 @@ class _PopupLoginButtonState extends State<PopupLoginButton> {
         final authData =
             await podService.authenticatePOD(widget.webID, context);
 
-        // Here, you can handle the authData, e.g., store it locally, update the UI, etc.
+        // some useful data from the authData to contruct the authDataMap
 
-        // Assuming you want to print or store authData
-        // print('authData: $authData');
+        final accessToken = authData['accessToken'].toString();
+        final rsaInfo = authData['rsaInfo'];
+        final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+        final publicKeyJwk = rsaInfo['pubKeyJwk'];
 
-        String jsonAuthData = jsonEncode(authData.map((key, value) {
-          return MapEntry(key, value);
+        Map<String, dynamic> authDataMap = {
+          'accessToken': accessToken,
+          'rsaInfo': {
+            'rsa': keyPairToMap(rsaKeyPair), // Convert KeyPair to a Map
+            'pubKeyJwk': publicKeyJwk,
+          },
+        };
 
-          // if (value is CustomClass) {
-          //   return MapEntry(key, value.toJson());
-          // } else {
-          //   return MapEntry(key, value);
-          // }
-        }));
-
-        print(jsonAuthData);
+        String jsonStr = json.encode(authDataMap);
 
         FlutterSecureStorage storage = const FlutterSecureStorage();
 
-        storage.write(key: 'authData', value: jsonAuthData);
+        await storage.write(key: 'authData', value: jsonStr);
 
         // Optionally, serialize and save the data, handle navigation, show messages, etc.
       },
@@ -84,15 +73,12 @@ class _PopupLoginButtonState extends State<PopupLoginButton> {
     );
   }
 
-  // String serializeMap(Map<dynamic, dynamic> map) {
-  //   return map.entries.map((entry) => '${entry.key}:${entry.value}').join(',');
-  // }
+  // Convert KeyPair to a Map.
 
-  // Map<dynamic, dynamic> deserializeMap(String serializedMap) {
-  //   return Map.fromIterable(
-  //     serializedMap.split(','),
-  //     key: (item) => item.split(':')[0],
-  //     value: (item) => item.split(':')[1],
-  //   );
-  // }
+  Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
+    return {
+      'publicKey': keyPair.publicKey,
+      'privateKey': keyPair.privateKey,
+    };
+  }
 }
