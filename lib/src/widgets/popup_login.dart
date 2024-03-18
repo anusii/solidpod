@@ -17,14 +17,12 @@
 library;
 
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
 
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
@@ -62,7 +60,23 @@ class _PopupLoginButtonState extends State<PopupLoginButton> {
         // Here, you can handle the authData, e.g., store it locally, update the UI, etc.
 
         // Assuming you want to print or store authData
-        print('authData: $authData');
+        // print('authData: $authData');
+
+        String jsonAuthData = jsonEncode(authData.map((key, value) {
+          return MapEntry(key, value);
+
+          // if (value is CustomClass) {
+          //   return MapEntry(key, value.toJson());
+          // } else {
+          //   return MapEntry(key, value);
+          // }
+        }));
+
+        print(jsonAuthData);
+
+        FlutterSecureStorage storage = const FlutterSecureStorage();
+
+        storage.write(key: 'authData', value: jsonAuthData);
 
         // Optionally, serialize and save the data, handle navigation, show messages, etc.
       },
