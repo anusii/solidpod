@@ -30,6 +30,7 @@
 
 library;
 
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
 /// Truncates the given [text] to a predefined maximum length.
@@ -70,4 +71,15 @@ Future<void> writeToSecureStorage(String key, String value) async {
     key: key,
     value: value,
   );
+}
+
+/// Convert the given [keyPair] object to a map.
+///
+/// Returns a map with publicKey and privateKey.
+
+Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
+  return {
+    'publicKey': keyPair.publicKey,
+    'privateKey': keyPair.privateKey,
+  };
 }

@@ -104,9 +104,7 @@ Future<List<dynamic>?> solidAuthenticate(
     // to get data from and to POD
     final rsaInfoTemp = Map.from(rsaInfo as Map);
     rsaInfoTemp.remove('rsa');
-    rsaInfoTemp['publicKey'] = rsaKeyPair.publicKey;
-    rsaInfoTemp['privateKey'] = rsaKeyPair.privateKey;
-
+    rsaInfoTemp['rsa'] = keyPairToMap(rsaKeyPair);
     authDataTemp['rsaInfo'] = rsaInfoTemp;
 
     // json encode data

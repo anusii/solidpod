@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -552,5 +554,58 @@ Future<String> initialProfileUpdate(
     // If the server did not return a 205 response,
     // then throw an exception.
     throw Exception('Failed to update resource! Try again in a while.');
+  }
+}
+
+/// Get encryption keys from the private file
+///
+/// returns the file content
+
+Future<String> fetchKeyData() async {
+  final webId = await secureStorage.read(key: 'webid');
+  final authDataStr = await secureStorage.read(key: 'authdata');
+  final authData = jsonDecode(authDataStr!);
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
+      rsaInfo['rsa']['privateKey'] as String);
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'];
+  final keyFileUrl = webId!.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
+  final dPopTokenKey =
+      genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
+
+  final keyData = await fetchPrvFile(
+    keyFileUrl,
+    accessToken as String,
+    dPopTokenKey,
+  );
+
+  return keyData;
+}
+
+/// Check whether a user is logged in or not
+///
+/// Check if the local storage has authentication
+/// details of the user and also check whether the
+/// access token is expired or not
+/// returns boolean
+
+Future<bool> checkLoggedIn() async {
+  final webId = await secureStorage.read(key: 'webid');
+  final authDataStr = await secureStorage.read(key: 'authdata');
+
+  if ((webId != null && webId.isNotEmpty) &&
+      (authDataStr != null && authDataStr.isNotEmpty)) {
+    final authData = jsonDecode(authDataStr);
+    final accessToken = authData['accessToken'];
+    final hasExpired = JwtDecoder.isExpired(accessToken as String);
+
+    if (hasExpired) {
+      return false;
+    } else {
+      return true;
+    }
+  } else {
+    return false;
   }
 }

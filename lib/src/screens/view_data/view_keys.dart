@@ -28,24 +28,26 @@
 ///
 /// Authors: Anushka Vidanage
 
-import 'dart:convert';
-
-//import 'package:encrypt/encrypt.dart';
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
-import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A widget to show the user all the encryption keys stored in their POD.
 
 class ShowKeys extends StatefulWidget {
-  /// Parameters for getting the keys from Solid POD.
+  /// Constructor for ShowKeys widget
 
   const ShowKeys({
+    required this.appName,
+    required this.child,
     super.key,
   });
+
+  /// Name of the app
+  final String appName;
+
+  /// The child widget to be ridirected if login is initiated.
+  final Widget child;
 
   @override
   State<ShowKeys> createState() => _ShowKeysState();
@@ -59,6 +61,11 @@ class _ShowKeysState extends State<ShowKeys> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
+      appBar: AppBar(
+        // backgroundColor: lightGreen,
+        centerTitle: true,
+        title: Text(widget.appName),
+      ),
       body: FutureBuilder(
 
           /// fetchSurveyData need to create method fetchHealthData
@@ -77,31 +84,8 @@ class _ShowKeysState extends State<ShowKeys> {
 
   @override
   void initState() {
-    _asyncDataFetch = _fetchKeyData();
+    _asyncDataFetch = fetchKeyData();
     super.initState();
-  }
-
-  Future<String> _fetchKeyData() async {
-    final webId = await secureStorage.read(key: 'webid');
-    final authDataStr = await secureStorage.read(key: 'authdata');
-    final authData = jsonDecode(authDataStr!);
-    final rsaInfo = authData['rsaInfo'];
-    final rsaKeyPair = KeyPair(
-        rsaInfo['publicKey'] as String, rsaInfo['privateKey'] as String);
-    final publicKeyJwk = rsaInfo['pubKeyJwk'];
-    final accessToken = authData['accessToken'];
-    final keyFileUrl =
-        webId!.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
-    final dPopTokenKey =
-        genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
-
-    final keyData = await fetchPrvFile(
-      keyFileUrl,
-      accessToken as String,
-      dPopTokenKey,
-    );
-
-    return keyData;
   }
 
   Widget _loadedScreen(String keyData) {
@@ -120,65 +104,78 @@ class _ShowKeysState extends State<ShowKeys> {
     // final eccKey = Encrypted.from64(medFileKey);
     // final keyIndPlain = encrypterKey.decrypt(eccKey, iv: ivInd);
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Column(
-            children: [
-              DataTable(columnSpacing: 30.0, columns: const [
-                DataColumn(
-                  label: Text(
-                    'Parameter',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            DataTable(columnSpacing: 30.0, columns: const [
+              DataColumn(
+                label: Text(
+                  'Parameter',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                DataColumn(
-                  label: Text(
-                    'Value',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
+              ),
+              DataColumn(
+                label: Text(
+                  'Value',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ], rows: [
-                DataRow(cells: [
-                  const DataCell(Text(
-                    'Encryption key verification',
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  )),
-                  DataCell(Text(
-                    encFileData['encKey'][1] as String,
-                    style: const TextStyle(
-                      fontSize: 12,
-                    ),
-                  )),
-                ]),
-                DataRow(cells: [
-                  const DataCell(Text(
-                    'Private key',
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  )),
-                  DataCell(Text(
+              ),
+            ], rows: [
+              DataRow(cells: [
+                const DataCell(Text(
+                  'Encryption key verification',
+                  style: TextStyle(
+                    fontSize: 12,
+                  ),
+                )),
+                DataCell(Text(
+                  encFileData['encKey'][1] as String,
+                  style: const TextStyle(
+                    fontSize: 12,
+                  ),
+                )),
+              ]),
+              DataRow(cells: [
+                const DataCell(Text(
+                  'Private key',
+                  style: TextStyle(
+                    fontSize: 12,
+                  ),
+                )),
+                DataCell(SizedBox(
+                  width: 600,
+                  child: Text(
                     encFileData['prvKey'][1] as String,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
                     ),
-                  )),
-                ])
+                  ),
+                )),
               ])
-            ],
-          ),
+            ]),
+            const SizedBox(
+              height: 50,
+            ),
+            ElevatedButton(
+              child: const Text('Go back'),
+              onPressed: () async {
+                await Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => widget.child),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
