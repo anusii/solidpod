@@ -8,14 +8,15 @@
 
 ## Checklist
 
-[Use the check-list below to ensure your branch is ready for PR]
+Complete the check-list below to ensure your branch is ready for PR.
+
+Flutter Style Guide: https://survivor.togaware.com/gnulinux/flutter-style.html
 
 - [ ] Changes adhere to the team style and coding guideline
 - [ ] No confidential information
 - [ ] No duplicated content
-- [ ] No lint errors (`make prep` or `flutter analyze lib`
-                       python: use pre-commit ruff hook to check on commit)
-- [ ] No lint check errors related to your changes
+- [ ] No lint check errors related to your changes (`make prep`)
+- [ ] Pre-exisiting lint errors noted: 
 - [ ] Tested on at least one device
   - [ ] Android Phone
   - [ ] Android Emulator
@@ -24,9 +25,7 @@
   - [ ] Linux
   - [ ] MacOS
   - [ ] Windows
-- [ ] Added 2 reviewers (or 1 for private repositories then they add another)
-
-Flutter Style Guide: https://survivor.togaware.com/gnulinux/flutter-style.html
+- [ ] Added 2 reviewers
 
 ## Finalising
 
@@ -34,6 +33,7 @@ Once PR discussion is complete and 2 reviewers have approved:
 
 - [ ] Merge dev into the branch
 - [ ] Resolve any conflicts
+- [ ] Bump appropriate version and build number in pubspec.yaml
 - [ ] Add one line summary into CHANGELOG.md
-- [ ] Bump appropriate version number
+- [ ] Push to git repository and review
 - [ ] Merge PR into dev
