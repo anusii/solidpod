@@ -53,7 +53,7 @@ class ShowKeys extends StatefulWidget {
 
 class _ShowKeysState extends State<ShowKeys> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  static Future? _asyncDataFetch;
+  static Future<dynamic>? _asyncDataFetch;
 
   @override
   Widget build(BuildContext context) {

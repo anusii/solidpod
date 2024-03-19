@@ -30,7 +30,6 @@
 
 library;
 
-import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
 /// Truncates the given [text] to a predefined maximum length.
@@ -71,35 +70,4 @@ Future<void> writeToSecureStorage(String key, String value) async {
     key: key,
     value: value,
   );
-}
-
-/// Get encrypted file content.
-Map getEncFileContent(String fileInfo) {
-  Graph g = Graph();
-  g.parseTurtle(fileInfo);
-  Map fileContentMap = {};
-  for (final t in g.triples) {
-    /**
-     * Use
-     *  - t.sub -> Subject
-     *  - t.pre -> Predicate
-     *  - t.obj -> Object
-     */
-    String predicate = t.pre.value as String;
-    if (predicate.contains('#')) {
-      final subject = t.sub.value;
-      final fileName = subject.split('#')[1];
-      final attributeName = predicate.split('#')[1];
-      final attrVal = t.obj.value;
-      if (attributeName != 'type') {
-        if (fileContentMap.containsKey(fileName)) {
-          fileContentMap[fileName][attributeName] = attrVal;
-        } else {
-          fileContentMap[fileName] = {attributeName: attrVal};
-        }
-      }
-    }
-  }
-
-  return fileContentMap;
 }
