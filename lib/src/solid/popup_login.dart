@@ -24,14 +24,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solidpod/src/solid/pod_service.dart';
 
 class PopupLoginButton extends StatefulWidget {
+  const PopupLoginButton({
+    required this.buttonTextStyle,
+    super.key,
+    this.webID = 'https://solid.empwr.au/u7274552/profile/card#me',
+  });
   final TextStyle buttonTextStyle;
   final String webID;
-
-  const PopupLoginButton({
-    Key? key,
-    required this.buttonTextStyle,
-    this.webID = "https://solid.empwr.au/u7274552/profile/card#me",
-  }) : super(key: key);
 
   @override
   State<PopupLoginButton> createState() => _PopupLoginButtonState();
@@ -53,7 +52,7 @@ class _PopupLoginButtonState extends State<PopupLoginButton> {
         final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
         final publicKeyJwk = rsaInfo['pubKeyJwk'];
 
-        Map<String, dynamic> authDataMap = {
+        final authDataMap = <String, dynamic>{
           'accessToken': accessToken,
           'rsaInfo': {
             'rsa': keyPairToMap(rsaKeyPair), // Convert KeyPair to a Map
@@ -61,11 +60,11 @@ class _PopupLoginButtonState extends State<PopupLoginButton> {
           },
         };
 
-        String jsonStr = json.encode(authDataMap);
+        final jsonStr = json.encode(authDataMap);
 
         // Save the authData to the secure storage.
 
-        FlutterSecureStorage storage = const FlutterSecureStorage();
+        const storage = FlutterSecureStorage();
 
         await storage.write(key: 'authData', value: jsonStr);
       },
