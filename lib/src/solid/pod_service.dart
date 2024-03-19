@@ -14,6 +14,7 @@
 // limitations under the License.
 ///
 /// Authors: Kevin Wang
+library;
 
 import 'package:flutter/widgets.dart';
 
@@ -29,7 +30,7 @@ class PodService {
   PodService();
 
   Future<String> getBaseUrl(String url) async {
-    Uri uri = Uri.parse(url);
+    final uri = Uri.parse(url);
 
     // Rebuild the URL with only the scheme and the host.
 
@@ -40,14 +41,14 @@ class PodService {
     String webId,
     BuildContext context,
   ) async {
-    String baseUrl = await getBaseUrl(webId);
-    String issuerUri = await getIssuer(baseUrl);
-    final List<String> scopes = [
+    final baseUrl = await getBaseUrl(webId);
+    final issuerUri = await getIssuer(baseUrl);
+    final scopes = <String>[
       Constants.openid,
       Constants.profile,
       Constants.offlineAccess,
     ];
-    var authData = await authenticate(
+    final authData = await authenticate(
       Uri.parse(issuerUri),
       scopes,
       context,
