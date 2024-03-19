@@ -2,6 +2,11 @@
 
 Notable changes to this project are recorded below.
 
+## 0.5.0 2024-03-19 12:00
+
++ Add solidloginPopup widget to open a popup window for authentication.
+
+
 ## 0.4.0 2024-02-03 18:38
 
 + Rename the repository and package to `solidpod` as the name `solid`
