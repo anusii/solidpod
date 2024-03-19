@@ -12,6 +12,7 @@ Complete the check-list below to ensure your branch is ready for PR.
 
 Flutter Style Guide: https://survivor.togaware.com/gnulinux/flutter-style.html
 
+- [ ] Screenshots included in linked issue
 - [ ] Changes adhere to the team style and coding guideline
 - [ ] No confidential information
 - [ ] No duplicated content
