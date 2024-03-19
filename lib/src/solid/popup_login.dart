@@ -21,7 +21,6 @@ import 'package:solidpod/src/screens/view_data/view_keys.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
-<<<<<<< HEAD
 /// A widget to pop up the login prompt if the user is not logged in
 
 class PopupLogin extends StatefulWidget {
@@ -46,17 +45,6 @@ class PopupLogin extends StatefulWidget {
   /// The child widget to be ridirected to after logging in.
   final Widget child;
 
-=======
-class PopupLoginButton extends StatefulWidget {
-  const PopupLoginButton({
-    required this.buttonTextStyle,
-    super.key,
-    this.webID = 'https://solid.empwr.au/u7274552/profile/card#me',
-  });
-  final TextStyle buttonTextStyle;
-  final String webID;
-
->>>>>>> dev
   @override
   State<PopupLogin> createState() => _PopupLoginState();
 }
@@ -67,7 +55,6 @@ class _PopupLoginState extends State<PopupLogin> {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     return Scaffold(
       key: _scaffoldKey,
       body: FutureBuilder(
@@ -81,38 +68,6 @@ class _PopupLoginState extends State<PopupLogin> {
             }
             return returnVal;
           }),
-=======
-    return ElevatedButton(
-      onPressed: () async {
-        final podService = PodService();
-        final authData =
-            await podService.authenticatePOD(widget.webID, context);
-
-        // some useful data from the authData to contruct the authDataMap
-
-        final accessToken = authData['accessToken'].toString();
-        final rsaInfo = authData['rsaInfo'];
-        final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-        final publicKeyJwk = rsaInfo['pubKeyJwk'];
-
-        final authDataMap = <String, dynamic>{
-          'accessToken': accessToken,
-          'rsaInfo': {
-            'rsa': keyPairToMap(rsaKeyPair), // Convert KeyPair to a Map
-            'pubKeyJwk': publicKeyJwk,
-          },
-        };
-
-        final jsonStr = json.encode(authDataMap);
-
-        // Save the authData to the secure storage.
-
-        const storage = FlutterSecureStorage();
-
-        await storage.write(key: 'authData', value: jsonStr);
-      },
-      child: Text('Pop up Login', style: widget.buttonTextStyle),
->>>>>>> dev
     );
   }
 
