@@ -2,10 +2,14 @@
 
 Notable changes to this project are recorded below.
 
+## 0.5.1 2024-03-20 08:10
+
++ Rename lib/solid.dart to lib/solidpod.dart as per common practise
+  after having renamed the package from solid to solidpod.
+
 ## 0.5.0 2024-03-19 12:00
 
 + Add solidloginPopup widget to open a popup window for authentication.
-
 
 ## 0.4.0 2024-02-03 18:38
 
