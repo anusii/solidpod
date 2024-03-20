@@ -40,14 +40,6 @@ const lightGreen = Color.fromARGB(255, 120, 219, 137);
 
 const darkBlue = Color.fromARGB(255, 7, 87, 153);
 
-/// Color variables used in initial setup screen.
-
-const kTitleTextColor = Color(0xFF30384D);
-
-/// Padding value for initial setup screen.
-
-const double kDefaultPadding = 20.0;
-
 /// Text string variables used for the welcome message.
 
 const initialStructureWelcome = 'Welcome to the POD setup wizard!';

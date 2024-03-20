@@ -30,10 +30,6 @@
 
 library;
 
-/// Length limit for long strings for a screen.
-
-const int longStrLength = 12;
-
 /// String terms used for files created and used inside a POD.
 
 const String encKeyFile = 'enc-keys.ttl';
@@ -49,13 +45,13 @@ const String titlePred = 'title';
 const String prvKeyPred = 'prvKey';
 const String pubKeyPred = 'pubKey';
 const String encKeyPred = 'encKey';
-const String pathPred = 'path';
-const String sessionKeyPred = 'sessionKey';
-const String createdDateTimePred = 'createdDateTime';
-const String modifiedDateTimePred = 'modifiedDateTime';
-const String noteTitlePred = 'noteTitle';
-const String encNoteContentPred = 'encNoteContent';
-const String noteFileNamePrefix = 'note-';
+// const String pathPred = 'path';
+// const String sessionKeyPred = 'sessionKey';
+// const String createdDateTimePred = 'createdDateTime';
+// const String modifiedDateTimePred = 'modifiedDateTime';
+// const String noteTitlePred = 'noteTitle';
+// const String encNoteContentPred = 'encNoteContent';
+// const String noteFileNamePrefix = 'note-';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
@@ -66,4 +62,4 @@ const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
-const String solid = 'http://www.w3.org/ns/solid/terms#';
+// const String solid = 'http://www.w3.org/ns/solid/terms#';

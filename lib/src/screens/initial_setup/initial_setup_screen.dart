@@ -34,10 +34,6 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
 
-/// Numeric variables used in initial setup page.
-
-const double normalLoadingScreenHeight = 200.0;
-
 /// A [StatefulWidget] for the initial setup screen of an application, handling the initial configuration and resource allocation.
 ///
 /// This widget serves as the main interface for the initial setup process of the application. It takes in essential parameters

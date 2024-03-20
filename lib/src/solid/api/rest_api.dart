@@ -33,36 +33,37 @@ library;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
 
-/// Parses file information and extracts content into a map.
-///
-/// This function processes the provided file information, which is expected to be
-/// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
-/// to parse the Turtle data and extract key attributes and their values.
+// comment out the following function as it is not used in the current version
+// of the app, zheyuan might need to use to in the future so keeping it here.
 
-Map<dynamic, dynamic> getFileContent(String fileInfo) {
-  final g = Graph();
-  g.parseTurtle(fileInfo);
-  final fileContentMap = {};
-  final fileContentList = [];
-  for (final t in g.triples as List<Triple>) {
-    final predicate = t.pre.value;
-    if (predicate.contains('#')) {
-      final subject = t.sub.value;
-      final attributeName = predicate.split('#')[1];
-      final attrVal = t.obj.value.toString();
-      if (attributeName != 'type') {
-        fileContentList.add([subject, attributeName, attrVal]);
-      }
-      fileContentMap[attributeName] = [subject, attrVal];
-    }
-  }
+// /// Parses file information and extracts content into a map.
+// ///
+// /// This function processes the provided file information, which is expected to be
+// /// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
+// /// to parse the Turtle data and extract key attributes and their values.
 
-  return fileContentMap;
-}
+// Map<dynamic, dynamic> getFileContent(String fileInfo) {
+//   final g = Graph();
+//   g.parseTurtle(fileInfo);
+//   final fileContentMap = {};
+//   final fileContentList = [];
+//   for (final t in g.triples as List<Triple>) {
+//     final predicate = t.pre.value;
+//     if (predicate.contains('#')) {
+//       final subject = t.sub.value;
+//       final attributeName = predicate.split('#')[1];
+//       final attrVal = t.obj.value.toString();
+//       if (attributeName != 'type') {
+//         fileContentList.add([subject, attributeName, attrVal]);
+//       }
+//       fileContentMap[attributeName] = [subject, attrVal];
+//     }
+//   }
+
+//   return fileContentMap;
+// }
 
 /// The fetchPrvFile function is an asynchronous function designed to fetch
 /// profile data from a specified URL [profCardUrl].
@@ -355,202 +356,211 @@ Map<dynamic, dynamic> generateDefaultFiles(String appName) {
   return files;
 }
 
-/// Updates a file on the server with the provided SPARQL query.
-///
-/// This asynchronous function sends a PATCH request to the server, targeting
-/// the file specified by [fileUrl]. It uses SPARQL (a query language for RDF data)
-/// to perform the update operation. This function is typically used in scenarios
-/// where RDF data stored on a Solid POD (Personal Online Datastore) needs to be
-/// modified.
+// comment out the following function as it is not used in the current version
+// of the app, zheyuan might need to use to in the future so keeping it here.
 
-Future<String> updateFileByQuery(
-  String fileUrl,
-  String accessToken,
-  String dPopToken,
-  String query,
-) async {
-  final editResponse = await http.patch(
-    Uri.parse(fileUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': 'application/sparql-update',
-      'Content-Length': query.length.toString(),
-      'DPoP': dPopToken,
-    },
-    body: query,
-  );
+// /// Updates a file on the server with the provided SPARQL query.
+// ///
+// /// This asynchronous function sends a PATCH request to the server, targeting
+// /// the file specified by [fileUrl]. It uses SPARQL (a query language for RDF data)
+// /// to perform the update operation. This function is typically used in scenarios
+// /// where RDF data stored on a Solid POD (Personal Online Datastore) needs to be
+// /// modified.
 
-  if (editResponse.statusCode == 200 || editResponse.statusCode == 205) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return 'ok';
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to write profile data! Try again in a while.');
-  }
-}
+// Future<String> updateFileByQuery(
+//   String fileUrl,
+//   String accessToken,
+//   String dPopToken,
+//   String query,
+// ) async {
+//   final editResponse = await http.patch(
+//     Uri.parse(fileUrl),
+//     headers: <String, String>{
+//       'Accept': '*/*',
+//       'Authorization': 'DPoP $accessToken',
+//       'Connection': 'keep-alive',
+//       'Content-Type': 'application/sparql-update',
+//       'Content-Length': query.length.toString(),
+//       'DPoP': dPopToken,
+//     },
+//     body: query,
+//   );
 
-/// Updates an individual key file with encrypted session key information.
-///
-/// This asynchronous function is responsible for updating the key file located
-/// at a user's Solid POD (Personal Online Datastore) with new encrypted session
-/// key data. The function performs various checks and updates the file only if
-/// necessary to avoid redundant operations.
+//   if (editResponse.statusCode == 200 || editResponse.statusCode == 205) {
+//     // If the server did return a 200 OK response,
+//     // then parse the JSON.
+//     return 'ok';
+//   } else {
+//     // If the server did not return a 200 OK response,
+//     // then throw an exception.
+//     throw Exception('Failed to write profile data! Try again in a while.');
+//   }
+// }
 
-Future<String> updateIndKeyFile(
-  String webId,
-  Map<dynamic, dynamic> authData,
-  String resName,
-  String encSessionKey,
-  String encNoteFilePath,
-  String encNoteIv,
-  String appName,
-) async {
-  var createUpdateRes = '';
+// comment out the following function as it is not used in the current version
+// of the app, zheyuan might need to use to in the future so keeping it here.
 
-  const encDir = 'encryption';
+// /// Updates an individual key file with encrypted session key information.
+// ///
+// /// This asynchronous function is responsible for updating the key file located
+// /// at a user's Solid POD (Personal Online Datastore) with new encrypted session
+// /// key data. The function performs various checks and updates the file only if
+// /// necessary to avoid redundant operations.
 
-  final encDirLoc = '$appName/$encDir';
+// Future<String> updateIndKeyFile(
+//   String webId,
+//   Map<dynamic, dynamic> authData,
+//   String resName,
+//   String encSessionKey,
+//   String encNoteFilePath,
+//   String encNoteIv,
+//   String appName,
+// ) async {
+//   var createUpdateRes = '';
 
-  // Get indi key file url.
+//   const encDir = 'encryption';
 
-  final keyFileUrl = webId.contains(profCard)
-      ? webId.replaceAll(profCard, '$encDirLoc/$indKeyFile')
-      : '$webId/$encDirLoc/$indKeyFile';
+//   final encDirLoc = '$appName/$encDir';
 
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
+//   // Get indi key file url.
 
-  final notesFile = '$webId/predicates/file#';
-  final notesTerms = '$webId/predicates/terms#';
+//   final keyFileUrl = webId.contains(profCard)
+//       ? webId.replaceAll(profCard, '$encDirLoc/$indKeyFile')
+//       : '$webId/$encDirLoc/$indKeyFile';
 
-  // Update the file.
-  // First check if the file already contain the same value.
+//   final rsaInfo = authData['rsaInfo'];
+//   final rsaKeyPair = rsaInfo['rsa'];
+//   final publicKeyJwk = rsaInfo['pubKeyJwk'];
+//   final accessToken = authData['accessToken'].toString();
 
-  final dPopTokenKeyFile =
-      genDpopToken(keyFileUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-  final keyFileContent =
-      await fetchPrvFile(keyFileUrl, accessToken, dPopTokenKeyFile);
-  final keyFileDataMap = getFileContent(keyFileContent);
+//   final notesFile = '$webId/predicates/file#';
+//   final notesTerms = '$webId/predicates/terms#';
 
-  // Define query parameters.
+//   // Update the file.
+//   // First check if the file already contain the same value.
 
-  final prefix1 = 'file: <$notesFile>';
-  final prefix2 = 'notesTerms: <$notesTerms>';
+//   final dPopTokenKeyFile =
+//       genDpopToken(keyFileUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+//   final keyFileContent =
+//       await fetchPrvFile(keyFileUrl, accessToken, dPopTokenKeyFile);
+//   final keyFileDataMap = getFileContent(keyFileContent);
 
-  final subject = 'file:$resName';
-  final predObjPath = 'notesTerms:$pathPred "$encNoteFilePath";';
-  final predObjIv = 'notesTerms:$ivPred "$encNoteIv";';
-  final predObjKey = 'notesTerms:$sessionKeyPred "$encSessionKey".';
+//   // Define query parameters.
 
-  // Check if the resource is previously added or not.
+//   final prefix1 = 'file: <$notesFile>';
+//   final prefix2 = 'notesTerms: <$notesTerms>';
 
-  if (keyFileDataMap.containsKey(resName)) {
-    final existPath = keyFileDataMap[resName][pathPred].toString();
-    final existIv = keyFileDataMap[resName][ivPred].toString();
-    final existKey = keyFileDataMap[resName][sessionKeyPred].toString();
+//   final subject = 'file:$resName';
+//   final predObjPath = 'notesTerms:$pathPred "$encNoteFilePath";';
+//   final predObjIv = 'notesTerms:$ivPred "$encNoteIv";';
+//   final predObjKey = 'notesTerms:$sessionKeyPred "$encSessionKey".';
 
-    // If file does not contain the same encrypted value then delete and update
-    // the file.
-    // NOTE: Public key encryption generates different hashes different time for same plaintext value.
-    // Therefore this always ends up deleting the previous and adding a new hash.
-    if (existKey != encSessionKey ||
-        existPath != encNoteFilePath ||
-        existIv != encNoteIv) {
-      final predObjPathPrev = 'notesTerms:$pathPred "$existPath";';
-      final predObjIvPrev = 'notesTerms:$ivPred "$existIv";';
-      final predObjKeyPrev = 'notesTerms:$sessionKeyPred "$existKey".';
+//   // Check if the resource is previously added or not.
 
-      // Generate update sparql query.
+//   if (keyFileDataMap.containsKey(resName)) {
+//     final existPath = keyFileDataMap[resName][pathPred].toString();
+//     final existIv = keyFileDataMap[resName][ivPred].toString();
+//     final existKey = keyFileDataMap[resName][sessionKeyPred].toString();
 
-      final query =
-          'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPathPrev $predObjIvPrev $predObjKeyPrev}; INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
+//     // If file does not contain the same encrypted value then delete and update
+//     // the file.
+//     // NOTE: Public key encryption generates different hashes different time for same plaintext value.
+//     // Therefore this always ends up deleting the previous and adding a new hash.
+//     if (existKey != encSessionKey ||
+//         existPath != encNoteFilePath ||
+//         existIv != encNoteIv) {
+//       final predObjPathPrev = 'notesTerms:$pathPred "$existPath";';
+//       final predObjIvPrev = 'notesTerms:$ivPred "$existIv";';
+//       final predObjKeyPrev = 'notesTerms:$sessionKeyPred "$existKey".';
 
-      // Generate DPoP token.
+//       // Generate update sparql query.
 
-      final dPopTokenKeyFilePatch =
-          genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+//       final query =
+//           'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPathPrev $predObjIvPrev $predObjKeyPrev}; INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
 
-      // Run the query.
+//       // Generate DPoP token.
 
-      createUpdateRes = await updateFileByQuery(
-          keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
-    } else {
-      // If the file contain same values, then no need to run anything.
-      createUpdateRes = 'ok';
-    }
-  } else {
-    // Generate insert only sparql query.
+//       final dPopTokenKeyFilePatch =
+//           genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
 
-    final query =
-        'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
+//       // Run the query.
 
-    // Generate DPoP token.
+//       createUpdateRes = await updateFileByQuery(
+//           keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+//     } else {
+//       // If the file contain same values, then no need to run anything.
+//       createUpdateRes = 'ok';
+//     }
+//   } else {
+//     // Generate insert only sparql query.
 
-    final dPopTokenKeyFilePatch =
-        genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+//     final query =
+//         'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
 
-    // Run the query.
+//     // Generate DPoP token.
 
-    createUpdateRes = await updateFileByQuery(
-        keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
-  }
+//     final dPopTokenKeyFilePatch =
+//         genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
 
-  if (createUpdateRes == 'ok') {
-    return createUpdateRes;
-  } else {
-    throw Exception('Failed to create/update the shared file.');
-  }
-}
+//     // Run the query.
 
-// Updates the initial profile data on the server.
-///
-/// This function sends a PUT request to update the user's profile information. It constructs the profile URL from the provided `webId`, generates a DPoP token using the RSA key pair and public key in JWK format from `authData`, and then sends the request with the `profBody` as the payload.
-///
-/// The `authData` map must contain `rsaInfo` (which includes `rsa` key pair and `pubKeyJwk`) and an `accessToken`. The function modifies the `webId` URL to target the appropriate resource on the server.
-///
-/// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
+//     createUpdateRes = await updateFileByQuery(
+//         keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+//   }
 
-Future<String> initialProfileUpdate(
-  String profBody,
-  Map<dynamic, dynamic> authData,
-  String webId,
-) async {
-  // Get authentication info
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'] as String;
+//   if (createUpdateRes == 'ok') {
+//     return createUpdateRes;
+//   } else {
+//     throw Exception('Failed to create/update the shared file.');
+//   }
+// }
 
-  final profUrl = webId.replaceAll('#me', '');
-  final dPopToken =
-      genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
+// comment out the following function as it is not used in the current version
+// of the app, anushka might need to use to in the future so keeping it here.
 
-  // The PUT request will create the acl item in the server
-  final updateResponse = await http.put(
-    Uri.parse(profUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': 'text/turtle',
-      'Content-Length': profBody.length.toString(),
-      'DPoP': dPopToken,
-    },
-    body: profBody,
-  );
+// // Updates the initial profile data on the server.
+// ///
+// /// This function sends a PUT request to update the user's profile information. It constructs the profile URL from the provided `webId`, generates a DPoP token using the RSA key pair and public key in JWK format from `authData`, and then sends the request with the `profBody` as the payload.
+// ///
+// /// The `authData` map must contain `rsaInfo` (which includes `rsa` key pair and `pubKeyJwk`) and an `accessToken`. The function modifies the `webId` URL to target the appropriate resource on the server.
+// ///
+// /// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
 
-  if (updateResponse.statusCode == 200 || updateResponse.statusCode == 205) {
-    // If the server did return a 205 Reset response,
-    return 'ok';
-  } else {
-    // If the server did not return a 205 response,
-    // then throw an exception.
-    throw Exception('Failed to update resource! Try again in a while.');
-  }
-}
+// Future<String> initialProfileUpdate(
+//   String profBody,
+//   Map<dynamic, dynamic> authData,
+//   String webId,
+// ) async {
+//   // Get authentication info
+//   final rsaInfo = authData['rsaInfo'];
+//   final rsaKeyPair = rsaInfo['rsa'];
+//   final publicKeyJwk = rsaInfo['pubKeyJwk'];
+//   final accessToken = authData['accessToken'] as String;
+
+//   final profUrl = webId.replaceAll('#me', '');
+//   final dPopToken =
+//       genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
+
+//   // The PUT request will create the acl item in the server
+//   final updateResponse = await http.put(
+//     Uri.parse(profUrl),
+//     headers: <String, String>{
+//       'Accept': '*/*',
+//       'Authorization': 'DPoP $accessToken',
+//       'Connection': 'keep-alive',
+//       'Content-Type': 'text/turtle',
+//       'Content-Length': profBody.length.toString(),
+//       'DPoP': dPopToken,
+//     },
+//     body: profBody,
+//   );
+
+//   if (updateResponse.statusCode == 200 || updateResponse.statusCode == 205) {
+//     // If the server did return a 205 Reset response,
+//     return 'ok';
+//   } else {
+//     // If the server did not return a 205 response,
+//     // then throw an exception.
+//     throw Exception('Failed to update resource! Try again in a while.');
+//   }
+// }
