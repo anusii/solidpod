@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-03-04 15:45:47 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-03-19 20:06:14 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -81,6 +81,7 @@ class SolidLogin extends StatefulWidget {
     this.title = 'LOG IN TO YOUR POD',
     this.loginText = 'LOGIN',
     this.continueText = 'CONTINUE',
+    this.continueBG = Colors.white,
     this.registerText = 'GET A POD',
     this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
@@ -136,6 +137,10 @@ class SolidLogin extends StatefulWidget {
   /// that manages keys.
 
   final String continueText;
+
+  /// The background colour for the CONTINUE button.
+
+  final Color continueBG;
 
   /// The URL used as the value of the Visit link. Visit the link by clicking
   /// info button.
@@ -378,8 +383,8 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // A CONTINUE button that when pressed will proceed to operate without the
-    // need of a Pod and thus no requirement to authenticate. Proceed  directly
-    // go to the app (the child).
+    // need of a Solid Pod and thus no requirement to authenticate. Proceed
+    // directly onto the app (the child).
 
     final continueButton = ElevatedButton(
       onPressed: () {
@@ -388,6 +393,9 @@ class _SolidLoginState extends State<SolidLogin> {
           MaterialPageRoute(builder: (context) => widget.child),
         );
       },
+      style: TextButton.styleFrom(
+        backgroundColor: widget.continueBG,
+      ),
       child: Text(widget.continueText, style: buttonTextStyle),
     );
 
