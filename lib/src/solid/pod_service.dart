@@ -14,6 +14,8 @@
 // limitations under the License.
 ///
 /// Authors: Kevin Wang
+// ignore_for_file: public_member_api_docs, use_build_context_synchronously
+
 library;
 
 import 'package:flutter/widgets.dart';

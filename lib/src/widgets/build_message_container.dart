@@ -27,6 +27,8 @@
 // SOFTWARE.
 ///
 /// Authors: Graham Williams
+// ignore_for_file: public_member_api_docs
+
 library;
 
 import 'package:flutter/material.dart';

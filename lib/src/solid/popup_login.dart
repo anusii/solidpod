@@ -14,6 +14,8 @@
 // limitations under the License.
 ///
 /// Authors: Kevin Wang
+// ignore_for_file: public_member_api_docs
+
 library;
 
 import 'dart:convert';

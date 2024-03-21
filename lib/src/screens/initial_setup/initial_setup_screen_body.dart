@@ -28,6 +28,8 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
+// ignore_for_file: use_build_context_synchronously, duplicate_ignore
+
 library;
 
 import 'package:flutter/material.dart';

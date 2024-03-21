@@ -28,6 +28,8 @@
 ///
 /// Authors: Anushka Vidanage
 
+// ignore_for_file: public_member_api_docs
+
 library;
 
 /// String terms used for files created and used inside a POD.

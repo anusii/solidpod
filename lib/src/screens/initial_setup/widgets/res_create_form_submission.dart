@@ -28,6 +28,8 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
+// ignore_for_file: use_build_context_synchronously
+
 library;
 
 import 'dart:convert';
@@ -146,7 +148,6 @@ ElevatedButton resCreateFormSubmission(
         }
 
         if (!keyVerifyFlag) {
-          // ignore: use_build_context_synchronously
           await showErrDialog(context, 'Wrong encode key. Please try again!');
         } else {
           for (final resLink in resFoldersLink) {
@@ -252,7 +253,6 @@ ElevatedButton resCreateFormSubmission(
           authData['keyExist'] = true;
         }
 
-        // ignore: use_build_context_synchronously
         await Navigator.pushReplacement(
           context,
           MaterialPageRoute(
