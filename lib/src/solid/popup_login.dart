@@ -17,7 +17,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:solidpod/src/screens/view_data/view_keys.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
@@ -27,8 +26,6 @@ class PopupLogin extends StatefulWidget {
   /// Constructor for the PopupLogin
 
   const PopupLogin({
-    required this.appName,
-    required this.child,
     this.webId = 'https://pods.solidcommunity.au',
     super.key,
   });
@@ -39,12 +36,6 @@ class PopupLogin extends StatefulWidget {
   /// by default.
   final String webId;
 
-  /// Name of the app
-  final String appName;
-
-  /// The child widget to be ridirected to after logging in.
-  final Widget child;
-
   @override
   State<PopupLogin> createState() => _PopupLoginState();
 }
@@ -52,6 +43,7 @@ class PopupLogin extends StatefulWidget {
 class _PopupLoginState extends State<PopupLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   static Future<dynamic>? _asyncLogin;
+  String appName = '';
 
   @override
   Widget build(BuildContext context) {
@@ -78,9 +70,16 @@ class _PopupLoginState extends State<PopupLogin> {
   }
 
   Widget _loadedScreen(List<dynamic> loginData) {
-    return ShowKeys(
-      appName: widget.appName,
-      child: widget.child,
-    );
+    return AlertDialog(
+        title: const Text('Success!'),
+        content: const Text('You are now successfully logged in'),
+        actions: <Widget>[
+          ElevatedButton(
+            child: const Text('OK'),
+            onPressed: () async {
+              Navigator.pop(context);
+            },
+          ),
+        ]);
   }
 }

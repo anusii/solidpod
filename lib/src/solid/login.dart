@@ -317,8 +317,8 @@ class _SolidLoginState extends State<SolidLogin> {
         // so avoiding the "don't use BuildContext across async gaps" warning.
 
         Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
-          final resCheckList = await initialStructureTest(
-              authData, appName, defaultFolders, defaultFiles);
+          final resCheckList =
+              await initialStructureTest(appName, defaultFolders, defaultFiles);
           final allExists = resCheckList.first as bool;
 
           if (!allExists) {

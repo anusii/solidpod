@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
@@ -82,4 +84,19 @@ Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
     'publicKey': keyPair.publicKey,
     'privateKey': keyPair.privateKey,
   };
+}
+
+/// Convert the given [authDataStr] jason string to a map.
+///
+/// Returns a authentication data map with KeyPair object.
+
+Map<dynamic, dynamic> convertAuthData(String authDataStr) {
+  final authData = jsonDecode(authDataStr);
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
+      rsaInfo['rsa']['privateKey'] as String);
+  rsaInfo['rsa'] = rsaKeyPair;
+  authData['rsaInfo'] = rsaInfo;
+
+  return authData as Map;
 }
