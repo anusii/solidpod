@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2024-03-19 20:06:14 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-03-22 09:24:07 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -48,6 +48,13 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
 
+// The Google Play Store checker raises a warning if button heights are less
+// than 48px. This is in support of a good sized button for appropriate finger
+// taps. A good text size is one third the button height.
+
+const double _buttonHeight = 48.0;
+const double _buttonFontSize = _buttonHeight / 3;
+
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
 bool _isNarrowScreen(BuildContext context) =>
@@ -70,14 +77,13 @@ class SolidLogin extends StatefulWidget {
   /// Parameters for authenticating to the Solid server.
 
   const SolidLogin({
-    // Include the literals here so that they are exposed through the docs.
+    // Include literals here so that they are exposed through the docs.
 
     required this.child,
     this.required = true,
     this.image =
-        const AssetImage('assets/images/default_image.jpg', package: 'solid'),
-    this.logo =
-        const AssetImage('assets/images/default_logo.png', package: 'solid'),
+        const AssetImage('assets/images/image.png', package: 'solidpod'),
+    this.logo = const AssetImage('assets/images/logo.png', package: 'solidpod'),
     this.title = 'LOG IN TO YOUR POD',
     this.loginText = 'LOGIN',
     this.continueText = 'CONTINUE',
@@ -226,7 +232,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
     const buttonTextStyle = TextStyle(
-      fontSize: 12.0,
+      fontSize: _buttonFontSize,
       // fontSize: MediaQuery.of(context).size.width * 0.03,
       letterSpacing: 2.0,
       fontWeight: FontWeight.bold,
@@ -238,17 +244,20 @@ class _SolidLoginState extends State<SolidLogin> {
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
-    final registerButton = ElevatedButton(
-      // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
-      // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
-      // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. THE
-      // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() COULD THEN BE
-      // USED AGAIN.
+    final registerButton = SizedBox(
+      height: _buttonHeight,
+      child: ElevatedButton(
+        // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
+        // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
+        // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. THE
+        // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() COULD THEN BE
+        // USED AGAIN.
 
-      onPressed: () => launchUrl(
-          Uri.parse('${widget.webID}/.account/login/password/register/')),
+        onPressed: () => launchUrl(
+            Uri.parse('${widget.webID}/.account/login/password/register/')),
 
-      child: Text(widget.registerText, style: buttonTextStyle),
+        child: Text(widget.registerText, style: buttonTextStyle),
+      ),
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -256,154 +265,163 @@ class _SolidLoginState extends State<SolidLogin> {
     // themselves. On return from the authentication, if successful, the class
     // provided child widget is instantiated.
 
-    final loginButton = ElevatedButton(
-      // style: TextButton.styleFrom(
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: buttonBorderRadius,
-      //   ),
-      // ),
-      onPressed: () async {
-        // Reset the flag.
+    final loginButton = SizedBox(
+      height: _buttonHeight,
+      child: ElevatedButton(
+        // style: TextButton.styleFrom(
+        //   shape: RoundedRectangleBorder(
+        //     borderRadius: buttonBorderRadius,
+        //   ),
+        // ),
+        onPressed: () async {
+          // Reset the flag.
 
-        _isDialogCanceled = false;
+          _isDialogCanceled = false;
 
-        // Method to show busy animation requiring BuildContext.
-        //
-        // This approach of creating a local method will avoid the `flutter
-        // analyze` issue `use_build_context_synchronously`, identifying the use
-        // of a BuildContext across asynchronous gaps, without referencing the
-        // BuildContext after the async gap.
+          // Method to show busy animation requiring BuildContext.
+          //
+          // This approach of creating a local method will avoid the `flutter
+          // analyze` issue `use_build_context_synchronously`, identifying the use
+          // of a BuildContext across asynchronous gaps, without referencing the
+          // BuildContext after the async gap.
 
-        void showBusyAnimation() {
-          showAnimationDialog(
-            context,
-            7,
-            'Logging in...',
-            false,
-            updateState,
-          );
-        }
-
-        showBusyAnimation();
-
-        if (_isDialogCanceled) return;
-
-        // Perform the actual authentication by contacting the server at
-        // [WebID].
-
-        final authResult = await solidAuthenticate(widget.webID, context);
-
-        // Navigates to the Initial Setup Screen using the provided authentication data.
-
-        Future<void> navInitialSetupScreen(
-            Map<dynamic, dynamic> authData, List<dynamic> resCheckList) async {
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => InitialSetupScreen(
-                      authData: authData,
-                      webId: widget.webID,
-                      appName: appName,
-                      resCheckList: resCheckList,
-                    )),
-          );
-        }
-
-        // Navigates to the Home Screen if the account exits.
-
-        Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => Scaffold(
-                      appBar: AppBar(
-                        // backgroundColor: lightGreen,
-                        centerTitle: true,
-                        title: Text(appName),
-                      ),
-                      body: Home(
-                        authData: authData,
-                        appName: appName,
-                        webId: widget.webID,
-                      ),
-                    )),
-          );
-        }
-
-        // Method to navigate to the child widget, requiring BuildContext, and
-        // so avoiding the "don't use BuildContext across async gaps" warning.
-
-        Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
-          final resCheckList = await initialStructureTest(
-              authData, appName, defaultFolders, defaultFiles);
-          final allExists = resCheckList.first as bool;
-
-          if (!allExists) {
-            await navInitialSetupScreen(authData, resCheckList);
+          void showBusyAnimation() {
+            showAnimationDialog(
+              context,
+              7,
+              'Logging in...',
+              false,
+              updateState,
+            );
           }
 
-          // await Navigator.pushReplacement(
-          //   context,
+          showBusyAnimation();
 
-          // );
-          await navHomeScreen(authData);
-        }
+          if (_isDialogCanceled) return;
 
-        // Method to navigate back to the login widget, requiring BuildContext,
-        // and so avoiding the "don't use BuildContext across async gaps"
-        // warning.
+          // Perform the actual authentication by contacting the server at
+          // [WebID].
 
-        void navigateToLogin() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget),
-          );
-        }
+          final authResult = await solidAuthenticate(widget.webID, context);
 
-        // Check that the authentication succeeded, and if so navigate to the
-        // app itself. If it failed then notify the user and stay on the
-        // SolidLogin page.
+          // Navigates to the Initial Setup Screen using the provided authentication data.
 
-        if (authResult != null && authResult.isNotEmpty) {
-          await navigateToApp(authResult.first as Map);
-        } else {
-          // On moving to using navigateToLogin() the previously implemented
-          // asynchronous showAuthFailedPopup() is lost due to the immediately
-          // following Navigator. We probably don't need a popup and so the code
-          // is much simpler and the user interaction is probably clear enough
-          // for now that for some reason we remain on the Login screen. If
-          // there are non-obvious scneraiors where we fail to authenticate and
-          // revert to thte login screen then we can capture and report them
-          // later.
+          Future<void> navInitialSetupScreen(Map<dynamic, dynamic> authData,
+              List<dynamic> resCheckList) async {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => InitialSetupScreen(
+                        authData: authData,
+                        webId: widget.webID,
+                        appName: appName,
+                        resCheckList: resCheckList,
+                      )),
+            );
+          }
 
-          navigateToLogin();
-        }
-      },
-      child: Text(widget.loginText, style: buttonTextStyle),
+          // Navigates to the Home Screen if the account exits.
+
+          Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                        appBar: AppBar(
+                          // backgroundColor: lightGreen,
+                          centerTitle: true,
+                          title: Text(appName),
+                        ),
+                        body: Home(
+                          authData: authData,
+                          appName: appName,
+                          webId: widget.webID,
+                        ),
+                      )),
+            );
+          }
+
+          // Method to navigate to the child widget, requiring BuildContext, and
+          // so avoiding the "don't use BuildContext across async gaps" warning.
+
+          Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
+            final resCheckList = await initialStructureTest(
+                authData, appName, defaultFolders, defaultFiles);
+            final allExists = resCheckList.first as bool;
+
+            if (!allExists) {
+              await navInitialSetupScreen(authData, resCheckList);
+            }
+
+            // await Navigator.pushReplacement(
+            //   context,
+
+            // );
+            await navHomeScreen(authData);
+          }
+
+          // Method to navigate back to the login widget, requiring BuildContext,
+          // and so avoiding the "don't use BuildContext across async gaps"
+          // warning.
+
+          void navigateToLogin() {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => widget),
+            );
+          }
+
+          // Check that the authentication succeeded, and if so navigate to the
+          // app itself. If it failed then notify the user and stay on the
+          // SolidLogin page.
+
+          if (authResult != null && authResult.isNotEmpty) {
+            await navigateToApp(authResult.first as Map);
+          } else {
+            // On moving to using navigateToLogin() the previously implemented
+            // asynchronous showAuthFailedPopup() is lost due to the immediately
+            // following Navigator. We probably don't need a popup and so the code
+            // is much simpler and the user interaction is probably clear enough
+            // for now that for some reason we remain on the Login screen. If
+            // there are non-obvious scneraiors where we fail to authenticate and
+            // revert to thte login screen then we can capture and report them
+            // later.
+
+            navigateToLogin();
+          }
+        },
+        child: Text(widget.loginText, style: buttonTextStyle),
+      ),
     );
 
     // A CONTINUE button that when pressed will proceed to operate without the
     // need of a Solid Pod and thus no requirement to authenticate. Proceed
     // directly onto the app (the child).
 
-    final continueButton = ElevatedButton(
-      onPressed: () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => widget.child),
-        );
-      },
-      style: TextButton.styleFrom(
-        backgroundColor: widget.continueBG,
+    final continueButton = SizedBox(
+      height: _buttonHeight,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget.child),
+          );
+        },
+        style: TextButton.styleFrom(
+          backgroundColor: widget.continueBG,
+        ),
+        child: Text(widget.continueText, style: buttonTextStyle),
       ),
-      child: Text(widget.continueText, style: buttonTextStyle),
     );
 
     // A INFO button that when pressed will proceed to visit a link.
 
-    final infoButton = ElevatedButton(
-      onPressed: () => launchUrl(Uri.parse(widget.link)),
-      child: Text(widget.infoText, style: buttonTextStyle),
+    final infoButton = SizedBox(
+      height: _buttonHeight,
+      child: ElevatedButton(
+        onPressed: () => launchUrl(Uri.parse(widget.link)),
+        child: Text(widget.infoText, style: buttonTextStyle),
+      ),
     );
 
     // A version text that is displayed within the login panel. The text box
