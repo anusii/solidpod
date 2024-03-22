@@ -37,6 +37,7 @@ import 'package:flutter/material.dart';
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
+import 'package:solid_auth/src/openid/openid_client.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -96,9 +97,9 @@ Future<List<dynamic>?> solidAuthenticate(
     // Removing all object like data
     authDataTemp.remove('client');
     authDataTemp.remove('authResponse');
-    authDataTemp.remove('idToken');
+    // authDataTemp.remove('idToken');
     authDataTemp.remove('rsaInfo');
-    authDataTemp.remove('expiresIn');
+    // authDataTemp.remove('expiresIn');
 
     // Creating new fields for public/private key pair so that can be used
     // to get data from and to POD
@@ -121,4 +122,84 @@ Future<List<dynamic>?> solidAuthenticate(
     debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
+}
+
+
+class AuthData {
+  //TODO: add additional fields e.g. RSA keys, JWK etc.
+  final String webId;
+  final String clientId;
+  final String clientSecret;
+  final String accessToken;
+  final String tokenType;
+  final String refreshToken;
+  final Duration expiresIn;
+  final DateTime expiresAt;
+  final IdToken idToken;
+
+  AuthData(
+    this.webId,
+    this.clientId,
+    this.clientSecret,
+    this.accessToken,
+    this.tokenType,
+    this.refreshToken,
+    this.expiresIn,
+    this.expiresAt,
+    this.idToken,
+  );
+
+  AuthData.fromJson(Map<String, dynamic> json)
+    : webId = json['web_id'] as String,
+      clientId = json['client_id'] as String,
+      clientSecret = json['client_secret'] as String,
+      accessToken = json['access_token'] as String,
+      tokenType = json['token_type'] as String,
+      refreshToken = json['refresh_token'] as String,
+      expiresIn = json['expires_at'] as Duration,  // TODO: convert string to duration
+      expiresAt = DateTime.fromMillisecondsSinceEpoch(json['expires_in'] as int, isUtc: true),
+      idToken = json['id_token'] as IdToken;  // TODO: convert string to idToken
+
+  Map<String, dynamic> toJson() => {
+    'web_id': webId,
+    'client_id': clientId,
+    'client_secret': clientSecret,
+    'access_token': accessToken,
+    'token_type': tokenType,
+    'refresh_token': refreshToken,
+    'expires_in': expiresIn as String,  //TODO: convert Duration to String
+    'expires_at': expiresAt.millisecond,
+    'id_token': idToken as String,  //TODO: convert idToken to String
+  };
+  
+
+Future<TokenResponse> refreshTokens() async {
+
+  //TODO: put this in read/write_to_secure_storage functions
+  // String authDataStr = jsonEncode(authData);
+  // final authDataMap = jsonDecode(authDataStr) Map<String, dynamic>;
+  // final authData = AuthData.fromJson(authDataMap);
+
+  //TODO: make use of the AuthData model class
+  final webId = await getWebId();
+  final authData = await getAuthData();
+
+  final issuerUri = await getIssuer(webId as String);
+  Issuer issuer = await Issuer.discover(Uri.parse(issuerUri));
+
+  final String _clientId = authData['client_id'] as String;
+  final String _clientSecret = authData['client_secret'] as String;
+  var client = Client(issuer, _clientId, clientSecret: _clientSecret);
+
+  Credential authResponse = client.createCredential(
+    accessToken: authData['access_token'] as String,
+    tokenType: authData['token_type'] as String,
+    refreshToken: authData['refresh_token'] as String,
+    expiresIn: authData['expires_in'] as Duration,
+    expiresAt: authData['expires_at'] as DateTime,
+    idToken: authData['id_token'] as String,
+  );
+
+  TokenResponse tokenResponse = await authResponse.getTokenResponse(true);
+  return tokenResponse;
 }
