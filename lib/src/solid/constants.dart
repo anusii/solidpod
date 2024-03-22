@@ -34,7 +34,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Length limit for long strings for a screen.
 
-const int longStrLength = 12;
+// const int longStrLength = 12;
 
 /// String terms used for files created and used inside a POD.
 
@@ -43,10 +43,10 @@ const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 
-const String sharingDir = 'sharing';
-const String sharedDir = 'shared';
-const String encDir = 'encryption';
-const String logsDir = 'logs';
+// const String sharingDir = 'sharing';
+// const String sharedDir = 'shared';
+// const String encDir = 'encryption';
+// const String logsDir = 'logs';
 
 /// String terms used as predicates in ttl files.
 

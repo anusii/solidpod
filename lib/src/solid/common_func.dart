@@ -35,20 +35,20 @@ import 'dart:convert';
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
-/// Truncates the given [text] to a predefined maximum length.
-///
-/// If [text] exceeds the length defined by [longStrLength], it is truncated
-/// and ends with an ellipsis '...'. If [text] is shorter than [longStrLength],
-/// it is returned as is.
+// /// Truncates the given [text] to a predefined maximum length.
+// ///
+// /// If [text] exceeds the length defined by [longStrLength], it is truncated
+// /// and ends with an ellipsis '...'. If [text] is shorter than [longStrLength],
+// /// it is returned as is.
 
-String truncateString(String text) {
-  var result = '';
-  result = text.length > longStrLength
-      ? '${text.substring(0, longStrLength - 4)}...'
-      : text;
+// String truncateString(String text) {
+//   var result = '';
+//   result = text.length > longStrLength
+//       ? '${text.substring(0, longStrLength - 4)}...'
+//       : text;
 
-  return result;
-}
+//   return result;
+// }
 
 /// Write the given [key], [value] pair to the secure storage.
 ///

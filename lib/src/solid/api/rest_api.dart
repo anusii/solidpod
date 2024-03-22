@@ -30,13 +30,9 @@
 
 library;
 
-import 'dart:convert';
-
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
