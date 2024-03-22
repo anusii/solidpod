@@ -676,6 +676,7 @@ Future<bool> deleteLogIn() async {
 
 Future<String?> getWebId() async {
   final webId = await secureStorage.read(key: 'webid');
+  assert(webId != null);
   return webId;
 }
 
@@ -683,6 +684,7 @@ Future<String?> getWebId() async {
 
 Future<Map<dynamic, dynamic>> getAuthData() async {
   final authDataStr = await secureStorage.read(key: 'authdata');
+  assert(authDataStr != null);
   final authData = convertAuthData(authDataStr!);
   return authData;
 }
