@@ -42,35 +42,6 @@ Future<String> readPod(
                 child: child,
               )),
     );
-
-    // if (loggedIn) {
-    //   final fileUrl = await createFileUrl(filePath);
-    //   final tokenList = await getTokens(fileUrl);
-    //   fileContent = await fetchPrvFile(
-    //       fileUrl, tokenList[0] as String, tokenList[1] as String);
-    // } else {
-
-    //   final appInfo = await getAppNameVersion();
-    //   final defaultFolders = generateDefaultFolders(appInfo[0] as String);
-    //   final defaultFiles = generateDefaultFiles(appInfo[0] as String);
-    //   final webId = await getWebId();
-
-    //   final resCheckList = await initialStructureTest(
-    //       appInfo[0] as String, defaultFolders, defaultFiles);
-    //   final allExists = resCheckList.first as bool;
-
-    //   if (!allExists) {
-    //     await Navigator.pushReplacement(
-    //       context,
-    //       MaterialPageRoute(
-    //           builder: (context) => InitialSetupScreen(
-    //                 webId: webId as String,
-    //                 appName: appInfo[0] as String,
-    //                 resCheckList: resCheckList,
-    //                 child: child,
-    //               )),
-    //     );
-    //   }
   }
 
   final fileUrl = await createFileUrl(filePath);
