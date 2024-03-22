@@ -36,9 +36,12 @@ import 'package:flutter/material.dart';
 
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_auth/src/openid/openid_client.dart';
 
+import 'package:solidpod/src/solid/constants.dart'
+    show secureStorage, SOLID_AUTH_DATA_SECURE_STORE_KEY;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 
@@ -86,6 +89,17 @@ Future<List<dynamic>?> solidAuthenticate(
 
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
+    await writeToSecureStorage(
+        SOLID_AUTH_DATA_SECURE_STORE_KEY,
+        jsonEncode(SolidAuthData(
+          authData['authResponse'] as Credential,
+          authData['tokenResponse'] as TokenResponse,
+          rsaKeyPair.publicKey,
+          rsaKeyPair.privateKey,
+          authData['logoutUrl'] as String,
+          webId,
+        )));
+
     // write authentication data to flutter secure storage
     await writeToSecureStorage('webid', webId);
 
@@ -97,9 +111,9 @@ Future<List<dynamic>?> solidAuthenticate(
     // Removing all object like data
     authDataTemp.remove('client');
     authDataTemp.remove('authResponse');
-    // authDataTemp.remove('idToken');
+    authDataTemp.remove('idToken');
     authDataTemp.remove('rsaInfo');
-    // authDataTemp.remove('expiresIn');
+    authDataTemp.remove('expiresIn');
 
     // Creating new fields for public/private key pair so that can be used
     // to get data from and to POD
@@ -124,82 +138,60 @@ Future<List<dynamic>?> solidAuthenticate(
   }
 }
 
-
-class AuthData {
-  //TODO: add additional fields e.g. RSA keys, JWK etc.
+class SolidAuthData {
+  final Credential authResponse;
+  TokenResponse tokenResponse;
+  final String rsaPublicKey;
+  final String rsaPrivateKey;
+  final String logoutUrl;
   final String webId;
-  final String clientId;
-  final String clientSecret;
-  final String accessToken;
-  final String tokenType;
-  final String refreshToken;
-  final Duration expiresIn;
-  final DateTime expiresAt;
-  final IdToken idToken;
 
-  AuthData(
+  SolidAuthData(
+    this.authResponse,
+    this.tokenResponse,
+    this.rsaPublicKey,
+    this.rsaPrivateKey,
+    this.logoutUrl,
     this.webId,
-    this.clientId,
-    this.clientSecret,
-    this.accessToken,
-    this.tokenType,
-    this.refreshToken,
-    this.expiresIn,
-    this.expiresAt,
-    this.idToken,
   );
 
-  AuthData.fromJson(Map<String, dynamic> json)
-    : webId = json['web_id'] as String,
-      clientId = json['client_id'] as String,
-      clientSecret = json['client_secret'] as String,
-      accessToken = json['access_token'] as String,
-      tokenType = json['token_type'] as String,
-      refreshToken = json['refresh_token'] as String,
-      expiresIn = json['expires_at'] as Duration,  // TODO: convert string to duration
-      expiresAt = DateTime.fromMillisecondsSinceEpoch(json['expires_in'] as int, isUtc: true),
-      idToken = json['id_token'] as IdToken;  // TODO: convert string to idToken
+  KeyPair get rsaKeyPair => KeyPair(rsaPublicKey, rsaPrivateKey);
+  String get accessToken => tokenResponse.accessToken as String;
+  IdToken get idToken => tokenResponse.idToken;
+  String get refreshToken => tokenResponse.refreshToken as String;
+  Duration get expiresIn => tokenResponse.expiresIn as Duration;
+
+  Future<void> refreshTokens() async {
+    tokenResponse = await authResponse.getTokenResponse(true);
+  }
+
+  SolidAuthData.fromJson(Map<String, dynamic> json)
+      : authResponse =
+            Credential.fromJson((json['auth_response'] as Map).cast()),
+        tokenResponse =
+            TokenResponse.fromJson((json['token_response'] as Map).cast()),
+        rsaPublicKey = json['rsa_public_key'] as String,
+        rsaPrivateKey = json['rsa_private_key'] as String,
+        logoutUrl = json['logout_url'] as String,
+        webId = json['web_id'] as String;
 
   Map<String, dynamic> toJson() => {
-    'web_id': webId,
-    'client_id': clientId,
-    'client_secret': clientSecret,
-    'access_token': accessToken,
-    'token_type': tokenType,
-    'refresh_token': refreshToken,
-    'expires_in': expiresIn as String,  //TODO: convert Duration to String
-    'expires_at': expiresAt.millisecond,
-    'id_token': idToken as String,  //TODO: convert idToken to String
-  };
-  
+        'auth_response': authResponse.toJson(),
+        'token_response': tokenResponse.toJson(),
+        'rsa_public_key': rsaPublicKey,
+        'rsa_private_key': rsaPrivateKey,
+        'logout_url': logoutUrl,
+        'web_id': webId,
+      };
+}
 
-Future<TokenResponse> refreshTokens() async {
-
-  //TODO: put this in read/write_to_secure_storage functions
-  // String authDataStr = jsonEncode(authData);
-  // final authDataMap = jsonDecode(authDataStr) Map<String, dynamic>;
-  // final authData = AuthData.fromJson(authDataMap);
-
-  //TODO: make use of the AuthData model class
-  final webId = await getWebId();
-  final authData = await getAuthData();
-
-  final issuerUri = await getIssuer(webId as String);
-  Issuer issuer = await Issuer.discover(Uri.parse(issuerUri));
-
-  final String _clientId = authData['client_id'] as String;
-  final String _clientSecret = authData['client_secret'] as String;
-  var client = Client(issuer, _clientId, clientSecret: _clientSecret);
-
-  Credential authResponse = client.createCredential(
-    accessToken: authData['access_token'] as String,
-    tokenType: authData['token_type'] as String,
-    refreshToken: authData['refresh_token'] as String,
-    expiresIn: authData['expires_in'] as Duration,
-    expiresAt: authData['expires_at'] as DateTime,
-    idToken: authData['id_token'] as String,
-  );
-
-  TokenResponse tokenResponse = await authResponse.getTokenResponse(true);
-  return tokenResponse;
+Future<SolidAuthData?> loadSolidAuthData() async {
+  final authDataStr =
+      await secureStorage.read(key: SOLID_AUTH_DATA_SECURE_STORE_KEY);
+  if (authDataStr != null) {
+    return SolidAuthData.fromJson(
+        jsonDecode(authDataStr) as Map<String, dynamic>);
+  } else {
+    return null;
+  }
 }
