@@ -30,10 +30,14 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
+import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
 
@@ -48,8 +52,8 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
   g.parseTurtle(fileInfo);
   final fileContentMap = {};
   final fileContentList = [];
-  for (final t in g.triples as List<Triple>) {
-    final predicate = t.pre.value;
+  for (final t in g.triples) {
+    final predicate = t.pre.value as String;
     if (predicate.contains('#')) {
       final subject = t.sub.value;
       final attributeName = predicate.split('#')[1];
@@ -71,12 +75,12 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
 /// of token used in headers for enhanced security).
 
 Future<String> fetchPrvFile(
-  String profCardUrl,
+  String prvFileUrl,
   String accessToken,
   String dPopToken,
 ) async {
   final profResponse = await http.get(
-    Uri.parse(profCardUrl),
+    Uri.parse(prvFileUrl),
     headers: <String, String>{
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
@@ -102,8 +106,11 @@ Future<String> fetchPrvFile(
 /// This function is an asynchronous operation that takes in [authData], which includes authentication and encryption data,
 /// and returns a [Future] that resolves to a [List<dynamic>].
 
-Future<List<dynamic>> initialStructureTest(Map<dynamic, dynamic> authData,
+Future<List<dynamic>> initialStructureTest(
     String appName, List<String> folders, Map<dynamic, dynamic> files) async {
+  final authDataStr = await secureStorage.read(key: 'authdata');
+  final authData = convertAuthData(authDataStr!);
+
   final rsaInfo = authData['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'];
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
@@ -553,4 +560,131 @@ Future<String> initialProfileUpdate(
     // then throw an exception.
     throw Exception('Failed to update resource! Try again in a while.');
   }
+}
+
+/// Get encryption keys from the private file
+///
+/// returns the file content
+
+Future<String> fetchKeyData() async {
+  final webId = await getWebId();
+  final authDataStr = await secureStorage.read(key: 'authdata');
+
+  final authData = convertAuthData(authDataStr!);
+
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'];
+  final keyFileUrl = webId!.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
+  final dPopTokenKey =
+      genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
+
+  final keyData = await fetchPrvFile(
+    keyFileUrl,
+    accessToken as String,
+    dPopTokenKey,
+  );
+
+  return keyData;
+}
+
+/// Get tokens necessary to fetch a file from a POD
+///
+/// returns the access token and DPoP token
+
+Future<List<dynamic>> getTokens(String fileUrl) async {
+  final authDataStr = await secureStorage.read(key: 'authdata');
+
+  final authData = convertAuthData(authDataStr!);
+
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'];
+  final dPopToken = genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET');
+
+  return [accessToken, dPopToken];
+}
+
+/// From a given file path create file URL
+///
+/// returns the full file URL
+
+Future<String> createFileUrl(String filePath) async {
+  final webId = await getWebId();
+
+  final appDetails = await getAppNameVersion();
+  final appName = appDetails[0];
+  final keyFileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
+
+  return keyFileUrl;
+}
+
+/// Extract the app name and the version from the package info
+
+Future<List<dynamic>> getAppNameVersion() async {
+  final info = await PackageInfo.fromPlatform();
+  final appName = info.appName;
+  final appVersion = info.version;
+
+  return [appName, appVersion];
+}
+
+/// Check whether a user is logged in or not
+///
+/// Check if the local storage has authentication
+/// details of the user and also check whether the
+/// access token is expired or not
+/// returns boolean
+
+Future<bool> checkLoggedIn() async {
+  final webId = await getWebId();
+  final authDataStr = await secureStorage.read(key: 'authdata');
+
+  if ((webId != null && webId.isNotEmpty) &&
+      (authDataStr != null && authDataStr.isNotEmpty)) {
+    final authData = jsonDecode(authDataStr);
+    final accessToken = authData['accessToken'];
+    final hasExpired = JwtDecoder.isExpired(accessToken as String);
+
+    if (hasExpired) {
+      return false;
+    } else {
+      return true;
+    }
+  } else {
+    return false;
+  }
+}
+
+/// Delete login information from the local storage
+///
+/// returns true if successful
+
+Future<bool> deleteLogIn() async {
+  try {
+    await secureStorage.delete(key: 'webid');
+    await secureStorage.delete(key: 'authdata');
+    return true;
+  } on Exception {
+    return false;
+  }
+}
+
+/// Get the webId from local storage
+
+Future<String?> getWebId() async {
+  final webId = await secureStorage.read(key: 'webid');
+  assert(webId != null);
+  return webId;
+}
+
+/// Get the webId from local storage
+
+Future<Map<dynamic, dynamic>> getAuthData() async {
+  final authDataStr = await secureStorage.read(key: 'authdata');
+  assert(authDataStr != null);
+  final authData = convertAuthData(authDataStr!);
+  return authData;
 }

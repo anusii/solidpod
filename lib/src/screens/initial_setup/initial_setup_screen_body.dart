@@ -54,6 +54,7 @@ class InitialSetupScreenBody extends StatefulWidget {
     required this.authData,
     required this.webId,
     required this.appName,
+    required this.child,
     super.key,
   });
 
@@ -72,6 +73,10 @@ class InitialSetupScreenBody extends StatefulWidget {
   /// Name of the app.
 
   final String appName;
+
+  /// The child widget after logging in.
+
+  final Widget child;
 
   @override
   State<InitialSetupScreenBody> createState() {
@@ -168,6 +173,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                           widget.authData,
                                           widget.webId,
                                           widget.appName,
+                                          widget.child,
                                         ),
                                       ),
                                       const SizedBox(width: 20),

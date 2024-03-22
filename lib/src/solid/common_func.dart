@@ -30,6 +30,9 @@
 
 library;
 
+import 'dart:convert';
+
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
 /// Truncates the given [text] to a predefined maximum length.
@@ -45,4 +48,55 @@ String truncateString(String text) {
       : text;
 
   return result;
+}
+
+/// Write the given [key], [value] pair to the secure storage.
+///
+/// If [key] already exisits then delete that first and then
+/// write again.
+
+Future<void> writeToSecureStorage(String key, String value) async {
+  final isKeyExist = await secureStorage.containsKey(
+    key: key,
+  );
+
+  // Since write() method does not automatically overwrite an existing value.
+  // To overwrite an existing value, call delete() first.
+
+  if (isKeyExist) {
+    await secureStorage.delete(
+      key: key,
+    );
+  }
+
+  await secureStorage.write(
+    key: key,
+    value: value,
+  );
+}
+
+/// Convert the given [keyPair] object to a map.
+///
+/// Returns a map with publicKey and privateKey.
+
+Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
+  return {
+    'publicKey': keyPair.publicKey,
+    'privateKey': keyPair.privateKey,
+  };
+}
+
+/// Convert the given [authDataStr] jason string to a map.
+///
+/// Returns a authentication data map with KeyPair object.
+
+Map<dynamic, dynamic> convertAuthData(String authDataStr) {
+  final authData = jsonDecode(authDataStr);
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
+      rsaInfo['rsa']['privateKey'] as String);
+  rsaInfo['rsa'] = rsaKeyPair;
+  authData['rsaInfo'] = rsaInfo;
+
+  return authData as Map;
 }
