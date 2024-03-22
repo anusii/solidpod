@@ -2,6 +2,10 @@
 
 Notable changes to this project are recorded below.
 
+## 0.5.2 2024-03-21 21:02
+
++ Add continueBG parameter to SolidLogin.
+
 ## 0.5.1 2024-03-20 08:10
 
 + Rename lib/solid.dart to lib/solidpod.dart as per common practise

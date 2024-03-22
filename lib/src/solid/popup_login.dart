@@ -16,68 +16,70 @@
 /// Authors: Kevin Wang
 library;
 
-import 'dart:convert';
-
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:solidpod/src/solid/pod_service.dart';
+import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/widgets/loading_screen.dart';
 
-class PopupLoginButton extends StatefulWidget {
-  const PopupLoginButton({
-    required this.buttonTextStyle,
+/// A widget to pop up the login prompt if the user is not logged in
+
+class PopupLogin extends StatefulWidget {
+  /// Constructor for the PopupLogin
+
+  const PopupLogin({
+    this.webId = 'https://pods.solidcommunity.au',
     super.key,
-    this.webID = 'https://solid.empwr.au/u7274552/profile/card#me',
   });
-  final TextStyle buttonTextStyle;
-  final String webID;
+
+  /// The URI of the user's webID used to identify the Solid server to
+  /// authenticate against.
+  /// Currently this is not a required argument here and is set
+  /// by default.
+  final String webId;
 
   @override
-  State<PopupLoginButton> createState() => _PopupLoginButtonState();
+  State<PopupLogin> createState() => _PopupLoginState();
 }
 
-class _PopupLoginButtonState extends State<PopupLoginButton> {
+class _PopupLoginState extends State<PopupLogin> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  static Future<dynamic>? _asyncLogin;
+  String appName = '';
+
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () async {
-        final podService = PodService();
-        final authData =
-            await podService.authenticatePOD(widget.webID, context);
-
-        // some useful data from the authData to contruct the authDataMap
-
-        final accessToken = authData['accessToken'].toString();
-        final rsaInfo = authData['rsaInfo'];
-        final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-        final publicKeyJwk = rsaInfo['pubKeyJwk'];
-
-        final authDataMap = <String, dynamic>{
-          'accessToken': accessToken,
-          'rsaInfo': {
-            'rsa': keyPairToMap(rsaKeyPair), // Convert KeyPair to a Map
-            'pubKeyJwk': publicKeyJwk,
-          },
-        };
-
-        final jsonStr = json.encode(authDataMap);
-
-        // Save the authData to the secure storage.
-
-        const storage = FlutterSecureStorage();
-
-        await storage.write(key: 'authData', value: jsonStr);
-      },
-      child: Text('Pop up Login', style: widget.buttonTextStyle),
+    return Scaffold(
+      key: _scaffoldKey,
+      body: FutureBuilder(
+          future: _asyncLogin,
+          builder: (context, snapshot) {
+            Widget returnVal;
+            if (snapshot.connectionState == ConnectionState.done) {
+              returnVal = _loadedScreen(snapshot.data as List);
+            } else {
+              returnVal = loadingScreen(200);
+            }
+            return returnVal;
+          }),
     );
   }
 
-  // Convert KeyPair to a Map.
+  @override
+  void initState() {
+    _asyncLogin = solidAuthenticate(widget.webId, context);
+    super.initState();
+  }
 
-  Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
-    return {
-      'publicKey': keyPair.publicKey,
-      'privateKey': keyPair.privateKey,
-    };
+  Widget _loadedScreen(List<dynamic> loginData) {
+    return AlertDialog(
+        title: const Text('Success!'),
+        content: const Text('You are now successfully logged in'),
+        actions: <Widget>[
+          ElevatedButton(
+            child: const Text('OK'),
+            onPressed: () async {
+              Navigator.pop(context);
+            },
+          ),
+        ]);
   }
 }

@@ -38,21 +38,15 @@ import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 
-import 'package:solidpod/src/screens/home.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
-
-/// Initialize a constant instance of FlutterSecureStorage for secure data storage.
-/// This instance provides encrypted storage to securely store key-value pairs.
-
-FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
 /// A button to submit form widget
 ///
@@ -73,6 +67,7 @@ ElevatedButton resCreateFormSubmission(
   Map<dynamic, dynamic> authData,
   String webId,
   String appName,
+  Widget child,
 ) {
   return ElevatedButton(
     onPressed: () async {
@@ -231,42 +226,14 @@ ElevatedButton resCreateFormSubmission(
 
           // Add encryption key to the local secure storage.
 
-          final isKeyExist = await secureStorage.containsKey(
-            key: webId,
-          );
-
-          // Since write() method does not automatically overwrite an existing value.
-          // To overwrite an existing value, call delete() first.
-
-          if (isKeyExist) {
-            await secureStorage.delete(
-              key: webId,
-            );
-          }
-
-          await secureStorage.write(
-            key: webId,
-            value: passPlaintxt,
-          );
-
+          await writeToSecureStorage(webId, passPlaintxt);
           authData['keyExist'] = true;
         }
 
-        // ignore: use_build_context_synchronously
         await Navigator.pushReplacement(
+          // ignore: use_build_context_synchronously
           context,
-          MaterialPageRoute(
-              builder: (context) => Scaffold(
-                    appBar: AppBar(
-                      centerTitle: true,
-                      title: Text(appName),
-                    ),
-                    body: Home(
-                      authData: authData,
-                      appName: appName,
-                      webId: webId,
-                    ),
-                  )),
+          MaterialPageRoute(builder: (context) => child),
         );
       } else {
         await showErrDialog(
