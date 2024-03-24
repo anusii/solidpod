@@ -41,7 +41,7 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_auth/src/openid/openid_client.dart';
 
 import 'package:solidpod/src/solid/constants.dart'
-    show secureStorage, SOLID_AUTH_DATA_SECURE_STORE_KEY;
+    show secureStorage, solidAuthDataSecureStorageKey;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 
@@ -90,7 +90,7 @@ Future<List<dynamic>?> solidAuthenticate(
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
     await writeToSecureStorage(
-        SOLID_AUTH_DATA_SECURE_STORE_KEY,
+        solidAuthDataSecureStorageKey,
         jsonEncode(SolidAuthData(
           rsaKeyPair.publicKey,
           rsaKeyPair.privateKey,
@@ -193,7 +193,7 @@ class SolidAuthData {
 
 Future<SolidAuthData?> loadSolidAuthData() async {
   final authDataStr =
-      await secureStorage.read(key: SOLID_AUTH_DATA_SECURE_STORE_KEY);
+      await secureStorage.read(key: solidAuthDataSecureStorageKey);
   if (authDataStr != null) {
     return SolidAuthData.fromJson(
         jsonDecode(authDataStr) as Map<String, dynamic>);
