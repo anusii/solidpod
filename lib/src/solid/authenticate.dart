@@ -92,12 +92,11 @@ Future<List<dynamic>?> solidAuthenticate(
     await writeToSecureStorage(
         SOLID_AUTH_DATA_SECURE_STORE_KEY,
         jsonEncode(SolidAuthData(
-          authData['authResponse'] as Credential,
-          authData['tokenResponse'] as TokenResponse,
           rsaKeyPair.publicKey,
           rsaKeyPair.privateKey,
           authData['logoutUrl'] as String,
           webId,
+          authData['authResponse'] as Credential,
         )));
 
     // write authentication data to flutter secure storage
@@ -139,49 +138,56 @@ Future<List<dynamic>?> solidAuthenticate(
 }
 
 class SolidAuthData {
-  final Credential authResponse;
-  TokenResponse tokenResponse;
   final String rsaPublicKey;
   final String rsaPrivateKey;
   final String logoutUrl;
   final String webId;
 
+  Credential authResponse;
+  TokenResponse? _tokenResponse;
+
   SolidAuthData(
-    this.authResponse,
-    this.tokenResponse,
     this.rsaPublicKey,
     this.rsaPrivateKey,
     this.logoutUrl,
     this.webId,
+    this.authResponse,
   );
 
   KeyPair get rsaKeyPair => KeyPair(rsaPublicKey, rsaPrivateKey);
-  String get accessToken => tokenResponse.accessToken as String;
-  IdToken get idToken => tokenResponse.idToken;
-  String get refreshToken => tokenResponse.refreshToken as String;
-  Duration get expiresIn => tokenResponse.expiresIn as Duration;
+  IdToken get idToken => authResponse.idToken;
+  String get refreshToken => authResponse.refreshToken as String;
+
+  String? get accessToken {
+    _tokenResponse ??=
+        TokenResponse.fromJson((authResponse.response as Map).cast());
+    return _tokenResponse!.accessToken;
+  }
+
+  Duration? get expiresIn {
+    _tokenResponse ??=
+        TokenResponse.fromJson((authResponse.response as Map).cast());
+    return _tokenResponse!.expiresIn;
+  }
 
   Future<void> refreshTokens() async {
-    tokenResponse = await authResponse.getTokenResponse(true);
+    _tokenResponse = await authResponse.getTokenResponse();
   }
 
   SolidAuthData.fromJson(Map<String, dynamic> json)
-      : authResponse =
-            Credential.fromJson((json['auth_response'] as Map).cast()),
-        tokenResponse =
-            TokenResponse.fromJson((json['token_response'] as Map).cast()),
-        rsaPublicKey = json['rsa_public_key'] as String,
+      : rsaPublicKey = json['rsa_public_key'] as String,
         rsaPrivateKey = json['rsa_private_key'] as String,
         logoutUrl = json['logout_url'] as String,
-        webId = json['web_id'] as String;
+        webId = json['web_id'] as String,
+        authResponse =
+            Credential.fromJson((json['auth_response'] as Map).cast());
 
   Map<String, dynamic> toJson() => {
-        'auth_response': authResponse.toJson(),
-        'token_response': tokenResponse.toJson(),
         'rsa_public_key': rsaPublicKey,
         'rsa_private_key': rsaPrivateKey,
         'logout_url': logoutUrl,
         'web_id': webId,
+        'auth_response': authResponse.toJson(),
       };
 }
 
