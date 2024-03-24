@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2024-03-19 20:06:14 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-03-24 20:51:22 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -58,6 +58,14 @@ bool _isVeryNarrowScreen(BuildContext context) =>
 // Check whether the dialog was dismissed by the user.
 
 bool _isDialogCanceled = false;
+
+// TODO 20240324 gjw How to get the current elevated button background color
+// from the theme that an app may have overriden from the default, so that we
+// can refer to it here as the default if the user has not specified it so that
+// the correct default BG colour is displayed, in line wit hthe app's use of a
+// theme to override the solidpod defaults.
+
+// Color? _backgroundColor = ElevatedButtonTheme.of(context).style.backgroundColor.resolve({MaterialState.pressed});
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
