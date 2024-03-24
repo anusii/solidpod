@@ -32,12 +32,23 @@
 
 library;
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+/// Length limit for long strings for a screen.
+
+// const int longStrLength = 12;
+
 /// String terms used for files created and used inside a POD.
 
 const String encKeyFile = 'enc-keys.ttl';
 const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
+
+// const String sharingDir = 'sharing';
+// const String sharedDir = 'shared';
+// const String encDir = 'encryption';
+// const String logsDir = 'logs';
 
 /// String terms used as predicates in ttl files.
 
@@ -65,3 +76,8 @@ const String foaf = 'http://xmlns.com/foaf/0.1/';
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
+
+/// Initialize a constant instance of FlutterSecureStorage for secure data storage.
+/// This instance provides encrypted storage to securely store key-value pairs.
+
+FlutterSecureStorage secureStorage = const FlutterSecureStorage();

@@ -33,6 +33,8 @@ library;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 // comment out the following function as it is not used in the current version
@@ -72,12 +74,12 @@ import 'package:solid_auth/solid_auth.dart';
 /// of token used in headers for enhanced security).
 
 Future<String> fetchPrvFile(
-  String profCardUrl,
+  String prvFileUrl,
   String accessToken,
   String dPopToken,
 ) async {
   final profResponse = await http.get(
-    Uri.parse(profCardUrl),
+    Uri.parse(prvFileUrl),
     headers: <String, String>{
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
@@ -103,8 +105,11 @@ Future<String> fetchPrvFile(
 /// This function is an asynchronous operation that takes in [authData], which includes authentication and encryption data,
 /// and returns a [Future] that resolves to a [List<dynamic>].
 
-Future<List<dynamic>> initialStructureTest(Map<dynamic, dynamic> authData,
+Future<List<dynamic>> initialStructureTest(
     String appName, List<String> folders, Map<dynamic, dynamic> files) async {
+  final authDataStr = await secureStorage.read(key: 'authdata');
+  final authData = convertAuthData(authDataStr!);
+
   final rsaInfo = authData['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'];
   final publicKeyJwk = rsaInfo['pubKeyJwk'];

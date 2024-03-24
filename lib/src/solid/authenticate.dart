@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:fast_rsa/fast_rsa.dart';
@@ -37,6 +39,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/common_func.dart';
 
 // Scopes variables used in the authentication process.
 
@@ -81,6 +84,32 @@ Future<List<dynamic>?> solidAuthenticate(
         genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
 
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
+
+    // write authentication data to flutter secure storage
+    await writeToSecureStorage('webid', webId);
+
+    // Since we cannot write object data to jason and also to flutter
+    // secure storage convert all data to String and save that as a jason
+    // map
+    final authDataTemp = Map.from(authData);
+
+    // Removing all object like data
+    authDataTemp.remove('client');
+    authDataTemp.remove('authResponse');
+    authDataTemp.remove('idToken');
+    authDataTemp.remove('rsaInfo');
+    authDataTemp.remove('expiresIn');
+
+    // Creating new fields for public/private key pair so that can be used
+    // to get data from and to POD
+    final rsaInfoTemp = Map.from(rsaInfo as Map);
+    rsaInfoTemp.remove('rsa');
+    rsaInfoTemp['rsa'] = keyPairToMap(rsaKeyPair);
+    authDataTemp['rsaInfo'] = rsaInfoTemp;
+
+    // json encode data
+    final authDataStr = json.encode(authDataTemp);
+    await writeToSecureStorage('authdata', authDataStr);
 
     return [authData, webId, profData];
     // TODO 20240108 gjw WHY DOES THIS RESULT IN
