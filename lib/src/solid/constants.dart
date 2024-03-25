@@ -75,9 +75,11 @@ const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 const String solid = 'http://www.w3.org/ns/solid/terms#';
 
-const String solidAuthDataSecureStorageKey = '_solid_auth_data';
-
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+/// String key for storing SolidLoginData in flutter secure storage.
+
+const String solidLoginDataSecureStorageKey = '_solid_auth_data';
