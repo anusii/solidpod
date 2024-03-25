@@ -37,6 +37,7 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
+import 'package:solidpod/src/solid/authenticate.dart' show getSolidAuthData;
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
@@ -567,16 +568,15 @@ Future<String> initialProfileUpdate(
 /// returns the file content
 
 Future<String> fetchKeyData() async {
-  final webId = await getWebId();
-  final authDataStr = await secureStorage.read(key: 'authdata');
+  final solidAuthData = await getSolidAuthData();
+  assert(solidAuthData != null);
 
-  final authData = convertAuthData(authDataStr!);
+  final webId = solidAuthData!.webId;
+  final rsaKeyPair = solidAuthData.rsaKeyPair;
+  final publicKeyJwk = solidAuthData.rsaPublicKeyJwk;
+  final accessToken = solidAuthData.accessToken;
 
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'];
-  final keyFileUrl = webId!.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
+  final keyFileUrl = webId.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
   final dPopTokenKey =
       genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
@@ -594,14 +594,12 @@ Future<String> fetchKeyData() async {
 /// returns the access token and DPoP token
 
 Future<List<dynamic>> getTokens(String fileUrl) async {
-  final authDataStr = await secureStorage.read(key: 'authdata');
+  final solidAuthData = await getSolidAuthData();
+  assert(solidAuthData != null);
 
-  final authData = convertAuthData(authDataStr!);
-
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'];
+  final rsaKeyPair = solidAuthData!.rsaKeyPair;
+  final publicKeyJwk = solidAuthData.rsaPublicKeyJwk;
+  final accessToken = solidAuthData.accessToken;
   final dPopToken = genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
   return [accessToken, dPopToken];
@@ -611,12 +609,10 @@ Future<List<dynamic>> getTokens(String fileUrl) async {
 ///
 /// returns the full file URL
 
-Future<String> createFileUrl(String filePath) async {
-  final webId = await getWebId();
-
+Future<String> createFileUrl(String filePath, String webId) async {
   final appDetails = await getAppNameVersion();
   final appName = appDetails[0];
-  final keyFileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
+  final keyFileUrl = webId.replaceAll(profCard, '$appName/$filePath');
 
   return keyFileUrl;
 }
@@ -639,13 +635,9 @@ Future<List<dynamic>> getAppNameVersion() async {
 /// returns boolean
 
 Future<bool> checkLoggedIn() async {
-  final webId = await getWebId();
-  final authDataStr = await secureStorage.read(key: 'authdata');
-
-  if ((webId != null && webId.isNotEmpty) &&
-      (authDataStr != null && authDataStr.isNotEmpty)) {
-    final authData = jsonDecode(authDataStr);
-    final accessToken = authData['accessToken'];
+  final solidAuthData = await getSolidAuthData();
+  if (solidAuthData != null) {
+    final accessToken = solidAuthData.accessToken;
     final hasExpired = JwtDecoder.isExpired(accessToken as String);
 
     if (hasExpired) {
@@ -664,27 +656,9 @@ Future<bool> checkLoggedIn() async {
 
 Future<bool> deleteLogIn() async {
   try {
-    await secureStorage.delete(key: 'webid');
-    await secureStorage.delete(key: 'authdata');
+    await secureStorage.delete(key: solidAuthDataSecureStorageKey);
     return true;
   } on Exception {
     return false;
   }
-}
-
-/// Get the webId from local storage
-
-Future<String?> getWebId() async {
-  final webId = await secureStorage.read(key: 'webid');
-  assert(webId != null);
-  return webId;
-}
-
-/// Get the webId from local storage
-
-Future<Map<dynamic, dynamic>> getAuthData() async {
-  final authDataStr = await secureStorage.read(key: 'authdata');
-  assert(authDataStr != null);
-  final authData = convertAuthData(authDataStr!);
-  return authData;
 }
