@@ -109,13 +109,11 @@ Future<String> fetchPrvFile(
 
 Future<List<dynamic>> initialStructureTest(
     String appName, List<String> folders, Map<dynamic, dynamic> files) async {
-  final authDataStr = await secureStorage.read(key: 'authdata');
-  final authData = convertAuthData(authDataStr!);
-
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
+  final solidAuthData = await getSolidAuthData();
+  assert(solidAuthData != null);
+  final rsaKeyPair = solidAuthData!.rsaKeyPair;
+  final publicKeyJwk = solidAuthData.rsaPublicKeyJwk;
+  final accessToken = solidAuthData.accessToken as String;
   final decodedToken = JwtDecoder.decode(accessToken);
 
   // Get webID
