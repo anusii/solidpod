@@ -51,6 +51,7 @@ final List<String> _scopes = <String>[
   'openid',
   'profile',
   'offline_access',
+  'webid', // web ID is necessary to get refresh token
 ];
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
@@ -89,41 +90,16 @@ Future<List<dynamic>?> solidAuthenticate(
 
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
+    // Save solid login data to secure storage
+
     await writeToSecureStorage(
         solidAuthDataSecureStorageKey,
         jsonEncode(SolidAuthData(
-          rsaKeyPair.publicKey,
-          rsaKeyPair.privateKey,
-          authData['logoutUrl'] as String,
           webId,
+          authData['logoutUrl'] as String,
+          authData['rsaInfo'] as Map<String, dynamic>,
           authData['authResponse'] as Credential,
         )));
-
-    // write authentication data to flutter secure storage
-    await writeToSecureStorage('webid', webId);
-
-    // Since we cannot write object data to jason and also to flutter
-    // secure storage convert all data to String and save that as a jason
-    // map
-    final authDataTemp = Map.from(authData);
-
-    // Removing all object like data
-    authDataTemp.remove('client');
-    authDataTemp.remove('authResponse');
-    authDataTemp.remove('idToken');
-    authDataTemp.remove('rsaInfo');
-    authDataTemp.remove('expiresIn');
-
-    // Creating new fields for public/private key pair so that can be used
-    // to get data from and to POD
-    final rsaInfoTemp = Map.from(rsaInfo as Map);
-    rsaInfoTemp.remove('rsa');
-    rsaInfoTemp['rsa'] = keyPairToMap(rsaKeyPair);
-    authDataTemp['rsaInfo'] = rsaInfoTemp;
-
-    // json encode data
-    final authDataStr = json.encode(authDataTemp);
-    await writeToSecureStorage('authdata', authDataStr);
 
     return [authData, webId, profData];
     // TODO 20240108 gjw WHY DOES THIS RESULT IN
@@ -137,61 +113,99 @@ Future<List<dynamic>?> solidAuthenticate(
   }
 }
 
+/// A model class for saving solid server auth data and refresh access token.
+
 class SolidAuthData {
-  final String rsaPublicKey;
-  final String rsaPrivateKey;
-  final String logoutUrl;
-  final String webId;
-
-  Credential authResponse;
-  TokenResponse? _tokenResponse;
-
+  /// Create an instance of SolidAuthData from auth data
   SolidAuthData(
-    this.rsaPublicKey,
-    this.rsaPrivateKey,
-    this.logoutUrl,
     this.webId,
+    this.logoutUrl,
+    this.rsaInfo,
     this.authResponse,
   );
 
-  KeyPair get rsaKeyPair => KeyPair(rsaPublicKey, rsaPrivateKey);
+  /// The web ID of POD
+  final String webId;
+
+  /// The URL for logging out
+  final String logoutUrl;
+
+  /// The RSA keypair and their JWK format
+  final Map<String, dynamic> rsaInfo;
+
+  /// The authentication response
+  Credential authResponse;
+
+  TokenResponse? _tokenResponse;
+
+  /// Returns the RSA keypair
+  KeyPair get rsaKeyPair => rsaInfo['rsa'] as KeyPair;
+
+  /// Returns the JWK format of the RSA public key
+  dynamic get rsaPublicKeyJwk => rsaInfo['pubKeyJwk'];
+
+  /// Returns the ID token
   IdToken get idToken => authResponse.idToken;
+
+  /// Returns the refresh token
   String get refreshToken => authResponse.refreshToken as String;
 
+  /// Returns the access token
   String? get accessToken {
     _tokenResponse ??=
         TokenResponse.fromJson((authResponse.response as Map).cast());
     return _tokenResponse!.accessToken;
   }
 
+  /// Returns the expires_in duration
   Duration? get expiresIn {
     _tokenResponse ??=
         TokenResponse.fromJson((authResponse.response as Map).cast());
     return _tokenResponse!.expiresIn;
   }
 
-  Future<void> refreshTokens() async {
-    _tokenResponse = await authResponse.getTokenResponse();
+  /// Refresh the access token
+  Future<void> refresh([bool forceRefresh = false]) async {
+    _tokenResponse = await authResponse.getTokenResponse(forceRefresh);
   }
 
+  /// Returns the map data structure returned by the authenticate method
+  /// except the client key/value pair
+  Future<Map<String, dynamic>> get authData async {
+    _tokenResponse ??=
+        TokenResponse.fromJson((authResponse.response as Map).cast());
+    return {
+      'rsaInfo': rsaInfo,
+      'authResponse': authResponse,
+      'tokenResponse': _tokenResponse,
+      'accessToken': accessToken,
+      'idToken': idToken,
+      'refreshToken': refreshToken,
+      'expiresIn': expiresIn,
+      'logoutUrl': logoutUrl,
+    };
+  }
+
+  /// Construct a new SolidAuthData instance from a map structure
+  // ignore: sort_constructors_first
   SolidAuthData.fromJson(Map<String, dynamic> json)
-      : rsaPublicKey = json['rsa_public_key'] as String,
-        rsaPrivateKey = json['rsa_private_key'] as String,
+      : webId = json['web_id'] as String,
         logoutUrl = json['logout_url'] as String,
-        webId = json['web_id'] as String,
+        rsaInfo = json['rsa_info'] as Map<String, dynamic>,
         authResponse =
             Credential.fromJson((json['auth_response'] as Map).cast());
 
+  /// Convert a SolidAuthData instance into a map
   Map<String, dynamic> toJson() => {
-        'rsa_public_key': rsaPublicKey,
-        'rsa_private_key': rsaPrivateKey,
-        'logout_url': logoutUrl,
         'web_id': webId,
+        'logout_url': logoutUrl,
+        'rsa_info': rsaInfo,
         'auth_response': authResponse.toJson(),
       };
 }
 
-Future<SolidAuthData?> loadSolidAuthData() async {
+/// Retrieve solid auth data from secure storage
+Future<SolidAuthData?> getSolidAuthData() async {
   final authDataStr =
       await secureStorage.read(key: solidAuthDataSecureStorageKey);
   if (authDataStr != null) {
