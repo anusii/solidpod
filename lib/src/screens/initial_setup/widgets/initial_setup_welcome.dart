@@ -73,6 +73,7 @@ SizedBox initialSetupWelcome(BuildContext context) {
           const SizedBox(
             height: 10,
           ),
+          //TODO kevin here
           const Text(
             initialStructureWelcome,
             style: TextStyle(

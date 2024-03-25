@@ -30,6 +30,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 /// The `Languages` class provides a collection of language codes.
 
@@ -103,11 +104,9 @@ double getWidgetHeight(String content) {
 
 Container buildMsgBox(
     BuildContext context, String msgType, String title, String msg) {
-  /// if you want to use this in materialBanner
   var isRTL = false;
 
   final size = MediaQuery.of(context).size;
-
   final loc = Localizations.maybeLocaleOf(context);
   final localeLanguageCode = loc?.languageCode;
 
@@ -119,29 +118,16 @@ Container buildMsgBox(
     }
   }
 
-  // screen dimensions
-
+  // Determine device type for layout adjustments
   final isMobile = size.width <= 730;
   final isTablet = size.width > 730 && size.width <= 1050;
 
-  var horizontalPadding = 0.0;
-  var leftSpace = size.width * 0.12;
-  final rightSpace = size.width * 0.12;
-
-  if (isMobile) {
-    horizontalPadding = size.width * 0.01;
-  } else if (isTablet) {
-    leftSpace = size.width * 0.05;
-    horizontalPadding = size.width * 0.03;
-  } else {
-    leftSpace = size.width * 0.05;
-    horizontalPadding = size.width * 0.04;
-  }
+  // Minimal horizontal padding for all devices
+  var horizontalPadding =
+      size.width * 0.01; // Adjust this value to increase or decrease padding
 
   return Container(
-    margin: EdgeInsets.symmetric(
-      horizontal: horizontalPadding,
-    ),
+    margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
     height: !isMobile
         ? !isTablet
             ? size.height * (1500.0 / size.width) * getWidgetHeight(msg)
@@ -151,7 +137,6 @@ Container buildMsgBox(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
       children: [
-        // background container
         Container(
           width: size.width,
           decoration: BoxDecoration(
@@ -159,53 +144,40 @@ Container buildMsgBox(
             borderRadius: BorderRadius.circular(20),
           ),
         ),
-
         Positioned.fill(
-          left: isRTL ? size.width * 0.03 : leftSpace,
-          right: isRTL ? rightSpace : size.width * 0.03,
+          // Apply minimal padding equally on both sides
+          left: horizontalPadding,
+          right: horizontalPadding,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: size.height * 0.02,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: !isMobile
-                            ? size.height * 0.03
-                            : size.height * 0.025,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: size.height * 0.005,
-              ),
-
-              /// `message` body text parameter
-              Expanded(
+              SizedBox(height: size.height * 0.02),
+              Center(
                 child: Text(
-                  msg,
-                  softWrap: true,
+                  title,
                   style: TextStyle(
-                    fontSize: size.height * 0.022,
+                    fontSize:
+                        !isMobile ? size.height * 0.03 : size.height * 0.025,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
               ),
-              SizedBox(
-                height: size.height * 0.015,
+              SizedBox(height: size.height * 0.005),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Text(
+                    msg,
+                    softWrap: true,
+                    style: TextStyle(
+                      fontSize: size.height * 0.012,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
+              SizedBox(height: size.height * 0.015),
             ],
           ),
         )
