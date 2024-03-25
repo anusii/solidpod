@@ -169,12 +169,13 @@ class SolidAuthData {
     _tokenResponse = await authResponse.getTokenResponse(forceRefresh);
   }
 
-  /// Returns the map data structure returned by the authenticate method
-  /// except the client key/value pair
+  /// Reconstruct the map data structure returned by the solid-auth
+  /// authenticate method
   Future<Map<String, dynamic>> get authData async {
     _tokenResponse ??=
         TokenResponse.fromJson((authResponse.response as Map).cast());
     return {
+      'client': authResponse.client,
       'rsaInfo': rsaInfo,
       'authResponse': authResponse,
       'tokenResponse': _tokenResponse,
