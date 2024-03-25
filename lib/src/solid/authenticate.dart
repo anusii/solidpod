@@ -90,20 +90,32 @@ Future<List<dynamic>?> solidAuthenticate(
 
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
-    print('Access Token (authenticate):');
-    print(accessToken);
-
     // Save solid login data to secure storage
-    print("rasInfo:");
-    print(authData['rsaInfo']);
+
+    //print('Access Token (authenticate):');
+    //print(accessToken);
+
+    //print("rasInfo:");
+    //print(authData['rsaInfo']);
+
+    // worked
+    // print('rsaInfo JSON:');
+    // print(jsonEncode({
+    //   ...authData['rsaInfo'] as Map<String, dynamic>,  // does not work
+    //   ...authData['rsaInfo'] as Map,  // worked
+    //   'rsa': {
+    //     'public_key': rsaInfo['rsa'].publicKey as String,
+    //     'private_key': rsaInfo['rsa'].privateKey as String,
+    //   },
+    // }));
 
     final solidAuthData = SolidAuthData(
       webId,
       authData['logoutUrl'] as String,
-      authData['rsaInfo'] as Map<String, dynamic>,
+      authData['rsaInfo'] as Map,
       authData['authResponse'] as Credential,
     );
-    print('Refresh Token (authenticate):');
+    //print('Refresh Token (authenticate):');
     //print(authData['refreshToken']);
 
     //print(solidAuthData.toJson());
@@ -141,7 +153,8 @@ class SolidAuthData {
   final String logoutUrl;
 
   /// The RSA keypair and their JWK format
-  final Map<String, dynamic> rsaInfo;
+  /// Note that use Map<String, dynamic> does not seem to work
+  final Map<dynamic, dynamic> rsaInfo;
 
   /// The authentication response
   Credential authResponse;
