@@ -45,10 +45,10 @@ const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 
-const String sharingDir = 'sharing';
-const String sharedDir = 'shared';
+// const String sharingDir = 'sharing';
+// const String sharedDir = 'shared';
 const String encDir = 'encryption';
-const String logsDir = 'logs';
+// const String logsDir = 'logs';
 
 /// String terms used as predicates in ttl files.
 
@@ -60,11 +60,11 @@ const String pubKeyPred = 'pubKey';
 const String encKeyPred = 'encKey';
 const String pathPred = 'path';
 const String sessionKeyPred = 'sessionKey';
-const String createdDateTimePred = 'createdDateTime';
-const String modifiedDateTimePred = 'modifiedDateTime';
-const String noteTitlePred = 'noteTitle';
-const String encNoteContentPred = 'encNoteContent';
-const String noteFileNamePrefix = 'note-';
+// const String createdDateTimePred = 'createdDateTime';
+// const String modifiedDateTimePred = 'modifiedDateTime';
+// const String noteTitlePred = 'noteTitle';
+// const String encNoteContentPred = 'encNoteContent';
+// const String noteFileNamePrefix = 'note-';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
@@ -75,7 +75,7 @@ const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
-const String solid = 'http://www.w3.org/ns/solid/terms#';
+// const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.

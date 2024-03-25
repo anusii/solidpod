@@ -30,7 +30,6 @@
 
 library;
 
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
 /// Removes header and footer from a PEM-formatted public key string.
@@ -162,20 +161,23 @@ String genPubKeyFileBody(String resUrl, String pubKeyStr) {
 /// This function takes two maps, `profData` and `authData`, as inputs. The `profData`
 /// map contains user profile information such as name and gender. The `authData` map
 /// includes authentication information, specifically an access token.
+///
+/// // comment out the following function as it is not used in the current version
+// of the app, anushka might need to use to in the future so keeping it here.
 
-String genProfFileBody(
-    Map<dynamic, dynamic> profData, Map<dynamic, dynamic> authData) {
-  final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
-  final issuerUri = decodedToken['iss'] as String;
+// String genProfFileBody(
+//     Map<dynamic, dynamic> profData, Map<dynamic, dynamic> authData) {
+//   final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
+//   final issuerUri = decodedToken['iss'] as String;
 
-  final name = profData['name'];
-  final gender = profData['gender'];
+//   final name = profData['name'];
+//   final gender = profData['gender'];
 
-  final fileBody =
-      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix solid: <$solid>.\n@prefix vcard: <http://www.w3.org/2006/vcard/ns#>.\n@prefix pro: <./>.\n\npro:card a foaf:PersonalProfileDocument; foaf:maker :me; foaf:primaryTopic :me.\n\n:me\n    solid:oidcIssuer <$issuerUri>;\n    a foaf:Person;\n    vcard:fn "$name";\n    vcard:Gender "$gender";\n    foaf:name "$name".';
+//   final fileBody =
+//       '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix solid: <$solid>.\n@prefix vcard: <http://www.w3.org/2006/vcard/ns#>.\n@prefix pro: <./>.\n\npro:card a foaf:PersonalProfileDocument; foaf:maker :me; foaf:primaryTopic :me.\n\n:me\n    solid:oidcIssuer <$issuerUri>;\n    a foaf:Person;\n    vcard:fn "$name";\n    vcard:Gender "$gender";\n    foaf:name "$name".';
 
-  return fileBody;
-}
+//   return fileBody;
+// }
 
 /// Generates the body of a log file in Turtle (Terse RDF Triple Language) format.
 ///
