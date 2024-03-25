@@ -90,16 +90,26 @@ Future<List<dynamic>?> solidAuthenticate(
 
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
 
+    print('Access Token (authenticate):');
+    print(accessToken);
+
     // Save solid login data to secure storage
+    print("rasInfo:");
+    print(authData['rsaInfo']);
+
+    final solidAuthData = SolidAuthData(
+      webId,
+      authData['logoutUrl'] as String,
+      authData['rsaInfo'] as Map<String, dynamic>,
+      authData['authResponse'] as Credential,
+    );
+    print('Refresh Token (authenticate):');
+    //print(authData['refreshToken']);
+
+    //print(solidAuthData.toJson());
 
     await writeToSecureStorage(
-        solidAuthDataSecureStorageKey,
-        jsonEncode(SolidAuthData(
-          webId,
-          authData['logoutUrl'] as String,
-          authData['rsaInfo'] as Map<String, dynamic>,
-          authData['authResponse'] as Credential,
-        )));
+        solidAuthDataSecureStorageKey, jsonEncode(solidAuthData));
 
     return [authData, webId, profData];
     // TODO 20240108 gjw WHY DOES THIS RESULT IN
@@ -187,12 +197,19 @@ class SolidAuthData {
     };
   }
 
+  static Map<String, dynamic>? _getRsaInfo(String rsaJson) {
+    final rsaInfo_ = jsonDecode(rsaJson) as Map<String, dynamic>;
+    String publicKey = rsaInfo_['rsa']['public_key'] as String;
+    String privateKey = rsaInfo_['rsa']['private_key'] as String;
+    return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
+  }
+
   /// Construct a new SolidAuthData instance from a map structure
   // ignore: sort_constructors_first
   SolidAuthData.fromJson(Map<String, dynamic> json)
       : webId = json['web_id'] as String,
         logoutUrl = json['logout_url'] as String,
-        rsaInfo = json['rsa_info'] as Map<String, dynamic>,
+        rsaInfo = _getRsaInfo(json['rsa_info'] as String)!,
         authResponse =
             Credential.fromJson((json['auth_response'] as Map).cast());
 
@@ -200,7 +217,14 @@ class SolidAuthData {
   Map<String, dynamic> toJson() => {
         'web_id': webId,
         'logout_url': logoutUrl,
-        'rsa_info': rsaInfo,
+        'rsa_info': jsonEncode({
+          ...rsaInfo,
+          // Overwrite the 'rsa' keypair in rsaInfo
+          'rsa': {
+            'public_key': rsaInfo['rsa'].publicKey as String,
+            'private_key': rsaInfo['rsa'].privateKey as String,
+          },
+        }),
         'auth_response': authResponse.toJson(),
       };
 }
