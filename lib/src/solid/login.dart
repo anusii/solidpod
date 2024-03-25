@@ -292,9 +292,6 @@ class _SolidLoginState extends State<SolidLogin> {
 
         final authResult = await solidAuthenticate(widget.webID, context);
 
-        print('AUTH RESULT:');
-        print(authResult);
-
         // Navigates to the Initial Setup Screen using the provided authentication data.
 
         Future<void> navInitialSetupScreen(
