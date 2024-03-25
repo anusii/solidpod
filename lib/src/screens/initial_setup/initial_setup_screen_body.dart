@@ -28,6 +28,8 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
+// ignore_for_file: use_build_context_synchronously
+
 library;
 
 import 'package:flutter/material.dart';
@@ -229,7 +231,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   ),
                   onPressed: () async {
                     await logout(widget.authData['logoutUrl']);
-                    // ignore: use_build_context_synchronously
                     await Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
