@@ -2,6 +2,16 @@
 
 Notable changes to this project are recorded below.
 
+## 0.5.3 2024-03-27 9:02
+
++ in initialisePod() page 
++ make the text scrollable,
++ font size smaller,
++ left and right padding smaller ,
++ title in the center
++ "logout" button background colour change to blue
+
+
 ## 0.5.2 2024-03-21 21:02
 
 + Add continueBG parameter to SolidLogin.

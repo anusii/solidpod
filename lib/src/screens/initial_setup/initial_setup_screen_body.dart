@@ -246,6 +246,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                       ),
                     );
                   },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors
+                        .lightBlue, // Set the background color to light blue
+                  ),
                 ),
               ],
             ),
