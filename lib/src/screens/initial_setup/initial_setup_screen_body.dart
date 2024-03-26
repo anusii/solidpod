@@ -106,7 +106,8 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     return Column(
       children: [
-        // Adding a Row for the back button and spacing
+        // Adding a Row for the back button and spacing.
+
         Row(
           children: [
             BackButton(
@@ -114,6 +115,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
             ),
           ],
         ),
+
         Expanded(
             child: SizedBox(
                 height: 700,
