@@ -41,6 +41,7 @@ import 'package:solidpod/src/solid/authenticate.dart' show getSolidAuthData;
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
+import 'package:solid_auth/src/openid/openid_client.dart';
 
 /// Parses file information and extracts content into a map.
 ///
@@ -658,5 +659,105 @@ Future<bool> deleteLogIn() async {
     return true;
   } on Exception {
     return false;
+  }
+}
+
+/// A model class for saving solid server auth data and refresh access token.
+
+class AuthDataManager {
+  /// The URL for logging out
+  static late String _logoutUrl;
+
+  /// The RSA keypair and their JWK format
+  ///
+  static late Map<dynamic, dynamic> _rsaInfo;
+
+  /// The authentication response
+  static Credential? _authResponse;
+
+  /// The string key for storing auth data in secure storage
+  static const String authDataSecureStorageKey = '_solid_auth_data';
+
+  /// Save the auth data returned by solid-auth authenticate in secure storage
+  static Future<void> saveAuthData(Map<String, dynamic> authData) async {
+    const keys = [
+      'client',
+      'rsaInfo',
+      'authResponse',
+      'tokenResponse',
+      'accessToken',
+      'idToken',
+      'refreshToken',
+      'expiresIn',
+      'logoutUrl',
+    ];
+    for (final key in keys) {
+      assert(authData.containsKey(key));
+    }
+
+    _logoutUrl = authData['logoutUrl'] as String;
+    _rsaInfo = authData['rsaInfo'] as Map<dynamic,
+        dynamic>; // Note that use Map<String, dynamic> does not seem to work
+    _authResponse = authData['authResponse'] as Credential;
+
+    await writeToSecureStorage(
+        authDataSecureStorageKey,
+        jsonEncode({
+          'logout_url': _logoutUrl,
+          'rsa_info': jsonEncode({
+            ..._rsaInfo,
+            // Overwrite the 'rsa' keypair in rsaInfo
+            'rsa': {
+              'public_key': _rsaInfo['rsa'].publicKey as String,
+              'private_key': _rsaInfo['rsa'].privateKey as String,
+            },
+          }),
+          'auth_response': _authResponse!.toJson(),
+        }));
+  }
+
+  /// Retrieve (and reconstruct) auth data from secure storage
+  static Future<Map<String, dynamic>?> loadAuthData() async {
+    final dataStr = await secureStorage.read(key: authDataSecureStorageKey);
+    if (dataStr != null) {
+      final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
+      _logoutUrl = dataMap['logout_url'] as String;
+      _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
+      _authResponse =
+          Credential.fromJson((dataMap['auth_response'] as Map).cast());
+      final tokenResponse = await _authResponse!.getTokenResponse();
+
+      return {
+        'client': _authResponse!.client,
+        'rsaInfo': _rsaInfo,
+        'authResponse': _authResponse,
+        'tokenResponse': tokenResponse,
+        'accessToken': tokenResponse.accessToken,
+        'idToken': _authResponse!.idToken,
+        'refreshToken': _authResponse!.refreshToken,
+        'expiresIn': tokenResponse.expiresIn,
+        'logoutUrl': _logoutUrl,
+      };
+    } else {
+      return null;
+    }
+  }
+
+  /// Returns the (refreshed) access token
+  static Future<String?> getAccessToken() async {
+    if (_authResponse != null) {
+      final tokenResponse = await _authResponse!.getTokenResponse();
+      return tokenResponse.accessToken;
+    } else {
+      return null;
+    }
+  }
+
+  /// Reconstruct the rsaInfo from JSON string
+  static Map<dynamic, dynamic> _getRsaInfo(String rsaJson) {
+    final rsaInfo_ = jsonDecode(rsaJson) as Map<String, dynamic>;
+    final publicKey = rsaInfo_['rsa']['public_key'] as String;
+    final privateKey = rsaInfo_['rsa']['private_key'] as String;
+    return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
   }
 }
