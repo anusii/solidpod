@@ -30,7 +30,9 @@
 
 library;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:solid_auth/solid_auth.dart';
@@ -161,46 +163,18 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                 children: <Widget>[
                                   encKeyInputForm(
                                       formKey, showPassword, onChangedVal),
-                                  Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: resCreateFormSubmission(
-                                          formKey,
-                                          context,
-                                          resFileNamesLink,
-                                          resFoldersLink,
-                                          resFilesLink,
-                                          widget.authData,
-                                          widget.webId,
-                                          widget.appName,
-                                          widget.child,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 20),
-                                      Expanded(
-                                        child: OutlinedButton(
-                                          onPressed: () {
-                                            formKey.currentState?.reset();
-                                          },
-                                          style: OutlinedButton.styleFrom(
-                                              foregroundColor: darkBlue,
-                                              backgroundColor:
-                                                  darkBlue, // foreground
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 50),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10))),
-                                          child: const Text(
-                                            'RESET',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  Center(
+                                    child: resCreateFormSubmission(
+                                      formKey,
+                                      context,
+                                      resFileNamesLink,
+                                      resFoldersLink,
+                                      resFilesLink,
+                                      widget.authData,
+                                      widget.webId,
+                                      widget.appName,
+                                      widget.child,
+                                    ),
                                   ),
                                   const SizedBox(
                                     height: 40,
