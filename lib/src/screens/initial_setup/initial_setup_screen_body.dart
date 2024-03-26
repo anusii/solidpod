@@ -106,6 +106,14 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     return Column(
       children: [
+        // Adding a Row for the back button and spacing
+        Row(
+          children: [
+            BackButton(
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
         Expanded(
             child: SizedBox(
                 height: 700,
