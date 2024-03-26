@@ -1,6 +1,6 @@
 /// A widget to show message container box.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:36:42 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-03-26 10:50:13 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -171,7 +171,7 @@ Container buildMsgBox(
                     msg,
                     softWrap: true,
                     style: TextStyle(
-                      fontSize: size.height * 0.018,
+                      fontSize: size.height * 0.025,
                       color: Colors.white,
                     ),
                   ),
