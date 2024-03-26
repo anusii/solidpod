@@ -109,19 +109,21 @@ Future<List<dynamic>?> solidAuthenticate(
     //   },
     // }));
 
-    final solidAuthData = SolidAuthData(
-      webId,
-      authData['logoutUrl'] as String,
-      authData['rsaInfo'] as Map,
-      authData['authResponse'] as Credential,
-    );
-    //print('Refresh Token (authenticate):');
-    //print(authData['refreshToken']);
+    // final solidAuthData = SolidAuthData(
+    //   webId,
+    //   authData['logoutUrl'] as String,
+    //   authData['rsaInfo'] as Map,
+    //   authData['authResponse'] as Credential,
+    // );
+    // //print('Refresh Token (authenticate):');
+    // //print(authData['refreshToken']);
 
-    //print(solidAuthData.toJson());
+    // //print(solidAuthData.toJson());
 
-    await writeToSecureStorage(
-        solidAuthDataSecureStorageKey, jsonEncode(solidAuthData));
+    // await writeToSecureStorage(
+    //     solidAuthDataSecureStorageKey, jsonEncode(solidAuthData));
+
+    await AuthDataManager.saveAuthData(authData as Map<String, dynamic>);
 
     return [authData, webId, profData];
     // TODO 20240108 gjw WHY DOES THIS RESULT IN

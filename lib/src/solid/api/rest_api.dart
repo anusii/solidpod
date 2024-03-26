@@ -37,7 +37,6 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/solid/authenticate.dart' show getSolidAuthData;
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
@@ -110,11 +109,13 @@ Future<String> fetchPrvFile(
 
 Future<List<dynamic>> initialStructureTest(
     String appName, List<String> folders, Map<dynamic, dynamic> files) async {
-  final solidAuthData = await getSolidAuthData();
-  assert(solidAuthData != null);
-  final rsaKeyPair = solidAuthData!.rsaKeyPair;
-  final publicKeyJwk = solidAuthData.rsaPublicKeyJwk;
-  final accessToken = solidAuthData.accessToken as String;
+  final authDataStr = await secureStorage.read(key: 'authdata');
+  final authData = convertAuthData(authDataStr!);
+
+  final rsaInfo = authData['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'];
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'].toString();
   final decodedToken = JwtDecoder.decode(accessToken);
 
   // Get webID
@@ -567,15 +568,18 @@ Future<String> initialProfileUpdate(
 /// returns the file content
 
 Future<String> fetchKeyData() async {
-  final solidAuthData = await getSolidAuthData();
-  assert(solidAuthData != null);
+  final webId = await getWebId();
+  // final authDataStr = await secureStorage.read(key: 'authdata');
 
-  final webId = solidAuthData!.webId;
-  final rsaKeyPair = solidAuthData.rsaKeyPair;
-  final publicKeyJwk = solidAuthData.rsaPublicKeyJwk;
-  final accessToken = solidAuthData.accessToken;
+  // final authData = convertAuthData(authDataStr!);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
 
-  final keyFileUrl = webId.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
+  final rsaInfo = authData!['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'];
+  final keyFileUrl = webId!.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
   final dPopTokenKey =
       genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
@@ -593,12 +597,16 @@ Future<String> fetchKeyData() async {
 /// returns the access token and DPoP token
 
 Future<List<dynamic>> getTokens(String fileUrl) async {
-  final solidAuthData = await getSolidAuthData();
-  assert(solidAuthData != null);
+  // final authDataStr = await secureStorage.read(key: 'authdata');
 
-  final rsaKeyPair = solidAuthData!.rsaKeyPair;
-  final publicKeyJwk = solidAuthData.rsaPublicKeyJwk;
-  final accessToken = solidAuthData.accessToken;
+  // final authData = convertAuthData(authDataStr!);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
+
+  final rsaInfo = authData!['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'];
   final dPopToken = genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
   return [accessToken, dPopToken];
@@ -608,10 +616,12 @@ Future<List<dynamic>> getTokens(String fileUrl) async {
 ///
 /// returns the full file URL
 
-Future<String> createFileUrl(String filePath, String webId) async {
+Future<String> createFileUrl(String filePath) async {
+  final webId = await getWebId();
+
   final appDetails = await getAppNameVersion();
   final appName = appDetails[0];
-  final keyFileUrl = webId.replaceAll(profCard, '$appName/$filePath');
+  final keyFileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
 
   return keyFileUrl;
 }
@@ -634,12 +644,16 @@ Future<List<dynamic>> getAppNameVersion() async {
 /// returns boolean
 
 Future<bool> checkLoggedIn() async {
-  final solidAuthData = await getSolidAuthData();
-  if (solidAuthData != null) {
-    final accessToken = solidAuthData.accessToken;
-    final hasExpired = JwtDecoder.isExpired(accessToken as String);
+  final webId = await getWebId();
+  // final authDataStr = await secureStorage.read(key: 'authdata');
 
-    if (hasExpired) {
+  if (webId != null && webId.isNotEmpty) {
+    // (authDataStr != null && authDataStr.isNotEmpty)) {
+    // final authData = jsonDecode(authDataStr);
+    // final accessToken = authData['accessToken'];
+    final accessToken = await AuthDataManager.getAccessToken();
+    if (accessToken == null || JwtDecoder.isExpired(accessToken)) {
+      // if (hasExpired) {
       return false;
     } else {
       return true;
@@ -654,23 +668,46 @@ Future<bool> checkLoggedIn() async {
 /// returns true if successful
 
 Future<bool> deleteLogIn() async {
+  const success = true;
   try {
-    await secureStorage.delete(key: solidAuthDataSecureStorageKey);
-    return true;
+    await secureStorage.delete(key: 'webid');
+    // await secureStorage.delete(key: 'authdata');
+    // return true;
   } on Exception {
     return false;
   }
+  return success && (await AuthDataManager.removeAuthData());
 }
 
-/// A model class for saving solid server auth data and refresh access token.
+/// Get the webId from local storage
+
+Future<String?> getWebId() async {
+  final webId = await secureStorage.read(key: 'webid');
+  assert(webId != null);
+  return webId;
+}
+
+/// Get the webId from local storage
+
+// Future<Map<dynamic, dynamic>> getAuthData() async {
+//   final authDataStr = await secureStorage.read(key: 'authdata');
+//   assert(authDataStr != null);
+//   final authData = convertAuthData(authDataStr!);
+//   return authData;
+// }
+
+/// A class to manage auth data returned by solid-auth authenticate, including
+/// - save auth data to secure storage
+/// - load auth data from secure storage
+/// - refresh access token
 
 class AuthDataManager {
   /// The URL for logging out
-  static late String _logoutUrl;
+  static String? _logoutUrl;
 
   /// The RSA keypair and their JWK format
   ///
-  static late Map<dynamic, dynamic> _rsaInfo;
+  static Map<dynamic, dynamic>? _rsaInfo;
 
   /// The authentication response
   static Credential? _authResponse;
@@ -705,11 +742,11 @@ class AuthDataManager {
         jsonEncode({
           'logout_url': _logoutUrl,
           'rsa_info': jsonEncode({
-            ..._rsaInfo,
+            ..._rsaInfo!,
             // Overwrite the 'rsa' keypair in rsaInfo
             'rsa': {
-              'public_key': _rsaInfo['rsa'].publicKey as String,
-              'private_key': _rsaInfo['rsa'].privateKey as String,
+              'public_key': _rsaInfo!['rsa'].publicKey as String,
+              'private_key': _rsaInfo!['rsa'].privateKey as String,
             },
           }),
           'auth_response': _authResponse!.toJson(),
@@ -740,6 +777,16 @@ class AuthDataManager {
       };
     } else {
       return null;
+    }
+  }
+
+  /// Remove/delete auth data from secure storage
+  static Future<bool> removeAuthData() async {
+    try {
+      await secureStorage.delete(key: authDataSecureStorageKey);
+      return true;
+    } on Exception {
+      return false;
     }
   }
 
