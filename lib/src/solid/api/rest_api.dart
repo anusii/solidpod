@@ -28,6 +28,8 @@
 ///
 /// Authors: Zheyuan Xu
 
+// ignore_for_file: comment_references
+
 library;
 
 import 'dart:convert';

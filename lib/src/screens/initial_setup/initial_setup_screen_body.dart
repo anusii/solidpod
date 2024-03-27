@@ -28,6 +28,8 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
+// ignore_for_file: use_build_context_synchronously
+
 library;
 
 import 'package:flutter/cupertino.dart';
@@ -108,6 +110,16 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     return Column(
       children: [
+        // Adding a Row for the back button and spacing.
+
+        Row(
+          children: [
+            BackButton(
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+
         Expanded(
             child: SizedBox(
                 height: 700,
@@ -203,7 +215,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   ),
                   onPressed: () async {
                     await logout(widget.authData['logoutUrl']);
-                    // ignore: use_build_context_synchronously
                     await Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(

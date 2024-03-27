@@ -33,17 +33,15 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
-import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/widgets/build_message_container.dart';
 
 /// Get the height of screen.
 
-double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
+// double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
 
 /// Get the width of screen.
 
-double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
+// double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
 /// A widget displaying an alert for the user noticing about the newly
 /// created POD or missing resources from the POD.
@@ -99,24 +97,28 @@ SizedBox initialSetupWelcome(BuildContext context) {
 /// This function constructs a `Row` widget designed to display a single piece
 /// of information in a profile UI. It is primarily used for laying out text-based
 /// information such as names, titles, or other key details in the profile section.
+///
 
-Row buildInfoRow(String profName) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: <Widget>[
-      Text(
-        profName,
-        style: TextStyle(
-          color: Colors.grey[800],
-          letterSpacing: 2.0,
-          fontSize: 17.0,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Poppins',
-        ),
-      ),
-    ],
-  );
-}
+// comment out the following function as it is not used in the current version
+// of the app, anushka might need to use to in the future so keeping it here.
+
+// Row buildInfoRow(String profName) {
+//   return Row(
+//     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//     children: <Widget>[
+//       Text(
+//         profName,
+//         style: TextStyle(
+//           color: Colors.grey[800],
+//           letterSpacing: 2.0,
+//           fontSize: 17.0,
+//           fontWeight: FontWeight.bold,
+//           fontFamily: 'Poppins',
+//         ),
+//       ),
+//     ],
+//   );
+// }
 
 /// Builds a row widget displaying a label and its corresponding value.
 ///
@@ -124,50 +126,54 @@ Row buildInfoRow(String profName) {
 /// one for the label and the other for the profile name. It's used to display
 /// information in a key-value pair format, where `labelName` is the key and
 /// `profName` is the value.
+///
 
-Column buildLabelRow(String labelName, String profName, BuildContext context) {
-  return Column(
-    children: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Text(
-            '$labelName: ',
-            style: TextStyle(
-              color: kTitleTextColor,
-              letterSpacing: 2.0,
-              fontSize: screenWidth(context) * 0.015,
-              fontWeight: FontWeight.bold,
-              //fontFamily: 'Poppins',
-            ),
-          ),
-          profName.length > longStrLength
-              ? Tooltip(
-                  message: profName,
-                  height: 30,
-                  textStyle: const TextStyle(fontSize: 15, color: Colors.white),
-                  verticalOffset: kDefaultPadding / 2,
-                  child: Text(
-                    truncateString(profName),
-                    style: TextStyle(
-                      color: Colors.grey[800],
-                      letterSpacing: 2.0,
-                      fontSize: screenWidth(context) * 0.015,
-                    ),
-                  ),
-                )
-              : Text(
-                  profName,
-                  style: TextStyle(
-                      color: Colors.grey[800],
-                      letterSpacing: 2.0,
-                      fontSize: screenWidth(context) * 0.015),
-                ),
-        ],
-      ),
-      SizedBox(
-        height: screenHeight(context) * 0.005,
-      )
-    ],
-  );
-}
+// comment out the following function as it is not used in the current version
+// of the app, anushka might need to use to in the future so keeping it here.
+
+// Column buildLabelRow(String labelName, String profName, BuildContext context) {
+//   return Column(
+//     children: [
+//       Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//         children: <Widget>[
+//           Text(
+//             '$labelName: ',
+//             style: TextStyle(
+//               color: kTitleTextColor,
+//               letterSpacing: 2.0,
+//               fontSize: screenWidth(context) * 0.015,
+//               fontWeight: FontWeight.bold,
+//               //fontFamily: 'Poppins',
+//             ),
+//           ),
+//           profName.length > longStrLength
+//               ? Tooltip(
+//                   message: profName,
+//                   height: 30,
+//                   textStyle: const TextStyle(fontSize: 15, color: Colors.white),
+//                   verticalOffset: kDefaultPadding / 2,
+//                   child: Text(
+//                     truncateString(profName),
+//                     style: TextStyle(
+//                       color: Colors.grey[800],
+//                       letterSpacing: 2.0,
+//                       fontSize: screenWidth(context) * 0.015,
+//                     ),
+//                   ),
+//                 )
+//               : Text(
+//                   profName,
+//                   style: TextStyle(
+//                       color: Colors.grey[800],
+//                       letterSpacing: 2.0,
+//                       fontSize: screenWidth(context) * 0.015),
+//                 ),
+//         ],
+//       ),
+//       SizedBox(
+//         height: screenHeight(context) * 0.005,
+//       )
+//     ],
+//   );
+// }

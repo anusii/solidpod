@@ -36,7 +36,7 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dar
 
 /// Numeric variables used in initial setup page.
 
-const double normalLoadingScreenHeight = 200.0;
+// const double normalLoadingScreenHeight = 200.0;
 
 /// A [StatefulWidget] for the initial setup screen of an application, handling the initial configuration and resource allocation.
 ///
