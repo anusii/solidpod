@@ -98,7 +98,8 @@ SizedBox initialSetupWelcome(BuildContext context) {
 /// of information in a profile UI. It is primarily used for laying out text-based
 /// information such as names, titles, or other key details in the profile section.
 ///
-/// // comment out the following function as it is not used in the current version
+
+// comment out the following function as it is not used in the current version
 // of the app, anushka might need to use to in the future so keeping it here.
 
 // Row buildInfoRow(String profName) {
@@ -126,7 +127,8 @@ SizedBox initialSetupWelcome(BuildContext context) {
 /// information in a key-value pair format, where `labelName` is the key and
 /// `profName` is the value.
 ///
-/// // comment out the following function as it is not used in the current version
+
+// comment out the following function as it is not used in the current version
 // of the app, anushka might need to use to in the future so keeping it here.
 
 // Column buildLabelRow(String labelName, String profName, BuildContext context) {

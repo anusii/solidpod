@@ -162,7 +162,8 @@ String genPubKeyFileBody(String resUrl, String pubKeyStr) {
 /// map contains user profile information such as name and gender. The `authData` map
 /// includes authentication information, specifically an access token.
 ///
-/// // comment out the following function as it is not used in the current version
+
+// comment out the following function as it is not used in the current version
 // of the app, anushka might need to use to in the future so keeping it here.
 
 // String genProfFileBody(

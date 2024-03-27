@@ -43,7 +43,8 @@ import 'package:solidpod/src/solid/constants.dart';
 /// and ends with an ellipsis '...'. If [text] is shorter than [longStrLength],
 /// it is returned as is.
 ///
-/// // comment out the following function as it is not used in the current version
+
+// comment out the following function as it is not used in the current version
 // of the app, anushka might need to use to in the future so keeping it here.
 
 // String truncateString(String text) {
