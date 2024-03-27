@@ -2,6 +2,11 @@
 
 Notable changes to this project are recorded below.
 
+## 0.5.5 2024-03-27 15:02
+
++ removed the reset button on initialisePod() page
+
+
 ## 0.5.4 2024-03-27 11:02
 
 + added a cancel button on initialisePod() page
