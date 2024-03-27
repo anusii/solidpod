@@ -69,6 +69,11 @@ ElevatedButton resCreateFormSubmission(
   String appName,
   Widget child,
 ) {
+  // Use MediaQuery to determine the screen width and adjust the font size accordingly.
+  final screenWidth = MediaQuery.of(context).size.width;
+  final isSmallDevice =
+      screenWidth < 360; // A threshold for small devices, can be adjusted.
+
   return ElevatedButton(
     onPressed: () async {
       if (formKey.currentState?.saveAndValidate() ?? false) {
@@ -245,9 +250,22 @@ ElevatedButton resCreateFormSubmission(
         backgroundColor: darkBlue, // foreground
         padding: const EdgeInsets.symmetric(horizontal: 50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-    child: const Text(
+    child: Text(
       'SUBMIT',
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(
+        color: Colors.white,
+        // Adjust the font size for small devices.
+        fontSize:
+            // Smaller font size for small devices.
+
+            isSmallDevice ? 8 : 16,
+      ),
+      // Ensure the text does not wrap.
+
+      overflow: TextOverflow.ellipsis,
+      // Limit text to a single line.
+
+      maxLines: 1,
     ),
   );
 }
