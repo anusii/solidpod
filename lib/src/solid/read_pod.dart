@@ -1,7 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/popup_login.dart';
 
 /// Read file content from a POD
@@ -24,10 +25,10 @@ Future<String> readPod(
   final appInfo = await getAppNameVersion();
   final defaultFolders = generateDefaultFolders(appInfo[0] as String);
   final defaultFiles = generateDefaultFiles(appInfo[0] as String);
-  final solidAuthData = await getSolidAuthData();
-  assert(solidAuthData != null);
-  final webId = solidAuthData!.webId;
-  final authData = await solidAuthData.authData;
+  final webId = await getWebId();
+  assert(webId != null);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
 
   final resCheckList = await initialStructureTest(
       appInfo[0] as String, defaultFolders, defaultFiles);
@@ -38,8 +39,8 @@ Future<String> readPod(
       context,
       MaterialPageRoute(
           builder: (context) => InitialSetupScreen(
-                authData: authData,
-                webId: webId,
+                authData: authData as Map<dynamic, dynamic>,
+                webId: webId as String,
                 appName: appInfo[0] as String,
                 resCheckList: resCheckList,
                 child: child,
@@ -47,7 +48,7 @@ Future<String> readPod(
     );
   }
 
-  final fileUrl = await createFileUrl(filePath, webId);
+  final fileUrl = await createFileUrl(filePath);
   final tokenList = await getTokens(fileUrl);
   final fileContent = await fetchPrvFile(
       fileUrl, tokenList[0] as String, tokenList[1] as String);
