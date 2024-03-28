@@ -80,6 +80,3 @@ const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
-/// String key for storing solid auth data in flutter secure storage.
-
-const String solidAuthDataSecureStorageKey = '_solid_auth_data';
