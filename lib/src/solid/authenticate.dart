@@ -30,8 +30,6 @@
 
 library;
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
 import 'package:fast_rsa/fast_rsa.dart';
@@ -47,6 +45,7 @@ final List<String> _scopes = <String>[
   'openid',
   'profile',
   'offline_access',
+  'webid', // web ID is necessary to get refresh token
 ];
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
@@ -64,16 +63,30 @@ final List<String> _scopes = <String>[
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
   try {
-    final issuerUri = await getIssuer(serverId);
+    final loggedIn = await checkLoggedIn();
+    debugPrint('solidAuthenticate() => checkLoggedIn() => $loggedIn');
+    Map<dynamic, dynamic>? authData;
+    if (loggedIn) {
+      authData = await AuthDataManager.loadAuthData();
+      assert(authData != null);
+    } else {
+      // Authentication process for the POD issuer.
+      final issuerUri = await getIssuer(serverId);
+      authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
-    // Authentication process for the POD issuer.
+      debugPrint('solidAuthenticate() => authenticate() => $authData');
 
-    // ignore: use_build_context_synchronously
-    final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
+      // print(authData as Map<String, dynamic>);  // this cast fails silently
 
-    final accessToken = authData['accessToken'].toString();
+      // write authentication data to flutter secure storage
+      await AuthDataManager.saveAuthData(authData);
+    }
+
+    final accessToken = authData!['accessToken'].toString();
     final decodedToken = JwtDecoder.decode(accessToken);
     final webId = decodedToken['webid'].toString();
+
+    await writeToSecureStorage('webid', webId);
 
     final rsaInfo = authData['rsaInfo'];
     final rsaKeyPair = rsaInfo['rsa'];
@@ -84,32 +97,6 @@ Future<List<dynamic>?> solidAuthenticate(
         genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
 
     final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
-
-    // write authentication data to flutter secure storage
-    await writeToSecureStorage('webid', webId);
-
-    // Since we cannot write object data to jason and also to flutter
-    // secure storage convert all data to String and save that as a jason
-    // map
-    final authDataTemp = Map.from(authData);
-
-    // Removing all object like data
-    authDataTemp.remove('client');
-    authDataTemp.remove('authResponse');
-    authDataTemp.remove('idToken');
-    authDataTemp.remove('rsaInfo');
-    authDataTemp.remove('expiresIn');
-
-    // Creating new fields for public/private key pair so that can be used
-    // to get data from and to POD
-    final rsaInfoTemp = Map.from(rsaInfo as Map);
-    rsaInfoTemp.remove('rsa');
-    rsaInfoTemp['rsa'] = keyPairToMap(rsaKeyPair);
-    authDataTemp['rsaInfo'] = rsaInfoTemp;
-
-    // json encode data
-    final authDataStr = json.encode(authDataTemp);
-    await writeToSecureStorage('authdata', authDataStr);
 
     return [authData, webId, profData];
     // TODO 20240108 gjw WHY DOES THIS RESULT IN
