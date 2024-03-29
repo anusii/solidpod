@@ -1,6 +1,6 @@
 /// Functions with restful APIs.
 ///
-// Time-stamp: <Tuesday 2024-01-02 15:57:15 +1100 Zheyuan Xu>
+// Time-stamp: <Friday 2024-03-29 11:19:30 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,23 +26,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu
+/// Authors: Dawei Chen, Zheyuan Xu
 
 library;
 
 import 'dart:convert';
 
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants.dart';
 import 'package:solid_auth/solid_auth.dart';
 // ignore: implementation_imports
 import 'package:solid_auth/src/openid/openid_client.dart';
+
+import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/constants.dart';
 
 /// Parses file information and extracts content into a map.
 ///
