@@ -233,6 +233,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                     backgroundColor: Colors
                         .lightBlue, // Set the background color to light blue
                   ),
+                  // remove the popup warning.
                 ),
               ],
             ),
