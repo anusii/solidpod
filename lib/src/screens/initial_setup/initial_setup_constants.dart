@@ -1,6 +1,6 @@
 /// Initial setup page constants.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:36:29 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -50,17 +50,18 @@ const darkBlue = Color.fromARGB(255, 7, 87, 153);
 
 /// Text string variables used for the welcome message.
 
-const initialStructureWelcome = 'Welcome to the POD setup wizard!';
+const initialStructureWelcome = 'Welcome to the Solid Pod Setup Wizard!';
 
 /// Text string variables as the title of the message box.
 
-const initialStructureTitle = 'Alert!';
+const initialStructureTitle = "Solid Pod";
 
 /// Text string variables used for informing the user about the creatiion of
 /// different resources.
 
 const initialStructureMsg = 'We notice that you have either created'
-    ' a new Solid Pod or your Pod has some missing files/folders.'
+    ' a new Solid Pod or your Pod has some missing files/folders'
+    ' (called resources).'
     ' We will now setup the required resources to fully support'
     ' the app functionalities.';
 
@@ -72,11 +73,13 @@ const requiredPwdMsg =
     ' (using encryption) when it is stored in your Solid Pod.'
     ' This could be the same password you use to login to your'
     ' Solid Pod (not recommended) or a different password (highly recommended).'
-    ' Please enter your password and confirm it below.';
+    ' You will need to remember this password to access your data -'
+    ' a lost password means your data will also be lost.'
+    ' Please provide a password and confirm it below. Thanks.';
 
 /// Text string variables used for informing the user about the creation of
 /// public/private key pair for secure data sharing.
 
 const publicKeyMsg =
     'We will also create a random public/private key pair for secure data'
-    ' sharing with other PODs.';
+    ' sharing with other Solid Pods.';

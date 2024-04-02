@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:17:46 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -201,14 +201,14 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                 TextButton.icon(
                   icon: const Icon(
                     Icons.logout,
-                    color: Colors.black,
+                    color: Colors.grey,
                     size: 24.0,
                   ),
                   label: const Text(
-                    'LOGOUT',
+                    'Logout from Pod',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.grey, //black,
                     ),
                   ),
                   onPressed: () async {
@@ -222,7 +222,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
                           image: AssetImage('assets/images/keypod_image.jpg'),
                           logo: AssetImage('assets/images/keypod_logo.png'),
-                          title: 'MANAGE YOUR SOLID KEY POD',
+                          title: 'MANAGE YOUR SOLID POD',
                           link: 'https://github.com/anusii/keypod',
                           child: Scaffold(body: Text('Key Pod Placeholder')),
                         ),
@@ -231,7 +231,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors
-                        .lightBlue, // Set the background color to light blue
+                        .white, //lightBlue, // Set the background color to light blue
                   ),
                   // remove the popup warning.
                 ),

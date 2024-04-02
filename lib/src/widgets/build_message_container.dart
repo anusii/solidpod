@@ -1,6 +1,6 @@
 /// A widget to show message container box.
 ///
-// Time-stamp: <Tuesday 2024-03-26 10:50:13 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:30:12 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Where did this code come from ???
 // ignore_for_file: public_member_api_docs
 
 library;
@@ -68,7 +68,7 @@ Color getContentColour(String contentType) {
     return const Color(0xff2D6A4F);
   } else if (contentType == 'warning') {
     /// warning will show `EXCLAMATION`
-    return const Color(0xffFCA652);
+    return const Color(0xffa0a0a0); //Color(0xffFCA652);
   } else if (contentType == 'help') {
     /// help will show `QUESTION MARK`
     return const Color(0xff3282B8);
