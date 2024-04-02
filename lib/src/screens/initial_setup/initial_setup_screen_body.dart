@@ -132,45 +132,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                           child: Padding(
                               padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
                               child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Resources that will be created!',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 25,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const Divider(
-                                      color: Colors.grey,
-                                    ),
-                                    for (final String resLink
-                                        in resFoldersLink) ...[
-                                      ListTile(
-                                        title: Text(resLink),
-                                        leading: const Icon(Icons.folder),
-                                      ),
-                                    ],
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                    for (final String resLink
-                                        in resFilesLink) ...[
-                                      ListTile(
-                                        title: Text(resLink),
-                                        leading: const Icon(Icons.file_copy),
-                                      ),
-                                    ],
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                  ])))),
-                  Center(
-                      child: SizedBox(
-                          child: Padding(
-                              padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
-                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   encKeyInputForm(
@@ -194,6 +155,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                 ],
                               )))),
                 ]))),
+
         Center(
           child: Padding(
             padding: const EdgeInsets.all(30.0),
@@ -240,6 +202,75 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
             ),
           ),
         ),
+
+        // Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        //   const Text(
+        //     'Resources that will be created!',
+        //     style: TextStyle(
+        //       color: Colors.black,
+        //       fontSize: 25,
+        //       fontWeight: FontWeight.w500,
+        //     ),
+        //   ),
+        //   const Divider(
+        //     color: Colors.grey,
+        //   ),
+        //   for (final String resLink in resFoldersLink) ...[
+        //     ListTile(
+        //       title: Text(resLink),
+        //       leading: const Icon(Icons.folder),
+        //     ),
+        //   ],
+        //   const SizedBox(
+        //     height: 20,
+        //   ),
+        //   for (final String resLink in resFilesLink) ...[
+        //     ListTile(
+        //       title: Text(resLink),
+        //       leading: const Icon(Icons.file_copy),
+        //     ),
+        //   ],
+        //   const SizedBox(
+        //     height: 20,
+        //   ),
+        // ])
+        // Center(
+        //     child: SizedBox(
+        //         child: Padding(
+        //             padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
+        //             child: Column(
+        //                 crossAxisAlignment: CrossAxisAlignment.start,
+        //                 children: [
+        //                   const Text(
+        //                     'Resources that will be created!',
+        //                     style: TextStyle(
+        //                       color: Colors.black,
+        //                       fontSize: 25,
+        //                       fontWeight: FontWeight.w500,
+        //                     ),
+        //                   ),
+        //                   const Divider(
+        //                     color: Colors.grey,
+        //                   ),
+        //                   for (final String resLink in resFoldersLink) ...[
+        //                     ListTile(
+        //                       title: Text(resLink),
+        //                       leading: const Icon(Icons.folder),
+        //                     ),
+        //                   ],
+        //                   const SizedBox(
+        //                     height: 20,
+        //                   ),
+        //                   for (final String resLink in resFilesLink) ...[
+        //                     ListTile(
+        //                       title: Text(resLink),
+        //                       leading: const Icon(Icons.file_copy),
+        //                     ),
+        //                   ],
+        //                   const SizedBox(
+        //                     height: 20,
+        //                   ),
+        //                 ])))),
       ],
     );
   }
