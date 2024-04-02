@@ -240,9 +240,6 @@ ElevatedButton resCreateFormSubmission(
           context,
           MaterialPageRoute(builder: (context) => child),
         );
-      } else {
-        await showErrDialog(
-            context, 'Form validation failed! Please check your inputs.');
       }
     },
     style: ElevatedButton.styleFrom(
