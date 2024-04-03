@@ -174,7 +174,7 @@ Container buildMsgBox(
                     msg,
                     softWrap: true,
                     style: TextStyle(
-                      fontSize: size.height * 0.025,
+                      fontSize: size.height * 0.020,
                       color: Colors.white,
                     ),
                   ),

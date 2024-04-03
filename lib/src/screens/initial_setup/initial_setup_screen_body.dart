@@ -101,6 +101,36 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
         .map((item) => item.toString())
         .toList();
 
+    final combinedLinks = resFoldersLink + resFilesLink;
+
+    // Assuming 'combinedLinks' is a non-empty list of URLs
+    final String firstUrl = combinedLinks.first;
+    final int endIndex = firstUrl.indexOf(
+        '/', 'https://'.length); // Look for the first '/' after https://
+
+    final String baseUrl =
+        endIndex == -1 ? firstUrl : firstUrl.substring(0, endIndex + 1);
+
+    print(baseUrl);
+
+    // final baseUrl = 'https://pods.solidcommunity.au/kevtest2/keypod/';
+
+    final extractedParts = combinedLinks
+        .map((url) {
+          // Check if the URL starts with the base URL and has additional parts
+          if (url.startsWith(baseUrl) && url.length > baseUrl.length) {
+            // Extract everything after the base URL
+            return url.substring(baseUrl.length).split('/')[
+                0]; // Split to handle cases with further sub-paths and take the first segment
+          }
+          return null; // Return null for URLs that don't match the criteria
+        })
+        .where((item) => item != null)
+        .toSet()
+        .toList(); // Remove nulls and duplicates, then convert to list
+
+    print(extractedParts);
+
     final resFileNamesLink = (widget.resNeedToCreate['fileNames'] as List)
         .map((item) => item.toString())
         .toList();
@@ -164,6 +194,9 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                           ),
                                           const Divider(
                                             color: Colors.grey,
+                                          ),
+                                          ResourceCreationTextWidget(
+                                            resLinks: combinedLinks,
                                           ),
                                           for (final String resLink
                                               in resFoldersLink) ...[
@@ -240,6 +273,29 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class ResourceCreationTextWidget extends StatelessWidget {
+  final List<String> resLinks;
+
+  ResourceCreationTextWidget({required this.resLinks});
+
+  String getResourceCreationMessage() {
+    if (resLinks.isEmpty) return "No resources specified";
+
+    String baseUrl = resLinks.first.split('/').take(5).join('/');
+    return "Resources that will be created within $baseUrl";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        getResourceCreationMessage(),
+        textAlign: TextAlign.center,
+      ),
     );
   }
 }
