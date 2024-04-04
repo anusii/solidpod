@@ -28,6 +28,8 @@
 ///
 /// Authors: Anushka Vidanage
 
+// ignore_for_file: comment_references
+
 library;
 
 import 'dart:convert';
@@ -40,15 +42,19 @@ import 'package:solidpod/src/solid/constants.dart';
 /// If [text] exceeds the length defined by [longStrLength], it is truncated
 /// and ends with an ellipsis '...'. If [text] is shorter than [longStrLength],
 /// it is returned as is.
+///
 
-String truncateString(String text) {
-  var result = '';
-  result = text.length > longStrLength
-      ? '${text.substring(0, longStrLength - 4)}...'
-      : text;
+// comment out the following function as it is not used in the current version
+// of the app, anushka might need to use to in the future so keeping it here.
 
-  return result;
-}
+// String truncateString(String text) {
+//   var result = '';
+//   result = text.length > longStrLength
+//       ? '${text.substring(0, longStrLength - 4)}...'
+//       : text;
+
+//   return result;
+// }
 
 /// Write the given [key], [value] pair to the secure storage.
 ///

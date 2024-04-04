@@ -28,9 +28,13 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
+// ignore_for_file: use_build_context_synchronously
+
 library;
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:solid_auth/solid_auth.dart';
@@ -106,6 +110,16 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     return Column(
       children: [
+        // Adding a Row for the back button and spacing.
+
+        Row(
+          children: [
+            BackButton(
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+
         Expanded(
             child: SizedBox(
                 height: 700,
@@ -161,46 +175,18 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                 children: <Widget>[
                                   encKeyInputForm(
                                       formKey, showPassword, onChangedVal),
-                                  Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: resCreateFormSubmission(
-                                          formKey,
-                                          context,
-                                          resFileNamesLink,
-                                          resFoldersLink,
-                                          resFilesLink,
-                                          widget.authData,
-                                          widget.webId,
-                                          widget.appName,
-                                          widget.child,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 20),
-                                      Expanded(
-                                        child: OutlinedButton(
-                                          onPressed: () {
-                                            formKey.currentState?.reset();
-                                          },
-                                          style: OutlinedButton.styleFrom(
-                                              foregroundColor: darkBlue,
-                                              backgroundColor:
-                                                  darkBlue, // foreground
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 50),
-                                              shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          10))),
-                                          child: const Text(
-                                            'RESET',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  Center(
+                                    child: resCreateFormSubmission(
+                                      formKey,
+                                      context,
+                                      resFileNamesLink,
+                                      resFoldersLink,
+                                      resFilesLink,
+                                      widget.authData,
+                                      widget.webId,
+                                      widget.appName,
+                                      widget.child,
+                                    ),
                                   ),
                                   const SizedBox(
                                     height: 40,
@@ -229,7 +215,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   ),
                   onPressed: () async {
                     await logout(widget.authData['logoutUrl']);
-                    // ignore: use_build_context_synchronously
                     await Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
@@ -246,6 +231,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                       ),
                     );
                   },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors
+                        .lightBlue, // Set the background color to light blue
+                  ),
                 ),
               ],
             ),

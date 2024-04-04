@@ -42,11 +42,11 @@ const darkBlue = Color.fromARGB(255, 7, 87, 153);
 
 /// Color variables used in initial setup screen.
 
-const kTitleTextColor = Color(0xFF30384D);
+// const kTitleTextColor = Color(0xFF30384D);
 
 /// Padding value for initial setup screen.
 
-const double kDefaultPadding = 20.0;
+// const double kDefaultPadding = 20.0;
 
 /// Text string variables used for the welcome message.
 
