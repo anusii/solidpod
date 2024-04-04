@@ -790,11 +790,15 @@ class AuthDataManager {
         return null;
       }
     }
-
     assert(_authResponse != null);
-    final tokenResponse = await _authResponse!.getTokenResponse();
 
-    return tokenResponse.accessToken;
+    try {
+      final tokenResponse = await _authResponse!.getTokenResponse();
+      return tokenResponse.accessToken;
+    } on Exception catch (e) {
+      debugPrint('AuthDataManager => getAccessToken() Exception: $e');
+      return null;
+    }
   }
 
   /// Reconstruct the rsaInfo from JSON string
