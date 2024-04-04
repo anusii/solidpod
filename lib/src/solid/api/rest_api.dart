@@ -1,6 +1,6 @@
 /// Functions with restful APIs.
 ///
-// Time-stamp: <Tuesday 2024-01-02 15:57:15 +1100 Zheyuan Xu>
+// Time-stamp: <Friday 2024-03-29 11:19:30 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu
+/// Authors: Dawei Chen, Zheyuan Xu
 
 // ignore_for_file: comment_references
 
@@ -34,14 +34,19 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
+import 'package:solid_auth/solid_auth.dart';
+// ignore: implementation_imports
+import 'package:solid_auth/src/openid/openid_client.dart';
+
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solid_auth/solid_auth.dart';
 
 /// Parses file information and extracts content into a map.
 ///
@@ -98,7 +103,7 @@ Future<String> fetchPrvFile(
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
-    //print(profResponse.body);
+    // print(profResponse.body);
     throw Exception('Failed to load profile data! Try again in a while.');
   }
 }
@@ -110,10 +115,10 @@ Future<String> fetchPrvFile(
 
 Future<List<dynamic>> initialStructureTest(
     String appName, List<String> folders, Map<dynamic, dynamic> files) async {
-  final authDataStr = await secureStorage.read(key: 'authdata');
-  final authData = convertAuthData(authDataStr!);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
 
-  final rsaInfo = authData['rsaInfo'];
+  final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'];
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
   final accessToken = authData['accessToken'].toString();
@@ -570,11 +575,11 @@ Future<String> initialProfileUpdate(
 
 Future<String> fetchKeyData() async {
   final webId = await getWebId();
-  final authDataStr = await secureStorage.read(key: 'authdata');
+  assert(webId != null);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
 
-  final authData = convertAuthData(authDataStr!);
-
-  final rsaInfo = authData['rsaInfo'];
+  final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
   final accessToken = authData['accessToken'];
@@ -596,11 +601,10 @@ Future<String> fetchKeyData() async {
 /// returns the access token and DPoP token
 
 Future<List<dynamic>> getTokens(String fileUrl) async {
-  final authDataStr = await secureStorage.read(key: 'authdata');
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
 
-  final authData = convertAuthData(authDataStr!);
-
-  final rsaInfo = authData['rsaInfo'];
+  final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
   final accessToken = authData['accessToken'];
@@ -642,22 +646,15 @@ Future<List<dynamic>> getAppNameVersion() async {
 
 Future<bool> checkLoggedIn() async {
   final webId = await getWebId();
-  final authDataStr = await secureStorage.read(key: 'authdata');
 
-  if ((webId != null && webId.isNotEmpty) &&
-      (authDataStr != null && authDataStr.isNotEmpty)) {
-    final authData = jsonDecode(authDataStr);
-    final accessToken = authData['accessToken'];
-    final hasExpired = JwtDecoder.isExpired(accessToken as String);
-
-    if (hasExpired) {
-      return false;
-    } else {
+  if (webId != null && webId.isNotEmpty) {
+    final accessToken = await AuthDataManager.getAccessToken();
+    if (accessToken != null && !JwtDecoder.isExpired(accessToken)) {
       return true;
     }
-  } else {
-    return false;
   }
+
+  return false;
 }
 
 /// Delete login information from the local storage
@@ -665,28 +662,169 @@ Future<bool> checkLoggedIn() async {
 /// returns true if successful
 
 Future<bool> deleteLogIn() async {
+  const success = true;
   try {
     await secureStorage.delete(key: 'webid');
-    await secureStorage.delete(key: 'authdata');
-    return true;
   } on Exception {
     return false;
   }
+  return success && (await AuthDataManager.removeAuthData());
 }
 
 /// Get the webId from local storage
 
 Future<String?> getWebId() async {
   final webId = await secureStorage.read(key: 'webid');
-  assert(webId != null);
   return webId;
 }
 
-/// Get the webId from local storage
+/// [AuthDataManager] is a class to manage auth data returned by
+/// solid-auth authenticate, including:
+/// - save auth data to secure storage
+/// - load auth data from secure storage
+/// - delete saved auth data from secure storage
+/// - refresh access token if necessary
 
-Future<Map<dynamic, dynamic>> getAuthData() async {
-  final authDataStr = await secureStorage.read(key: 'authdata');
-  assert(authDataStr != null);
-  final authData = convertAuthData(authDataStr!);
-  return authData;
+class AuthDataManager {
+  /// The URL for logging out
+  static String? _logoutUrl;
+
+  /// The RSA keypair and their JWK format
+  /// It seems Map<String, dynamic> does not work
+  static Map<dynamic, dynamic>? _rsaInfo;
+
+  /// The authentication response
+  static Credential? _authResponse;
+
+  /// The string key for storing auth data in secure storage
+  static const String authDataSecureStorageKey = '_solid_auth_data';
+
+  /// Save the auth data returned by solid-auth authenticate in secure storage
+  /// It seems Map<String, dynamic> does not work
+  static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
+    const keys = [
+      'client',
+      'rsaInfo',
+      'authResponse',
+      'tokenResponse',
+      'accessToken',
+      'idToken',
+      'refreshToken',
+      'expiresIn',
+      'logoutUrl',
+    ];
+
+    for (final key in keys) {
+      assert(authData.containsKey(key));
+    }
+
+    _logoutUrl = authData['logoutUrl'] as String;
+    _rsaInfo = authData['rsaInfo'] as Map<dynamic,
+        dynamic>; // Note that use Map<String, dynamic> does not seem to work
+    _authResponse = authData['authResponse'] as Credential;
+
+    await writeToSecureStorage(
+        authDataSecureStorageKey,
+        jsonEncode({
+          'logout_url': _logoutUrl,
+          'rsa_info': jsonEncode({
+            ..._rsaInfo!,
+            // Overwrite the 'rsa' keypair in rsaInfo
+            'rsa': {
+              'public_key': _rsaInfo!['rsa'].publicKey as String,
+              'private_key': _rsaInfo!['rsa'].privateKey as String,
+            },
+          }),
+          'auth_response': _authResponse!.toJson(),
+        }));
+
+    debugPrint('AuthDataManager => saveAuthData() done');
+  }
+
+  /// Retrieve (and reconstruct) auth data from secure storage
+  /// It seems Map<String, dynamic> does not work
+  static Future<Map<dynamic, dynamic>?> loadAuthData() async {
+    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
+      final loaded = await _loadData();
+      if (!loaded) {
+        debugPrint('AuthDataManager => loadAuthData() failed');
+        return null;
+      }
+    }
+
+    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
+    final tokenResponse = await _authResponse!.getTokenResponse();
+
+    return {
+      'client': _authResponse!.client,
+      'rsaInfo': _rsaInfo,
+      'authResponse': _authResponse,
+      'tokenResponse': tokenResponse,
+      'accessToken': tokenResponse.accessToken,
+      'idToken': _authResponse!.idToken,
+      'refreshToken': _authResponse!.refreshToken,
+      'expiresIn': tokenResponse.expiresIn,
+      'logoutUrl': _logoutUrl,
+    };
+  }
+
+  /// Remove/delete auth data from secure storage
+  static Future<bool> removeAuthData() async {
+    try {
+      await secureStorage.delete(key: authDataSecureStorageKey);
+      _logoutUrl = null;
+      _rsaInfo = null;
+      _authResponse = null;
+
+      return true;
+    } on Exception {
+      debugPrint('AuthDataManager => removeAuthData() failed');
+      return false;
+    }
+  }
+
+  /// Returns the (refreshed) access token
+  static Future<String?> getAccessToken() async {
+    if (_authResponse == null) {
+      final loaded = await _loadData();
+      if (!loaded) {
+        debugPrint('AuthDataManager => getAccessToken() failed');
+        return null;
+      }
+    }
+    assert(_authResponse != null);
+
+    try {
+      final tokenResponse = await _authResponse!.getTokenResponse();
+      return tokenResponse.accessToken;
+    } on Exception catch (e) {
+      debugPrint('AuthDataManager => getAccessToken() Exception: $e');
+      return null;
+    }
+  }
+
+  /// Reconstruct the rsaInfo from JSON string
+  static Map<dynamic, dynamic> _getRsaInfo(String rsaJson) {
+    final rsaInfo_ = jsonDecode(rsaJson) as Map<String, dynamic>;
+    final publicKey = rsaInfo_['rsa']['public_key'] as String;
+    final privateKey = rsaInfo_['rsa']['private_key'] as String;
+
+    return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
+  }
+
+  /// Retrieve auth data from secure storage
+  static Future<bool> _loadData() async {
+    final dataStr = await secureStorage.read(key: authDataSecureStorageKey);
+
+    if (dataStr != null) {
+      final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
+      _logoutUrl = dataMap['logout_url'] as String;
+      _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
+      _authResponse =
+          Credential.fromJson((dataMap['auth_response'] as Map).cast());
+
+      return true;
+    }
+    return false;
+  }
 }
