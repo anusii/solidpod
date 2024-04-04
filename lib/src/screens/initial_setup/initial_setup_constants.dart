@@ -54,7 +54,7 @@ const initialStructureWelcome = 'Welcome to the Solid Pod Setup Wizard!';
 
 /// Text string variables as the title of the message box.
 
-const initialStructureTitle = "Solid Pod";
+const initialStructureTitle = 'Solid Pod';
 
 /// Text string variables used for informing the user about the creatiion of
 /// different resources.

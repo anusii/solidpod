@@ -103,9 +103,9 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     final combinedLinks = resFoldersLink + resFilesLink;
 
-    final String commonBaseUrl = extractCommonBaseUrl(combinedLinks);
+    final commonBaseUrl = extractCommonBaseUrl(combinedLinks);
 
-    String baseUrl = commonBaseUrl + '/';
+    final baseUrl = '$commonBaseUrl/';
 
     final extractedParts = combinedLinks
         .map((url) {
@@ -269,9 +269,8 @@ String extractCommonBaseUrl(List<String> urls) {
 }
 
 class ResourceCreationTextWidget extends StatelessWidget {
+  const ResourceCreationTextWidget({required this.resLinks, super.key});
   final List<String> resLinks;
-
-  ResourceCreationTextWidget({required this.resLinks});
 
   String getResourceCreationMessage() {
     if (resLinks.isEmpty) return 'No resources specified';
