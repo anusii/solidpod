@@ -28,7 +28,7 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, public_member_api_docs
 
 library;
 
@@ -103,33 +103,35 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     final combinedLinks = resFoldersLink + resFilesLink;
 
-    // Assuming 'combinedLinks' is a non-empty list of URLs
-    final String firstUrl = combinedLinks.first;
-    final int endIndex = firstUrl.indexOf(
-        '/', 'https://'.length); // Look for the first '/' after https://
+    final String commonBaseUrl = extractCommonBaseUrl(combinedLinks);
 
-    final String baseUrl =
-        endIndex == -1 ? firstUrl : firstUrl.substring(0, endIndex + 1);
-
-    print(baseUrl);
-
-    // final baseUrl = 'https://pods.solidcommunity.au/kevtest2/keypod/';
+    String baseUrl = commonBaseUrl + '/';
 
     final extractedParts = combinedLinks
         .map((url) {
-          // Check if the URL starts with the base URL and has additional parts
-          if (url.startsWith(baseUrl) && url.length > baseUrl.length) {
-            // Extract everything after the base URL
-            return url.substring(baseUrl.length).split('/')[
-                0]; // Split to handle cases with further sub-paths and take the first segment
-          }
-          return null; // Return null for URLs that don't match the criteria
-        })
-        .where((item) => item != null)
-        .toSet()
-        .toList(); // Remove nulls and duplicates, then convert to list
+          // Check if the URL starts with the base URL and has additional parts.
 
-    print(extractedParts);
+          if (url.startsWith(baseUrl) && url.length > baseUrl.length) {
+            // Extract everything after the base URL without splitting into segments.
+
+            return url.substring(baseUrl.length);
+          }
+
+          // Return null for URLs that don't match the criteria.
+
+          return null;
+        })
+        // Remove nulls.
+
+        .where((item) => item != null)
+
+        // Remove duplicates.
+
+        .toSet()
+
+        // Convert to list.
+
+        .toList();
 
     final resFileNamesLink = (widget.resNeedToCreate['fileNames'] as List)
         .map((item) => item.toString())
@@ -184,36 +186,17 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          const Text(
-                                            'Resources that will be created!',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                          ResourceCreationTextWidget(
+                                            resLinks: combinedLinks,
                                           ),
                                           const Divider(
                                             color: Colors.grey,
                                           ),
-                                          ResourceCreationTextWidget(
-                                            resLinks: combinedLinks,
-                                          ),
-                                          for (final String resLink
-                                              in resFoldersLink) ...[
+                                          for (final String? resLink
+                                              in extractedParts) ...[
                                             ListTile(
-                                              title: Text(resLink),
+                                              title: Text(resLink!),
                                               leading: const Icon(Icons.folder),
-                                            ),
-                                          ],
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                          for (final String resLink
-                                              in resFilesLink) ...[
-                                            ListTile(
-                                              title: Text(resLink),
-                                              leading:
-                                                  const Icon(Icons.file_copy),
                                             ),
                                           ],
                                           const SizedBox(
@@ -277,16 +260,24 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
   }
 }
 
+String extractCommonBaseUrl(List<String> urls) {
+  if (urls.isEmpty) return '';
+
+  final sampleUrl = urls.first;
+
+  return sampleUrl;
+}
+
 class ResourceCreationTextWidget extends StatelessWidget {
   final List<String> resLinks;
 
   ResourceCreationTextWidget({required this.resLinks});
 
   String getResourceCreationMessage() {
-    if (resLinks.isEmpty) return "No resources specified";
+    if (resLinks.isEmpty) return 'No resources specified';
 
-    String baseUrl = resLinks.first.split('/').take(5).join('/');
-    return "Resources that will be created within $baseUrl";
+    final baseUrl = resLinks.first.split('/').take(5).join('/');
+    return 'Resources that will be created within \n $baseUrl';
   }
 
   @override
@@ -295,6 +286,11 @@ class ResourceCreationTextWidget extends StatelessWidget {
       child: Text(
         getResourceCreationMessage(),
         textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 25,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
