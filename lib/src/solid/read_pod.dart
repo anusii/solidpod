@@ -26,7 +26,9 @@ Future<String> readPod(
   final defaultFolders = generateDefaultFolders(appInfo[0] as String);
   final defaultFiles = generateDefaultFiles(appInfo[0] as String);
   final webId = await getWebId();
-  final authData = await getAuthData();
+  assert(webId != null);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
 
   final resCheckList = await initialStructureTest(
       appInfo[0] as String, defaultFolders, defaultFiles);
@@ -37,7 +39,7 @@ Future<String> readPod(
       context,
       MaterialPageRoute(
           builder: (context) => InitialSetupScreen(
-                authData: authData,
+                authData: authData as Map<dynamic, dynamic>,
                 webId: webId as String,
                 appName: appInfo[0] as String,
                 resCheckList: resCheckList,
