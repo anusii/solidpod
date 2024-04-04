@@ -32,7 +32,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /// The `Languages` class provides a collection of language codes.
 
@@ -125,7 +124,7 @@ Container buildMsgBox(
   final isTablet = size.width > 730 && size.width <= 1050;
 
   // Minimal horizontal padding for all devices
-  var horizontalPadding =
+  final horizontalPadding =
       size.width * 0.01; // Adjust this value to increase or decrease padding
 
   return Container(
