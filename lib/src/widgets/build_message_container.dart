@@ -1,6 +1,6 @@
 /// A widget to show message container box.
 ///
-// Time-stamp: <Tuesday 2024-03-26 10:50:13 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:30:12 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,13 +26,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Where did this code come from ???
 // ignore_for_file: public_member_api_docs
 
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 /// The `Languages` class provides a collection of language codes.
 
@@ -69,7 +68,7 @@ Color getContentColour(String contentType) {
     return const Color(0xff2D6A4F);
   } else if (contentType == 'warning') {
     /// warning will show `EXCLAMATION`
-    return const Color(0xffFCA652);
+    return const Color(0xffa0a0a0); //Color(0xffFCA652);
   } else if (contentType == 'help') {
     /// help will show `QUESTION MARK`
     return const Color(0xff3282B8);
@@ -106,6 +105,8 @@ double getWidgetHeight(String content) {
 
 Container buildMsgBox(
     BuildContext context, String msgType, String title, String msg) {
+  // Zheyuan might need to use isRTL in the future
+  // ignore: unused_local_variable
   var isRTL = false;
 
   final size = MediaQuery.of(context).size;
@@ -125,7 +126,7 @@ Container buildMsgBox(
   final isTablet = size.width > 730 && size.width <= 1050;
 
   // Minimal horizontal padding for all devices
-  var horizontalPadding =
+  final horizontalPadding =
       size.width * 0.01; // Adjust this value to increase or decrease padding
 
   return Container(
@@ -173,7 +174,7 @@ Container buildMsgBox(
                     msg,
                     softWrap: true,
                     style: TextStyle(
-                      fontSize: size.height * 0.025,
+                      fontSize: size.height * 0.020,
                       color: Colors.white,
                     ),
                   ),

@@ -2,6 +2,11 @@
 
 Notable changes to this project are recorded below.
 
+## 0.5.7 2024-04-05 10:00 
+
++ redesign the initialisePod() page. 
+
+
 ## 0.5.6 2024-04-04
 
 + Save and retrieve auth data into/from secure storage.

@@ -1,6 +1,6 @@
 /// Contains functions for generating bodies of different ttl files.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:34:27 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -56,7 +56,7 @@ FormBuilder encKeyInputForm(GlobalKey<FormBuilderState> formKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         const Text(
-          'Please provide a personal password (required for private storage)',
+          'We require a password to secure your data:',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20,
@@ -148,7 +148,7 @@ FormBuilder encKeyInputForm(GlobalKey<FormBuilderState> formKey,
               children: [
                 TextSpan(
                   text:
-                      'I note that the above resources will be created on my Solid Pod! ',
+                      'I also note that the resources identified below will be created. ',
                   style: TextStyle(color: Colors.black),
                 ),
               ],

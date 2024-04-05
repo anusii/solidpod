@@ -1,6 +1,6 @@
 /// Common functions used across the package.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:21:41 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -43,8 +43,8 @@ import 'package:solidpod/src/widgets/build_message_container.dart';
 
 // double screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
-/// A widget displaying an alert for the user noticing about the newly
-/// created POD or missing resources from the POD.
+/// A widget displaying an alert for the user noting that they have probably a
+/// newly created Solid Pod or their App's Pod is missing resources.
 ///
 /// The widget will inform the user about creating/ re-creating these recources.
 

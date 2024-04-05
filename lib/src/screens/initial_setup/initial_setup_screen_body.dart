@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Tuesday 2024-04-02 21:17:46 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -28,18 +28,15 @@
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage
 
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, public_member_api_docs
 
 library;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
-import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
 import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
@@ -104,6 +101,40 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
         .map((item) => item.toString())
         .toList();
 
+    final combinedLinks = resFoldersLink + resFilesLink;
+
+    final commonBaseUrl = extractCommonBaseUrl(combinedLinks);
+
+    final baseUrl = '$commonBaseUrl/';
+
+    final extractedParts = combinedLinks
+        .map((url) {
+          // Check if the URL starts with the base URL and has additional parts.
+
+          if (url.startsWith(baseUrl) && url.length > baseUrl.length) {
+            // Extract everything after the base URL without splitting into segments.
+
+            return url.substring(baseUrl.length);
+          }
+
+          // Return null for URLs that don't match the criteria.
+
+          return null;
+        })
+        // Remove nulls.
+
+        .where((item) => item != null)
+
+        // Remove duplicates.
+
+        .toSet()
+
+        // Convert to list.
+
+        .toList()
+      // Sort alphabetically.
+      ..sort();
+
     final resFileNamesLink = (widget.resNeedToCreate['fileNames'] as List)
         .map((item) => item.toString())
         .toList();
@@ -132,45 +163,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                           child: Padding(
                               padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
                               child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Resources that will be created!',
-                                      style: TextStyle(
-                                        color: Colors.black,
-                                        fontSize: 25,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const Divider(
-                                      color: Colors.grey,
-                                    ),
-                                    for (final String resLink
-                                        in resFoldersLink) ...[
-                                      ListTile(
-                                        title: Text(resLink),
-                                        leading: const Icon(Icons.folder),
-                                      ),
-                                    ],
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                    for (final String resLink
-                                        in resFilesLink) ...[
-                                      ListTile(
-                                        title: Text(resLink),
-                                        leading: const Icon(Icons.file_copy),
-                                      ),
-                                    ],
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                  ])))),
-                  Center(
-                      child: SizedBox(
-                          child: Padding(
-                              padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
-                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   encKeyInputForm(
@@ -191,9 +183,33 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                   const SizedBox(
                                     height: 40,
                                   ),
+                                  Center(
+                                    child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          ResourceCreationTextWidget(
+                                            resLinks: combinedLinks,
+                                          ),
+                                          const Divider(
+                                            color: Colors.grey,
+                                          ),
+                                          for (final String? resLink
+                                              in extractedParts) ...[
+                                            ListTile(
+                                              title: Text(resLink!),
+                                              leading: const Icon(Icons.folder),
+                                            ),
+                                          ],
+                                          const SizedBox(
+                                            height: 20,
+                                          ),
+                                        ]),
+                                  )
                                 ],
                               )))),
                 ]))),
+
         Center(
           child: Padding(
             padding: const EdgeInsets.all(30.0),
@@ -203,14 +219,14 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                 TextButton.icon(
                   icon: const Icon(
                     Icons.logout,
-                    color: Colors.black,
+                    color: Colors.grey,
                     size: 24.0,
                   ),
                   label: const Text(
-                    'LOGOUT',
+                    'Logout from Pod',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.grey, //black,
                     ),
                   ),
                   onPressed: () async {
@@ -224,7 +240,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
                           image: AssetImage('assets/images/keypod_image.jpg'),
                           logo: AssetImage('assets/images/keypod_logo.png'),
-                          title: 'MANAGE YOUR SOLID KEY POD',
+                          title: 'MANAGE YOUR SOLID POD',
                           link: 'https://github.com/anusii/keypod',
                           child: Scaffold(body: Text('Key Pod Placeholder')),
                         ),
@@ -233,14 +249,50 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Colors
-                        .lightBlue, // Set the background color to light blue
+                        .white, //lightBlue, // Set the background color to light blue
                   ),
+                  // remove the popup warning.
                 ),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+String extractCommonBaseUrl(List<String> urls) {
+  if (urls.isEmpty) return '';
+
+  final sampleUrl = urls.first;
+
+  return sampleUrl;
+}
+
+class ResourceCreationTextWidget extends StatelessWidget {
+  const ResourceCreationTextWidget({required this.resLinks, super.key});
+  final List<String> resLinks;
+
+  String getResourceCreationMessage() {
+    if (resLinks.isEmpty) return 'No resources specified';
+
+    final baseUrl = resLinks.first.split('/').take(5).join('/');
+    return 'Resources that will be created within \n $baseUrl';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        getResourceCreationMessage(),
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 25,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
