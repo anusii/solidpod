@@ -131,7 +131,9 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
         // Convert to list.
 
-        .toList();
+        .toList()
+      // Sort alphabetically.
+      ..sort();
 
     final resFileNamesLink = (widget.resNeedToCreate['fileNames'] as List)
         .map((item) => item.toString())
