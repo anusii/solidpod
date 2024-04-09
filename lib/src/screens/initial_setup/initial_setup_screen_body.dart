@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Tuesday 2024-04-02 21:17:46 +1100 Graham Williams>
+// Time-stamp: <Wednesday 2024-04-10 08:15:36 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -174,7 +174,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         size: 24.0,
                                       ),
                                       label: const Text(
-                                        'Logout from Pod',
+                                        'Or you can Logout from your Solid Pod',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.grey, //black,
@@ -265,7 +265,7 @@ class ResourceCreationTextWidget extends StatelessWidget {
     if (resLinks.isEmpty) return 'No resources specified';
 
     final baseUrl = resLinks.first.split('/').take(5).join('/');
-    return 'Resources that will be created within \n $baseUrl';
+    return 'Resources to be created within \n $baseUrl';
   }
 
   @override
