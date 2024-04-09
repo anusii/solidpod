@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Wednesday 2024-04-10 08:15:36 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2024-04-10 08:23:22 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -174,7 +174,8 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         size: 24.0,
                                       ),
                                       label: const Text(
-                                        'Or you can Logout from your Solid Pod',
+                                        'Or you can Logout from your Solid Pod'
+                                        ' to login again as another user.',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.grey, //black,
