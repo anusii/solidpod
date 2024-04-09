@@ -38,7 +38,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
-import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 
