@@ -182,29 +182,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         ),
                                       ),
                                       onPressed: () async {
+                                        Navigator.pop(context);
+
                                         await logout(
                                             widget.authData['logoutUrl']);
-                                        await Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const SolidLogin(
-                                              // Images generated using Bing Image Creator from Designer, powered by
-                                              // DALL-E3.
-
-                                              image: AssetImage(
-                                                  'assets/images/keypod_image.jpg'),
-                                              logo: AssetImage(
-                                                  'assets/images/keypod_logo.png'),
-                                              title: 'MANAGE YOUR SOLID POD',
-                                              link:
-                                                  'https://github.com/anusii/keypod',
-                                              child: Scaffold(
-                                                  body: Text(
-                                                      'Key Pod Placeholder')),
-                                            ),
-                                          ),
-                                        );
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors
