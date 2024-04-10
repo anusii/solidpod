@@ -32,9 +32,6 @@
 
 library;
 
-import 'dart:convert';
-
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/constants.dart';
 
 /// Truncates the given [text] to a predefined maximum length.
@@ -85,24 +82,28 @@ Future<void> writeToSecureStorage(String key, String value) async {
 ///
 /// Returns a map with publicKey and privateKey.
 
-Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
-  return {
-    'publicKey': keyPair.publicKey,
-    'privateKey': keyPair.privateKey,
-  };
-}
+// comment out the following function as it is not used in the current version
+
+// Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
+//   return {
+//     'publicKey': keyPair.publicKey,
+//     'privateKey': keyPair.privateKey,
+//   };
+// }
 
 /// Convert the given [authDataStr] jason string to a map.
 ///
 /// Returns a authentication data map with KeyPair object.
 
-Map<dynamic, dynamic> convertAuthData(String authDataStr) {
-  final authData = jsonDecode(authDataStr);
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
-      rsaInfo['rsa']['privateKey'] as String);
-  rsaInfo['rsa'] = rsaKeyPair;
-  authData['rsaInfo'] = rsaInfo;
+// comment out the following function as it is not used in the current version
 
-  return authData as Map;
-}
+// Map<dynamic, dynamic> convertAuthData(String authDataStr) {
+//   final authData = jsonDecode(authDataStr);
+//   final rsaInfo = authData['rsaInfo'];
+//   final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
+//       rsaInfo['rsa']['privateKey'] as String);
+//   rsaInfo['rsa'] = rsaKeyPair;
+//   authData['rsaInfo'] = rsaInfo;
+
+//   return authData as Map;
+// }

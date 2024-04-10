@@ -168,16 +168,49 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                   encKeyInputForm(
                                       formKey, showPassword, onChangedVal),
                                   Center(
-                                    child: resCreateFormSubmission(
-                                      formKey,
-                                      context,
-                                      resFileNamesLink,
-                                      resFoldersLink,
-                                      resFilesLink,
-                                      widget.authData,
-                                      widget.webId,
-                                      widget.appName,
-                                      widget.child,
+                                    child: TextButton.icon(
+                                      icon: const Icon(
+                                        Icons.logout,
+                                        color: Colors.grey,
+                                        size: 24.0,
+                                      ),
+                                      label: const Text(
+                                        'Logout from Pod',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey, //black,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        await logout(
+                                            widget.authData['logoutUrl']);
+                                        await Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const SolidLogin(
+                                              // Images generated using Bing Image Creator from Designer, powered by
+                                              // DALL-E3.
+
+                                              image: AssetImage(
+                                                  'assets/images/keypod_image.jpg'),
+                                              logo: AssetImage(
+                                                  'assets/images/keypod_logo.png'),
+                                              title: 'MANAGE YOUR SOLID POD',
+                                              link:
+                                                  'https://github.com/anusii/keypod',
+                                              child: Scaffold(
+                                                  body: Text(
+                                                      'Key Pod Placeholder')),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: Colors
+                                            .white, //lightBlue, // Set the background color to light blue
+                                      ),
+                                      // remove the popup warning.
                                     ),
                                   ),
                                   const SizedBox(
@@ -216,42 +249,16 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton.icon(
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.grey,
-                    size: 24.0,
-                  ),
-                  label: const Text(
-                    'Logout from Pod',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey, //black,
-                    ),
-                  ),
-                  onPressed: () async {
-                    await logout(widget.authData['logoutUrl']);
-                    await Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SolidLogin(
-                          // Images generated using Bing Image Creator from Designer, powered by
-                          // DALL-E3.
-
-                          image: AssetImage('assets/images/keypod_image.jpg'),
-                          logo: AssetImage('assets/images/keypod_logo.png'),
-                          title: 'MANAGE YOUR SOLID POD',
-                          link: 'https://github.com/anusii/keypod',
-                          child: Scaffold(body: Text('Key Pod Placeholder')),
-                        ),
-                      ),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors
-                        .white, //lightBlue, // Set the background color to light blue
-                  ),
-                  // remove the popup warning.
+                resCreateFormSubmission(
+                  formKey,
+                  context,
+                  resFileNamesLink,
+                  resFoldersLink,
+                  resFilesLink,
+                  widget.authData,
+                  widget.webId,
+                  widget.appName,
+                  widget.child,
                 ),
               ],
             ),
