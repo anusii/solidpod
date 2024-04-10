@@ -98,21 +98,25 @@ class SolidLogin extends StatefulWidget {
     this.continueButtonStyle = const PodButtonStyle(
       text: 'CONTINUE',
       background: Colors.white,
+      foreground: Colors.black,
       tooltip: 'Continue to the app without logging in to your Solid Pod',
     ),
     this.infoButtonStyle = const PodButtonStyle(
       text: 'INFO',
       background: Color.fromARGB(255, 214, 177, 165),
+      foreground: Colors.black,
       tooltip: 'Visit the Solid Project website',
     ),
     this.loginButtonStyle = const PodButtonStyle(
       text: 'LOGIN',
       background: Color.fromARGB(255, 214, 177, 165),
+      foreground: Colors.black,
       tooltip: 'Login to your Solid Pod',
     ),
     this.registerButtonStyle = const PodButtonStyle(
       text: 'REGISTER',
       background: Color.fromARGB(255, 214, 177, 165),
+      foreground: Colors.black,
       tooltip: 'Get a Solid Pod',
     ),
     super.key,
@@ -277,6 +281,7 @@ class _SolidLoginState extends State<SolidLogin> {
     final registerButton = PodButton(
       text: widget.registerButtonStyle.text,
       background: widget.registerButtonStyle.background,
+      foreground: widget.registerButtonStyle.foreground,
       tooltip: widget.registerButtonStyle.tooltip,
       onPressed: () {
         launchUrl(
@@ -292,6 +297,7 @@ class _SolidLoginState extends State<SolidLogin> {
     final loginButton = PodButton(
         text: widget.loginButtonStyle.text,
         background: widget.loginButtonStyle.background,
+        foreground: widget.loginButtonStyle.foreground,
         tooltip: widget.loginButtonStyle.tooltip,
         onPressed: () async {
           // Reset the flag.
@@ -403,6 +409,7 @@ class _SolidLoginState extends State<SolidLogin> {
     final continueButton = PodButton(
       text: widget.continueButtonStyle.text,
       background: widget.continueButtonStyle.background,
+      foreground: widget.continueButtonStyle.foreground,
       tooltip: widget.continueButtonStyle.tooltip,
       onPressed: () {
         Navigator.pushReplacement(
@@ -417,6 +424,7 @@ class _SolidLoginState extends State<SolidLogin> {
     final infoButton = PodButton(
       text: widget.infoButtonStyle.text,
       background: widget.infoButtonStyle.background,
+      foreground: widget.infoButtonStyle.foreground,
       tooltip: widget.infoButtonStyle.tooltip,
       onPressed: () {
         launchUrl(Uri.parse(widget.link));
@@ -603,12 +611,14 @@ class PodButton extends StatelessWidget {
   const PodButton({
     required this.text,
     required this.background,
+    required this.foreground,
     required this.tooltip,
     required this.onPressed,
     super.key,
   });
   final String text;
   final Color background;
+  final Color foreground;
   final String tooltip;
   final VoidCallback onPressed;
 
@@ -633,6 +643,10 @@ class PodButton extends StatelessWidget {
               // Use the background color passed to the widget.
 
               background,
+          foregroundColor:
+              // Use the foreground color passed to the widget.
+
+              foreground,
         ),
         child: Text(
           text,
@@ -650,9 +664,11 @@ class PodButtonStyle {
   const PodButtonStyle({
     required this.text,
     required this.background,
+    required this.foreground,
     required this.tooltip,
   });
   final String text;
   final Color background;
+  final Color foreground;
   final String tooltip;
 }
