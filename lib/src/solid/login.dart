@@ -102,17 +102,17 @@ class SolidLogin extends StatefulWidget {
     ),
     this.infoButtonStyle = const PodButtonStyle(
       text: 'INFO',
-      background: Color.fromARGB(255, 201, 151, 135),
+      background: Color.fromARGB(255, 214, 177, 165),
       tooltip: 'Visit the Solid Project website',
     ),
     this.loginButtonStyle = const PodButtonStyle(
       text: 'LOGIN',
-      background: Colors.blue,
+      background: Color.fromARGB(255, 214, 177, 165),
       tooltip: 'Login to your Solid Pod',
     ),
     this.registerButtonStyle = const PodButtonStyle(
       text: 'REGISTER',
-      background: Colors.green,
+      background: Color.fromARGB(255, 214, 177, 165),
       tooltip: 'Get a Solid Pod',
     ),
     super.key,
@@ -126,11 +126,11 @@ class SolidLogin extends StatefulWidget {
 
   final AssetImage image;
 
-  /// The style of the register button.
+  /// The style of the REGISTER button.
 
   final PodButtonStyle registerButtonStyle;
 
-  /// The style of the login button.
+  /// The style of the LOGIN button.
 
   final PodButtonStyle loginButtonStyle;
 
@@ -633,8 +633,6 @@ class PodButton extends StatelessWidget {
               // Use the background color passed to the widget.
 
               background,
-
-          // Additional styling can be added here.
         ),
         child: Text(
           text,
@@ -645,6 +643,8 @@ class PodButton extends StatelessWidget {
     );
   }
 }
+
+/// A data structure for the buttons used in the Solid Login widget.
 
 class PodButtonStyle {
   const PodButtonStyle({
