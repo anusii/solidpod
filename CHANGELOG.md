@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Swap the position of the buttons on the initialisePod() page. [0.5.8]
 + Redesign the initialisePod() page. [0.5.7]
 + Save and retrieve auth data into/from secure storage. [0.5.6]
 + Removed the reset button on initialisePod() page. [0.5.5]
