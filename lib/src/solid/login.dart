@@ -245,7 +245,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
-    final registerButton = PodButtonStyle(
+    final registerButton = PodButton(
       text: widget.registerText,
       background: Colors.green,
       tooltip: 'Get a Solid Pod',
@@ -260,7 +260,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // themselves. On return from the authentication, if successful, the class
     // provided child widget is instantiated.
 
-    final loginButton = PodButtonStyle(
+    final loginButton = PodButton(
         text: widget.loginText,
         background: Colors.blue,
         tooltip: 'Login to your Solid Pod',
@@ -371,7 +371,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // need of a Solid Pod and thus no requirement to authenticate. Proceed
     // directly onto the app (the child).
 
-    final continueButton = PodButtonStyle(
+    final continueButton = PodButton(
       text: widget.continueText,
       background: widget.continueBG,
       tooltip: 'Continue to the app without logging in to your Solid Pod',
@@ -385,7 +385,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
     // A INFO button that when pressed will proceed to visit a link.
 
-    final infoButton = PodButtonStyle(
+    final infoButton = PodButton(
       text: widget.infoText,
       background: const Color.fromARGB(255, 201, 151, 135),
       tooltip: 'Visit the Solid Project website',
@@ -570,8 +570,8 @@ class _SolidLoginState extends State<SolidLogin> {
   }
 }
 
-class PodButtonStyle extends StatelessWidget {
-  const PodButtonStyle({
+class PodButton extends StatelessWidget {
+  const PodButton({
     required this.text,
     required this.background,
     required this.tooltip,
