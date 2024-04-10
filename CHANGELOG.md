@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Replace hardcoded code after clicking the logout button. [0.5.9]
 + Swap the position of the buttons on the initialisePod() page. [0.5.8]
 + Redesign the initialisePod() page. [0.5.7]
 + Save and retrieve auth data into/from secure storage. [0.5.6]
