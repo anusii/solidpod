@@ -28,6 +28,8 @@
 ///
 /// Authors: Graham Williams
 
+// ignore_for_file: public_member_api_docs
+
 library;
 
 import 'package:flutter/material.dart';
@@ -265,15 +267,6 @@ class _SolidLoginState extends State<SolidLogin> {
     // request is sent.
 
     final webIdController = TextEditingController()..text = widget.webID;
-
-    // Define a common style for the text of the two buttons, GET POD and LOGIN.
-
-    const buttonTextStyle = TextStyle(
-      fontSize: 12.0,
-      // fontSize: MediaQuery.of(context).size.width * 0.03,
-      letterSpacing: 2.0,
-      fontWeight: FontWeight.bold,
-    );
 
     // The GET A POD button that when pressed will launch a browser to the
     // relevant link from where a user can register for a POD on the Solid
@@ -654,13 +647,12 @@ class PodButton extends StatelessWidget {
 }
 
 class PodButtonStyle {
-  final String text;
-  final Color background;
-  final String tooltip;
-
   const PodButtonStyle({
     required this.text,
     required this.background,
     required this.tooltip,
   });
+  final String text;
+  final Color background;
+  final String tooltip;
 }
