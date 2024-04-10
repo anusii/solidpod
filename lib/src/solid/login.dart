@@ -93,6 +93,26 @@ class SolidLogin extends StatefulWidget {
     this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
+    this.continueButtonStyle = const PodButtonStyle(
+      text: 'CONTINUE',
+      background: Colors.white,
+      tooltip: 'Continue to the app without logging in to your Solid Pod',
+    ),
+    this.infoButtonStyle = const PodButtonStyle(
+      text: 'INFO',
+      background: Color.fromARGB(255, 201, 151, 135),
+      tooltip: 'Visit the Solid Project website',
+    ),
+    this.loginButtonStyle = const PodButtonStyle(
+      text: 'LOGIN',
+      background: Colors.blue,
+      tooltip: 'Login to your Solid Pod',
+    ),
+    this.registerButtonStyle = const PodButtonStyle(
+      text: 'REGISTER',
+      background: Colors.green,
+      tooltip: 'Get a Solid Pod',
+    ),
     super.key,
   });
 
@@ -103,6 +123,22 @@ class SolidLogin extends StatefulWidget {
   /// background behind the Login panel.
 
   final AssetImage image;
+
+  /// The style of the register button.
+
+  final PodButtonStyle registerButtonStyle;
+
+  /// The style of the login button.
+
+  final PodButtonStyle loginButtonStyle;
+
+  /// The style of the INFO button.
+
+  final PodButtonStyle infoButtonStyle;
+
+  /// The style of the CONTINUE button.
+
+  final PodButtonStyle continueButtonStyle;
 
   /// The app's logo as displayed at the top of the login panel.
 
@@ -246,9 +282,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // done in solid_auth through [getIssuer].
 
     final registerButton = PodButton(
-      text: widget.registerText,
-      background: Colors.green,
-      tooltip: 'Get a Solid Pod',
+      text: widget.registerButtonStyle.text,
+      background: widget.registerButtonStyle.background,
+      tooltip: widget.registerButtonStyle.tooltip,
       onPressed: () {
         launchUrl(
             Uri.parse('${widget.webID}/.account/login/password/register/'));
@@ -261,9 +297,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // provided child widget is instantiated.
 
     final loginButton = PodButton(
-        text: widget.loginText,
-        background: Colors.blue,
-        tooltip: 'Login to your Solid Pod',
+        text: widget.loginButtonStyle.text,
+        background: widget.loginButtonStyle.background,
+        tooltip: widget.loginButtonStyle.tooltip,
         onPressed: () async {
           // Reset the flag.
 
@@ -372,9 +408,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // directly onto the app (the child).
 
     final continueButton = PodButton(
-      text: widget.continueText,
-      background: widget.continueBG,
-      tooltip: 'Continue to the app without logging in to your Solid Pod',
+      text: widget.continueButtonStyle.text,
+      background: widget.continueButtonStyle.background,
+      tooltip: widget.continueButtonStyle.tooltip,
       onPressed: () {
         Navigator.pushReplacement(
           context,
@@ -386,9 +422,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // A INFO button that when pressed will proceed to visit a link.
 
     final infoButton = PodButton(
-      text: widget.infoText,
-      background: const Color.fromARGB(255, 201, 151, 135),
-      tooltip: 'Visit the Solid Project website',
+      text: widget.infoButtonStyle.text,
+      background: widget.infoButtonStyle.background,
+      tooltip: widget.infoButtonStyle.tooltip,
       onPressed: () {
         launchUrl(Uri.parse(widget.link));
       },
@@ -615,4 +651,16 @@ class PodButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class PodButtonStyle {
+  final String text;
+  final Color background;
+  final String tooltip;
+
+  const PodButtonStyle({
+    required this.text,
+    required this.background,
+    required this.tooltip,
+  });
 }
