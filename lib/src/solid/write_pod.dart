@@ -1,6 +1,8 @@
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solid_auth/solid_auth.dart';
+import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/constants.dart';
 
 /// Write file content to a POD
 /// (1-3 shoudl be in keypod)
@@ -17,9 +19,9 @@ import 'package:solid_auth/solid_auth.dart';
 
 Future<void> writePod(
   String webId,
-  String encPasswd,
+  String plainTxtPasswd,
   String fileName,
-  String fileLoc,
+  String folderPath,
   String fileType,
   String fileContent,
   bool aclFlag,
@@ -31,12 +33,13 @@ Future<void> writePod(
   final accessToken = authData['accessToken'].toString();
 
   // Get file with all keys (key_file)
+  final encKeyMap = loadPrvTTL('$encDir/$encKeyFile');
 
   // Check if the file already exists
 
-  final fileUrl = webId.contains('profile/card#me')
-      ? webId.replaceAll('profile/card#me', fileLoc)
-      : '$webId$fileLoc';
+  final fileUrl = webId.contains(profCard)
+      ? webId.replaceAll(profCard, folderPath)
+      : '$webId$folderPath';
   final fileExists = await checkResourceExists(fileUrl, accessToken,
       genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET'), true);
 
@@ -70,7 +73,7 @@ Future<void> writePod(
       // create file with encrypted data
       final encData = '';
       if (await createItem(true, fileName, encData, webId, authData,
-              fileLoc: fileLoc, fileType: fileType, aclFlag: aclFlag) !=
+              fileLoc: folderPath, fileType: fileType, aclFlag: aclFlag) !=
           'ok') {
         throw Exception('ERR: Create file failed');
       }
