@@ -28,7 +28,7 @@ Default style:
 
 <div align="center">
 	<img
-	src="images/solid_login.png"
+	src="https://github.com/anusii/solidpod/blob/dev/images/solid_login.png"
 	alt="Solid Login" width="400">
 </div>
 
@@ -36,7 +36,7 @@ Optional version and visit link:
 
 <div align="center">
 	<img
-	src="images/podnotes_login.png"
+	src="https://github.com/anusii/solidpod/blob/dev/images/podnotes_login.png"
 	alt="Solid Login" width="400">
 </div>
 
@@ -44,7 +44,7 @@ Changing the image, logo, login text, colour scheme:
 
 <div align="center">
 	<img
-	src="images/tomy_login.png"
+	src="https://github.com/anusii/solidpod/blob/dev/images/tomy_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -52,7 +52,7 @@ Change the image, logo, login text, button style, colour scheme:
 
 <div align="center">
 	<img
-	src="images/keypod_login.png"
+	src="https://github.com/anusii/solidpod/blob/dev/images/keypod_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -60,7 +60,7 @@ Fine tune to suit the theme of the app:
 
 <div align="center">
 	<img
-	src="images/innerpod_login.png"
+	src="https://github.com/anusii/solidpod/blob/dev/images/innerpod_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
