@@ -11,6 +11,16 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
+**UNDER DEVELOPMENT**
+
+This package is currently under development and some API may
+change. The SolidLogin() and SolidLoginPopup() are used in a number
+of apps now and are more stable.
+
+# Solid Pods
+
+Visit https://soidcommunity.au
+
 Solid is an open standard for a server hosting personal online data
 stores (Pods). Numerous providers of Solid Server hosting are emerging
 allowing users to host and migrate their Pods on any such 
