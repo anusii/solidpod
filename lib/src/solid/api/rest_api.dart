@@ -600,17 +600,19 @@ Future<String> fetchKeyData() async {
 ///
 /// returns the access token and DPoP token
 
-Future<List<dynamic>> getTokens(String fileUrl) async {
+Future<({String accessToken, String dPopToken})> getTokens(
+    String fileUrl) async {
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
   final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'];
-  final dPopToken = genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
-  return [accessToken, dPopToken];
+  return (
+    accessToken: authData['accessToken'] as String,
+    dPopToken: genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET'),
+  );
 }
 
 /// From a given file path create file URL
@@ -621,20 +623,18 @@ Future<String> createFileUrl(String filePath) async {
   final webId = await getWebId();
 
   final appDetails = await getAppNameVersion();
-  final appName = appDetails[0];
+  final appName = appDetails.name;
   final keyFileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
 
   return keyFileUrl;
 }
 
 /// Extract the app name and the version from the package info
+/// Return a record (with named fields https://dart.dev/language/records)
 
-Future<List<dynamic>> getAppNameVersion() async {
+Future<({String name, String version})> getAppNameVersion() async {
   final info = await PackageInfo.fromPlatform();
-  final appName = info.appName;
-  final appVersion = info.version;
-
-  return [appName, appVersion];
+  return (name: info.appName, version: info.version);
 }
 
 /// Check whether a user is logged in or not

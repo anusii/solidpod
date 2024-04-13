@@ -23,15 +23,15 @@ Future<String> readPod(
   }
 
   final appInfo = await getAppNameVersion();
-  final defaultFolders = generateDefaultFolders(appInfo[0] as String);
-  final defaultFiles = generateDefaultFiles(appInfo[0] as String);
+  final defaultFolders = generateDefaultFolders(appInfo.name);
+  final defaultFiles = generateDefaultFiles(appInfo.name);
   final webId = await getWebId();
   assert(webId != null);
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
-  final resCheckList = await initialStructureTest(
-      appInfo[0] as String, defaultFolders, defaultFiles);
+  final resCheckList =
+      await initialStructureTest(appInfo.name, defaultFolders, defaultFiles);
   final allExists = resCheckList.first as bool;
 
   if (!allExists) {
@@ -41,7 +41,7 @@ Future<String> readPod(
           builder: (context) => InitialSetupScreen(
                 authData: authData as Map<dynamic, dynamic>,
                 webId: webId as String,
-                appName: appInfo[0] as String,
+                appName: appInfo.name,
                 resCheckList: resCheckList,
                 child: child,
               )),
@@ -49,9 +49,9 @@ Future<String> readPod(
   }
 
   final fileUrl = await createFileUrl(filePath);
-  final tokenList = await getTokens(fileUrl);
-  final fileContent = await fetchPrvFile(
-      fileUrl, tokenList[0] as String, tokenList[1] as String);
+  final tokens = await getTokens(fileUrl);
+  final fileContent =
+      await fetchPrvFile(fileUrl, tokens.accessToken, tokens.dPopToken);
 
   return fileContent;
 }
