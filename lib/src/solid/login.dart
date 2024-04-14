@@ -95,30 +95,10 @@ class SolidLogin extends StatefulWidget {
     this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
-    this.continueButtonStyle = const PodButtonStyle(
-      text: 'CONTINUE',
-      background: Colors.white,
-      foreground: Colors.black,
-      tooltip: 'Continue to the app without logging in to your Solid Pod',
-    ),
-    this.infoButtonStyle = const PodButtonStyle(
-      text: 'INFO',
-      background: Color.fromARGB(255, 214, 177, 165),
-      foreground: Colors.black,
-      tooltip: 'Visit the Solid Project website',
-    ),
-    this.loginButtonStyle = const PodButtonStyle(
-      text: 'LOGIN',
-      background: Color.fromARGB(255, 214, 177, 165),
-      foreground: Colors.black,
-      tooltip: 'Login to your Solid Pod',
-    ),
-    this.registerButtonStyle = const PodButtonStyle(
-      text: 'REGISTER',
-      background: Color.fromARGB(255, 214, 177, 165),
-      foreground: Colors.black,
-      tooltip: 'Get a Solid Pod',
-    ),
+    this.continueButtonStyle = const ContinueButtonStyle(),
+    this.infoButtonStyle = const InfoButtonStyle(),
+    this.loginButtonStyle = const LoginButtonStyle(),
+    this.registerButtonStyle = const RegisterButtonStyle(),
     super.key,
   });
 
@@ -132,19 +112,19 @@ class SolidLogin extends StatefulWidget {
 
   /// The style of the REGISTER button.
 
-  final PodButtonStyle registerButtonStyle;
+  final RegisterButtonStyle registerButtonStyle;
 
   /// The style of the LOGIN button.
 
-  final PodButtonStyle loginButtonStyle;
+  final LoginButtonStyle loginButtonStyle;
 
   /// The style of the INFO button.
 
-  final PodButtonStyle infoButtonStyle;
+  final InfoButtonStyle infoButtonStyle;
 
   /// The style of the CONTINUE button.
 
-  final PodButtonStyle continueButtonStyle;
+  final ContinueButtonStyle continueButtonStyle;
 
   /// The app's logo as displayed at the top of the login panel.
 
@@ -660,12 +640,51 @@ class PodButton extends StatelessWidget {
 
 /// A data structure for the buttons used in the Solid Login widget.
 
-class PodButtonStyle {
-  const PodButtonStyle({
-    required this.text,
-    required this.background,
-    required this.foreground,
-    required this.tooltip,
+class ContinueButtonStyle {
+  const ContinueButtonStyle({
+    this.text = 'CONTINUE',
+    this.background = Colors.white,
+    this.foreground = Colors.black,
+    this.tooltip = 'Continue to the app without logging in to your Solid Pod',
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class LoginButtonStyle {
+  const LoginButtonStyle({
+    this.text = 'LOGIN',
+    this.background = const Color.fromARGB(255, 214, 177, 165),
+    this.foreground = Colors.black,
+    this.tooltip = 'Login to your Solid Pod',
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class RegisterButtonStyle {
+  const RegisterButtonStyle({
+    this.text = 'REGISTER',
+    this.background = const Color.fromARGB(255, 214, 177, 165),
+    this.foreground = Colors.black,
+    this.tooltip = 'Get a Solid Pod',
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class InfoButtonStyle {
+  const InfoButtonStyle({
+    this.text = 'INFO',
+    this.background = const Color.fromARGB(255, 214, 177, 165),
+    this.foreground = Colors.black,
+    this.tooltip = 'Visit the Solid Project website',
   });
   final String text;
   final Color background;
