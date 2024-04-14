@@ -55,6 +55,8 @@ flutter:
   distributions
     targz   Builds $(APP)-$(VER)-linux-x86_64.tar.gz
 
+  publish   Publish a packjatge to pub.dev
+
 Also supported:
 
   *.itest
@@ -301,3 +303,7 @@ push::
 	perl -pi -e 's|(^version: .*)\+.*|$$1+$(VERSEQ)|' pubspec.yaml
 	-egrep '^version: .*\+.*' pubspec.yaml && \
 	echo git commit -m "Bump sequence $(VERSEQ)" pubspec.yaml
+
+.PHONY: publish
+publish:
+	dart pub publish
