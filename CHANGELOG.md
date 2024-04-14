@@ -8,6 +8,8 @@ numbers.
 
 ## 0.6 Future Release
 
++ Replace  keypod component with navigator pop. [0.5.11]
++ Replace hardcoded code after clicking the logout button. [0.5.10]
 + Update README for publication [0.5.9]
 + Swap the position of the buttons on the initialisePod() page. [0.5.8]
 + Redesign the initialisePod() page. [0.5.7]
