@@ -14,7 +14,7 @@ As a user of solidpod in my app ...
 
 ## Why
 
-So that ...
+So that ... and thereby adding value to the package by ...
 
 ## Closing Criteria
 
@@ -23,4 +23,4 @@ So that ...
 
 ## Details
 
-Screenshots
+Description and screenshots

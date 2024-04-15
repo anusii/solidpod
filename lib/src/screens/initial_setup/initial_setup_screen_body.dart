@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Tuesday 2024-04-02 21:17:46 +1100 Graham Williams>
+// Time-stamp: <Wednesday 2024-04-10 08:23:22 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -38,7 +38,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
-import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 
@@ -168,16 +167,31 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                   encKeyInputForm(
                                       formKey, showPassword, onChangedVal),
                                   Center(
-                                    child: resCreateFormSubmission(
-                                      formKey,
-                                      context,
-                                      resFileNamesLink,
-                                      resFoldersLink,
-                                      resFilesLink,
-                                      widget.authData,
-                                      widget.webId,
-                                      widget.appName,
-                                      widget.child,
+                                    child: TextButton.icon(
+                                      icon: const Icon(
+                                        Icons.logout,
+                                        color: Colors.grey,
+                                        size: 24.0,
+                                      ),
+                                      label: const Text(
+                                        'Or you can Logout from your Solid Pod'
+                                        ' to login again as another user.',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.grey, //black,
+                                        ),
+                                      ),
+                                      onPressed: () async {
+                                        Navigator.pop(context);
+
+                                        await logout(
+                                            widget.authData['logoutUrl']);
+                                      },
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: Colors
+                                            .white, //lightBlue, // Set the background color to light blue
+                                      ),
+                                      // remove the popup warning.
                                     ),
                                   ),
                                   const SizedBox(
@@ -216,42 +230,16 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton.icon(
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.grey,
-                    size: 24.0,
-                  ),
-                  label: const Text(
-                    'Logout from Pod',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey, //black,
-                    ),
-                  ),
-                  onPressed: () async {
-                    await logout(widget.authData['logoutUrl']);
-                    await Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SolidLogin(
-                          // Images generated using Bing Image Creator from Designer, powered by
-                          // DALL-E3.
-
-                          image: AssetImage('assets/images/keypod_image.jpg'),
-                          logo: AssetImage('assets/images/keypod_logo.png'),
-                          title: 'MANAGE YOUR SOLID POD',
-                          link: 'https://github.com/anusii/keypod',
-                          child: Scaffold(body: Text('Key Pod Placeholder')),
-                        ),
-                      ),
-                    );
-                  },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors
-                        .white, //lightBlue, // Set the background color to light blue
-                  ),
-                  // remove the popup warning.
+                resCreateFormSubmission(
+                  formKey,
+                  context,
+                  resFileNamesLink,
+                  resFoldersLink,
+                  resFilesLink,
+                  widget.authData,
+                  widget.webId,
+                  widget.appName,
+                  widget.child,
                 ),
               ],
             ),
@@ -278,7 +266,7 @@ class ResourceCreationTextWidget extends StatelessWidget {
     if (resLinks.isEmpty) return 'No resources specified';
 
     final baseUrl = resLinks.first.split('/').take(5).join('/');
-    return 'Resources that will be created within \n $baseUrl';
+    return 'Resources to be created within \n $baseUrl';
   }
 
   @override

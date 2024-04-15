@@ -81,4 +81,3 @@ const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 /// This instance provides encrypted storage to securely store key-value pairs.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
-
