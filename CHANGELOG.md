@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Catch potential exception when getting tokens [0.5.13]
 + add ButtonStyle class(data structure) to make all buttons customisable [0.5.12]
 + Replace  keypod component with navigator pop. [0.5.11]
 + Replace hardcoded code after clicking the logout button. [0.5.10]
