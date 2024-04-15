@@ -27,7 +27,7 @@ flutter:
   qlinux    Run with the linux device and debugPrint() turned off;
 
   prep      Prep for PR by running tests, checks, docs.
-  push      Git a git push and bump the build number if there is one.
+  push      Do a git push and bump the build number if there is one.
 
   docs	    Run `dart doc` to create documentation.
 
