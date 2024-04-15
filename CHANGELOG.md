@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ add ButtonStyle class(data structure) to make all buttons customisable [0.5.12]
 + Replace  keypod component with navigator pop. [0.5.11]
 + Replace hardcoded code after clicking the logout button. [0.5.10]
 + Update README for publication [0.5.9]
