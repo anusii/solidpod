@@ -57,7 +57,7 @@ const String ivPred = 'iv';
 const String titlePred = 'title';
 const String prvKeyPred = 'prvKey';
 const String pubKeyPred = 'pubKey';
-const String encKeyPred = 'encKey';
+const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String sessionKeyPred = 'sessionKey';
 // const String createdDateTimePred = 'createdDateTime';
@@ -81,3 +81,9 @@ const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 /// This instance provides encrypted storage to securely store key-value pairs.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+/// The string key for storing the encryption password (from which we derive the
+/// master key to encrypt the individual keys -- AES keys that are used to
+/// encrypt the data in PODs) in secure storage.
+
+String encPasswdSecureStorageKey = '_solid_enc_passwd';
