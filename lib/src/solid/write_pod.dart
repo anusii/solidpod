@@ -18,30 +18,40 @@ import 'package:solidpod/src/solid/constants.dart';
 ///    - update file with encrypted data if it exists (updateFileByQuery)
 
 Future<void> writePod(
-  String webId,
   String plainTxtPasswd,
   String fileName,
   String folderPath,
   String fileType,
   String fileContent,
   bool aclFlag,
-  Map<dynamic, dynamic> authData,
 ) async {
-  final rsaInfo = authData['rsaInfo'];
+  final webId = await getWebId();
+  assert(webId != null);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
+
+  final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
   final accessToken = authData['accessToken'].toString();
 
-  // Get file with all keys (key_file)
-  final encKeyMap = loadPrvTTL('$encDir/$encKeyFile');
-
   // Check if the file already exists
 
-  final fileUrl = webId.contains(profCard)
+  final fileUrl = webId!.contains(profCard)
       ? webId.replaceAll(profCard, folderPath)
       : '$webId$folderPath';
   final fileExists = await checkResourceExists(fileUrl, accessToken,
       genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET'), true);
+
+// Get file with all keys (key_file)
+  final encKeyMap = await loadPrvTTL('$encDir/$encKeyFile');
+  assert(encKeyMap != null);
+
+  // Verify the provided password
+  assert(verifyEncPasswd(plainTxtPasswd, encKeyMap![encKeyPred] as String));
+
+  // Derive the master key from password
+  final masterKey = genEncMasterKey(plainTxtPasswd);
 
   if (fileExists == 'exist') {
     // If the file exists
@@ -71,6 +81,7 @@ Future<void> writePod(
       // add encrypted session key to key_file
       // update key_file (similar to updateIndKeyFile)
       // create file with encrypted data
+
       final encData = '';
       if (await createItem(true, fileName, encData, webId, authData,
               fileLoc: folderPath, fileType: fileType, aclFlag: aclFlag) !=
