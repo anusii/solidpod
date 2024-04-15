@@ -697,7 +697,7 @@ class AuthDataManager {
   static Credential? _authResponse;
 
   /// The string key for storing auth data in secure storage
-  static const String authDataSecureStorageKey = '_solid_auth_data';
+  static const String _authDataSecureStorageKey = '_solid_auth_data';
 
   /// Save the auth data returned by solid-auth authenticate in secure storage
   /// It seems Map<String, dynamic> does not work
@@ -724,7 +724,7 @@ class AuthDataManager {
     _authResponse = authData['authResponse'] as Credential;
 
     await writeToSecureStorage(
-        authDataSecureStorageKey,
+        _authDataSecureStorageKey,
         jsonEncode({
           'logout_url': _logoutUrl,
           'rsa_info': jsonEncode({
@@ -814,7 +814,7 @@ class AuthDataManager {
 
   /// Retrieve auth data from secure storage
   static Future<bool> _loadData() async {
-    final dataStr = await secureStorage.read(key: authDataSecureStorageKey);
+    final dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
 
     if (dataStr != null) {
       final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
