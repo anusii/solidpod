@@ -48,6 +48,17 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
+const Color defaultButtonBackground = Color.fromARGB(255, 214, 177, 165);
+const Color defaultButtonForeground = Colors.black;
+const String defaultLoginButtonText = 'LOGIN';
+const String defaultRegisterButtonText = 'REGISTER';
+const String defaultInfoButtonText = 'INFO';
+const String defaultContinueButtonText = 'CONTINUE';
+const String defaultLoginTooltip = 'Login to your Solid Pod';
+const String defaultRegisterTooltip = 'Get a Solid Pod';
+const String defaultInfoTooltip = 'Visit the Solid Project website';
+const String defaultContinueTooltip =
+    'Continue to the app without logging in to your Solid Pod';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -642,10 +653,10 @@ class PodButton extends StatelessWidget {
 
 class ContinueButtonStyle {
   const ContinueButtonStyle({
-    this.text = 'CONTINUE',
-    this.background = Colors.white,
-    this.foreground = Colors.black,
-    this.tooltip = 'Continue to the app without logging in to your Solid Pod',
+    this.text = defaultContinueButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultContinueTooltip,
   });
   final String text;
   final Color background;
@@ -655,10 +666,10 @@ class ContinueButtonStyle {
 
 class LoginButtonStyle {
   const LoginButtonStyle({
-    this.text = 'LOGIN',
-    this.background = const Color.fromARGB(255, 214, 177, 165),
-    this.foreground = Colors.black,
-    this.tooltip = 'Login to your Solid Pod',
+    this.text = defaultLoginButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultLoginTooltip,
   });
   final String text;
   final Color background;
@@ -668,10 +679,10 @@ class LoginButtonStyle {
 
 class RegisterButtonStyle {
   const RegisterButtonStyle({
-    this.text = 'REGISTER',
-    this.background = const Color.fromARGB(255, 214, 177, 165),
-    this.foreground = Colors.black,
-    this.tooltip = 'Get a Solid Pod',
+    this.text = defaultRegisterButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultRegisterTooltip,
   });
   final String text;
   final Color background;
@@ -681,10 +692,10 @@ class RegisterButtonStyle {
 
 class InfoButtonStyle {
   const InfoButtonStyle({
-    this.text = 'INFO',
-    this.background = const Color.fromARGB(255, 214, 177, 165),
-    this.foreground = Colors.black,
-    this.tooltip = 'Visit the Solid Project website',
+    this.text = defaultInfoButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultInfoTooltip,
   });
   final String text;
   final Color background;
