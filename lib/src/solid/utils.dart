@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart' show writeToSecureStorage;
@@ -12,18 +13,12 @@ import 'package:solidpod/src/solid/constants.dart';
 // import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 
 /// Derive the master key from user password
-String genEncMasterKey(String plainTxtPasswd) {
-  final encMasterKey =
-      sha256.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
-  return encMasterKey;
-}
+String genEncMasterKey(String plainTxtPasswd) =>
+    sha256.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
 
 /// Derive the verification key from user password
-String genVerificationKey(String plainTxtPasswd) {
-  final encMasterKeyVerify =
-      sha224.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
-  return encMasterKeyVerify;
-}
+String genVerificationKey(String plainTxtPasswd) =>
+    sha224.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
 
 /// Encrypt data using AES with the specified key
 /// Return a record (with named fields)
@@ -38,27 +33,21 @@ String genVerificationKey(String plainTxtPasswd) {
 }
 
 /// Decrypt a ciphertext value
-String decryptData(String encData, Key key, String iv) {
-  final encrypter = Encrypter(AES(key));
-  return encrypter.decrypt(Encrypted.from64(encData), iv: IV.fromBase64(iv));
-}
+String decryptData(String encData, Key key, String iv) => Encrypter(AES(key))
+    .decrypt(Encrypted.from64(encData), iv: IV.fromBase64(iv));
 
 /// Create a random individual/session key
-Key getIndividualKey() {
-  return Key.fromSecureRandom(32);
-}
+Key getIndividualKey() => Key.fromSecureRandom(32);
 
-// /// Encrypt individual key
-// ({String indKeyEnc, String indKeyIV}) encryptIndividualKey(
-//     Key indKey, String masterKey) {
-//   final enc = encryptData(indKey.base64, Key.fromUtf8(masterKey));
-//   return (indKeyEnc: enc.encData, indKeyIV: enc.iv);
-// }
+/// Create a Key object from its utf-8 string
+Key getKeyfromUtf8(String utf8KeyStr) => Key.fromUtf8(utf8KeyStr);
+
+/// Create a Key object from its base64 string
+Key getKeyfromBase64(String base64KeyStr) => Key.fromBase64(base64KeyStr);
 
 /// Verify the user provided password for data encryption
-bool verifyEncPasswd(String plainTxtPasswd, String verificationKey) {
-  return genVerificationKey(plainTxtPasswd) == verificationKey;
-}
+bool verifyEncPasswd(String plainTxtPasswd, String verificationKey) =>
+    genVerificationKey(plainTxtPasswd) == verificationKey;
 
 /// Save encryption password in local secure storage
 Future<void> saveEncPasswd(String plainTxtPasswd) async {
@@ -72,14 +61,34 @@ Future<String?> loadEncPasswd() async {
   return plainTxtPasswd;
 }
 
+/// Parse TTL content into a map {subject: {predicate: object}}
+Map<String, dynamic> parseTTL(String ttlContent) {
+  final g = Graph();
+  g.parseTurtle(ttlContent);
+  final dataMap = <String, dynamic>{};
+  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
+  for (final t in g.triples) {
+    final sub = extract(t.sub.value as String);
+    final pre = extract(t.pre.value as String);
+    final obj = extract(t.obj.value as String);
+    if (dataMap.containsKey(sub)) {
+      assert(!(dataMap[sub] as Map).containsKey(pre));
+      dataMap[sub][pre] = obj;
+    } else {
+      dataMap[sub] = {pre: obj};
+    }
+  }
+  return dataMap;
+}
+
 /// Load and parse a private TTL file from POD
-Future<Map<dynamic, dynamic>?> loadPrvTTL(String filePath) async {
+Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
   final fileUrl = await createFileUrl(filePath);
   final tokens = await getTokens(fileUrl);
   try {
     final rawContent =
         await fetchPrvFile(fileUrl, tokens.accessToken, tokens.dPopToken);
-    return getFileContent(rawContent);
+    return parseTTL(rawContent);
   } on Exception catch (e) {
     print('Exception: $e');
     return null;
