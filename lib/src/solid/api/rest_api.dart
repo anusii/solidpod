@@ -261,6 +261,46 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
   }
 }
 
+/// Delete a file or a directory
+Future<String> deleteItem(bool fileFlag, String itemLoc) async {
+  // Set up file (resource) or directory (container) parameters
+  String contentType = fileFlag ? 'text/turtle' : 'application/octet-stream';
+
+  final webId = await getWebId();
+  assert(webId != null);
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
+  final rsaInfo = authData!['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'].toString();
+
+  String encKeyUrl = webId!.replaceAll(profCard, itemLoc);
+  String dPopToken =
+      genDpopToken(encKeyUrl, rsaKeyPair, publicKeyJwk, 'DELETE');
+
+  final createResponse = await http.delete(
+    Uri.parse(encKeyUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': contentType,
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (createResponse.statusCode == 200 || createResponse.statusCode == 205) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return 'ok';
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to delete file! Try again in a while.');
+  }
+}
+
 /// Asynchronously checks whether a given resource exists on the server.
 ///
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
@@ -771,7 +811,7 @@ class AuthDataManager {
   /// Remove/delete auth data from secure storage
   static Future<bool> removeAuthData() async {
     try {
-      await secureStorage.delete(key: authDataSecureStorageKey);
+      await secureStorage.delete(key: _authDataSecureStorageKey);
       _logoutUrl = null;
       _rsaInfo = null;
       _authResponse = null;
