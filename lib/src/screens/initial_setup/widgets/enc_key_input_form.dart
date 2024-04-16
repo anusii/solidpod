@@ -26,7 +26,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Kevin Wang
+
+// ignore_for_file: public_member_api_docs, prefer_const_constructors_in_immutables, sort_constructors_first, always_put_required_named_parameters_first, use_super_parameters
 
 library;
 
@@ -37,132 +39,155 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 
-/// A form widget for inputing encryption key
-///
-/// A developer may change this to include any other input data they want to
-/// gather from a POD user. Eg: Name, Gender
+class EncKeyInputForm extends StatefulWidget {
+  final GlobalKey<FormBuilderState> formKey;
 
-FormBuilder encKeyInputForm(GlobalKey<FormBuilderState> formKey,
-    bool showPassword, void Function(dynamic val) onChangedVal) {
-  return FormBuilder(
-    key: formKey,
-    onChanged: () {
-      formKey.currentState!.save();
-      debugPrint(formKey.currentState!.value.toString());
-    },
-    autovalidateMode: AutovalidateMode.disabled,
-    skipDisabled: true,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Text(
-          'We require a password to secure your data:',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const Divider(
-          color: Colors.grey,
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        const Text(
-          requiredPwdMsg,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        FormBuilderTextField(
-          name: 'password',
-          obscureText: showPassword,
-          autocorrect: false,
-          decoration: const InputDecoration(
-            labelText: 'PASSWORD',
-            labelStyle: TextStyle(
-              color: darkBlue,
-              letterSpacing: 1.5,
-              fontSize: 13.0,
-              fontWeight: FontWeight.bold,
+  EncKeyInputForm({Key? key, required this.formKey}) : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _EncKeyInputFormState createState() => _EncKeyInputFormState();
+}
+
+class _EncKeyInputFormState extends State<EncKeyInputForm> {
+  bool _showPassword = false;
+  bool _showRetypePassword = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return FormBuilder(
+      key: widget.formKey,
+      onChanged: () {
+        widget.formKey.currentState!.save();
+        debugPrint(widget.formKey.currentState!.value.toString());
+      },
+      autovalidateMode: AutovalidateMode.disabled,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const Text(
+            'We require a password to secure your data:',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
-            //errorText: 'error',
           ),
-          validator: FormBuilderValidators.compose([
-            FormBuilderValidators.required(),
-          ]),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        FormBuilderTextField(
-          name: 'repassword',
-          obscureText: showPassword,
-          autocorrect: false,
-          decoration: const InputDecoration(
-            labelText: 'RETYPE PASSWORD',
-            labelStyle: TextStyle(
-              color: darkBlue,
-              letterSpacing: 1.5,
-              fontSize: 13.0,
-              fontWeight: FontWeight.bold,
+          const Divider(color: Colors.grey),
+          const SizedBox(height: 20),
+          const Text(
+            requiredPwdMsg,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
             ),
-            //errorText: 'error',
           ),
-          validator: FormBuilderValidators.compose([
-            FormBuilderValidators.required(),
-            (val) {
-              if (val != formKey.currentState!.fields['password']?.value) {
-                return 'Passwords do not match';
+          const SizedBox(height: 10),
+          FormBuilderTextField(
+            name: 'password',
+            obscureText:
+                // Controls whether the password is shown or hidden.
+
+                !_showPassword,
+            autocorrect: false,
+            decoration: InputDecoration(
+              labelText: 'PASSWORD',
+              labelStyle: const TextStyle(
+                color: Colors.blue,
+                letterSpacing: 1.5,
+                fontSize: 13.0,
+                fontWeight: FontWeight.bold,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                    _showPassword ? Icons.visibility : Icons.visibility_off),
+                onPressed: () {
+                  setState(() {
+                    _showPassword =
+                        // Toggle the state to show/hide the password.
+
+                        !_showPassword;
+                  });
+                },
+              ),
+            ),
+            validator: FormBuilderValidators.compose([
+              FormBuilderValidators.required(),
+            ]),
+          ),
+          const SizedBox(height: 10),
+          FormBuilderTextField(
+            name: 'repassword',
+            obscureText: !_showRetypePassword,
+            autocorrect: false,
+            decoration: InputDecoration(
+              labelText: 'RETYPE PASSWORD',
+              labelStyle: const TextStyle(
+                color: Colors.blue,
+                letterSpacing: 1.5,
+                fontSize: 13.0,
+                fontWeight: FontWeight.bold,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(_showRetypePassword
+                    ? Icons.visibility
+                    : Icons.visibility_off),
+                onPressed: () {
+                  setState(() {
+                    _showRetypePassword = !_showRetypePassword;
+                  });
+                },
+              ),
+            ),
+            validator: FormBuilderValidators.compose([
+              FormBuilderValidators.required(),
+              (val) {
+                if (val !=
+                    widget.formKey.currentState!.fields['password']?.value) {
+                  return 'Passwords do not match';
+                }
+                return null;
+              },
+            ]),
+          ),
+          const SizedBox(height: 30),
+          const Text(
+            publicKeyMsg,
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 10),
+          FormBuilderCheckbox(
+            name: 'providepermission',
+            initialValue: false,
+            onChanged: (val) {
+              if (val != null) {
+                debugPrint('Permission granted: $val');
               }
-              return null;
             },
-          ]),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
-        const Text(
-          publicKeyMsg,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        FormBuilderCheckbox(
-          name: 'providepermission',
-          initialValue: false,
-          onChanged: onChangedVal,
-          title: RichText(
-            text: const TextSpan(
-              children: [
-                TextSpan(
-                  text:
-                      'I also note that the resources identified below will be created. ',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ],
+            title: RichText(
+              text: const TextSpan(
+                children: [
+                  TextSpan(
+                    text:
+                        'I acknowledge that the resources identified below will be created. ',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+            validator: FormBuilderValidators.equal(
+              true,
+              errorText: 'You must provide permission to continue',
             ),
           ),
-          validator: FormBuilderValidators.equal(
-            true,
-            errorText: 'You must provide permission to continue',
-          ),
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
 }

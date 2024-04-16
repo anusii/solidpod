@@ -164,8 +164,9 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  encKeyInputForm(
-                                      formKey, showPassword, onChangedVal),
+                                  EncKeyInputForm(
+                                    formKey: formKey,
+                                  ),
                                   Center(
                                     child: TextButton.icon(
                                       icon: const Icon(
