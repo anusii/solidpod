@@ -1,6 +1,9 @@
+// TODO 20240417 WHERE'S THER LICENSE AND AUTHOR?
+
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/popup_login.dart';
@@ -18,7 +21,7 @@ Future<String> readPod(
     await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const PopupLogin(),
+          builder: (context) => const SolidPopupLogin(),
         ));
   }
 

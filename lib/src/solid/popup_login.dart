@@ -14,18 +14,20 @@
 // limitations under the License.
 ///
 /// Authors: Kevin Wang
+
 library;
 
 import 'package:flutter/material.dart';
+
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A widget to pop up the login prompt if the user is not logged in
 
-class PopupLogin extends StatefulWidget {
+class SolidPopupLogin extends StatefulWidget {
   /// Constructor for the PopupLogin
 
-  const PopupLogin({
+  const SolidPopupLogin({
     this.webId = 'https://pods.solidcommunity.au',
     super.key,
   });
@@ -37,10 +39,10 @@ class PopupLogin extends StatefulWidget {
   final String webId;
 
   @override
-  State<PopupLogin> createState() => _PopupLoginState();
+  State<SolidPopupLogin> createState() => _SolidPopupLoginState();
 }
 
-class _PopupLoginState extends State<PopupLogin> {
+class _SolidPopupLoginState extends State<SolidPopupLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   static Future<dynamic>? _asyncLogin;
   String appName = '';

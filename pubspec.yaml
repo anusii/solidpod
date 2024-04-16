@@ -21,7 +21,6 @@ dependencies:
   intl: ^0.18.0
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
-  markdown_editor_plus: ^0.2.13
   package_info_plus: ^5.0.1
   rdflib: ^0.2.8
   solid_auth: ^0.1.16  # solid-auth can get refresh token since version 0.1.15
@@ -42,6 +41,12 @@ dev_dependencies:
   # dart-code-metrics fails.
   # solid_lints: ^0.1.1
   ubuntu_lints: ^0.3.0
+
+# TODO 20240417 gjw We will want to get rid of these eventually. For
+# example, even though intl 0.18.0 is otherwise required, we override
+# with 0.19.0 to suit some package (SOMEONE FORGOT TO DOCUMENT WHY -
+# PLEASE). But the apps need to also override it, which is really
+# ugly. Maybe for file as well? WHY IS IT OVERRIDEN PLEASE.
 
 dependency_overrides:
   file: ^7.0.0
