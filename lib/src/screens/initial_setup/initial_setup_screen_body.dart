@@ -89,9 +89,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormBuilderState>();
 
-    void onChangedVal(dynamic val) => debugPrint(val.toString());
-    const showPassword = true;
-
     final resFoldersLink = (widget.resNeedToCreate['folders'] as List)
         .map((item) => item.toString())
         .toList();
@@ -164,8 +161,9 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
-                                  encKeyInputForm(
-                                      formKey, showPassword, onChangedVal),
+                                  EncKeyInputForm(
+                                    formKey: formKey,
+                                  ),
                                   Center(
                                     child: TextButton.icon(
                                       icon: const Icon(
