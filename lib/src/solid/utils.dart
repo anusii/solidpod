@@ -13,37 +13,38 @@ import 'package:solidpod/src/solid/constants.dart';
 // import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 
 /// Derive the master key from user password
-String genEncMasterKey(String plainTxtPasswd) =>
-    sha256.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
+Key genEncMasterKey(String plainTxtPasswd) => Key.fromUtf8(
+    sha256.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32));
 
 /// Derive the verification key from user password
 String genVerificationKey(String plainTxtPasswd) =>
     sha224.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
 
 /// Encrypt data using AES with the specified key
-/// Return a record (with named fields)
-/// https://dart.dev/language/records
-/// TODO: update solid-encrypt and use the its encrypt/decrypt functions
-/// key: Key.fromUtf8(key_utf8_str) or Key.fromBase64(key_base64_str)
-({String encData, String iv}) encryptData(String data, Key key) {
-  final iv = IV.fromLength(16);
+String encryptData(String data, Key key, IV iv) {
   final encrypter = Encrypter(AES(key));
   final encryptVal = encrypter.encrypt(data, iv: iv);
-  return (encData: encryptVal.base64, iv: iv.base64);
+  return encryptVal.base64;
 }
 
 /// Decrypt a ciphertext value
-String decryptData(String encData, Key key, String iv) => Encrypter(AES(key))
-    .decrypt(Encrypted.from64(encData), iv: IV.fromBase64(iv));
+String decryptData(String encData, Key key, IV iv) =>
+    Encrypter(AES(key)).decrypt(Encrypted.from64(encData), iv: iv);
 
 /// Create a random individual/session key
 Key getIndividualKey() => Key.fromSecureRandom(32);
 
+/// Create a random intialisation vector
+IV getIV() => IV.fromLength(16);
+
 /// Create a Key object from its utf-8 string
-Key getKeyfromUtf8(String utf8KeyStr) => Key.fromUtf8(utf8KeyStr);
+// Key getKeyfromUtf8(String utf8KeyStr) => Key.fromUtf8(utf8KeyStr);
 
 /// Create a Key object from its base64 string
-Key getKeyfromBase64(String base64KeyStr) => Key.fromBase64(base64KeyStr);
+// Key getKeyfromBase64(String base64KeyStr) => Key.fromBase64(base64KeyStr);
+
+/// Create a IV object from its base64 string
+// IV getIVfromBase64(String base64IVStr) => IV.fromBase64(base64IVStr);
 
 /// Verify the user provided password for data encryption
 bool verifyEncPasswd(String plainTxtPasswd, String verificationKey) =>

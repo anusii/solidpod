@@ -301,12 +301,24 @@ Future<String> deleteItem(bool fileFlag, String itemLoc) async {
   }
 }
 
+/// Enum of resource status
+enum ResourceStatus {
+  /// The resource exist
+  exist,
+
+  /// The resource does not exist
+  notExist,
+
+  /// Do not know if the resource exist (e.g. error occurred when checking the status)
+  unknown
+}
+
 /// Asynchronously checks whether a given resource exists on the server.
 ///
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
 
-Future<String> checkResourceExists(
+Future<ResourceStatus> checkResourceExists(
     String resUrl, String accessToken, String dPopToken, bool fileFlag) async {
   String contentType;
   String itemType;
@@ -332,13 +344,13 @@ Future<String> checkResourceExists(
   if (response.statusCode == 200 || response.statusCode == 204) {
     // If the server did return a 200 OK response,
     // then return true.
-    return 'exist';
+    return ResourceStatus.exist;
   } else if (response.statusCode == 404) {
     // If the server did not return a 200 OK response,
     // then return false.
-    return 'not-exist';
+    return ResourceStatus.notExist;
   } else {
-    return 'other-error';
+    return ResourceStatus.unknown;
   }
 }
 
@@ -661,12 +673,14 @@ Future<({String accessToken, String dPopToken})> getTokens(
 
 Future<String> createFileUrl(String filePath) async {
   final webId = await getWebId();
+  assert(webId != null);
+  assert(webId!.contains(profCard));
 
   final appDetails = await getAppNameVersion();
   final appName = appDetails.name;
-  final keyFileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
+  final fileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
 
-  return keyFileUrl;
+  return fileUrl;
 }
 
 /// Extract the app name and the version from the package info
