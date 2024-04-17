@@ -1,3 +1,6 @@
+import 'dart:core';
+
+import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solid_auth/solid_auth.dart';
@@ -30,18 +33,10 @@ Future<void> writePod(
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
-  final rsaInfo = authData!['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
-
   // Check if the file already exists
 
-  final fileUrl = webId!.contains(profCard)
-      ? webId.replaceAll(profCard, '$folderPath/$fileName')
-      : '$webId$folderPath/$fileName';
-  final fileExists = await checkResourceExists(fileUrl, accessToken,
-      genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET'), true);
+  final fileUrl = await createFileUrl('$folderPath/$fileName');
+  final fileExists = await checkResourceExists(fileUrl, true);
 
 // Get the file with verification key
   final encKeyMap = await loadPrvTTL('$encDir/$encKeyFile');
@@ -55,71 +50,53 @@ Future<void> writePod(
   // Derive the master key from password
   final masterKey = genEncMasterKey(plainTxtPasswd);
 
-  // Get the file with individual keys
-  final indKeyMap = await loadPrvTTL('$encDir/$indKeyFile');
-  // final indKeyFileUrl = await createFileUrl('$encDir/$indKeyFile');
-  // assert(indKeyMap!.containsKey(indKeyFileUrl));
+  late final String encData;
+  late final IV dataIV;
 
-  var indKey;
-  var indIv;
-
-  if (fileExists == 'exist') {
+  if (fileExists == ResourceStatus.exist) {
     // Delete the existing file or Append?
-    assert(indKeyMap!.containsKey(fileName));
-    indKey = indKeyMap![fileName][sessionKeyPred];
-    indIv = indKeyMap[fileName][ivPred];
+
     try {
       await deleteItem(true, '$folderPath/$fileName');
-    } on Exception catch (e) {
+    } catch (e) {
       print('Exception: $e');
     }
 
-    // Decrypt the encrypted file using its individual/session key
+    // Get the file with individual keys
+    final indKeyMap = await loadPrvTTL('$encDir/$indKeyFile');
+    // final indKeyFileUrl = await createFileUrl('$encDir/$indKeyFile');
+    // assert(indKeyMap!.containsKey(indKeyFileUrl));
 
-    // Update the file content
-    // Encrypt the data
-    // update data file with new data
-    String query = '';
-    try {
-      if (await updateFileByQuery(
-              fileUrl,
-              accessToken,
-              genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'PATCH'),
-              query) !=
-          'ok') {
-        throw Exception('ERR: Update file failed');
-      }
-    } on Exception catch (e) {
-      print('Exception: $e');
-    }
-  } else if (fileExists == 'not-exist') {
-    // If the file does not exist
-    try {
-      // Generate individual/session key
-      final indKey = getIndividualKey();
+    assert(indKeyMap!.containsKey(fileName));
+    final encIndKey = indKeyMap![fileName][sessionKeyPred] as String;
+    final indKeyIV = indKeyMap[fileName][ivPred] as String;
 
-      // Encrypt data using the individual/session key
-      final encContent = encryptData(fileContent, indKey);
+    // Decrypt the individual key
+    final indKey = Key.fromBase64(
+        decryptData(encIndKey, masterKey, IV.fromBase64(indKeyIV)));
 
-      // Encrypt the individual/session key using the master key
-      final encIndKey = encryptData(indKey.base64, getKeyfromUtf8(masterKey));
+    // Encrypt data
+    dataIV = getIV();
+    encData = encryptData(fileContent, indKey, dataIV);
+  } else if (fileExists == ResourceStatus.notExist) {
+    // Generate individual/session key
+    final indKey = getIndividualKey();
+    final indKeyIV = getIV();
+    dataIV = getIV();
+    encData = encryptData(fileContent, indKey, dataIV);
 
-      // Add encrypted individual/session key to the ind-key file
+    // Encrypt individual Key
+    final encIndKey = encryptData(indKey.base64, masterKey, indKeyIV);
 
-      // Update the ind-key file on server (similar to updateIndKeyFile)
-
-      // Create file with encrypted data on server
-
-      final encData = '';
-      if (await createItem(true, fileName, encData, webId, authData,
-              fileLoc: folderPath, fileType: fileType, aclFlag: aclFlag) !=
-          'ok') {
-        throw Exception('ERR: Create file failed');
-      }
-    } on Exception catch (e) {
-      print('Exception $e');
-    }
+    // Update the ind-key file on server
   } else {
-    print('ERR: Unable to determine if file exists');
+    //throw Exception('Unable to determine if file exists');
+    print('ERR');
   }
+
+  // generate TTL with dataIV and encData
+  final ttlContent = '';
+
+  // Create file with encrypted data on server
+  createTTL(fileName, folderPath, ttlContent);
 }
