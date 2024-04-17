@@ -28,8 +28,6 @@
 ///
 /// Authors: Anushka Vidanage, Kevin Wang
 
-// ignore_for_file: public_member_api_docs, prefer_const_constructors_in_immutables, sort_constructors_first, always_put_required_named_parameters_first, use_super_parameters
-
 library;
 
 import 'package:flutter/material.dart';
@@ -39,10 +37,14 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 
+/// EncKeyInputForm is a [StatefulWidget] that represents the form for entering the encryption key.
 class EncKeyInputForm extends StatefulWidget {
-  final GlobalKey<FormBuilderState> formKey;
+  /// Initialising the [StatefulWidget] with the [formKey].
 
-  EncKeyInputForm({Key? key, required this.formKey}) : super(key: key);
+  const EncKeyInputForm({required this.formKey, super.key});
+
+  /// The key for the form.
+  final GlobalKey<FormBuilderState> formKey;
 
   @override
   // ignore: library_private_types_in_public_api
