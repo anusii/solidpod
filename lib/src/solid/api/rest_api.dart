@@ -754,13 +754,13 @@ class AuthDataManager {
 
     assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
     try {
-      final tokenResponse = await _authResponse!.getTokenResponse();
+      final tokenResponse = await _getTokenResponse();
       return {
         'client': _authResponse!.client,
         'rsaInfo': _rsaInfo,
         'authResponse': _authResponse,
         'tokenResponse': tokenResponse,
-        'accessToken': tokenResponse.accessToken,
+        'accessToken': tokenResponse!.accessToken,
         'idToken': _authResponse!.idToken,
         'refreshToken': _authResponse!.refreshToken,
         'expiresIn': tokenResponse.expiresIn,
@@ -768,8 +768,8 @@ class AuthDataManager {
       };
     } on Exception catch (e) {
       debugPrint('AuthDataManager => loadAuthData() failed: $e');
-      return null;
     }
+    return null;
   }
 
   /// Remove/delete auth data from secure storage
@@ -783,16 +783,27 @@ class AuthDataManager {
       return true;
     } on Exception {
       debugPrint('AuthDataManager => removeAuthData() failed');
-      return false;
     }
+    return false;
   }
 
   /// Returns the (refreshed) access token
   static Future<String?> getAccessToken() async {
+    final tokenResponse = await _getTokenResponse();
+    if (tokenResponse != null) {
+      return tokenResponse.accessToken;
+    } else {
+      debugPrint('AuthDataManager => getAccessToken() failed');
+    }
+    return null;
+  }
+
+  /// Returns the (updated) token response
+  static Future<TokenResponse?> _getTokenResponse() async {
     if (_authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => getAccessToken() failed');
+        debugPrint('AuthDataManager => _getTokenResponse() failed');
         return null;
       }
     }
@@ -800,9 +811,9 @@ class AuthDataManager {
 
     try {
       var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
-      if (tokenResponse.expiresAt == null ||
-          tokenResponse.expiresAt!.isBefore(DateTime.now())) {
-        print('refreshing access token');
+      if (JwtDecoder.isExpired(tokenResponse.accessToken!)) {
+        debugPrint(
+            'AuthDataManager => _getTokenResponse() refreshing expired token');
         assert(_rsaInfo != null);
         final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
         final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
@@ -813,11 +824,11 @@ class AuthDataManager {
         tokenResponse = await _authResponse!
             .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
       }
-      return tokenResponse.accessToken;
+      return tokenResponse;
     } on Exception catch (e) {
-      debugPrint('AuthDataManager => getAccessToken() Exception: $e');
-      return null;
+      debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
     }
+    return null;
   }
 
   /// Reconstruct the rsaInfo from JSON string
@@ -842,7 +853,6 @@ class AuthDataManager {
 
       return true;
     }
-
     return false;
   }
 }
