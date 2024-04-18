@@ -799,7 +799,20 @@ class AuthDataManager {
     assert(_authResponse != null);
 
     try {
-      final tokenResponse = await _authResponse!.getTokenResponse();
+      var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
+      if (tokenResponse.expiresAt == null ||
+          tokenResponse.expiresAt!.isBefore(DateTime.now())) {
+        print('refreshing access token');
+        assert(_rsaInfo != null);
+        final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
+        final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
+        String tokenEndpoint =
+            _authResponse!.client.issuer.metadata['token_endpoint'] as String;
+        String dPopToken =
+            genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
+        tokenResponse = await _authResponse!
+            .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+      }
       return tokenResponse.accessToken;
     } on Exception catch (e) {
       debugPrint('AuthDataManager => getAccessToken() Exception: $e');
@@ -829,6 +842,7 @@ class AuthDataManager {
 
       return true;
     }
+
     return false;
   }
 }
