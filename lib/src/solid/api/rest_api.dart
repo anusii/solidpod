@@ -122,10 +122,13 @@ Future<List<dynamic>> initialStructureTest(
   final rsaKeyPair = rsaInfo['rsa'];
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
   final accessToken = authData['accessToken'].toString();
-  final decodedToken = JwtDecoder.decode(accessToken);
+  //final decodedToken = JwtDecoder.decode(accessToken);
 
   // Get webID
-  final webId = decodedToken['webid'].toString();
+  //final webId = decodedToken['webid'].toString();
+  final webId = await getWebId();
+  assert(webId != null);
+
   var allExists = true;
   final resNotExist = <dynamic, dynamic>{
     'folders': [],
@@ -135,13 +138,13 @@ Future<List<dynamic>> initialStructureTest(
   };
 
   for (final containerName in folders) {
-    final resourceUrl = webId.replaceAll('profile/card#me', '$containerName/');
+    final resourceUrl = webId!.replaceAll(profCard, '$containerName/');
     final dPopToken =
         genDpopToken(resourceUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
     if (await checkResourceExists(resourceUrl, accessToken, dPopToken, false) ==
-        'not-exist') {
+        ResourceStatus.notExist) {
       allExists = false;
-      final resourceUrlStr = webId.replaceAll('profile/card#me', containerName);
+      final resourceUrlStr = webId.replaceAll(profCard, containerName);
       resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
@@ -151,12 +154,12 @@ Future<List<dynamic>> initialStructureTest(
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
       final resourceUrl =
-          webId.replaceAll('profile/card#me', '$containerName/$fileName');
+          webId!.replaceAll(profCard, '$containerName/$fileName');
       final dPopToken =
           genDpopToken(resourceUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
       if (await checkResourceExists(
               resourceUrl, accessToken, dPopToken, false) ==
-          'not-exist') {
+          ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
         resNotExist['fileNames'].add(fileName);
@@ -176,17 +179,23 @@ Future<List<dynamic>> initialStructureTest(
 Future<String> createItem(bool fileFlag, String itemName, String itemBody,
     String webId, Map<dynamic, dynamic> authData,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
+  // Get web ID
+  final webId = await getWebId();
+  assert(webId != null);
+
+  // Get authentication data
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
+
+  final rsaInfo = authData!['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'];
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final accessToken = authData['accessToken'].toString();
+
   String? itemLoc = '';
   var itemSlug = '';
   var itemType = '';
   var contentType = '';
-
-  // Get authentication info.
-
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
 
   // Set up directory or file parameters.
   if (fileFlag) {
@@ -201,8 +210,8 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
   }
 
-  final encDataUrl = webId.contains('profile/card#me')
-      ? webId.replaceAll('profile/card#me', itemLoc)
+  final encDataUrl = webId!.contains(profCard)
+      ? webId.replaceAll(profCard, itemLoc)
       : fileFlag
           ? '$webId$itemLoc'
           : '$webId/$itemLoc';
@@ -213,8 +222,8 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
   final http.Response createResponse;
 
   if (aclFlag) {
-    final aclFileUrl = webId.contains('profile/card#me')
-        ? webId.replaceAll('profile/card#me', '$itemLoc$itemName')
+    final aclFileUrl = webId.contains(profCard)
+        ? webId.replaceAll(profCard, '$itemLoc$itemName')
         : '$webId/$itemLoc$itemName';
     final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
 
