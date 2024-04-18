@@ -23,7 +23,7 @@ dependencies:
   loading_indicator: ^3.1.1
   package_info_plus: ^5.0.1
   rdflib: ^0.2.8
-  solid_auth: ^0.1.16  # solid-auth can get refresh token since version 0.1.15
+  solid_auth: ^0.1.17  # solid-auth updated the token refreshing API since version 0.1.17
   solid_encrypt: ^0.1.10
   url_launcher: ^6.2.4
 
