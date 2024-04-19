@@ -33,4 +33,5 @@ library solidpod;
 export 'src/solid/login.dart' show SolidLogin;
 export 'src/solid/popup_login.dart' show PopupLogin;
 export 'src/solid/api/rest_api.dart';
+export 'src/solid/utils.dart';
 export 'src/solid/read_pod.dart';
