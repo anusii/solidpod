@@ -101,7 +101,7 @@ Future<String> fetchPrvFile(String prvFileUrl) async {
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
-    // print(profResponse.body);
+    print(profResponse.body);
     throw Exception('Failed to load profile data! Try again in a while.');
   }
 }
@@ -333,13 +333,13 @@ Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
 Future<List<String>> generateDefaultFolders() async {
   final appName = await getAppName();
   final mainResDir = appName;
-  const myNotesDir = 'data';
+  const dataDir = 'data';
   const sharingDir = 'sharing';
   const sharedDir = 'shared';
   const encDir = 'encryption';
   const logsDir = 'logs';
 
-  final myNotesDirLoc = '$mainResDir/$myNotesDir';
+  final myNotesDirLoc = '$mainResDir/$dataDir';
   final sharingDirLoc = '$mainResDir/$sharingDir';
   final sharedDirLoc = '$mainResDir/$sharedDir';
   final encDirLoc = '$mainResDir/$encDir';
