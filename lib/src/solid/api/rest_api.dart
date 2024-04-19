@@ -833,6 +833,19 @@ class AuthDataManager {
     }
   }
 
+  /// Returns the logout URL
+  static Future<String?> getLogoutUrl() async {
+    if (_logoutUrl == null) {
+      final loaded = await _loadData();
+      if (!loaded) {
+        debugPrint('AuthDataManager => getLogoutUrl() failed');
+        return null;
+      }
+    }
+    assert(_logoutUrl != null);
+    return _logoutUrl;
+  }
+
   /// Reconstruct the rsaInfo from JSON string
   static Map<dynamic, dynamic> _getRsaInfo(String rsaJson) {
     final rsaInfo_ = jsonDecode(rsaJson) as Map<String, dynamic>;

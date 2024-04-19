@@ -64,9 +64,6 @@ ElevatedButton resCreateFormSubmission(
   List<String> resFileNamesLink,
   List<String> resFoldersLink,
   List<String> resFilesLink,
-  Map<dynamic, dynamic> authData,
-  String webId,
-  // String appName,
   Widget child,
 ) {
   // Use MediaQuery to determine the screen width and adjust the font size accordingly.
@@ -85,6 +82,12 @@ ElevatedButton resCreateFormSubmission(
         final formData = formKey.currentState?.value as Map;
 
         final passPlaintxt = formData['password'].toString();
+
+        final webId = await getWebId();
+        assert(webId != null);
+
+        final authData = await AuthDataManager.loadAuthData();
+        assert(authData != null);
 
         // Variable to see whether we need to update the key files. Because if
         // one file is missing we need to create asymmetric key pairs again.
@@ -142,8 +145,10 @@ ElevatedButton resCreateFormSubmission(
 
           pubKeyStr = dividePubKeyStr(pubKey);
 
+          // TODO: update this code
           if (!resFileNamesLink.contains(encKeyFile)) {
-            final encryptClient = solid_encrypt.EncryptClient(authData, webId);
+            final encryptClient =
+                solid_encrypt.EncryptClient(authData!, webId!);
             keyVerifyFlag = await encryptClient.verifyEncKey(passPlaintxt);
           }
         }
@@ -154,7 +159,7 @@ ElevatedButton resCreateFormSubmission(
         } else {
           try {
             for (final resLink in resFoldersLink) {
-              final serverUrl = webId.replaceAll(profCard, '');
+              final serverUrl = webId!.replaceAll(profCard, '');
               final resNameStr = resLink.replaceAll(serverUrl, '');
               final resName = resNameStr.split('/').last;
 
@@ -174,7 +179,7 @@ ElevatedButton resCreateFormSubmission(
             for (final resLink in resFilesLink) {
               // Get base url
 
-              final serverUrl = webId.replaceAll(profCard, '');
+              final serverUrl = webId!.replaceAll(profCard, '');
 
               // Get resource path and name
 
@@ -237,7 +242,9 @@ ElevatedButton resCreateFormSubmission(
 
           // Add encryption key to the local secure storage.
 
-          await writeToSecureStorage(webId, passPlaintxt);
+          // TODO: this needs refactoring with a pair of functions
+          // to load/save master password
+          await writeToSecureStorage(webId!, passPlaintxt);
           // authData['keyExist'] = true;  // the master key isn't auth data
           // }
 

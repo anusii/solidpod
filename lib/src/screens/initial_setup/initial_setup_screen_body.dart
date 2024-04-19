@@ -40,6 +40,7 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
 
 /// A [StatefulWidget] that represents the initial setup screen for the desktop version of an application.
 ///
@@ -51,9 +52,6 @@ class InitialSetupScreenBody extends StatefulWidget {
 
   const InitialSetupScreenBody({
     required this.resNeedToCreate,
-    required this.authData,
-    required this.webId,
-    // required this.appName,
     required this.child,
     super.key,
   });
@@ -62,16 +60,13 @@ class InitialSetupScreenBody extends StatefulWidget {
 
   final Map<dynamic, dynamic> resNeedToCreate;
 
-  /// Authentication data coming from the Solid server.
+  // Authentication data coming from the Solid server.
+  // final Map<dynamic, dynamic> authData;
 
-  final Map<dynamic, dynamic> authData;
+  // A URI that is uniquely assigned to the POD.
+  // final String webId;
 
-  /// A URI that is uniquely assigned to the POD.
-
-  final String webId;
-
-  /// Name of the app.
-
+  // Name of the app.
   // final String appName;
 
   /// The child widget after logging in.
@@ -181,9 +176,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                       ),
                                       onPressed: () async {
                                         Navigator.pop(context);
+                                        final logoutUrl = await AuthDataManager
+                                            .getLogoutUrl();
 
-                                        await logout(
-                                            widget.authData['logoutUrl']);
+                                        await logout(logoutUrl!);
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors
@@ -234,9 +230,6 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   resFileNamesLink,
                   resFoldersLink,
                   resFilesLink,
-                  widget.authData,
-                  widget.webId,
-                  // widget.appName,
                   widget.child,
                 ),
               ],

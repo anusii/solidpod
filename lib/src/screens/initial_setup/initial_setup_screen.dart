@@ -47,24 +47,21 @@ class InitialSetupScreen extends StatefulWidget {
   /// Parameters for initla setup screen
 
   const InitialSetupScreen(
-      {required this.authData,
-      required this.webId,
+      { // required this.authData,
+      // required this.webId,
       // required this.appName,
       required this.resCheckList,
       required this.child,
       super.key});
 
-  /// Validated authentication data returing from the Solid server.
-  /// Includes Access token, Refresh token, logout URL, RSA info, Client info, etc.
+  // Validated authentication data returing from the Solid server.
+  // Includes Access token, Refresh token, logout URL, RSA info, Client info, etc.
+  // final Map<dynamic, dynamic> authData;
 
-  final Map<dynamic, dynamic> authData;
+  // The authenticated user specific URI.
+  // final String webId;
 
-  /// The authenticated user specific URI.
-
-  final String webId;
-
-  /// Name of the app that the user is authenticating into
-
+  // Name of the app that the user is authenticating into
   // final String appName;
 
   /// A dynamic list of missing resources from the user's POD
@@ -87,8 +84,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
     super.initState();
   }
 
-  Widget _loadedScreen(List<dynamic> resCheckList, String webId,
-      String logoutUrl, Map<dynamic, dynamic> authData) {
+  Widget _loadedScreen(List<dynamic> resCheckList) {
     final resNeedToCreate = resCheckList.last as Map;
 
     return Container(
@@ -98,9 +94,6 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
           Expanded(
               child: InitialSetupScreenBody(
             resNeedToCreate: resNeedToCreate,
-            authData: authData,
-            webId: webId,
-            // appName: widget.appName,
             child: widget.child,
           ))
         ],
@@ -110,15 +103,13 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authData = widget.authData;
-    final webId = widget.webId;
-    final logoutUrl = authData['logoutUrl'] as String;
+    // final authData = widget.authData;
+    // final webId = widget.webId;
+    // final logoutUrl = authData['logoutUrl'] as String;
 
     return Scaffold(
       key: _scaffoldKey,
-      body: SafeArea(
-          child:
-              _loadedScreen(widget.resCheckList, webId, logoutUrl, authData)),
+      body: SafeArea(child: _loadedScreen(widget.resCheckList)),
     );
   }
 }
