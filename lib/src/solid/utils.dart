@@ -149,9 +149,7 @@ Future<String> getResourceUrl(String resourcePath) async {
   final webId = await getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
-
-  final appName = await getAppName();
-  final fileUrl = webId!.replaceAll(profCard, '$appName/$resourcePath');
+  final fileUrl = webId!.replaceAll(profCard, resourcePath);
   return fileUrl;
 }
 
