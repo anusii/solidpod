@@ -47,12 +47,7 @@ class InitialSetupScreen extends StatefulWidget {
   /// Parameters for initla setup screen
 
   const InitialSetupScreen(
-      { // required this.authData,
-      // required this.webId,
-      // required this.appName,
-      required this.resCheckList,
-      required this.child,
-      super.key});
+      {required this.resCheckList, required this.child, super.key});
 
   // Validated authentication data returing from the Solid server.
   // Includes Access token, Refresh token, logout URL, RSA info, Client info, etc.
@@ -103,10 +98,6 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final authData = widget.authData;
-    // final webId = widget.webId;
-    // final logoutUrl = authData['logoutUrl'] as String;
-
     return Scaffold(
       key: _scaffoldKey,
       body: SafeArea(child: _loadedScreen(widget.resCheckList)),

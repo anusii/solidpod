@@ -227,13 +227,12 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
-    // final info = await PackageInfo.fromPlatform();
+    final folders = await generateDefaultFolders();
+    final files = await generateDefaultFiles();
 
-    setState(() async {
-      // appVersion = info.version;
-      // appName = info.appName;
-      defaultFolders = await generateDefaultFolders();
-      defaultFiles = await generateDefaultFiles();
+    setState(() {
+      defaultFolders = folders;
+      defaultFiles = files;
     });
   }
 
@@ -322,15 +321,11 @@ class _SolidLoginState extends State<SolidLogin> {
 
           // Navigates to the Initial Setup Screen using the provided authentication data.
 
-          Future<void> navInitialSetupScreen(Map<dynamic, dynamic> authData,
-              List<dynamic> resCheckList) async {
+          Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
             await Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                   builder: (context) => InitialSetupScreen(
-                        // authData: authData,
-                        // webId: widget.webID,
-                        // appName: appName,
                         resCheckList: resCheckList,
                         child: widget.child,
                       )),
@@ -339,7 +334,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
           // Navigates to the Home Screen if the account exits.
 
-          Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+          Future<void> navHomeScreen() async {
             await Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => widget.child),
@@ -349,16 +344,16 @@ class _SolidLoginState extends State<SolidLogin> {
           // Method to navigate to the child widget, requiring BuildContext, and
           // so avoiding the "don't use BuildContext across async gaps" warning.
 
-          Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
+          Future<void> navigateToApp() async {
             final resCheckList =
                 await initialStructureTest(defaultFolders, defaultFiles);
             final allExists = resCheckList.first as bool;
 
             if (!allExists) {
-              await navInitialSetupScreen(authData, resCheckList);
+              await navInitialSetupScreen(resCheckList);
             }
 
-            await navHomeScreen(authData);
+            await navHomeScreen();
           }
 
           // Method to navigate back to the login widget, requiring BuildContext,
@@ -377,7 +372,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // SolidLogin page.
 
           if (authResult != null && authResult.isNotEmpty) {
-            await navigateToApp(authResult.first as Map);
+            await navigateToApp();
           } else {
             // On moving to using navigateToLogin() the previously implemented
             // asynchronous showAuthFailedPopup() is lost due to the immediately
