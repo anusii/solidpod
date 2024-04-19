@@ -24,7 +24,6 @@ Future<void> writePod(
   String plainTxtPasswd,
   String fileName,
   String folderPath,
-  String fileType,
   String fileContent,
   bool aclFlag,
 ) async {
@@ -33,14 +32,16 @@ Future<void> writePod(
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
+  // If login required, use pop-up-login
+
   // Check if the file already exists
 
-  final fileUrl = await createFileUrl('$folderPath/$fileName');
+  final fileUrl = await getResourceUrl('$folderPath/$fileName');
   final fileExists = await checkResourceExists(fileUrl, true);
 
 // Get the file with verification key
   final encKeyMap = await loadPrvTTL('$encDir/$encKeyFile');
-  final encKeyFileUrl = await createFileUrl('$encDir/$encKeyFile');
+  final encKeyFileUrl = await getResourceUrl('$encDir/$encKeyFile');
   assert(encKeyMap != null);
 
   // Verify the provided password
@@ -50,7 +51,8 @@ Future<void> writePod(
   // Derive the master key from password
   final masterKey = genEncMasterKey(plainTxtPasswd);
 
-  late final String encData;
+  //late final String encData;
+  late final Key indKey;
   late final IV dataIV;
 
   if (fileExists == ResourceStatus.exist) {
@@ -58,32 +60,30 @@ Future<void> writePod(
 
     try {
       await deleteItem(true, '$folderPath/$fileName');
-    } catch (e) {
+    } on Exception catch (e) {
       print('Exception: $e');
     }
 
-    // Get the file with individual keys
+    // Get the TTL file with individual keys
     final indKeyMap = await loadPrvTTL('$encDir/$indKeyFile');
-    // final indKeyFileUrl = await createFileUrl('$encDir/$indKeyFile');
-    // assert(indKeyMap!.containsKey(indKeyFileUrl));
-
     assert(indKeyMap!.containsKey(fileName));
-    final encIndKey = indKeyMap![fileName][sessionKeyPred] as String;
-    final indKeyIV = indKeyMap[fileName][ivPred] as String;
+    final encIndKeyStr = indKeyMap![fileName][sessionKeyPred] as String;
+    final indKeyIVStr = indKeyMap[fileName][ivPred] as String;
 
     // Decrypt the individual key
-    final indKey = Key.fromBase64(
-        decryptData(encIndKey, masterKey, IV.fromBase64(indKeyIV)));
+    final indKeyStr =
+        decryptData(encIndKeyStr, masterKey, IV.fromBase64(indKeyIVStr));
+    indKey = Key.fromBase64(indKeyStr);
 
     // Encrypt data
     dataIV = getIV();
-    encData = encryptData(fileContent, indKey, dataIV);
+    //encData = encryptData(fileContent, Key.fromBase64(indKeyStr), dataIV);
   } else if (fileExists == ResourceStatus.notExist) {
     // Generate individual/session key
     final indKey = getIndividualKey();
     final indKeyIV = getIV();
     dataIV = getIV();
-    encData = encryptData(fileContent, indKey, dataIV);
+    //encData = encryptData(fileContent, indKey, dataIV);
 
     // Encrypt individual Key
     final encIndKey = encryptData(indKey.base64, masterKey, indKeyIV);
@@ -94,9 +94,7 @@ Future<void> writePod(
     print('ERR');
   }
 
-  // generate TTL with dataIV and encData
-  final ttlContent = '';
-
   // Create file with encrypted data on server
-  createTTL(fileName, folderPath, ttlContent);
+  await createTTL(fileName, folderPath,
+      getEncTTLStr('$folderPath/$fileName', fileContent, indKey, dataIV));
 }
