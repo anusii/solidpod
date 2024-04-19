@@ -60,6 +60,7 @@ const String pubKeyPred = 'pubKey';
 const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String sessionKeyPred = 'sessionKey';
+const String encDataPred = 'encData';
 // const String createdDateTimePred = 'createdDateTime';
 // const String modifiedDateTimePred = 'modifiedDateTime';
 // const String noteTitlePred = 'noteTitle';
