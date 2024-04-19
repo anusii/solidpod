@@ -195,13 +195,13 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
+    // final info = await PackageInfo.fromPlatform();
 
-    setState(() {
-      appVersion = info.version;
-      appName = info.appName;
-      defaultFolders = generateDefaultFolders(appName);
-      defaultFiles = generateDefaultFiles(appName);
+    setState(() async {
+      // appVersion = info.version;
+      // appName = info.appName;
+      defaultFolders = await generateDefaultFolders();
+      defaultFiles = await generateDefaultFiles();
     });
   }
 
@@ -310,7 +310,7 @@ class _SolidLoginState extends State<SolidLogin> {
                 builder: (context) => InitialSetupScreen(
                       authData: authData,
                       webId: widget.webID,
-                      appName: appName,
+                      // appName: appName,
                       resCheckList: resCheckList,
                       child: widget.child,
                     )),
@@ -331,7 +331,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
         Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
           final resCheckList =
-              await initialStructureTest(appName, defaultFolders, defaultFiles);
+              await initialStructureTest(defaultFolders, defaultFiles);
           final allExists = resCheckList.first as bool;
 
           if (!allExists) {

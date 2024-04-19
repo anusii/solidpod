@@ -90,15 +90,15 @@ Future<List<dynamic>?> solidAuthenticate(
 
     await writeToSecureStorage('webid', webId);
 
-    final rsaInfo = authData['rsaInfo'];
-    final rsaKeyPair = rsaInfo['rsa'];
-    final publicKeyJwk = rsaInfo['pubKeyJwk'];
+    // final rsaInfo = authData['rsaInfo'];
+    // final rsaKeyPair = rsaInfo['rsa'];
+    // final publicKeyJwk = rsaInfo['pubKeyJwk'];
     final profCardUrl = webId.replaceAll('#me', '');
 
-    final dPopToken =
-        genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+    // final dPopToken =
+    //     genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
 
-    final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
+    final profData = await fetchPrvFile(profCardUrl);
 
     return [authData, webId, profData];
     // TODO 20240108 gjw WHY DOES THIS RESULT IN

@@ -49,7 +49,7 @@ class InitialSetupScreen extends StatefulWidget {
   const InitialSetupScreen(
       {required this.authData,
       required this.webId,
-      required this.appName,
+      // required this.appName,
       required this.resCheckList,
       required this.child,
       super.key});
@@ -65,7 +65,7 @@ class InitialSetupScreen extends StatefulWidget {
 
   /// Name of the app that the user is authenticating into
 
-  final String appName;
+  // final String appName;
 
   /// A dynamic list of missing resources from the user's POD
 
@@ -100,7 +100,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
             resNeedToCreate: resNeedToCreate,
             authData: authData,
             webId: webId,
-            appName: widget.appName,
+            // appName: widget.appName,
             child: widget.child,
           ))
         ],

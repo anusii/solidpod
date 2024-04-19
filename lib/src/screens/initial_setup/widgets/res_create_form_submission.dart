@@ -66,7 +66,7 @@ ElevatedButton resCreateFormSubmission(
   List<String> resFilesLink,
   Map<dynamic, dynamic> authData,
   String webId,
-  String appName,
+  // String appName,
   Widget child,
 ) {
   // Use MediaQuery to determine the screen width and adjust the font size accordingly.
@@ -74,6 +74,9 @@ ElevatedButton resCreateFormSubmission(
   final isSmallDevice =
       screenWidth < 360; // A threshold for small devices, can be adjusted.
 
+// TODO:
+// This function needs refactoring to move the complex logic code into a
+// separate function (i.e. the middle level code)
   return ElevatedButton(
     onPressed: () async {
       if (formKey.currentState?.saveAndValidate() ?? false) {
@@ -103,8 +106,8 @@ ElevatedButton resCreateFormSubmission(
 
         // Create files and directories flag
 
-        var createFileSuccess = true;
-        var createDirSuccess = true;
+        // var createFileSuccess = true;
+        // var createDirSuccess = true;
 
         if (resFileNamesLink.contains(encKeyFile) ||
             resFileNamesLink.contains(pubKeyFile)) {
@@ -149,97 +152,101 @@ ElevatedButton resCreateFormSubmission(
           // ignore: use_build_context_synchronously
           await showErrDialog(context, 'Wrong encode key. Please try again!');
         } else {
-          for (final resLink in resFoldersLink) {
-            final serverUrl = webId.replaceAll(profCard, '');
-            final resNameStr = resLink.replaceAll(serverUrl, '');
-            final resName = resNameStr.split('/').last;
+          try {
+            for (final resLink in resFoldersLink) {
+              final serverUrl = webId.replaceAll(profCard, '');
+              final resNameStr = resLink.replaceAll(serverUrl, '');
+              final resName = resNameStr.split('/').last;
 
-            // Get resource path
+              // Get resource path
 
-            final folderPath = resNameStr.replaceAll(resName, '');
+              final folderPath = resNameStr.replaceAll(resName, '');
 
-            final createDirRes = await createItem(
-                false, resName, '', webId, authData,
-                fileLoc: folderPath);
+              // final createDirRes =
+              await createItem(false, resName, '', fileLoc: folderPath);
 
-            if (createDirRes != 'ok') {
-              createDirSuccess = false;
+              // if (createDirRes != 'ok') {
+              //   createDirSuccess = false;
+              // }
             }
-          }
 
-          // Create files
-          for (final resLink in resFilesLink) {
-            // Get base url
+            // Create files
+            for (final resLink in resFilesLink) {
+              // Get base url
 
-            final serverUrl = webId.replaceAll(profCard, '');
+              final serverUrl = webId.replaceAll(profCard, '');
 
-            // Get resource path and name
+              // Get resource path and name
 
-            final resNameStr = resLink.replaceAll(serverUrl, '');
+              final resNameStr = resLink.replaceAll(serverUrl, '');
 
-            // Get resource name
+              // Get resource name
 
-            final resName = resNameStr.split('/').last;
+              final resName = resNameStr.split('/').last;
 
-            // Get resource path
+              // Get resource path
 
-            final filePath = resNameStr.replaceAll(resName, '');
+              final filePath = resNameStr.replaceAll(resName, '');
 
-            var fileBody = '';
+              var fileBody = '';
 
-            if (resName == encKeyFile) {
-              fileBody = genEncKeyBody(
-                  encMasterKeyVerify!, prvKeyHash!, prvKeyIvz!, resLink);
-            } else if (['$pubKeyFile.acl', '$permLogFile.acl']
-                .contains(resName)) {
-              if (resName == '$permLogFile.acl') {
-                fileBody = genLogAclBody(webId, resName.replaceAll('.acl', ''));
-              } else {
-                fileBody = genPubFileAclBody(resName);
+              if (resName == encKeyFile) {
+                fileBody = genEncKeyBody(
+                    encMasterKeyVerify!, prvKeyHash!, prvKeyIvz!, resLink);
+              } else if (['$pubKeyFile.acl', '$permLogFile.acl']
+                  .contains(resName)) {
+                if (resName == '$permLogFile.acl') {
+                  fileBody =
+                      genLogAclBody(webId, resName.replaceAll('.acl', ''));
+                } else {
+                  fileBody = genPubFileAclBody(resName);
+                }
+              } else if (resName == '.acl') {
+                fileBody = genPubDirAclBody();
+              } else if (resName == indKeyFile) {
+                fileBody = genIndKeyFileBody();
+              } else if (resName == pubKeyFile) {
+                fileBody = genPubKeyFileBody(resLink, pubKeyStr!);
+              } else if (resName == permLogFile) {
+                fileBody = genLogFileBody();
               }
-            } else if (resName == '.acl') {
-              fileBody = genPubDirAclBody();
-            } else if (resName == indKeyFile) {
-              fileBody = genIndKeyFileBody();
-            } else if (resName == pubKeyFile) {
-              fileBody = genPubKeyFileBody(resLink, pubKeyStr!);
-            } else if (resName == permLogFile) {
-              fileBody = genLogFileBody();
-            }
 
-            var aclFlag = false;
-            if (resName.split('.').last == 'acl') {
-              aclFlag = true;
-            }
+              var aclFlag = false;
+              if (resName.split('.').last == 'acl') {
+                aclFlag = true;
+              }
 
-            final createFileRes = await createItem(
-                true, resName, fileBody, webId, authData,
-                fileLoc: filePath,
-                fileType: fileType[resName.split('.').last],
-                aclFlag: aclFlag);
+              // final createFileRes =
+              await createItem(true, resName, fileBody,
+                  fileLoc: filePath,
+                  fileType: fileType[resName.split('.').last],
+                  aclFlag: aclFlag);
 
-            if (createFileRes != 'ok') {
-              createFileSuccess = false;
+              // if (createFileRes != 'ok') {
+              //   createFileSuccess = false;
+              // }
             }
+          } on Exception catch (e) {
+            print('Exception: $e');
           }
-        }
 
-        // Update the profile with new information.
+          // Update the profile with new information.
 
-        if (createFileSuccess && createDirSuccess) {
+          // if (createFileSuccess && createDirSuccess) {
           imageCache.clear();
 
           // Add encryption key to the local secure storage.
 
           await writeToSecureStorage(webId, passPlaintxt);
-          authData['keyExist'] = true;
-        }
+          // authData['keyExist'] = true;  // the master key isn't auth data
+          // }
 
-        await Navigator.pushReplacement(
-          // ignore: use_build_context_synchronously
-          context,
-          MaterialPageRoute(builder: (context) => child),
-        );
+          await Navigator.pushReplacement(
+            // ignore: use_build_context_synchronously
+            context,
+            MaterialPageRoute(builder: (context) => child),
+          );
+        }
       }
     },
     style: ElevatedButton.styleFrom(
