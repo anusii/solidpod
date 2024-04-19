@@ -35,6 +35,8 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rdflib/rdflib.dart';
+import 'package:solidpod/src/widgets/settings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -410,6 +412,30 @@ class _SolidLoginState extends State<SolidLogin> {
       },
     );
 
+    final changeButton = PodButton(
+      text: "CHANGE KEY",
+      background: widget.infoButtonStyle.background,
+      foreground: widget.infoButtonStyle.foreground,
+      tooltip: widget.infoButtonStyle.tooltip,
+      onPressed: () {
+        print("Change Key");
+        //TODO kevin
+        Map<dynamic, dynamic> authData = {};
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => SettingScreen(
+                      authData: authData,
+                      webId: widget.webID,
+                    )));
+        // MaterialPageRoute(
+        //     builder: (context) => SettingScreen(
+        //           authData: authData,
+        //           webId: widget.webID,
+        //         ));
+      },
+    );
+
     // A INFO button that when pressed will proceed to visit a link.
 
     final infoButton = PodButton(
@@ -514,6 +540,25 @@ class _SolidLoginState extends State<SolidLogin> {
                   ),
                   Expanded(
                     child: infoButton,
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 15.0,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  widget.required
+                      ? const Spacer()
+                      : Expanded(
+                          child: registerButton,
+                        ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Expanded(
+                    child: changeButton,
                   ),
                 ],
               ),
