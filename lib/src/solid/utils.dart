@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -84,11 +85,9 @@ Map<String, dynamic> parseTTL(String ttlContent) {
 
 /// Load and parse a private TTL file from POD
 Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
-  final fileUrl = await createFileUrl(filePath);
-  final tokens = await getTokens(fileUrl);
+  final fileUrl = await getResourceUrl(filePath);
   try {
-    final rawContent =
-        await fetchPrvFile(fileUrl, tokens.accessToken, tokens.dPopToken);
+    final rawContent = await fetchPrvFile(fileUrl);
     return parseTTL(rawContent);
   } on Exception catch (e) {
     print('Exception: $e');
@@ -104,39 +103,68 @@ Future<bool> createDir(String dirName, String dirParentPath) async {
     final authData = await AuthDataManager.loadAuthData();
     assert(authData != null);
 
-    final ret = await createItem(false, dirName, '', webId!, authData!,
-        fileLoc: dirParentPath);
-
-    if (ret == 'ok') {
-      return true;
-    }
+    await createItem(false, dirName, '', fileLoc: dirParentPath);
+    return true;
   } on Exception catch (e) {
     print('Exception: $e');
-    return false;
   }
-
   return false;
 }
 
 /// Create new TTL file with content
 Future<bool> createTTL(
-    String fileName, String folderPath, String content) async {
+    String fileName, String folderPath, String fileContent) async {
   try {
     final webId = await getWebId();
     assert(webId != null);
     final authData = await AuthDataManager.loadAuthData();
     assert(authData != null);
 
-    final ret = await createItem(true, fileName, content, webId!, authData!,
+    await createItem(true, fileName, fileContent,
         fileType: 'text/turtle', fileLoc: folderPath);
 
-    if (ret == 'ok') {
-      return true;
-    }
+    return true;
   } on Exception catch (e) {
     print('Exception: $e');
-    return false;
   }
-
   return false;
+}
+
+/// Get the app name from pubspec.yml and
+/// 1. Remove any leading and trailing whitespace
+/// 2. Convert to lower case
+/// 3. Replace (one or multiple) white spaces with an underscore
+
+Future<String> getAppName() async {
+  final info = await PackageInfo.fromPlatform();
+  final appName = info.appName;
+  return appName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+}
+
+/// From a given resource path create its URL
+///
+/// returns the full resource URL
+
+Future<String> getResourceUrl(String resourcePath) async {
+  final webId = await getWebId();
+  assert(webId != null);
+  assert(webId!.contains(profCard));
+
+  final appName = await getAppName();
+  final fileUrl = webId!.replaceAll(profCard, '$appName/$resourcePath');
+  return fileUrl;
+}
+
+String getEncTTLStr(String filePath, String fileContent, Key key, IV iv) {
+  final encData = encryptData(fileContent, key, iv);
+
+  final g = Graph();
+  final f = URIRef('https://solidcommunity.au/file');
+  g.addTripleToGroups(f, pathPred, filePath);
+  g.addTripleToGroups(f, ivPred, iv.base64);
+  g.addTripleToGroups(f, encDataPred, encData);
+  g.serialize(format: 'ttl', abbr: 'short');
+
+  final encTTL = g.serializedString;
+  return encTTL;
 }
