@@ -34,7 +34,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -329,9 +328,9 @@ class _SolidLoginState extends State<SolidLogin> {
               context,
               MaterialPageRoute(
                   builder: (context) => InitialSetupScreen(
-                        authData: authData,
-                        webId: widget.webID,
-                        appName: appName,
+                        // authData: authData,
+                        // webId: widget.webID,
+                        // appName: appName,
                         resCheckList: resCheckList,
                         child: widget.child,
                       )),
