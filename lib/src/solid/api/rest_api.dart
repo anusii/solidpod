@@ -779,19 +779,23 @@ class AuthDataManager {
     }
 
     assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
-    final tokenResponse = await _authResponse!.getTokenResponse();
-
-    return {
-      'client': _authResponse!.client,
-      'rsaInfo': _rsaInfo,
-      'authResponse': _authResponse,
-      'tokenResponse': tokenResponse,
-      'accessToken': tokenResponse.accessToken,
-      'idToken': _authResponse!.idToken,
-      'refreshToken': _authResponse!.refreshToken,
-      'expiresIn': tokenResponse.expiresIn,
-      'logoutUrl': _logoutUrl,
-    };
+    try {
+      final tokenResponse = await _authResponse!.getTokenResponse();
+      return {
+        'client': _authResponse!.client,
+        'rsaInfo': _rsaInfo,
+        'authResponse': _authResponse,
+        'tokenResponse': tokenResponse,
+        'accessToken': tokenResponse.accessToken,
+        'idToken': _authResponse!.idToken,
+        'refreshToken': _authResponse!.refreshToken,
+        'expiresIn': tokenResponse.expiresIn,
+        'logoutUrl': _logoutUrl,
+      };
+    } on Exception catch (e) {
+      debugPrint('AuthDataManager => loadAuthData() failed: $e');
+      return null;
+    }
   }
 
   /// Remove/delete auth data from secure storage

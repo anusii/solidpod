@@ -28,6 +28,8 @@
 ///
 /// Authors: Graham Williams
 
+// ignore_for_file: public_member_api_docs
+
 library;
 
 import 'package:flutter/material.dart';
@@ -46,6 +48,17 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
+const Color defaultButtonBackground = Color.fromARGB(255, 214, 177, 165);
+const Color defaultButtonForeground = Colors.black;
+const String defaultLoginButtonText = 'LOGIN';
+const String defaultRegisterButtonText = 'REGISTER';
+const String defaultInfoButtonText = 'INFO';
+const String defaultContinueButtonText = 'CONTINUE';
+const String defaultLoginTooltip = 'Login to your Solid Pod';
+const String defaultRegisterTooltip = 'Get a Solid Pod';
+const String defaultInfoTooltip = 'Visit the Solid Project website';
+const String defaultContinueTooltip =
+    'Continue to the app without logging in to your Solid Pod';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -93,6 +106,10 @@ class SolidLogin extends StatefulWidget {
     this.infoText = 'INFO',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
+    this.continueButtonStyle = const ContinueButtonStyle(),
+    this.infoButtonStyle = const InfoButtonStyle(),
+    this.loginButtonStyle = const LoginButtonStyle(),
+    this.registerButtonStyle = const RegisterButtonStyle(),
     super.key,
   });
 
@@ -103,6 +120,22 @@ class SolidLogin extends StatefulWidget {
   /// background behind the Login panel.
 
   final AssetImage image;
+
+  /// The style of the REGISTER button.
+
+  final RegisterButtonStyle registerButtonStyle;
+
+  /// The style of the LOGIN button.
+
+  final LoginButtonStyle loginButtonStyle;
+
+  /// The style of the INFO button.
+
+  final InfoButtonStyle infoButtonStyle;
+
+  /// The style of the CONTINUE button.
+
+  final ContinueButtonStyle continueButtonStyle;
 
   /// The app's logo as displayed at the top of the login panel.
 
@@ -230,32 +263,21 @@ class _SolidLoginState extends State<SolidLogin> {
 
     final webIdController = TextEditingController()..text = widget.webID;
 
-    // Define a common style for the text of the two buttons, GET POD and LOGIN.
-
-    const buttonTextStyle = TextStyle(
-      fontSize: 12.0,
-      // fontSize: MediaQuery.of(context).size.width * 0.03,
-      letterSpacing: 2.0,
-      fontWeight: FontWeight.bold,
-    );
-
     // The GET A POD button that when pressed will launch a browser to the
     // relevant link from where a user can register for a POD on the Solid
     // server. The default location is relative to the [webID], and is currently
     // a fixed path but needs to be obtained from the server meta data, as was
     // done in solid_auth through [getIssuer].
 
-    final registerButton = ElevatedButton(
-      // TODO 20231229 gjw NEED TO USE AN APPROACH TO GET THE RIGHT SOLID SERVER
-      // REGISTRATION URL WHICH HAS CHANGED OVER SERVERS. PERHAPS IT IS NEEDED
-      // TO BE OBTAINED FROM THE SERVER META DATA? CHECK WITH ANUSHKA. THE
-      // getIssuer() FROM solid-auth PERHAPS WITH lauchIssuerReg() COULD THEN BE
-      // USED AGAIN.
-
-      onPressed: () => launchUrl(
-          Uri.parse('${widget.webID}/.account/login/password/register/')),
-
-      child: Text(widget.registerText, style: buttonTextStyle),
+    final registerButton = PodButton(
+      text: widget.registerButtonStyle.text,
+      background: widget.registerButtonStyle.background,
+      foreground: widget.registerButtonStyle.foreground,
+      tooltip: widget.registerButtonStyle.tooltip,
+      onPressed: () {
+        launchUrl(
+            Uri.parse('${widget.webID}/.account/login/password/register/'));
+      },
     );
 
     // A LOGIN button that when pressed will proceed to attempt to connect to
@@ -263,139 +285,141 @@ class _SolidLoginState extends State<SolidLogin> {
     // themselves. On return from the authentication, if successful, the class
     // provided child widget is instantiated.
 
-    final loginButton = ElevatedButton(
-      // style: TextButton.styleFrom(
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: buttonBorderRadius,
-      //   ),
-      // ),
-      onPressed: () async {
-        // Reset the flag.
+    final loginButton = PodButton(
+        text: widget.loginButtonStyle.text,
+        background: widget.loginButtonStyle.background,
+        foreground: widget.loginButtonStyle.foreground,
+        tooltip: widget.loginButtonStyle.tooltip,
+        onPressed: () async {
+          // Reset the flag.
 
-        _isDialogCanceled = false;
+          _isDialogCanceled = false;
 
-        // Method to show busy animation requiring BuildContext.
-        //
-        // This approach of creating a local method will avoid the `flutter
-        // analyze` issue `use_build_context_synchronously`, identifying the use
-        // of a BuildContext across asynchronous gaps, without referencing the
-        // BuildContext after the async gap.
+          // Method to show busy animation requiring BuildContext.
+          //
+          // This approach of creating a local method will avoid the `flutter
+          // analyze` issue `use_build_context_synchronously`, identifying the use
+          // of a BuildContext across asynchronous gaps, without referencing the
+          // BuildContext after the async gap.
 
-        void showBusyAnimation() {
-          showAnimationDialog(
-            context,
-            7,
-            'Logging in...',
-            false,
-            updateState,
-          );
-        }
-
-        showBusyAnimation();
-
-        if (_isDialogCanceled) return;
-
-        // Perform the actual authentication by contacting the server at
-        // [WebID].
-
-        final authResult = await solidAuthenticate(widget.webID, context);
-
-        // Navigates to the Initial Setup Screen using the provided authentication data.
-
-        Future<void> navInitialSetupScreen(
-            Map<dynamic, dynamic> authData, List<dynamic> resCheckList) async {
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => InitialSetupScreen(
-                      authData: authData,
-                      webId: widget.webID,
-                      // appName: appName,
-                      resCheckList: resCheckList,
-                      child: widget.child,
-                    )),
-          );
-        }
-
-        // Navigates to the Home Screen if the account exits.
-
-        Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          );
-        }
-
-        // Method to navigate to the child widget, requiring BuildContext, and
-        // so avoiding the "don't use BuildContext across async gaps" warning.
-
-        Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
-          final resCheckList =
-              await initialStructureTest(defaultFolders, defaultFiles);
-          final allExists = resCheckList.first as bool;
-
-          if (!allExists) {
-            await navInitialSetupScreen(authData, resCheckList);
+          void showBusyAnimation() {
+            showAnimationDialog(
+              context,
+              7,
+              'Logging in...',
+              false,
+              updateState,
+            );
           }
 
-          await navHomeScreen(authData);
-        }
+          showBusyAnimation();
 
-        // Method to navigate back to the login widget, requiring BuildContext,
-        // and so avoiding the "don't use BuildContext across async gaps"
-        // warning.
+          if (_isDialogCanceled) return;
 
-        void navigateToLogin() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget),
-          );
-        }
+          // Perform the actual authentication by contacting the server at
+          // [WebID].
 
-        // Check that the authentication succeeded, and if so navigate to the
-        // app itself. If it failed then notify the user and stay on the
-        // SolidLogin page.
+          final authResult = await solidAuthenticate(widget.webID, context);
 
-        if (authResult != null && authResult.isNotEmpty) {
-          await navigateToApp(authResult.first as Map);
-        } else {
-          // On moving to using navigateToLogin() the previously implemented
-          // asynchronous showAuthFailedPopup() is lost due to the immediately
-          // following Navigator. We probably don't need a popup and so the code
-          // is much simpler and the user interaction is probably clear enough
-          // for now that for some reason we remain on the Login screen. If
-          // there are non-obvious scneraiors where we fail to authenticate and
-          // revert to thte login screen then we can capture and report them
-          // later.
+          // Navigates to the Initial Setup Screen using the provided authentication data.
 
-          navigateToLogin();
-        }
-      },
-      child: Text(widget.loginText, style: buttonTextStyle),
-    );
+          Future<void> navInitialSetupScreen(Map<dynamic, dynamic> authData,
+              List<dynamic> resCheckList) async {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => InitialSetupScreen(
+                        authData: authData,
+                        webId: widget.webID,
+                        appName: appName,
+                        resCheckList: resCheckList,
+                        child: widget.child,
+                      )),
+            );
+          }
+
+          // Navigates to the Home Screen if the account exits.
+
+          Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => widget.child),
+            );
+          }
+
+          // Method to navigate to the child widget, requiring BuildContext, and
+          // so avoiding the "don't use BuildContext across async gaps" warning.
+
+          Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
+            final resCheckList =
+                await initialStructureTest(defaultFolders, defaultFiles);
+            final allExists = resCheckList.first as bool;
+
+            if (!allExists) {
+              await navInitialSetupScreen(authData, resCheckList);
+            }
+
+            await navHomeScreen(authData);
+          }
+
+          // Method to navigate back to the login widget, requiring BuildContext,
+          // and so avoiding the "don't use BuildContext across async gaps"
+          // warning.
+
+          void navigateToLogin() {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => widget),
+            );
+          }
+
+          // Check that the authentication succeeded, and if so navigate to the
+          // app itself. If it failed then notify the user and stay on the
+          // SolidLogin page.
+
+          if (authResult != null && authResult.isNotEmpty) {
+            await navigateToApp(authResult.first as Map);
+          } else {
+            // On moving to using navigateToLogin() the previously implemented
+            // asynchronous showAuthFailedPopup() is lost due to the immediately
+            // following Navigator. We probably don't need a popup and so the code
+            // is much simpler and the user interaction is probably clear enough
+            // for now that for some reason we remain on the Login screen. If
+            // there are non-obvious scneraiors where we fail to authenticate and
+            // revert to thte login screen then we can capture and report them
+            // later.
+
+            navigateToLogin();
+          }
+        });
 
     // A CONTINUE button that when pressed will proceed to operate without the
     // need of a Solid Pod and thus no requirement to authenticate. Proceed
     // directly onto the app (the child).
 
-    final continueButton = ElevatedButton(
+    final continueButton = PodButton(
+      text: widget.continueButtonStyle.text,
+      background: widget.continueButtonStyle.background,
+      foreground: widget.continueButtonStyle.foreground,
+      tooltip: widget.continueButtonStyle.tooltip,
       onPressed: () {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => widget.child),
         );
       },
-      style: TextButton.styleFrom(
-        backgroundColor: widget.continueBG,
-      ),
-      child: Text(widget.continueText, style: buttonTextStyle),
     );
 
     // A INFO button that when pressed will proceed to visit a link.
 
-    final infoButton = ElevatedButton(
-      onPressed: () => launchUrl(Uri.parse(widget.link)),
-      child: Text(widget.infoText, style: buttonTextStyle),
+    final infoButton = PodButton(
+      text: widget.infoButtonStyle.text,
+      background: widget.infoButtonStyle.background,
+      foreground: widget.infoButtonStyle.foreground,
+      tooltip: widget.infoButtonStyle.tooltip,
+      onPressed: () {
+        launchUrl(Uri.parse(widget.link));
+      },
     );
 
     // A version text that is displayed within the login panel. The text box
@@ -572,4 +596,109 @@ class _SolidLoginState extends State<SolidLogin> {
       ),
     );
   }
+}
+
+class PodButton extends StatelessWidget {
+  const PodButton({
+    required this.text,
+    required this.background,
+    required this.foreground,
+    required this.tooltip,
+    required this.onPressed,
+    super.key,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  // Define a common style for the text of the two buttons, GET POD and LOGIN.
+
+  final buttonTextStyle = const TextStyle(
+    fontSize: 12.0,
+    letterSpacing: 2.0,
+    fontWeight: FontWeight.bold,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: ElevatedButton(
+        // Use the onPressed passed to the widget.
+
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              // Use the background color passed to the widget.
+
+              background,
+          foregroundColor:
+              // Use the foreground color passed to the widget.
+
+              foreground,
+        ),
+        child: Text(
+          text,
+          style: buttonTextStyle,
+          // Style for the text inside the button can be defined here.
+        ),
+      ),
+    );
+  }
+}
+
+/// A data structure for the buttons used in the Solid Login widget.
+
+class ContinueButtonStyle {
+  const ContinueButtonStyle({
+    this.text = defaultContinueButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultContinueTooltip,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class LoginButtonStyle {
+  const LoginButtonStyle({
+    this.text = defaultLoginButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultLoginTooltip,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class RegisterButtonStyle {
+  const RegisterButtonStyle({
+    this.text = defaultRegisterButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultRegisterTooltip,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class InfoButtonStyle {
+  const InfoButtonStyle({
+    this.text = defaultInfoButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultInfoTooltip,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
 }

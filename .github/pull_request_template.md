@@ -16,17 +16,18 @@ Flutter Style Guide: https://survivor.togaware.com/gnulinux/flutter-style.html
 - [ ] Changes adhere to the team style and coding guideline
 - [ ] No confidential information
 - [ ] No duplicated content
-- [ ] No lint check errors related to your changes (`make prep`)
-- [ ] Pre-exisiting lint errors noted: 
+- [ ] No lint check errors related to your changes (`make prep` or `flutter analyze lib`)
+- [ ] Pre-exisiting lint errors noted: [HERE]
 - [ ] Tested on at least one device
   - [ ] Android Phone
   - [ ] Android Emulator
+  - [ ] Chrome on Android
   - [ ] Chrome
   - [ ] iOS
   - [ ] Linux
   - [ ] MacOS
   - [ ] Windows
-- [ ] Added 2 reviewers
+- [ ] Added 2 reviewers (or 1 for private repositories then they add another)
 
 ## Finalising
 
@@ -34,7 +35,7 @@ Once PR discussion is complete and 2 reviewers have approved:
 
 - [ ] Merge dev into the branch
 - [ ] Resolve any conflicts
-- [ ] Bump appropriate version and build number in pubspec.yaml
 - [ ] Add one line summary into CHANGELOG.md
+- [ ] Bump appropriate version number in pubspec.yaml
 - [ ] Push to git repository and review
 - [ ] Merge PR into dev

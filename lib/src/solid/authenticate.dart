@@ -101,12 +101,7 @@ Future<List<dynamic>?> solidAuthenticate(
     final profData = await fetchPrvFile(profCardUrl);
 
     return [authData, webId, profData];
-    // TODO 20240108 gjw WHY DOES THIS RESULT IN
-    // avoid_catches_without_on_clauses CONTRAVENTION? IT SEEMS TO WANT AN ON
-    // CLAUSE YET COMPLAINS WHEN ADD ONE IN SINCE THE catch (e) IS A CATCHLL?
-    //
-    // ignore: avoid_catches_without_on_clauses
-  } catch (e) {
+  } on Exception catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
