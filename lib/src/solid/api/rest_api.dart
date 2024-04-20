@@ -123,7 +123,8 @@ Future<List<dynamic>> initialStructureTest(
   };
 
   for (final containerName in folders) {
-    final resourceUrl = await getResourceUrl(containerName);
+    // NB: the trailing separator in path is essential for this check
+    final resourceUrl = await getResourceUrl(containerName + path.separator);
     if (await checkResourceExists(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
