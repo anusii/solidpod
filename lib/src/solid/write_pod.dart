@@ -73,11 +73,11 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
   assert(encKeyMap != null);
 
   // Verify the provided password
-  assert(verifyEncPasswd(
+  assert(verifyMasterPasswd(
       masterPasswd!, encKeyMap![encKeyFileUrl][encKeyPred] as String));
 
   // Derive the master key from password
-  final masterKey = genEncMasterKey(masterPasswd!);
+  final masterKey = genMasterKey(masterPasswd!);
 
   // Check if the file already exists
 
@@ -115,9 +115,9 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
     //encData = encryptData(fileContent, Key.fromBase64(indKeyStr), dataIV);
   } else if (fileExists == ResourceStatus.notExist) {
     // Generate individual/session key
-    final indKey = getIndividualKey();
-    final indKeyIV = getIV();
+    indKey = getIndividualKey();
     dataIV = getIV();
+    final indKeyIV = getIV();
     //encData = encryptData(fileContent, indKey, dataIV);
 
     // Encrypt individual Key
@@ -130,6 +130,7 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
   }
 
   // Create file with encrypted data on server
-  await createTTL(
-      filePath, getEncTTLStr(filePath, fileContent, indKey, dataIV));
+
+  final encData = getEncTTLStr(filePath, fileContent, indKey, dataIV);
+  await createTTL(filePath, encData);
 }
