@@ -22,6 +22,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
   package_info_plus: ^5.0.1
+  path: ^1.9.0
   rdflib: ^0.2.8
   solid_auth: ^0.1.17  # solid-auth can get working refreshed access token since version 0.1.17
   solid_encrypt: ^0.1.10

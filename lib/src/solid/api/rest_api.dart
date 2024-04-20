@@ -44,6 +44,7 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 // ignore: implementation_imports
 import 'package:solid_auth/src/openid/openid_client.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -122,7 +123,7 @@ Future<List<dynamic>> initialStructureTest(
   };
 
   for (final containerName in folders) {
-    final resourceUrl = await getResourceUrl('$containerName/');
+    final resourceUrl = await getResourceUrl(containerName);
     if (await checkResourceExists(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
@@ -134,7 +135,8 @@ Future<List<dynamic>> initialStructureTest(
   for (final containerName in files.keys) {
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
-      final resourceUrl = await getResourceUrl('$containerName/$fileName');
+      final resourceUrl =
+          await getResourceUrl(path.join(containerName as String, fileName));
       if (await checkResourceExists(resourceUrl, false) ==
           ResourceStatus.notExist) {
         allExists = false;
@@ -173,13 +175,13 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
   }
 
-  final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
+  // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
   // final encDataUrl = webId!.contains(profCard)
   //     ? webId.replaceAll(profCard, itemLoc)
   //     : fileFlag
   //         ? '$webId$itemLoc'
   //         : '$webId/$itemLoc';
-  final resourceUrl = await getResourceUrl(resourcePath);
+  final resourceUrl = await getResourceUrl(itemLoc);
 
   final http.Response createResponse;
 
@@ -188,7 +190,7 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
     //     : '$webId/$itemLoc$itemName';
     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
-    final aclFileUrl = await getResourceUrl('$itemLoc$itemName');
+    final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
     final (:accessToken, :dPopToken) = await getTokens(aclFileUrl, 'PUT');
 
     // The PUT request will create the acl item in the server.
@@ -333,23 +335,18 @@ Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
 Future<List<String>> generateDefaultFolders() async {
   final appName = await getAppName();
   final mainResDir = appName;
-  const dataDir = 'data';
-  const sharingDir = 'sharing';
-  const sharedDir = 'shared';
-  const encDir = 'encryption';
-  const logsDir = 'logs';
 
-  final myNotesDirLoc = '$mainResDir/$dataDir';
-  final sharingDirLoc = '$mainResDir/$sharingDir';
-  final sharedDirLoc = '$mainResDir/$sharedDir';
-  final encDirLoc = '$mainResDir/$encDir';
-  final logDirLoc = '$mainResDir/$logsDir';
+  final dataDirLoc = path.join(mainResDir, dataDir);
+  final sharingDirLoc = path.join(mainResDir, sharingDir);
+  final sharedDirLoc = path.join(mainResDir, sharedDir);
+  final encDirLoc = path.join(mainResDir, encDir);
+  final logDirLoc = path.join(mainResDir, logsDir);
 
   final folders = [
     mainResDir,
     sharingDirLoc,
     sharedDirLoc,
-    myNotesDirLoc,
+    dataDirLoc,
     encDirLoc,
     logDirLoc,
   ];
@@ -364,20 +361,16 @@ Future<List<String>> generateDefaultFolders() async {
 Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final appName = await getAppName();
   final mainResDir = appName;
-  const sharingDir = 'sharing';
-  const sharedDir = 'shared';
-  const encDir = 'encryption';
-  const logsDir = 'logs';
 
   const encKeyFile = 'enc-keys.ttl';
   const pubKeyFile = 'public-key.ttl';
   const indKeyFile = 'ind-keys.ttl';
   const permLogFile = 'permissions-log.ttl';
 
-  final sharingDirLoc = '$mainResDir/$sharingDir';
-  final sharedDirLoc = '$mainResDir/$sharedDir';
-  final encDirLoc = '$mainResDir/$encDir';
-  final logDirLoc = '$mainResDir/$logsDir';
+  final sharingDirLoc = path.join(mainResDir, sharingDir);
+  final sharedDirLoc = path.join(mainResDir, sharedDir);
+  final encDirLoc = path.join(mainResDir, encDir);
+  final logDirLoc = path.join(mainResDir, logsDir);
 
   final files = {
     sharingDirLoc: [
