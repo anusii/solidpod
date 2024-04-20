@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -112,13 +113,10 @@ Future<bool> createDir(String dirName, String dirParentPath) async {
 }
 
 /// Create new TTL file with content
-Future<bool> createTTL(
-    String fileName, String folderPath, String fileContent) async {
+Future<bool> createTTL(String filePath, String fileContent) async {
   try {
-    final webId = await getWebId();
-    assert(webId != null);
-    final authData = await AuthDataManager.loadAuthData();
-    assert(authData != null);
+    final fileName = path.basename(filePath);
+    final folderPath = path.dirname(filePath);
 
     await createItem(true, fileName, fileContent,
         fileType: 'text/turtle', fileLoc: folderPath);
@@ -165,4 +163,26 @@ String getEncTTLStr(String filePath, String fileContent, Key key, IV iv) {
 
   final encTTL = g.serializedString;
   return encTTL;
+}
+
+/// Load master password from local secure storage
+Future<String?> loadMasterPassword() async {
+  final webId = await getWebId();
+  assert(webId != null);
+  // TODO: Use a specific key instead of web ID
+  // see src/screens/initial_setup/widgets/res_create_form_submission.dart
+  final masterPasswd = await secureStorage.read(key: webId!);
+  return masterPasswd;
+}
+
+/// Returns the path of file with verification key and private key
+Future<String> getEncKeyPath() async {
+  final appName = await getAppName();
+  return path.join(appName, encDir, encKeyFile);
+}
+
+/// Returns the path of file with individual keys
+Future<String> getIndKeyPath() async {
+  final appName = await getAppName();
+  return path.join(appName, encDir, indKeyFile);
 }
