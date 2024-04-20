@@ -45,10 +45,11 @@ const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 
-// const String sharingDir = 'sharing';
-// const String sharedDir = 'shared';
-const String encDir = 'encryption';
-// const String logsDir = 'logs';
+const dataDir = 'data';
+const sharingDir = 'sharing';
+const sharedDir = 'shared';
+const encDir = 'encryption';
+const logsDir = 'logs';
 
 /// String terms used as predicates in ttl files.
 
