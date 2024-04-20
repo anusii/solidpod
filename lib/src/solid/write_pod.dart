@@ -26,8 +26,8 @@ import 'package:solidpod/src/solid/utils.dart';
 
 Future<void> writePod(String filePath, String fileContent, BuildContext context,
     Widget child) async {
+  // TODO: put this block into a separate function: loginIfApplicable?
   final loggedIn = await checkLoggedIn();
-
   if (!loggedIn) {
     await Navigator.push(
         context,
@@ -38,6 +38,7 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
 
   final fileName = path.basename(filePath);
 
+  //TODO: extract this initial structure test code to a separate function
   final defaultFolders = await generateDefaultFolders();
   final defaultFiles = await generateDefaultFiles();
 
