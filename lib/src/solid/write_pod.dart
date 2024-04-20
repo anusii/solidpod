@@ -1,11 +1,15 @@
 import 'dart:core';
 
+import 'package:flutter/material.dart' hide Key;
+
 import 'package:encrypt/encrypt.dart';
-import 'package:fast_rsa/fast_rsa.dart';
+import 'package:path/path.dart' as path;
+
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solid_auth/solid_auth.dart';
-import 'package:solidpod/src/solid/utils.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/popup_login.dart';
+import 'package:solidpod/src/solid/utils.dart';
 
 /// Write file content to a POD
 /// (1-3 shoudl be in keypod)
@@ -20,36 +24,64 @@ import 'package:solidpod/src/solid/constants.dart';
 ///    - load individual key from server and encrypt data
 ///    - update file with encrypted data if it exists (updateFileByQuery)
 
-Future<void> writePod(
-  String plainTxtPasswd,
-  String fileName,
-  String folderPath,
-  String fileContent,
-  bool aclFlag,
-) async {
+Future<void> writePod(String filePath, String fileContent, BuildContext context,
+    Widget child) async {
+  final loggedIn = await checkLoggedIn();
+
+  if (!loggedIn) {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SolidPopupLogin(),
+        ));
+  }
+
+  final fileName = path.basename(filePath);
+
+  final defaultFolders = await generateDefaultFolders();
+  final defaultFiles = await generateDefaultFiles();
+
+  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
+  final allExists = resCheckList.first as bool;
+
+  if (!allExists) {
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => InitialSetupScreen(
+                resCheckList: resCheckList,
+                child: child,
+              )),
+    );
+  }
+
+  // Get master password for encryption
+  // TODO: Request master password from user if not found in secure storage
+  final masterPasswd = await loadMasterPassword();
+  assert(masterPasswd != null);
+
   final webId = await getWebId();
   assert(webId != null);
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
-  // If login required, use pop-up-login
-
-  // Check if the file already exists
-
-  final fileUrl = await getResourceUrl('$folderPath/$fileName');
-  final fileExists = await checkResourceExists(fileUrl, true);
-
-// Get the file with verification key
-  final encKeyMap = await loadPrvTTL('$encDir/$encKeyFile');
-  final encKeyFileUrl = await getResourceUrl('$encDir/$encKeyFile');
+  // Get the file with verification key
+  final encKeyPath = await getEncKeyPath();
+  final encKeyMap = await loadPrvTTL(encKeyPath);
+  final encKeyFileUrl = await getResourceUrl(encKeyPath);
   assert(encKeyMap != null);
 
   // Verify the provided password
   assert(verifyEncPasswd(
-      plainTxtPasswd, encKeyMap![encKeyFileUrl][encKeyPred] as String));
+      masterPasswd!, encKeyMap![encKeyFileUrl][encKeyPred] as String));
 
   // Derive the master key from password
-  final masterKey = genEncMasterKey(plainTxtPasswd);
+  final masterKey = genEncMasterKey(masterPasswd!);
+
+  // Check if the file already exists
+
+  final fileUrl = await getResourceUrl(filePath);
+  final fileExists = await checkResourceExists(fileUrl, true);
 
   //late final String encData;
   late final Key indKey;
@@ -59,14 +91,16 @@ Future<void> writePod(
     // Delete the existing file or Append?
 
     try {
-      await deleteItem(true, '$folderPath/$fileName');
+      await deleteItem(true, filePath);
     } on Exception catch (e) {
       print('Exception: $e');
     }
 
     // Get the TTL file with individual keys
-    final indKeyMap = await loadPrvTTL('$encDir/$indKeyFile');
+    final indKeyPath = await getIndKeyPath();
+    final indKeyMap = await loadPrvTTL(indKeyPath);
     assert(indKeyMap!.containsKey(fileName));
+
     final encIndKeyStr = indKeyMap![fileName][sessionKeyPred] as String;
     final indKeyIVStr = indKeyMap[fileName][ivPred] as String;
 
@@ -95,6 +129,6 @@ Future<void> writePod(
   }
 
   // Create file with encrypted data on server
-  await createTTL(fileName, folderPath,
-      getEncTTLStr('$folderPath/$fileName', fileContent, indKey, dataIV));
+  await createTTL(
+      filePath, getEncTTLStr(filePath, fileContent, indKey, dataIV));
 }
