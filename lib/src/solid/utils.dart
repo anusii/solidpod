@@ -14,13 +14,36 @@ import 'package:solidpod/src/solid/constants.dart';
 // not sure if it is a good idea to use it here?
 // import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 
-/// Derive the master key from user password
-Key genEncMasterKey(String plainTxtPasswd) => Key.fromUtf8(
-    sha256.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32));
+/// Derive the master key from master password
+Key genMasterKey(String masterPasswd) => Key.fromUtf8(
+    sha256.convert(utf8.encode(masterPasswd)).toString().substring(0, 32));
 
-/// Derive the verification key from user password
-String genVerificationKey(String plainTxtPasswd) =>
-    sha224.convert(utf8.encode(plainTxtPasswd)).toString().substring(0, 32);
+/// Derive the verification key from master password
+String genVerificationKey(String masterPasswd) =>
+    sha224.convert(utf8.encode(masterPasswd)).toString().substring(0, 32);
+
+/// Verify the user provided master password for data encryption
+bool verifyMasterPasswd(String masterPasswd, String verificationKey) =>
+    genVerificationKey(masterPasswd) == verificationKey;
+
+/// Save master password to local secure storage
+Future<void> saveMasterPassword(String masterPasswd) async {
+  await writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
+}
+
+/// Load master password from local secure storage
+Future<String?> loadMasterPassword() async {
+  final webId = await getWebId();
+  assert(webId != null);
+  // TODO: the current initialisation code uses web ID as key, update it.
+  // see src/screens/initial_setup/widgets/res_create_form_submission.dart
+  final masterPasswd =
+      await secureStorage.read(key: masterPasswdSecureStorageKey);
+  if (masterPasswd == null) {
+    await saveMasterPassword('dc101');
+  }
+  return masterPasswd;
+}
 
 /// Encrypt data using AES with the specified key
 String encryptData(String data, Key key, IV iv) {
@@ -38,31 +61,6 @@ Key getIndividualKey() => Key.fromSecureRandom(32);
 
 /// Create a random intialisation vector
 IV getIV() => IV.fromLength(16);
-
-/// Create a Key object from its utf-8 string
-// Key getKeyfromUtf8(String utf8KeyStr) => Key.fromUtf8(utf8KeyStr);
-
-/// Create a Key object from its base64 string
-// Key getKeyfromBase64(String base64KeyStr) => Key.fromBase64(base64KeyStr);
-
-/// Create a IV object from its base64 string
-// IV getIVfromBase64(String base64IVStr) => IV.fromBase64(base64IVStr);
-
-/// Verify the user provided password for data encryption
-bool verifyEncPasswd(String plainTxtPasswd, String verificationKey) =>
-    genVerificationKey(plainTxtPasswd) == verificationKey;
-
-/// Save encryption password in local secure storage
-Future<void> saveEncPasswd(String plainTxtPasswd) async {
-  await writeToSecureStorage(encPasswdSecureStorageKey, plainTxtPasswd);
-}
-
-/// Load encryption master key
-Future<String?> loadEncPasswd() async {
-  final plainTxtPasswd =
-      await secureStorage.read(key: encPasswdSecureStorageKey);
-  return plainTxtPasswd;
-}
 
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
@@ -151,28 +149,20 @@ Future<String> getResourceUrl(String resourcePath) async {
   return fileUrl;
 }
 
+/// Encrypt a given data string and format to TTL
 String getEncTTLStr(String filePath, String fileContent, Key key, IV iv) {
   final encData = encryptData(fileContent, key, iv);
 
   final g = Graph();
-  final f = URIRef('https://solidcommunity.au/file');
-  g.addTripleToGroups(f, pathPred, filePath);
-  g.addTripleToGroups(f, ivPred, iv.base64);
-  g.addTripleToGroups(f, encDataPred, encData);
+  final f = URIRef(appsFile + filePath); //TODO: update this
+  final ns = Namespace(ns: appsTerms);
+  g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
+  g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
+  g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
   g.serialize(format: 'ttl', abbr: 'short');
 
   final encTTL = g.serializedString;
   return encTTL;
-}
-
-/// Load master password from local secure storage
-Future<String?> loadMasterPassword() async {
-  final webId = await getWebId();
-  assert(webId != null);
-  // TODO: Use a specific key instead of web ID
-  // see src/screens/initial_setup/widgets/res_create_form_submission.dart
-  final masterPasswd = await secureStorage.read(key: webId!);
-  return masterPasswd;
 }
 
 /// Returns the path of file with verification key and private key
