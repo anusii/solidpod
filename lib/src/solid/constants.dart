@@ -84,8 +84,8 @@ const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
-/// The string key for storing the encryption password (from which we derive the
-/// master key to encrypt the individual keys -- AES keys that are used to
-/// encrypt the data in PODs) in secure storage.
+/// The string key for storing the master password for encryption (from which
+/// we derive the master key to encrypt the individual keys -- AES keys that
+/// are used to encrypt the data in PODs) in secure storage.
 
-String encPasswdSecureStorageKey = '_solid_enc_passwd';
+String masterPasswdSecureStorageKey = '_pods_master_passwd';
