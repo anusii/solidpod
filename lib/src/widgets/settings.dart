@@ -228,52 +228,52 @@ class _SettingScreenState extends State<SettingScreen> {
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: anuLightGold,
-                              ),
-                              onPressed: () async {
-                                if (_keyController.text.isEmpty) {
-                                  return;
-                                } else {
-                                  bool isKeyExist =
-                                      await secureStorage.containsKey(
-                                    key: widget.webId,
-                                  );
+                          // Padding(
+                          //   padding: const EdgeInsets.all(8.0),
+                          //   child: ElevatedButton(
+                          //     style: ElevatedButton.styleFrom(
+                          //       backgroundColor: anuLightGold,
+                          //     ),
+                          //     onPressed: () async {
+                          //       if (_keyController.text.isEmpty) {
+                          //         return;
+                          //       } else {
+                          //         bool isKeyExist =
+                          //             await secureStorage.containsKey(
+                          //           key: widget.webId,
+                          //         );
 
-                                  // Since write() method does not automatically overwrite an existing value.
-                                  // To overwrite an existing value, call delete() first.
+                          //         // Since write() method does not automatically overwrite an existing value.
+                          //         // To overwrite an existing value, call delete() first.
 
-                                  if (isKeyExist) {
-                                    await secureStorage.delete(
-                                      key: widget.webId,
-                                    );
-                                  }
+                          //         if (isKeyExist) {
+                          //           await secureStorage.delete(
+                          //             key: widget.webId,
+                          //           );
+                          //         }
 
-                                  await secureStorage.write(
-                                    key: widget.webId,
-                                    value: _keyController.text,
-                                  );
+                          //         await secureStorage.write(
+                          //           key: widget.webId,
+                          //           value: _keyController.text,
+                          //         );
 
-                                  String secureKey =
-                                      await secureStorage.read(key: webId) ??
-                                          '';
+                          //         String secureKey =
+                          //             await secureStorage.read(key: webId) ??
+                          //                 '';
 
-                                  // verifyEncKey(secureKey, authData)
-                                  //     .then((value) {
-                                  //   setState(() {
-                                  //     widget.validEncKey = value;
-                                  //   });
-                                  // }
+                          //         // verifyEncKey(secureKey, authData)
+                          //         //     .then((value) {
+                          //         //   setState(() {
+                          //         //     widget.validEncKey = value;
+                          //         //   });
+                          //         // }
 
-                                  // );
-                                }
-                              },
-                              child: Text('Submit'),
-                            ),
-                          ),
+                          //         // );
+                          //       }
+                          //     },
+                          //     child: Text('Submit'),
+                          //   ),
+                          // ),
                         ],
                       ),
                       Row(
@@ -304,52 +304,52 @@ class _SettingScreenState extends State<SettingScreen> {
                               ),
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: anuLightGold,
-                              ),
-                              onPressed: () async {
-                                if (_keyController.text.isEmpty) {
-                                  return;
-                                } else {
-                                  bool isKeyExist =
-                                      await secureStorage.containsKey(
-                                    key: widget.webId,
-                                  );
+                          // Padding(
+                          //   padding: const EdgeInsets.all(8.0),
+                          //   child: ElevatedButton(
+                          //     style: ElevatedButton.styleFrom(
+                          //       backgroundColor: anuLightGold,
+                          //     ),
+                          //     onPressed: () async {
+                          //       if (_keyController.text.isEmpty) {
+                          //         return;
+                          //       } else {
+                          //         bool isKeyExist =
+                          //             await secureStorage.containsKey(
+                          //           key: widget.webId,
+                          //         );
 
-                                  // Since write() method does not automatically overwrite an existing value.
-                                  // To overwrite an existing value, call delete() first.
+                          //         // Since write() method does not automatically overwrite an existing value.
+                          //         // To overwrite an existing value, call delete() first.
 
-                                  if (isKeyExist) {
-                                    await secureStorage.delete(
-                                      key: widget.webId,
-                                    );
-                                  }
+                          //         if (isKeyExist) {
+                          //           await secureStorage.delete(
+                          //             key: widget.webId,
+                          //           );
+                          //         }
 
-                                  await secureStorage.write(
-                                    key: widget.webId,
-                                    value: _keyController.text,
-                                  );
+                          //         await secureStorage.write(
+                          //           key: widget.webId,
+                          //           value: _keyController.text,
+                          //         );
 
-                                  String secureKey =
-                                      await secureStorage.read(key: webId) ??
-                                          '';
+                          //         String secureKey =
+                          //             await secureStorage.read(key: webId) ??
+                          //                 '';
 
-                                  // verifyEncKey(secureKey, authData)
-                                  //     .then((value) {
-                                  //   setState(() {
-                                  //     widget.validEncKey = value;
-                                  //   });
-                                  // }
+                          //         // verifyEncKey(secureKey, authData)
+                          //         //     .then((value) {
+                          //         //   setState(() {
+                          //         //     widget.validEncKey = value;
+                          //         //   });
+                          //         // }
 
-                                  // );
-                                }
-                              },
-                              child: Text('Submit'),
-                            ),
-                          ),
+                          //         // );
+                          //       }
+                          //     },
+                          //     child: Text('Submit'),
+                          //   ),
+                          // ),
                         ],
                       ),
                       Row(
