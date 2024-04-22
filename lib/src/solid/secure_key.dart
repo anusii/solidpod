@@ -1,16 +1,13 @@
 /// Represents a Secure Key object.
 class SecureKey {
+  /// Constructs a new instance of [SecureKey] with the given [secureKeyStr] and [webId].
+  SecureKey(this.secureKeyStr, this.webId);
+
   /// Encryption key
   late String secureKeyStr;
 
   /// webId of the user
   late String webId;
-
-  /// Constructs a new instance of [SecureKey] with the given [secureKeyStr] and [webId].
-  SecureKey(String secureKeyStr, String webId) {
-    this.secureKeyStr = secureKeyStr;
-    this.webId = webId;
-  }
 
   /// Return secure key
   String getSecureKey() {

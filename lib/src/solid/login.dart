@@ -35,11 +35,9 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/secure_key.dart';
 import 'package:solidpod/src/widgets/setting.dart';
-import 'package:solidpod/src/widgets/settings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -420,19 +418,18 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     final changeButton = PodButton(
-      text: "CHANGE KEY",
+      text: 'CHANGE KEY',
       background: widget.infoButtonStyle.background,
       foreground: widget.infoButtonStyle.foreground,
       tooltip: widget.infoButtonStyle.tooltip,
       onPressed: () {
-        print("Change Key");
         //TODO kevin
-        Map<dynamic, dynamic> authData = {};
+        final authData = <dynamic, dynamic>{};
 
-        String webId = webIdController.text;
+        final webId = webIdController.text;
 
         /// Setup SecureKey object
-        SecureKey secureKeyObject = SecureKey('', webId);
+        final secureKeyObject = SecureKey('', webId);
 
         Navigator.pushReplacement(
             context,

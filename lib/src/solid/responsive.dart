@@ -20,6 +20,7 @@
 ///
 /// Authors: Zheyuan Xu
 ///
+library;
 
 import 'package:flutter/material.dart';
 
@@ -31,6 +32,15 @@ const double desktopWidthThreshold = 1030;
 
 /// A class that handles responsiveness based on screen size.
 class Responsive extends StatelessWidget {
+  /// Constructor for the responsive class.
+  const Responsive({
+    required this.mobile,
+    required this.tablet,
+    required this.desktop,
+    required this.largeDesktop,
+    super.key,
+  });
+
   /// The widget to be displayed on mobile screens.
   final Widget mobile;
 
@@ -43,6 +53,7 @@ class Responsive extends StatelessWidget {
   /// The widget to be displayed on large desktop screens.
   final Widget largeDesktop;
 
+  /// Returns the screen width.
   static double screenWidth(BuildContext context) =>
       MediaQuery.of(context).size.width;
 
@@ -62,15 +73,6 @@ class Responsive extends StatelessWidget {
   /// Checks if the screen size is large desktop.
   static bool isLargeDesktop(BuildContext context) =>
       screenWidth(context) >= 1200;
-
-  /// Constructor for the responsive class.
-  const Responsive({
-    Key? key,
-    required this.mobile,
-    required this.tablet,
-    required this.desktop,
-    required this.largeDesktop,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

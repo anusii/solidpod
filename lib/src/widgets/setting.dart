@@ -19,6 +19,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 /// Authors: Zheyuan Xu, Graham Williams
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -26,12 +27,15 @@ import 'package:solidpod/src/solid/responsive.dart';
 import 'package:solidpod/src/solid/secure_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// The height of the screen.
 double screenHeight(BuildContext context) => MediaQuery.of(context).size.height;
 
 /// Size used for version text in enc key input page.
 const versionTextSize = 13.5;
 
-String APP_VERSION = "";
+/// The APP_VERSION of the app.
+// ignore: non_constant_identifier_names
+String APP_VERSION = '';
 
 /// Border radius for buttons.
 const double buttonBorderRadius = 5;
@@ -45,12 +49,23 @@ const sizeMobileStandard = 20.0;
 /// The standard size of the desktop.
 const sizeDesktopStandard = 30.0;
 
+/// The default padding for the page.
 const kDefaultPadding = 20.0;
 
+/// Color for Anu Light Gold.
 const anuLightGold = Color(0xFFDBBA78);
 
 /// Widget for entering encryption key.
 class Settings extends ConsumerStatefulWidget {
+  /// Constructs an `EncryptionKeyInput` widget.
+  const Settings({
+    required this.storage,
+    required this.webId,
+    required this.authData,
+    required this.secureKeyObject,
+    super.key,
+  });
+
   /// The secure storage for storing the encryption key.
   final FlutterSecureStorage storage;
 
@@ -58,19 +73,11 @@ class Settings extends ConsumerStatefulWidget {
   final String webId;
 
   /// The authentication data for the encryption key.
+  // ignore: strict_raw_type
   final Map authData;
 
   /// The Secure key object
   final SecureKey secureKeyObject;
-
-  /// Constructs an `EncryptionKeyInput` widget.
-  Settings({
-    Key? key,
-    required this.storage,
-    required this.webId,
-    required this.authData,
-    required this.secureKeyObject,
-  }) : super(key: key);
 
   @override
   ConsumerState<Settings> createState() => _SettingsState();
@@ -166,14 +173,14 @@ class _SettingsState extends ConsumerState<Settings> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle titleStyle = TextStyle(
+    const titleStyle = TextStyle(
       fontSize: 25,
       fontWeight: FontWeight.w700,
       color:
           anuBrickRed, // Use the defined Anu Brick Red for a consistent theme
     );
 
-    TextStyle subtitleStyle = TextStyle(
+    final subtitleStyle = TextStyle(
       fontSize: Responsive.isSmallMobile(context)
           ? sizeMobileStandard
           : sizeDesktopStandard,
@@ -183,14 +190,14 @@ class _SettingsState extends ConsumerState<Settings> {
     return Column(
       children: [
         SizedBox(height: screenHeight(context) * 0.05),
-        Center(
-          child: Text("App Settings", style: titleStyle),
+        const Center(
+          child: Text('App Settings', style: titleStyle),
         ),
         SizedBox(height: screenHeight(context) * 0.05),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: kDefaultPadding),
           child: Column(children: [
-            Text("Change Encryption Key", style: subtitleStyle),
+            Text('Change Encryption Key', style: subtitleStyle),
             SizedBox(height: screenHeight(context) * 0.02),
             // Your Row with the TextField for the current encryption key
             // Your Row with the TextField for the new encryption key
@@ -198,7 +205,7 @@ class _SettingsState extends ConsumerState<Settings> {
             // Your ElevatedButton for changing the key
           ]),
         ),
-        Spacer(),
+        const Spacer(),
         Align(
           alignment: Alignment.bottomRight,
           child: Padding(
@@ -274,7 +281,7 @@ class _SettingsState extends ConsumerState<Settings> {
                 ),
               ],
             ),
-            SizedBox(
+            const SizedBox(
               height: kDefaultPadding,
             ),
             Row(
@@ -348,9 +355,9 @@ class _SettingsState extends ConsumerState<Settings> {
                     await _showErrDialog(context, 'ERROR!',
                         'Some fields are missing. Please enter all three values!');
                   } else {
-                    String currentKey = currentKeyController.text;
-                    String newKey = newKeyController.text;
-                    String repeatKey = repeatKeyController.text;
+                    // final currentKey = currentKeyController.text;
+                    final newKey = newKeyController.text;
+                    final repeatKey = repeatKeyController.text;
 
                     if (newKey != repeatKey) {
                       await _showErrDialog(
@@ -485,7 +492,7 @@ class _SettingsState extends ConsumerState<Settings> {
                     }
                   }
                 },
-                child: Text(
+                child: const Text(
                   'Change key',
                   style: TextStyle(color: Colors.white),
                 ),
@@ -514,7 +521,7 @@ class _SettingsState extends ConsumerState<Settings> {
         //   ],
         // ),
 
-        Spacer(),
+        const Spacer(),
 
         // Only show version text in mobile version.
 
@@ -524,7 +531,7 @@ class _SettingsState extends ConsumerState<Settings> {
                 children: [
                   SelectableText(
                     APP_VERSION,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: versionTextSize,
                       color: Colors.black,
                     ),
@@ -547,7 +554,7 @@ class _SettingsState extends ConsumerState<Settings> {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
           title: Text(msgTitle),
           content: SingleChildScrollView(
