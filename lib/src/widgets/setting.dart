@@ -115,69 +115,12 @@ class _SettingsState extends ConsumerState<Settings> {
     });
   }
 
-  /// Status of playing of the audio.
-  //bool _isPlaying = false;
-
-  //final AudioPlayer _audioPlayer = AudioPlayer();
-
-  //final String secKeyAudioFile = 'encryption_key_intro.mp3';
-
-  /// Toggles the audio playback state.
-  ///
-  /// If the audio is currently playing, it stops the playback.
-  /// If there is one audio is currently playing, it will not play.
-  /// Otherwise, it starts playing the audio from the specified asset source.
-
-  // Future<void> _toggleAudio() async {
-  //   if (_isPlaying) {
-  //     await _audioPlayer.stop();
-
-  //     setState(() {
-  //       _isPlaying = false;
-  //       audioInPlaying = false;
-  //     });
-  //   } else {
-  //     if (!audioInPlaying) {
-  //       await _audioPlayer.play(AssetSource('audio/${secKeyAudioFile}'));
-
-  //       setState(() {
-  //         _isPlaying = !_isPlaying;
-  //         audioInPlaying = true;
-  //       });
-  //     }
-  //   }
-  // }
-
-  /// Handles the completion of audio playback.
-  // void _onAudioComplete() {
-  //   setState(() {
-  //     _isPlaying = false;
-  //     audioInPlaying = false;
-  //   });
-  // }
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _audioPlayer.onPlayerComplete.listen((event) {
-  //     _onAudioComplete();
-  //   });
-  // }
-
-  // @override
-  // void dispose() {
-  //   _audioPlayer.dispose();
-  //   audioInPlaying = false;
-  //   super.dispose();
-  // }
-
   @override
   Widget build(BuildContext context) {
     const titleStyle = TextStyle(
       fontSize: 25,
       fontWeight: FontWeight.w700,
-      color:
-          anuBrickRed, // Use the defined Anu Brick Red for a consistent theme
+      color: anuBrickRed,
     );
 
     final subtitleStyle = TextStyle(
@@ -198,7 +141,6 @@ class _SettingsState extends ConsumerState<Settings> {
           padding: const EdgeInsets.symmetric(horizontal: kDefaultPadding),
           child: Column(children: [
             Text('Change Encryption Key', style: subtitleStyle),
-            SizedBox(height: screenHeight(context) * 0.02),
             // Your Row with the TextField for the current encryption key
             // Your Row with the TextField for the new encryption key
             // Your Row with the TextField for the repeat new encryption key
@@ -206,53 +148,10 @@ class _SettingsState extends ConsumerState<Settings> {
           ]),
         ),
         const Spacer(),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Padding(
-            padding: const EdgeInsets.all(kDefaultPadding),
-            child: SelectableText(
-              APP_VERSION,
-              style: TextStyle(
-                fontSize: versionTextSize,
-                color: Colors.black
-                    .withOpacity(0.6), // Slightly toned down for a subtler look
-              ),
-            ),
-          ),
-        ),
-        // SizedBox(height: 20.0),
-        // const Row(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: [
-        //     Text("App Settings",
-        //         style: TextStyle(fontSize: 25, fontWeight: FontWeight.w700)),
-        //     // AudioIconWithTooltip(
-        //     //     isPlaying: _isPlaying, toggleAudio: _toggleAudio)
-        //   ],
-        // ),
-        // SizedBox(height: 20.0),
+
         Padding(
           padding: const EdgeInsets.all(10.0),
           child: Column(children: [
-            // Row(
-            //   crossAxisAlignment: CrossAxisAlignment.end,
-            //   children: [
-            //     // SizedBox(
-            //     //   width: screenWidth(context) * 0.05,
-            //     // ),
-            //     Icon(Icons.key, color: anuBrickRed),
-            //     SizedBox(width: 10.0),
-            //     Text("Change Encryption Key",
-            //         style: TextStyle(
-            //             fontSize: Responsive.isSmallMobile(context)
-            //                 ? sizeMobileStandard
-            //                 : sizeDesktopStandard,
-            //             fontWeight: FontWeight.w600)),
-            //     SizedBox(
-            //       width: 5.0,
-            //     ),
-            //   ],
-            // ),
             Row(
               children: [
                 Expanded(
