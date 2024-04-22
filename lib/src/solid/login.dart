@@ -36,6 +36,9 @@ import 'package:flutter/material.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rdflib/rdflib.dart';
+import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/secure_key.dart';
+import 'package:solidpod/src/widgets/setting.dart';
 import 'package:solidpod/src/widgets/settings.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -112,6 +115,7 @@ class SolidLogin extends StatefulWidget {
     this.infoButtonStyle = const InfoButtonStyle(),
     this.loginButtonStyle = const LoginButtonStyle(),
     this.registerButtonStyle = const RegisterButtonStyle(),
+    // this.secureKeyObject = const SecureKey('', ''),
     super.key,
   });
 
@@ -200,6 +204,9 @@ class SolidLogin extends StatefulWidget {
   /// is available on the Login page.
 
   final bool required;
+
+  // /// Secure key object
+  // final SecureKey secureKeyObject;
 
   @override
   State<SolidLogin> createState() => _SolidLoginState();
@@ -421,18 +428,21 @@ class _SolidLoginState extends State<SolidLogin> {
         print("Change Key");
         //TODO kevin
         Map<dynamic, dynamic> authData = {};
+
+        String webId = webIdController.text;
+
+        /// Setup SecureKey object
+        SecureKey secureKeyObject = SecureKey('', webId);
+
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => SettingScreen(
+                builder: (context) => Settings(
+                      storage: secureStorage,
                       authData: authData,
                       webId: widget.webID,
+                      secureKeyObject: secureKeyObject,
                     )));
-        // MaterialPageRoute(
-        //     builder: (context) => SettingScreen(
-        //           authData: authData,
-        //           webId: widget.webID,
-        //         ));
       },
     );
 
@@ -549,11 +559,7 @@ class _SolidLoginState extends State<SolidLogin> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  widget.required
-                      ? const Spacer()
-                      : Expanded(
-                          child: registerButton,
-                        ),
+                  const Spacer(),
                   const SizedBox(
                     width: 15.0,
                   ),
