@@ -147,22 +147,27 @@ Future<String> getResourceUrl(String resourcePath) async {
 }
 
 /// Encrypt a given data string and format to TTL
-String getEncTTLStr(String filePath, String fileContent, Key key, IV iv) {
+Future<String> getEncTTLStr(
+    String filePath, String fileContent, Key key, IV iv) async {
   final encData = encryptData(fileContent, key, iv);
 
   final g = Graph();
-  final f = URIRef(appsFile + filePath); //TODO: update this
+  //final f = URIRef(appsFile + filePath); //TODO: update this
+  final f = URIRef(await getResourceUrl(filePath));
   final ns = Namespace(ns: appsTerms);
   g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
   g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
   g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
 
   // Bind the long namespace to shorter string for better readability
-  final uri = Uri.parse(appsTerms);
-  final host = uri.host.split('.')[0];
+  // String getPrefix(String UriStr) => Uri.parse(UriStr).pathSegments[-1];
+  // g.bind(appFilePrefix, Namespace(ns: appsFile));
+  // g.bind(appTermPrefix, ns);
+  // final uri = Uri.parse(appsTerms);
+  // final host = uri.host.split('.')[0];
   // final hostpath = uri.removeFragment().toString();
   // g.bind(host, Namespace(ns: hostpath));
-  g.bind(host, ns);
+  // g.bind(host, ns);
 
   g.serialize(format: 'ttl', abbr: 'short');
 
@@ -180,4 +185,28 @@ Future<String> getEncKeyPath() async {
 Future<String> getIndKeyPath() async {
   final appName = await getAppName();
   return path.join(appName, encDir, indKeyFile);
+}
+
+/// Add (encrypted) individual/session key [encIndKey] and the corresponding
+/// IV [iv] for file with path [filePath]
+Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
+  // const filePrefix = '$appFilePrefix: <$appsFile>';
+  // const termPrefix = '$appTermPrefix: <$appsTerms>';
+  // final sub = appsFile + filePath;
+  // final sub = '$appFilePrefix:$filePath';
+  final sub = await getResourceUrl(filePath);
+  // final query = [
+  //   'PREFIX $filePrefix',
+  //   'PREFIX $termPrefix',
+  //   'INSERT DATA {',
+  //   sub,
+  //   '$appTermPrefix:$pathPred $filePath;',
+  //   '$appTermPrefix:$ivPred ${iv.base64};',
+  //   '$appTermPrefix:$sessionKeyPred $encIndKey.',
+  //   '};'
+  //].join(' ');
+  final query =
+      'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; <$appsTerms$ivPred> "${iv.base64}"; <$appsTerms$sessionKeyPred> "$encIndKey".};';
+  final fileUrl = await getResourceUrl(await getIndKeyPath());
+  await updateFileByQuery(fileUrl, query);
 }
