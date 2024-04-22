@@ -398,10 +398,9 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
 
 Future<void> updateFileByQuery(
   String fileUrl,
-  String accessToken,
-  String dPopToken,
   String query,
 ) async {
+  final (:accessToken, :dPopToken) = await getTokens(fileUrl, 'PATCH');
   final editResponse = await http.patch(
     Uri.parse(fileUrl),
     headers: <String, String>{
@@ -458,10 +457,10 @@ Future<void> updateIndKeyFile(
       ? webId.replaceAll(profCard, '$encDirLoc/$indKeyFile')
       : '$webId/$encDirLoc/$indKeyFile';
 
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
+  // final rsaInfo = authData['rsaInfo'];
+  // final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  // final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  // final accessToken = authData['accessToken'].toString();
 
   final notesFile = '$webId/predicates/file#';
   final notesTerms = '$webId/predicates/terms#';
@@ -509,14 +508,13 @@ Future<void> updateIndKeyFile(
 
       // Generate DPoP token.
 
-      final dPopTokenKeyFilePatch =
-          genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+      // final dPopTokenKeyFilePatch =
+      //     genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
 
       // Run the query.
 
       // createUpdateRes =
-      await updateFileByQuery(
-          keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+      await updateFileByQuery(keyFileUrl, query);
     } else {
       // If the file contain same values, then no need to run anything.
       // createUpdateRes = 'ok';
@@ -529,14 +527,13 @@ Future<void> updateIndKeyFile(
 
     // Generate DPoP token.
 
-    final dPopTokenKeyFilePatch =
-        genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+    // final dPopTokenKeyFilePatch =
+    //     genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
 
     // Run the query.
 
     // createUpdateRes =
-    await updateFileByQuery(
-        keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+    await updateFileByQuery(keyFileUrl, query);
   }
 
   // if (createUpdateRes == 'ok') {
