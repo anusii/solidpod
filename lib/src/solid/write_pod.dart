@@ -124,6 +124,7 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
     final encIndKey = encryptData(indKey.base64, masterKey, indKeyIV);
 
     // Update the ind-key file on server
+    await addIndKey(filePath, encIndKey, indKeyIV);
   } else {
     //throw Exception('Unable to determine if file exists');
     print('ERR');
@@ -131,6 +132,6 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
 
   // Create file with encrypted data on server
 
-  final encData = getEncTTLStr(filePath, fileContent, indKey, dataIV);
+  final encData = await getEncTTLStr(filePath, fileContent, indKey, dataIV);
   await createTTL(filePath, encData);
 }
