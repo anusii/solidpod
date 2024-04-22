@@ -39,9 +39,6 @@ Future<String?> loadMasterPassword() async {
   // see src/screens/initial_setup/widgets/res_create_form_submission.dart
   final masterPasswd =
       await secureStorage.read(key: masterPasswdSecureStorageKey);
-  if (masterPasswd == null) {
-    await saveMasterPassword('dc101');
-  }
   return masterPasswd;
 }
 
@@ -159,6 +156,14 @@ String getEncTTLStr(String filePath, String fileContent, Key key, IV iv) {
   g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
   g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
   g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
+
+  // Bind the long namespace to shorter string for better readability
+  final uri = Uri.parse(appsTerms);
+  final host = uri.host.split('.')[0];
+  // final hostpath = uri.removeFragment().toString();
+  // g.bind(host, Namespace(ns: hostpath));
+  g.bind(host, ns);
+
   g.serialize(format: 'ttl', abbr: 'short');
 
   final encTTL = g.serializedString;
