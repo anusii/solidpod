@@ -23,6 +23,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/solid/responsive.dart';
 import 'package:solidpod/src/solid/secure_key.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,30 +118,49 @@ class _SettingsState extends ConsumerState<Settings> {
 
   @override
   Widget build(BuildContext context) {
-    const titleStyle = TextStyle(
-      fontSize: 25,
-      fontWeight: FontWeight.w700,
-      color: anuBrickRed,
-    );
+    // const titleStyle = TextStyle(
+    //   fontSize: 25,
+    //   fontWeight: FontWeight.w700,
+    //   color: anuBrickRed,
+    // );
 
-    final subtitleStyle = TextStyle(
-      fontSize: Responsive.isSmallMobile(context)
-          ? sizeMobileStandard
-          : sizeDesktopStandard,
-      fontWeight: FontWeight.w600,
-      color: anuBrickRed, // Same here for consistent theming
-    );
+    // final subtitleStyle = TextStyle(
+    //   fontSize: Responsive.isSmallMobile(context)
+    //       ? sizeMobileStandard
+    //       : sizeDesktopStandard,
+    //   fontWeight: FontWeight.w600,
+    //   color: anuBrickRed, // Same here for consistent theming
+    // );
     return Column(
       children: [
+        // Adding a Row for the back button and spacing.
+
+        Row(
+          children: [
+            BackButton(
+              onPressed: () {
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(builder: (context) =>
+                //   SolidLogin()),
+                // );
+              },
+            ),
+          ],
+        ),
         SizedBox(height: screenHeight(context) * 0.05),
         const Center(
-          child: Text('App Settings', style: titleStyle),
+          child: Text('App Settings'
+              // , style: titleStyle
+              ),
         ),
         SizedBox(height: screenHeight(context) * 0.05),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: kDefaultPadding),
           child: Column(children: [
-            Text('Change Encryption Key', style: subtitleStyle),
+            Text('Change Encryption Key'
+                // , style: subtitleStyle
+                ),
             // Your Row with the TextField for the current encryption key
             // Your Row with the TextField for the new encryption key
             // Your Row with the TextField for the repeat new encryption key
