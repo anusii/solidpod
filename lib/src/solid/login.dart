@@ -35,9 +35,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/secure_key.dart';
-import 'package:solidpod/src/widgets/setting.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -417,31 +414,35 @@ class _SolidLoginState extends State<SolidLogin> {
       },
     );
 
-    final changeButton = PodButton(
-      text: 'CHANGE KEY',
-      background: widget.infoButtonStyle.background,
-      foreground: widget.infoButtonStyle.foreground,
-      tooltip: widget.infoButtonStyle.tooltip,
-      onPressed: () {
-        //TODO kevin
-        final authData = <dynamic, dynamic>{};
+    // final changeButton = PodButton(
+    //   text: 'CHANGE KEY',
+    //   background: widget.infoButtonStyle.background,
+    //   foreground: widget.infoButtonStyle.foreground,
+    //   tooltip: widget.infoButtonStyle.tooltip,
+    //   onPressed: () {
+    //     //TODO kevin
+    //     final authData = <dynamic, dynamic>{};
 
-        final webId = webIdController.text;
+    //     final webId = webIdController.text;
 
-        /// Setup SecureKey object
-        final secureKeyObject = SecureKey('', webId);
+    //     /// Setup SecureKey object
+    //     final secureKeyObject = SecureKey('', webId);
 
-        Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => Settings(
-                      storage: secureStorage,
-                      authData: authData,
-                      webId: widget.webID,
-                      secureKeyObject: secureKeyObject,
-                    )));
-      },
-    );
+    //     Navigator.pushReplacement(
+    //         context,
+    //         MaterialPageRoute(
+    //             builder: (context) => Settings(
+    //                   storage: secureStorage,
+    //                   authData: authData,
+    //                   webId: widget.webID,
+    //                   secureKeyObject: secureKeyObject,
+    //                   onBackButtonPressed: () => Navigator.push(
+    //                     context,
+    //                     MaterialPageRoute(builder: (context) => widget),
+    //                   ),
+    //                 )));
+    //   },
+    // );
 
     // A INFO button that when pressed will proceed to visit a link.
 
@@ -553,18 +554,18 @@ class _SolidLoginState extends State<SolidLogin> {
               const SizedBox(
                 height: 15.0,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Spacer(),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
-                  Expanded(
-                    child: changeButton,
-                  ),
-                ],
-              ),
+              // Row(
+              //   mainAxisAlignment: MainAxisAlignment.end,
+              //   children: [
+              //     const Spacer(),
+              //     const SizedBox(
+              //       width: 15.0,
+              //     ),
+              //     Expanded(
+              //       child: changeButton,
+              //     ),
+              //   ],
+              // ),
             ],
           ),
 
