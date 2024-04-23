@@ -79,13 +79,18 @@ Future<void> initPodIfRequired(BuildContext context, Widget child) async {
 /// stored in local secure storage or
 /// it cannot be verfied using the verification key stored in PODs
 
-Future<void> askMasterPasswdIfRequired(BuildContext context) async {
+Future<void> askMasterPasswordIfRequired(BuildContext context) async {
   final masterPasswd = await loadMasterPassword();
   final verificationKey = await getVerificationKey();
   assert(verificationKey != null);
 
+  // if (masterPasswd != null) {
+  //   await removeMasterPassword();
+  //   print('password deleted');
+  // }
+
   if (masterPasswd == null ||
-      !verifyMasterPasswd(masterPasswd, verificationKey!)) {
+      !verifyMasterPassword(masterPasswd, verificationKey!)) {
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -116,93 +121,98 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormBuilderState>();
     const passwordKey = 'password';
-    return Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          FormBuilder(
-            key: formKey,
-            onChanged: () {
-              formKey.currentState!.save();
-              debugPrint(formKey.currentState!.value.toString());
-            },
-            autovalidateMode: AutovalidateMode.always,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text(
-                  'Please provide your password used to secure your data',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const Divider(color: Colors.grey),
-                const SizedBox(height: 20),
-                const Text(
-                  requiredPwdMsg,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                FormBuilderTextField(
-                  name: passwordKey,
-                  obscureText:
-                      // Controls whether the password is shown or hidden.
-
-                      !_showPassword,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    labelText: 'PASSWORD',
-                    labelStyle: const TextStyle(
-                      color: Colors.blue,
-                      letterSpacing: 1.5,
-                      fontSize: 13.0,
-                      fontWeight: FontWeight.bold,
+    return Scaffold(
+        body: Padding(
+            padding: const EdgeInsets.all(32),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              FormBuilder(
+                key: formKey,
+                onChanged: () {
+                  formKey.currentState!.save();
+                  debugPrint(formKey.currentState!.value.toString());
+                },
+                autovalidateMode: AutovalidateMode.always,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    const Text(
+                      'Please provide your password used to secure your data',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                    suffixIcon: IconButton(
-                      icon: Icon(_showPassword
-                          ? Icons.visibility
-                          : Icons.visibility_off),
-                      onPressed: () {
-                        setState(() {
-                          _showPassword =
-                              // Toggle the state to show/hide the password.
-
-                              !_showPassword;
-                        });
-                      },
+                    const Divider(color: Colors.grey),
+                    const SizedBox(height: 20),
+                    const Text(
+                      requiredPwdMsg,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  validator: FormBuilderValidators.compose([
-                    FormBuilderValidators.required(),
-                    (val) {
-                      if (genVerificationKey(val as String) !=
-                          widget.verficationKey) {
-                        return 'Incorrect Password';
-                      }
-                      return null;
-                    },
-                  ]),
+                    const SizedBox(height: 10),
+                    FormBuilderTextField(
+                      name: passwordKey,
+                      obscureText:
+                          // Controls whether the password is shown or hidden.
+
+                          !_showPassword,
+                      autocorrect: false,
+                      decoration: InputDecoration(
+                        labelText: 'PASSWORD',
+                        labelStyle: const TextStyle(
+                          color: Colors.blue,
+                          letterSpacing: 1.5,
+                          fontSize: 13.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(_showPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off),
+                          onPressed: () {
+                            setState(() {
+                              _showPassword =
+                                  // Toggle the state to show/hide the password.
+
+                                  !_showPassword;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: FormBuilderValidators.compose([
+                        FormBuilderValidators.required(),
+                        (val) {
+                          if (genVerificationKey(val as String) !=
+                              widget.verficationKey) {
+                            return 'Incorrect Password';
+                          }
+                          return null;
+                        },
+                      ]),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState?.validate() ?? true) {
-                  final formData = formKey.currentState?.value as Map;
-                  await saveMasterPassword(formData[passwordKey].toString());
-                }
-              },
-              child: const Text(
-                'OK',
-                style: TextStyle(color: Colors.white, fontSize: 10),
-              )),
-        ]));
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                  onPressed: () async {
+                    if (formKey.currentState?.validate() ?? true) {
+                      final formData = formKey.currentState?.value as Map;
+                      await saveMasterPassword(
+                          formData[passwordKey].toString());
+                      print(
+                          'password ${formData[passwordKey].toString()} saved');
+                    }
+                  },
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(color: Colors.white, fontSize: 10),
+                  )),
+            ])));
   }
 }

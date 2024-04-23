@@ -102,7 +102,7 @@ Future<String?> getVerificationKey() async {
 }
 
 /// Verify the user provided master password for data encryption
-bool verifyMasterPasswd(String masterPasswd, String verificationKey) =>
+bool verifyMasterPassword(String masterPasswd, String verificationKey) =>
     genVerificationKey(masterPasswd) == verificationKey;
 
 /// Save master password to local secure storage
@@ -119,6 +119,13 @@ Future<String?> loadMasterPassword() async {
   final masterPasswd =
       await secureStorage.read(key: masterPasswdSecureStorageKey);
   return masterPasswd;
+}
+
+/// Delete the saved master password from local secure storage
+Future<void> removeMasterPassword() async {
+  if (await secureStorage.containsKey(key: masterPasswdSecureStorageKey)) {
+    await secureStorage.delete(key: masterPasswdSecureStorageKey);
+  }
 }
 
 /// Encrypt data using AES with the specified key
@@ -436,10 +443,12 @@ class AuthDataManager {
   /// Remove/delete auth data from secure storage
   static Future<bool> removeAuthData() async {
     try {
-      await secureStorage.delete(key: _authDataSecureStorageKey);
-      _logoutUrl = null;
-      _rsaInfo = null;
-      _authResponse = null;
+      if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
+        await secureStorage.delete(key: _authDataSecureStorageKey);
+        _logoutUrl = null;
+        _rsaInfo = null;
+        _authResponse = null;
+      }
 
       return true;
     } on Exception {

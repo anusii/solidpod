@@ -50,7 +50,7 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
   // which should require user input if master password is not stored
   // in local secure storage or cannot be verified.
 
-  await askMasterPasswdIfRequired(context);
+  await askMasterPasswordIfRequired(context);
   final masterPasswd = await loadMasterPassword();
   assert(masterPasswd != null);
   // final verified = verifyMasterPasswd(masterPasswd!);
