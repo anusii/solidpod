@@ -1,4 +1,4 @@
-/// Common functions used across the package.
+/// Common functions for package users.
 ///
 // Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
 ///
@@ -26,84 +26,183 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
-
-// ignore_for_file: comment_references
+/// Authors: Anushka Vidanage, Dawei Chen, Zheyuan Xu
 
 library;
 
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:flutter/material.dart' hide Key;
 
-/// Truncates the given [text] to a predefined maximum length.
-///
-/// If [text] exceeds the length defined by [longStrLength], it is truncated
-/// and ends with an ellipsis '...'. If [text] is shorter than [longStrLength],
-/// it is returned as is.
-///
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
 
-// comment out the following function as it is not used in the current version
-// of the app, anushka might need to use to in the future so keeping it here.
+import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/popup_login.dart';
+import 'package:solidpod/src/solid/utils.dart';
 
-// String truncateString(String text) {
-//   var result = '';
-//   result = text.length > longStrLength
-//       ? '${text.substring(0, longStrLength - 4)}...'
-//       : text;
+/// Login if the user has not done so
 
-//   return result;
-// }
-
-/// Write the given [key], [value] pair to the secure storage.
-///
-/// If [key] already exisits then delete that first and then
-/// write again.
-
-Future<void> writeToSecureStorage(String key, String value) async {
-  final isKeyExist = await secureStorage.containsKey(
-    key: key,
-  );
-
-  // Since write() method does not automatically overwrite an existing value.
-  // To overwrite an existing value, call delete() first.
-
-  if (isKeyExist) {
-    await secureStorage.delete(
-      key: key,
-    );
+Future<void> loginIfRequired(BuildContext context) async {
+  final loggedIn = await checkLoggedIn();
+  if (!loggedIn) {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SolidPopupLogin(),
+        ));
   }
-
-  await secureStorage.write(
-    key: key,
-    value: value,
-  );
 }
 
-/// Convert the given [keyPair] object to a map.
-///
-/// Returns a map with publicKey and privateKey.
+/// Initialise the user's POD if the user has not done so
 
-// comment out the following function as it is not used in the current version
+Future<void> initPodIfRequired(BuildContext context, Widget child) async {
+  final defaultFolders = await generateDefaultFolders();
+  final defaultFiles = await generateDefaultFiles();
 
-// Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
-//   return {
-//     'publicKey': keyPair.publicKey,
-//     'privateKey': keyPair.privateKey,
-//   };
-// }
+  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
+  final allExists = resCheckList.first as bool;
 
-/// Convert the given [authDataStr] jason string to a map.
-///
-/// Returns a authentication data map with KeyPair object.
+  if (!allExists) {
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => InitialSetupScreen(
+                resCheckList: resCheckList,
+                child: child,
+              )),
+    );
+  }
+}
 
-// comment out the following function as it is not used in the current version
+/// Ask for the master password from the user if the master password is not
+/// stored in local secure storage or
+/// it cannot be verfied using the verification key stored in PODs
 
-// Map<dynamic, dynamic> convertAuthData(String authDataStr) {
-//   final authData = jsonDecode(authDataStr);
-//   final rsaInfo = authData['rsaInfo'];
-//   final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
-//       rsaInfo['rsa']['privateKey'] as String);
-//   rsaInfo['rsa'] = rsaKeyPair;
-//   authData['rsaInfo'] = rsaInfo;
+Future<void> askMasterPasswdIfRequired(BuildContext context) async {
+  final masterPasswd = await loadMasterPassword();
+  final verificationKey = await getVerificationKey();
+  assert(verificationKey != null);
 
-//   return authData as Map;
-// }
+  if (masterPasswd == null ||
+      !verifyMasterPasswd(masterPasswd, verificationKey!)) {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              MasterPasswdInput(verficationKey: verificationKey!),
+        ));
+  }
+}
+
+/// MasterPasswordInput is a [StatefulWidget] for user to enter
+/// the master password for data encryption.
+class MasterPasswdInput extends StatefulWidget {
+  /// Constructor
+  const MasterPasswdInput({required this.verficationKey, super.key});
+
+  /// The verification key
+  final String verficationKey;
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _MasterPasswdInputState createState() => _MasterPasswdInputState();
+}
+
+class _MasterPasswdInputState extends State<MasterPasswdInput> {
+  bool _showPassword = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final formKey = GlobalKey<FormBuilderState>();
+    const passwordKey = 'password';
+    return Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          FormBuilder(
+            key: formKey,
+            onChanged: () {
+              formKey.currentState!.save();
+              debugPrint(formKey.currentState!.value.toString());
+            },
+            autovalidateMode: AutovalidateMode.always,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Text(
+                  'Please provide your password used to secure your data',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Divider(color: Colors.grey),
+                const SizedBox(height: 20),
+                const Text(
+                  requiredPwdMsg,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                FormBuilderTextField(
+                  name: passwordKey,
+                  obscureText:
+                      // Controls whether the password is shown or hidden.
+
+                      !_showPassword,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    labelText: 'PASSWORD',
+                    labelStyle: const TextStyle(
+                      color: Colors.blue,
+                      letterSpacing: 1.5,
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(_showPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword =
+                              // Toggle the state to show/hide the password.
+
+                              !_showPassword;
+                        });
+                      },
+                    ),
+                  ),
+                  validator: FormBuilderValidators.compose([
+                    FormBuilderValidators.required(),
+                    (val) {
+                      if (genVerificationKey(val as String) !=
+                          widget.verficationKey) {
+                        return 'Incorrect Password';
+                      }
+                      return null;
+                    },
+                  ]),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState?.validate() ?? true) {
+                  final formData = formKey.currentState?.value as Map;
+                  await saveMasterPassword(formData[passwordKey].toString());
+                }
+              },
+              child: const Text(
+                'OK',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              )),
+        ]));
+  }
+}
