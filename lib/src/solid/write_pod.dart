@@ -3,80 +3,59 @@ import 'dart:core';
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
 
-import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
+//import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/popup_login.dart';
 import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/constants.dart';
+//import 'package:solidpod/src/solid/popup_login.dart';
+import 'package:solidpod/src/solid/common_func.dart';
 
-/// Write file content to a POD
-/// (1-3 shoudl be in keypod)
-/// 1. check if a user is logged in
-/// 2. load user password (master key) from local storage or ask user
-/// 3. validate user password (master key)
-/// 4. if file does not exist:
-///    - generate individual key and encrypt data
-///    - update file with all individual keys (updateFileByQuery)
-///    - create file with encrypted data (createItem)
-/// 5. if file exists:
-///    - load individual key from server and encrypt data
-///    - update file with encrypted data if it exists (updateFileByQuery)
+/// Write file with path [filePath] and content [fileContent] to a POD
 
 Future<void> writePod(String filePath, String fileContent, BuildContext context,
     Widget child) async {
-  // TODO: put this block into a separate function: loginIfApplicable?
-  final loggedIn = await checkLoggedIn();
-  if (!loggedIn) {
-    await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SolidPopupLogin(),
-        ));
-  }
+  await loginIfRequired(context);
+  // TODO: put this block into a separate function: loginIfRequired?
+  // final loggedIn = await checkLoggedIn();
+  // if (!loggedIn) {
+  //   await Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) => const SolidPopupLogin(),
+  //       ));
+  // }
 
-  final fileName = path.basename(filePath);
+  await initPodIfRequired(context, child);
+  //TODO: extract this initial structure test code to a separate function: initPodIfRequired?
+  // final defaultFolders = await generateDefaultFolders();
+  // final defaultFiles = await generateDefaultFiles();
 
-  //TODO: extract this initial structure test code to a separate function
-  final defaultFolders = await generateDefaultFolders();
-  final defaultFiles = await generateDefaultFiles();
+  // final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
+  // final allExists = resCheckList.first as bool;
 
-  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
-  final allExists = resCheckList.first as bool;
+  // if (!allExists) {
+  //   await Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(
+  //         builder: (context) => InitialSetupScreen(
+  //               resCheckList: resCheckList,
+  //               child: child,
+  //             )),
+  //   );
+  // }
 
-  if (!allExists) {
-    await Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (context) => InitialSetupScreen(
-                resCheckList: resCheckList,
-                child: child,
-              )),
-    );
-  }
+  // Get master key for encryption
+  // TODO: move this to a middle level function askMasterPasswdIfRequired?
+  // which should require user input if master password is not stored
+  // in local secure storage or cannot be verified.
 
-  // Get master password for encryption
-  // TODO: Request master password from user if not found in secure storage
+  await askMasterPasswdIfRequired(context);
   final masterPasswd = await loadMasterPassword();
   assert(masterPasswd != null);
+  // final verified = verifyMasterPasswd(masterPasswd!);
+  // assert(verified);
 
-  final webId = await getWebId();
-  assert(webId != null);
-  final authData = await AuthDataManager.loadAuthData();
-  assert(authData != null);
-
-  // Get the file with verification key
-  final encKeyPath = await getEncKeyPath();
-  final encKeyMap = await loadPrvTTL(encKeyPath);
-  final encKeyFileUrl = await getResourceUrl(encKeyPath);
-  assert(encKeyMap != null);
-
-  // Verify the provided password
-  assert(verifyMasterPasswd(
-      masterPasswd!, encKeyMap![encKeyFileUrl][encKeyPred] as String));
-
-  // Derive the master key from password
   final masterKey = genMasterKey(masterPasswd!);
 
   // Check if the file already exists
@@ -84,12 +63,11 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
   final fileUrl = await getResourceUrl(filePath);
   final fileExists = await checkResourceExists(fileUrl, true);
 
-  //late final String encData;
+  // Reuse the individual key if the file already exists
   late final Key indKey;
-  late final IV dataIV;
 
   if (fileExists == ResourceStatus.exist) {
-    // Delete the existing file or Append?
+    // Delete the existing file
 
     try {
       await deleteItem(true, filePath);
@@ -97,41 +75,35 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
       print('Exception: $e');
     }
 
-    // Get the TTL file with individual keys
+    // TODO: move this to a separate function getIndKeyOfFile?
+    // Get the ind-key file (TTL file with encrypted individual keys and IVs)
+
     final indKeyPath = await getIndKeyPath();
     final indKeyMap = await loadPrvTTL(indKeyPath);
-    assert(indKeyMap!.containsKey(fileName));
+    assert(indKeyMap!.containsKey(fileUrl));
 
-    final encIndKeyStr = indKeyMap![fileName][sessionKeyPred] as String;
-    final indKeyIVStr = indKeyMap[fileName][ivPred] as String;
+    // Get (and decrypt) the individual key from ind-key file
 
-    // Decrypt the individual key
-    final indKeyStr =
-        decryptData(encIndKeyStr, masterKey, IV.fromBase64(indKeyIVStr));
-    indKey = Key.fromBase64(indKeyStr);
-
-    // Encrypt data
-    dataIV = getIV();
-    //encData = encryptData(fileContent, Key.fromBase64(indKeyStr), dataIV);
+    final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
+    final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
+    indKey = Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
   } else if (fileExists == ResourceStatus.notExist) {
-    // Generate individual/session key
+    // Generate individual/session key and its IV
+
     indKey = getIndividualKey();
-    dataIV = getIV();
     final indKeyIV = getIV();
-    //encData = encryptData(fileContent, indKey, dataIV);
 
     // Encrypt individual Key
-    final encIndKey = encryptData(indKey.base64, masterKey, indKeyIV);
+    final encIndKeyStr = encryptData(indKey.base64, masterKey, indKeyIV);
 
-    // Update the ind-key file on server
-    await addIndKey(filePath, encIndKey, indKeyIV);
+    // Add the individual key and its IV to the ind-key file
+    await addIndKey(filePath, encIndKeyStr, indKeyIV);
   } else {
-    //throw Exception('Unable to determine if file exists');
-    print('ERR');
+    print('Exception: Unable to determine if file "$filePath" exists');
   }
 
   // Create file with encrypted data on server
 
-  final encData = await getEncTTLStr(filePath, fileContent, indKey, dataIV);
+  final encData = await getEncTTLStr(filePath, fileContent, indKey, getIV());
   await createTTL(filePath, encData);
 }
