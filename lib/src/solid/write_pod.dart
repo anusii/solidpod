@@ -16,47 +16,18 @@ import 'package:solidpod/src/solid/common_func.dart';
 Future<void> writePod(String filePath, String fileContent, BuildContext context,
     Widget child) async {
   await loginIfRequired(context);
-  // TODO: put this block into a separate function: loginIfRequired?
-  // final loggedIn = await checkLoggedIn();
-  // if (!loggedIn) {
-  //   await Navigator.push(
-  //       context,
-  //       MaterialPageRoute(
-  //         builder: (context) => const SolidPopupLogin(),
-  //       ));
-  // }
 
-  await initPodIfRequired(context, child);
-  //TODO: extract this initial structure test code to a separate function: initPodIfRequired?
-  // final defaultFolders = await generateDefaultFolders();
-  // final defaultFiles = await generateDefaultFiles();
-
-  // final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
-  // final allExists = resCheckList.first as bool;
-
-  // if (!allExists) {
-  //   await Navigator.pushReplacement(
-  //     context,
-  //     MaterialPageRoute(
-  //         builder: (context) => InitialSetupScreen(
-  //               resCheckList: resCheckList,
-  //               child: child,
-  //             )),
-  //   );
-  // }
+  await initPodsIfRequired(context, child);
 
   // Get master key for encryption
-  // TODO: move this to a middle level function askMasterPasswdIfRequired?
-  // which should require user input if master password is not stored
-  // in local secure storage or cannot be verified.
 
-  await askMasterPasswordIfRequired(context);
-  final masterPasswd = await loadMasterPassword();
-  assert(masterPasswd != null);
+  final masterPasswd = await getVerifiedMasterPassword(context, child);
+  // final masterPasswd = await loadMasterPassword();
+  // assert(masterPasswd != null);
   // final verified = verifyMasterPasswd(masterPasswd!);
   // assert(verified);
 
-  final masterKey = genMasterKey(masterPasswd!);
+  final masterKey = genMasterKey(masterPasswd);
 
   // Check if the file already exists
 

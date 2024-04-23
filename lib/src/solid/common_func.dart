@@ -35,7 +35,6 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
-import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/popup_login.dart';
@@ -54,9 +53,9 @@ Future<void> loginIfRequired(BuildContext context) async {
   }
 }
 
-/// Initialise the user's POD if the user has not done so
+/// Initialise the user's PODs if the user has not done so
 
-Future<void> initPodIfRequired(BuildContext context, Widget child) async {
+Future<void> initPodsIfRequired(BuildContext context, Widget child) async {
   final defaultFolders = await generateDefaultFolders();
   final defaultFiles = await generateDefaultFiles();
 
@@ -79,15 +78,17 @@ Future<void> initPodIfRequired(BuildContext context, Widget child) async {
 /// stored in local secure storage or
 /// it cannot be verfied using the verification key stored in PODs
 
-Future<void> askMasterPasswordIfRequired(BuildContext context) async {
-  final masterPasswd = await loadMasterPassword();
+Future<String> getVerifiedMasterPassword(
+    BuildContext context, Widget child) async {
+  var masterPasswd = await loadMasterPassword();
   final verificationKey = await getVerificationKey();
   assert(verificationKey != null);
 
-  // if (masterPasswd != null) {
-  //   await removeMasterPassword();
-  //   print('password deleted');
-  // }
+  if (masterPasswd != null) {
+    await removeMasterPassword();
+    print('password deleted');
+    masterPasswd = null;
+  }
 
   if (masterPasswd == null ||
       !verifyMasterPassword(masterPasswd, verificationKey!)) {
@@ -95,19 +96,24 @@ Future<void> askMasterPasswordIfRequired(BuildContext context) async {
         context,
         MaterialPageRoute(
           builder: (context) =>
-              MasterPasswdInput(verficationKey: verificationKey!),
+              MasterPasswdInput(verficationKey: verificationKey!, child: child),
         ));
+    masterPasswd = await loadMasterPassword();
   }
+
+  return masterPasswd!;
 }
 
 /// MasterPasswordInput is a [StatefulWidget] for user to enter
 /// the master password for data encryption.
 class MasterPasswdInput extends StatefulWidget {
   /// Constructor
-  const MasterPasswdInput({required this.verficationKey, super.key});
+  const MasterPasswdInput(
+      {required this.verficationKey, required this.child, super.key});
 
   /// The verification key
   final String verficationKey;
+  final Widget child;
 
   @override
   // ignore: library_private_types_in_public_api
@@ -121,6 +127,9 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormBuilderState>();
     const passwordKey = 'password';
+    const passwordMsg = 'Please enter the password (also known as master key)'
+        ' you previously provided to encrypt your data.';
+    var passwordVerified = false;
     return Scaffold(
         body: Padding(
             padding: const EdgeInsets.all(32),
@@ -130,7 +139,6 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                 key: formKey,
                 onChanged: () {
                   formKey.currentState!.save();
-                  debugPrint(formKey.currentState!.value.toString());
                 },
                 autovalidateMode: AutovalidateMode.always,
                 child: Column(
@@ -147,7 +155,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                     const Divider(color: Colors.grey),
                     const SizedBox(height: 20),
                     const Text(
-                      requiredPwdMsg,
+                      passwordMsg,
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 15,
@@ -159,7 +167,6 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                       name: passwordKey,
                       obscureText:
                           // Controls whether the password is shown or hidden.
-
                           !_showPassword,
                       autocorrect: false,
                       decoration: InputDecoration(
@@ -176,10 +183,8 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                               : Icons.visibility_off),
                           onPressed: () {
                             setState(() {
-                              _showPassword =
-                                  // Toggle the state to show/hide the password.
-
-                                  !_showPassword;
+                              // Toggle the state to show/hide the password.
+                              _showPassword = !_showPassword;
                             });
                           },
                         ),
@@ -189,7 +194,12 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                         (val) {
                           if (genVerificationKey(val as String) !=
                               widget.verficationKey) {
+                            passwordVerified = false;
+                            print('passwordVerified: $passwordVerified');
                             return 'Incorrect Password';
+                          } else {
+                            passwordVerified = true;
+                            print('passwordVerified: $passwordVerified');
                           }
                           return null;
                         },
@@ -199,20 +209,44 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                 ),
               ),
               const SizedBox(height: 10),
-              ElevatedButton(
-                  onPressed: () async {
-                    if (formKey.currentState?.validate() ?? true) {
-                      final formData = formKey.currentState?.value as Map;
-                      await saveMasterPassword(
-                          formData[passwordKey].toString());
-                      print(
-                          'password ${formData[passwordKey].toString()} saved');
-                    }
-                  },
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(color: Colors.white, fontSize: 10),
-                  )),
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                ElevatedButton(
+                    onPressed:
+                        //(formKey.currentState?.validate() ?? true)
+                        passwordVerified
+                            ? () async {
+                                print('passwordVerified: $passwordVerified');
+                                final formData =
+                                    formKey.currentState?.value as Map;
+                                await saveMasterPassword(
+                                    formData[passwordKey].toString());
+                                debugPrint('password saved');
+                                Navigator.pop(context);
+                              }
+                            : null,
+                    style: ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll<Color>(
+                            passwordVerified
+                                ? Colors.lightBlue
+                                : Colors.white)),
+                    child: const Text(
+                      'OK',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    )),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                    onPressed: () {
+                      debugPrint('go back');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => widget.child),
+                      );
+                    },
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ))
+              ]),
             ])));
   }
 }
