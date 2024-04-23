@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2024-03-24 20:51:22 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-04-22 14:36:36 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -47,7 +47,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
-const Color defaultButtonBackground = Color.fromARGB(255, 214, 177, 165);
+const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
 const String defaultLoginButtonText = 'LOGIN';
 const String defaultRegisterButtonText = 'REGISTER';
