@@ -43,7 +43,8 @@ import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/utils.dart'
+    show writeToSecureStorage, AuthDataManager, getWebId;
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';

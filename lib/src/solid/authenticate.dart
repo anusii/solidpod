@@ -34,12 +34,12 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/utils.dart'
+    show writeToSecureStorage, AuthDataManager, checkLoggedIn;
 
 // Scopes variables used in the authentication process.
 
