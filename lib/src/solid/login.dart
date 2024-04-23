@@ -626,23 +626,20 @@ class PodButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: ElevatedButton(
-        // Use the onPressed passed to the widget.
-
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              // Use the background color passed to the widget.
+          backgroundColor: background,
+          foregroundColor: foreground,
+          // Increase vertical padding.
 
-              background,
-          foregroundColor:
-              // Use the foreground color passed to the widget.
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          // Ensure a minimum size of 48px in height as per guidelines.
 
-              foreground,
+          minimumSize: const Size(88, 48),
         ),
         child: Text(
           text,
           style: buttonTextStyle,
-          // Style for the text inside the button can be defined here.
         ),
       ),
     );
