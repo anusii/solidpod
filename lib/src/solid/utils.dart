@@ -599,3 +599,19 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   };
   return files;
 }
+
+/// Save key/value pairs in TTL format
+Future<String> getTTLStr(Map<String, String> keyValuePairs) async {
+  final webId = await getWebId();
+  assert(webId != null);
+  final g = Graph();
+  final f = URIRef(webId!);
+  final ns = Namespace(ns: appsTerms);
+  for (final entry in keyValuePairs.entries) {
+    g.addTripleToGroups(f, ns.withAttr(entry.key), entry.value);
+  }
+
+  g.serialize(format: 'ttl', abbr: 'short');
+
+  return g.serializedString;
+}
