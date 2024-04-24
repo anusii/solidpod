@@ -1,7 +1,5 @@
 /// Common functions for package users.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
-///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
