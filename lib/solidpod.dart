@@ -1,6 +1,6 @@
 /// Support for flutter apps accessing solid PODs.
 ///
-// Time-stamp: <Monday 2024-04-22 14:34:06 +1000 Graham Williams>
+// Time-stamp: <Monday 2024-04-22 15:19:23 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -40,7 +40,7 @@ export 'src/solid/login.dart'
 export 'src/solid/popup_login.dart' show SolidPopupLogin;
 
 // TODO 20240417 gjw Can we please list or at least document what and why the
-// following are exported, PLEASE. ReadPod() I understand but waht from
+// following are exported, PLEASE. ReadPod() I understand, but what from
 // rest_api?
 
 export 'src/solid/api/rest_api.dart';
