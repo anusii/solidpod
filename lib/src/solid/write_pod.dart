@@ -35,6 +35,7 @@ import 'dart:core';
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -45,6 +46,10 @@ import 'package:solidpod/src/solid/utils.dart';
 
 Future<void> writePod(String filePath, String fileContent, BuildContext context,
     Widget child) async {
+  if (path.split(filePath)[1] != dataDir) {
+    throw Exception('Writing data to directories other than "data/" is not'
+        ' currently supported!');
+  }
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);
