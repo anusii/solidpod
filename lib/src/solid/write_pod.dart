@@ -105,6 +105,6 @@ Future<void> writePod(String filePath, String fileContent, BuildContext context,
 
   // Create file with encrypted data on server
 
-  await createTTL(
+  await createFile(
       filePath, await getEncTTLStr(filePath, fileContent, indKey, getIV()));
 }
