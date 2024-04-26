@@ -310,8 +310,8 @@ class _SolidLoginState extends State<SolidLogin> {
           void showBusyAnimation() {
             showAnimationDialog(
               context,
-              7,
-              'Logging in...',
+              2,
+              'Loading...',
               false,
               updateState,
             );
@@ -343,29 +343,29 @@ class _SolidLoginState extends State<SolidLogin> {
             );
           }
 
-          // Navigates to the Home Screen if the account exits.
+          // // Navigates to the Home Screen if the account exits.
 
-          Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
-            await Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => widget.child),
-            );
-          }
+          // Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+          //   await Navigator.pushReplacement(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => widget.child),
+          //   );
+          // }
 
-          // Method to navigate to the child widget, requiring BuildContext, and
-          // so avoiding the "don't use BuildContext across async gaps" warning.
+          // // Method to navigate to the child widget, requiring BuildContext, and
+          // // so avoiding the "don't use BuildContext across async gaps" warning.
 
-          Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
-            final resCheckList = await initialStructureTest(
-                appName, defaultFolders, defaultFiles);
-            final allExists = resCheckList.first as bool;
+          // Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
+          //   final resCheckList = await initialStructureTest(
+          //       appName, defaultFolders, defaultFiles);
+          //   final allExists = resCheckList.first as bool;
 
-            if (!allExists) {
-              await navInitialSetupScreen(authData, resCheckList);
-            }
+          //   if (!allExists) {
+          //     await navInitialSetupScreen(authData, resCheckList);
+          //   }
 
-            await navHomeScreen(authData);
-          }
+          //   await navHomeScreen(authData);
+          // }
 
           // Method to navigate back to the login widget, requiring BuildContext,
           // and so avoiding the "don't use BuildContext across async gaps"
@@ -383,7 +383,8 @@ class _SolidLoginState extends State<SolidLogin> {
           // SolidLogin page.
 
           if (authResult != null && authResult.isNotEmpty) {
-            await navigateToApp(authResult.first as Map);
+            // await navigateToApp(authResult.first as Map);
+            print("test");
           } else {
             // On moving to using navigateToLogin() the previously implemented
             // asynchronous showAuthFailedPopup() is lost due to the immediately
