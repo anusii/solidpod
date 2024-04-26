@@ -180,11 +180,6 @@ Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
 /// Create a directory
 Future<bool> createDir(String dirName, String dirParentPath) async {
   try {
-    final webId = await getWebId();
-    assert(webId != null);
-    final authData = await AuthDataManager.loadAuthData();
-    assert(authData != null);
-
     await createItem(false, dirName, '', fileLoc: dirParentPath);
     return true;
   } on Exception catch (e) {
@@ -194,7 +189,7 @@ Future<bool> createDir(String dirName, String dirParentPath) async {
 }
 
 /// Create new TTL file with content
-Future<bool> createTTL(String filePath, String fileContent) async {
+Future<bool> createFile(String filePath, String fileContent) async {
   try {
     final fileName = path.basename(filePath);
     final folderPath = path.dirname(filePath);
@@ -228,8 +223,8 @@ Future<String> getResourceUrl(String resourcePath) async {
   final webId = await getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
-  final fileUrl = webId!.replaceAll(profCard, resourcePath);
-  return fileUrl;
+  final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+  return resourceUrl;
 }
 
 /// Encrypt a given data string and format to TTL
@@ -271,6 +266,12 @@ Future<String> getEncKeyPath() async {
 Future<String> getIndKeyPath() async {
   final appName = await getAppName();
   return path.join(appName, encDir, indKeyFile);
+}
+
+/// Returns the path of the data directory
+Future<String> getDataDirPath() async {
+  final appName = await getAppName();
+  return path.join(appName, dataDir);
 }
 
 /// Add (encrypted) individual/session key [encIndKey] and the corresponding
