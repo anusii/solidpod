@@ -119,7 +119,9 @@ Future<List<dynamic>> initialStructureTest(
     if (await checkResourceExists(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
-      resNotExist['folders'].add(resourceUrl);
+      // NB: no trailing separator in order for the POD init code to work
+      final resourceUrlStr = await getResourceUrl(containerName);
+      resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
   }
