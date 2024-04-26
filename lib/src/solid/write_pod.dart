@@ -56,7 +56,9 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);
+  print('before init');
   await initPodsIfRequired(context, child);
+  print('after init');
 
   // Get master key for encryption
 

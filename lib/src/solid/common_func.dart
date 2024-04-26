@@ -61,7 +61,9 @@ Future<void> initPodsIfRequired(BuildContext context, Widget child) async {
   final allExists = resCheckList.first as bool;
 
   if (!allExists) {
-    await Navigator.pushReplacement(
+    print('before push');
+    // await Navigator.pushReplacement(
+    await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => InitialSetupScreen(
@@ -69,6 +71,9 @@ Future<void> initPodsIfRequired(BuildContext context, Widget child) async {
                 child: child,
               )),
     );
+    // Navigator.pop(context);
+    // TODO: figure out why this isn't printed
+    print('after push');
   }
 }
 
