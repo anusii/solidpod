@@ -42,14 +42,17 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils.dart';
 
-/// Write file with path [filePath] and content [fileContent] to PODs
+/// Write file [fileName] and content [fileContent] to PODs
 
-Future<void> writePod(String filePath, String fileContent, BuildContext context,
+Future<void> writePod(String fileName, String fileContent, BuildContext context,
     Widget child) async {
-  if (path.split(filePath)[1] != dataDir) {
-    throw Exception('Writing data to directories other than "data/" is not'
-        ' currently supported!');
-  }
+  // Write data to file in the data directory
+  final filePath = path.join(await getDataDirPath(), fileName);
+
+  // if (path.split(filePath)[1] != dataDir) {
+  //   throw Exception('Writing data to directories other than "data/" is not'
+  //       ' currently supported!');
+  // }
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);
