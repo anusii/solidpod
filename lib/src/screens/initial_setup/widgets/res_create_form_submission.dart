@@ -44,7 +44,7 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart'
 import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils.dart'
-    show writeToSecureStorage, AuthDataManager, getWebId;
+    show AuthDataManager, getWebId, saveMasterPassword;
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
@@ -245,15 +245,17 @@ ElevatedButton resCreateFormSubmission(
 
           // TODO: this needs refactoring with a pair of functions
           // to load/save master password
-          await writeToSecureStorage(webId!, passPlaintxt);
+          // await writeToSecureStorage(webId!, passPlaintxt);
           // authData['keyExist'] = true;  // the master key isn't auth data
           // }
+          await saveMasterPassword(passPlaintxt);
 
           await Navigator.pushReplacement(
             // ignore: use_build_context_synchronously
             context,
             MaterialPageRoute(builder: (context) => child),
           );
+          // Navigator.pop(context);
         }
       }
     },
