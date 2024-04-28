@@ -53,7 +53,7 @@ Future<void> loginIfRequired(BuildContext context) async {
 
 /// Initialise the user's PODs if the user has not done so
 
-Future<void> initPodsIfRequired(BuildContext context, Widget child) async {
+Future<void> initPodsIfRequired(BuildContext context) async {
   final defaultFolders = await generateDefaultFolders();
   final defaultFiles = await generateDefaultFiles();
 
@@ -61,19 +61,24 @@ Future<void> initPodsIfRequired(BuildContext context, Widget child) async {
   final allExists = resCheckList.first as bool;
 
   if (!allExists) {
-    print('before push');
-    // await Navigator.pushReplacement(
     await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => InitialSetupScreen(
                 resCheckList: resCheckList,
-                child: child,
+                child: AlertDialog(
+                  title: const Text('Notice'),
+                  content: const Text('PODs successfully initialised!'),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('OK'))
+                  ],
+                ),
               )),
     );
-    // Navigator.pop(context);
-    // TODO: figure out why this isn't printed
-    print('after push');
   }
 }
 

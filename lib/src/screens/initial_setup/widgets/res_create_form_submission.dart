@@ -255,7 +255,7 @@ ElevatedButton resCreateFormSubmission(
             context,
             MaterialPageRoute(builder: (context) => child),
           );
-          // Navigator.pop(context);
+          Navigator.pop(context);
         }
       }
     },

@@ -53,12 +53,11 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
   //   throw Exception('Writing data to directories other than "data/" is not'
   //       ' currently supported!');
   // }
+
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);
-  print('before init');
-  await initPodsIfRequired(context, child);
-  print('after init');
+  await initPodsIfRequired(context);
 
   // Get master key for encryption
 
