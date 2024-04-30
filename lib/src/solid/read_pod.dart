@@ -47,12 +47,10 @@ import 'package:solidpod/src/solid/utils.dart';
 
 Future<String?> readPod(
     String filePath, BuildContext context, Widget child) async {
-  // Login if necessary
-  await loginIfRequired(context);
+  // Login and initialise PODs if necessary
 
-  // Initialise PODs if necessary
-  // Does not seem necessary here
-  // await initPodsIfRequired(context, child);
+  await loginIfRequired(context);
+  await initPodsIfRequired(context);
 
   // Check if the requested file exists
 
