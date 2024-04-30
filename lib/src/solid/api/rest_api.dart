@@ -75,7 +75,8 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
 /// of token used in headers for enhanced security).
 
 Future<String> fetchPrvFile(String prvFileUrl) async {
-  final (:accessToken, :dPopToken) = await getTokens(prvFileUrl, 'GET');
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(prvFileUrl, 'GET');
   final profResponse = await http.get(
     Uri.parse(prvFileUrl),
     headers: <String, String>{
@@ -185,7 +186,8 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     //     : '$webId/$itemLoc$itemName';
     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
     final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
-    final (:accessToken, :dPopToken) = await getTokens(aclFileUrl, 'PUT');
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(aclFileUrl, 'PUT');
 
     // The PUT request will create the acl item in the server.
 
@@ -202,7 +204,8 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
       body: itemBody,
     );
   } else {
-    final (:accessToken, :dPopToken) = await getTokens(resourceUrl, 'POST');
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(resourceUrl, 'POST');
 
     // The POST request will create the item in the server.
 
@@ -243,7 +246,8 @@ Future<void> deleteItem(bool fileFlag, String itemLoc) async {
   //     genDpopToken(encKeyUrl, rsaKeyPair, publicKeyJwk, 'DELETE');
 
   final resourceUrl = await getResourceUrl(itemLoc);
-  final (:accessToken, :dPopToken) = await getTokens(resourceUrl, 'DELETE');
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, 'DELETE');
 
   final createResponse = await http.delete(
     Uri.parse(resourceUrl),
@@ -297,7 +301,7 @@ Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
   }
 
-  final (:accessToken, :dPopToken) = await getTokens(resUrl, 'GET');
+  final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
@@ -333,7 +337,8 @@ Future<void> updateFileByQuery(
   String fileUrl,
   String query,
 ) async {
-  final (:accessToken, :dPopToken) = await getTokens(fileUrl, 'PATCH');
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(fileUrl, 'PATCH');
   final editResponse = await http.patch(
     Uri.parse(fileUrl),
     headers: <String, String>{
@@ -491,7 +496,7 @@ Future<void> initialProfileUpdate(String profBody) async {
   // final dPopToken =
   //     genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
 
-  final (:accessToken, :dPopToken) = await getTokens(profUrl, 'PUT');
+  final (:accessToken, :dPopToken) = await getTokensForResource(profUrl, 'PUT');
 
   // The PUT request will create the acl item in the server
   final updateResponse = await http.put(
@@ -548,7 +553,7 @@ Future<String> fetchKeyData() async {
 ///
 /// returns the access token and DPoP token
 
-Future<({String accessToken, String dPopToken})> getTokens(
+Future<({String accessToken, String dPopToken})> getTokensForResource(
     String resourceUrl, String httpMethod) async {
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
@@ -563,18 +568,119 @@ Future<({String accessToken, String dPopToken})> getTokens(
   );
 }
 
-/// From a given file path create file URL
-///
-/// returns the full file URL
+/// Get the list of files in a container
+/// Copied from gurriny/indi/lib/models/common/rest_api.dart (from line 1909)
+// Future<List> getContainerList(Map authData, String containerUrl) async {
+//   List<String> containerList = [];
+//   List<String> resourceList = [];
+//   String homePage;
 
-// Future<String> createFileUrl(String filePath) async {
-//   final webId = await getWebId();
-//   assert(webId != null);
-//   assert(webId!.contains(profCard));
+//   var rsaInfo = authData['rsaInfo'];
+//   var rsaKeyPair = rsaInfo['rsa'];
+//   var publicKeyJwk = rsaInfo['pubKeyJwk'];
 
-//   final appDetails = await getAppNameVersion();
-//   final appName = appDetails.name;
-//   final fileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
+//   String accessToken = authData['accessToken'];
+//   //Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
 
-//   return fileUrl;
+//   String dPopTokenHome =
+//       genDpopToken(containerUrl, rsaKeyPair, publicKeyJwk, 'GET');
+
+//   final profResponse = await http.get(
+//     Uri.parse(containerUrl),
+//     headers: <String, String>{
+//       'Accept': '*/*',
+//       'Authorization': 'DPoP $accessToken',
+//       'Connection': 'keep-alive',
+//       'DPoP': '$dPopTokenHome',
+//     },
+//   );
+
+//   if (profResponse.statusCode == 200) {
+//     // If the server did return a 200 OK response,
+//     // then parse the JSON.
+//     //var tagObjsJson = jsonDecode(profResponse.body) as Map;
+//     homePage = profResponse.body;
+//   } else {
+//     // If the server did not return a 200 OK response,
+//     // then throw an exception.
+//     throw Exception('Failed to load profile data! Try again in a while.');
+//   }
+
+//   PodProfile homePageFile = PodProfile(homePage);
+
+//   List rdfDataPrefixList = homePageFile.dividePrvRdfData();
+//   List rdfDataList = rdfDataPrefixList.first;
+
+//   for (var i = 0; i < rdfDataList.length; i++) {
+//     if (rdfDataList[i].contains('ldp:contains')) {
+//       var itemList = rdfDataList[i].split('<');
+
+//       for (var j = 0; j < itemList.length; j++) {
+//         // if (containerList.length >= 200) {
+//         //   break;
+//         // }
+//         if (itemList[j].contains('/>')) {
+//           var item = itemList[j].replaceAll('/>,', '');
+//           item = item.replaceAll('/>.', '');
+//           item = item.replaceAll(' ', '');
+//           // if((item.contains('H')) | (item.contains('R'))){
+//           //   containerList.add(item);
+//           // }
+//           containerList.add(item);
+//         } else if (itemList[j].contains('>')) {
+//           var item = itemList[j].replaceAll('>,', '');
+//           item = item.replaceAll('>.', '');
+//           item = item.replaceAll(' ', '');
+//           resourceList.add(item);
+//         }
+//       }
+//     }
+//   }
+
+//   return [containerList, resourceList];
 // }
+
+Future<void> getResourcesInContainer(String containerUrl) async {
+  final url = containerUrl.endsWith(path.separator)
+      ? containerUrl
+      : containerUrl + path.separator;
+
+  print(url);
+  List<String> subContainers = [];
+  List<String> files = [];
+
+  final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
+
+  final profResponse = await http.get(
+    Uri.parse(url),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
+
+  print(profResponse.statusCode);
+
+  if (profResponse.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    //var tagObjsJson = jsonDecode(profResponse.body) as Map;
+    print('\n${profResponse.body}');
+    final r = profResponse.body;
+    print(r.runtimeType); // String
+    final g = Graph();
+    g.parseTurtle(profResponse.body);
+    for (final t in g.triples) {
+      print('sub: ${t.sub.value}');
+      print('pre: ${t.pre.value}');
+      print('obj: ${t.obj.value}');
+      print('');
+    }
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load profile data! Try again in a while.');
+  }
+}
