@@ -144,6 +144,35 @@ Future<List<dynamic>> initialStructureTest(
   return [allExists, resNotExist];
 }
 
+/// Asynchronously creates a file on a server using HTTP PUT request
+/// PUT: create or replace a resource
+/// POST: create a resource
+Future<void> createOrReplaceFile(String fileUrl, String fileContent) async {
+  assert(!fileUrl.endsWith(path.separator));
+
+  final fileName = path.split(fileUrl).last;
+  final (:accessToken, :dPopToken) = await getTokensForResource(fileUrl, 'PUT');
+
+  final response = await http.post(
+    Uri.parse(fileUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'text/turtle',
+      'Link': '<http://www.w3.org/ns/ldp#Resource>; rel="type"',
+      'Slug': fileName,
+      'DPoP': dPopToken,
+    },
+    body: fileContent,
+  );
+  if ([200, 201].contains(response.statusCode)) {
+    return;
+  } else {
+    throw Exception('Failed to create or replace resource!');
+  }
+}
+
 /// Asynchronously creates a file or directory (item) on a server using HTTP
 /// requests.
 ///
