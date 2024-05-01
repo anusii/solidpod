@@ -89,3 +89,7 @@ FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 /// are used to encrypt the data in PODs) in secure storage.
 
 String masterPasswdSecureStorageKey = '_pods_master_passwd';
+
+/// The string key for storing the web ID
+
+String webIdSecureStorageKey = '_web_id';
