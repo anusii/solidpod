@@ -204,15 +204,46 @@ Future<bool> createFile(String filePath, String fileContent) async {
   return false;
 }
 
-/// Get the app name from pubspec.yml and
-/// 1. Remove any leading and trailing whitespace
-/// 2. Convert to lower case
-/// 3. Replace (one or multiple) white spaces with an underscore
+/// [AppInfo] is class that stores the information of a particular app
+/// (i.e. the app that invokes methods of this class), including:
+/// name, version, canonical name, package name, build number.
 
-Future<String> getAppName() async {
-  final info = await PackageInfo.fromPlatform();
-  final appName = info.appName;
-  return appName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+class AppInfo {
+  /// Instance caching results of async call: `await PackageInfo.fromPlatform()`
+  static PackageInfo? _info;
+
+  /// Get the app name from pubspec.yml
+  static Future<String> get name async {
+    _info ??= await PackageInfo.fromPlatform();
+    return _info!.appName;
+  }
+
+  /// Get the version
+  static Future<String> get version async {
+    _info ??= await PackageInfo.fromPlatform();
+    return _info!.version;
+  }
+
+  /// Get the app name from pubspec.yml and
+  /// 1. Remove any leading and trailing whitespace
+  /// 2. Convert to lower case
+  /// 3. Replace (one or multiple) white spaces with an underscore
+  static Future<String> get canonicalName async {
+    _info ??= await PackageInfo.fromPlatform();
+    return _info!.appName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+  }
+
+  /// Get the name of the package that provides the app
+  static Future<String> get packageName async {
+    _info ??= await PackageInfo.fromPlatform();
+    return _info!.packageName;
+  }
+
+  /// Get the build number
+  static Future<String> get buildNumber async {
+    _info ??= await PackageInfo.fromPlatform();
+    return _info!.buildNumber;
+  }
 }
 
 /// From a given resource path create its URL
@@ -257,22 +288,16 @@ Future<String> getEncTTLStr(
 }
 
 /// Returns the path of file with verification key and private key
-Future<String> getEncKeyPath() async {
-  final appName = await getAppName();
-  return path.join(appName, encDir, encKeyFile);
-}
+Future<String> getEncKeyPath() async =>
+    path.join(await AppInfo.canonicalName, encDir, encKeyFile);
 
 /// Returns the path of file with individual keys
-Future<String> getIndKeyPath() async {
-  final appName = await getAppName();
-  return path.join(appName, encDir, indKeyFile);
-}
+Future<String> getIndKeyPath() async =>
+    path.join(await AppInfo.canonicalName, encDir, indKeyFile);
 
 /// Returns the path of the data directory
-Future<String> getDataDirPath() async {
-  final appName = await getAppName();
-  return path.join(appName, dataDir);
-}
+Future<String> getDataDirPath() async =>
+    path.join(await AppInfo.canonicalName, dataDir);
 
 /// Add (encrypted) individual/session key [encIndKey] and the corresponding
 /// IV [iv] for file with path [filePath]
@@ -301,10 +326,8 @@ Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)
 
-Future<({String name, String version})> getAppNameVersion() async {
-  final info = await PackageInfo.fromPlatform();
-  return (name: info.appName, version: info.version);
-}
+Future<({String name, String version})> getAppNameVersion() async =>
+    (name: await AppInfo.name, version: await AppInfo.version);
 
 /// Check whether a user is logged in or not
 ///
@@ -547,7 +570,7 @@ class AuthDataManager {
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<List<String>> generateDefaultFolders() async {
-  final appName = await getAppName();
+  final appName = await AppInfo.canonicalName;
   final mainResDir = appName;
 
   final dataDirLoc = path.join(mainResDir, dataDir);
@@ -573,7 +596,7 @@ Future<List<String>> generateDefaultFolders() async {
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
-  final appName = await getAppName();
+  final appName = await AppInfo.canonicalName;
   final mainResDir = appName;
 
   const encKeyFile = 'enc-keys.ttl';
