@@ -32,21 +32,14 @@
 
 library;
 
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:http/http.dart' as http;
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
-// ignore: implementation_imports
-import 'package:solid_auth/src/openid/openid_client.dart';
 
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils.dart';
 
 /// Parses file information and extracts content into a map.
 ///
@@ -81,11 +74,8 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
 /// [accessToken] (used for authorization), and [dPopToken] (another form
 /// of token used in headers for enhanced security).
 
-Future<String> fetchPrvFile(
-  String prvFileUrl,
-  String accessToken,
-  String dPopToken,
-) async {
+Future<String> fetchPrvFile(String prvFileUrl) async {
+  final (:accessToken, :dPopToken) = await getTokens(prvFileUrl, 'GET');
   final profResponse = await http.get(
     Uri.parse(prvFileUrl),
     headers: <String, String>{
@@ -103,7 +93,7 @@ Future<String> fetchPrvFile(
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
-    // print(profResponse.body);
+    print(profResponse.body);
     throw Exception('Failed to load profile data! Try again in a while.');
   }
 }
@@ -114,18 +104,7 @@ Future<String> fetchPrvFile(
 /// and returns a [Future] that resolves to a [List<dynamic>].
 
 Future<List<dynamic>> initialStructureTest(
-    String appName, List<String> folders, Map<dynamic, dynamic> files) async {
-  final authData = await AuthDataManager.loadAuthData();
-  assert(authData != null);
-
-  final rsaInfo = authData!['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
-  final decodedToken = JwtDecoder.decode(accessToken);
-
-  // Get webID
-  final webId = decodedToken['webid'].toString();
+    List<String> folders, Map<dynamic, dynamic> files) async {
   var allExists = true;
   final resNotExist = <dynamic, dynamic>{
     'folders': [],
@@ -135,13 +114,13 @@ Future<List<dynamic>> initialStructureTest(
   };
 
   for (final containerName in folders) {
-    final resourceUrl = webId.replaceAll('profile/card#me', '$containerName/');
-    final dPopToken =
-        genDpopToken(resourceUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-    if (await checkResourceExists(resourceUrl, accessToken, dPopToken, false) ==
-        'not-exist') {
+    // NB: the trailing separator in path is essential for this check
+    final resourceUrl = await getResourceUrl(containerName + path.separator);
+    if (await checkResourceExists(resourceUrl, false) ==
+        ResourceStatus.notExist) {
       allExists = false;
-      final resourceUrlStr = webId.replaceAll('profile/card#me', containerName);
+      // NB: no trailing separator in order for the POD init code to work
+      final resourceUrlStr = await getResourceUrl(containerName);
       resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
@@ -151,12 +130,9 @@ Future<List<dynamic>> initialStructureTest(
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
       final resourceUrl =
-          webId.replaceAll('profile/card#me', '$containerName/$fileName');
-      final dPopToken =
-          genDpopToken(resourceUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-      if (await checkResourceExists(
-              resourceUrl, accessToken, dPopToken, false) ==
-          'not-exist') {
+          await getResourceUrl(path.join(containerName as String, fileName));
+      if (await checkResourceExists(resourceUrl, false) ==
+          ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
         resNotExist['fileNames'].add(fileName);
@@ -173,20 +149,12 @@ Future<List<dynamic>> initialStructureTest(
 /// This function is used to send HTTP POST or PUT requests to a server in
 /// order to create a new file or directory.
 
-Future<String> createItem(bool fileFlag, String itemName, String itemBody,
-    String webId, Map<dynamic, dynamic> authData,
+Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
   String? itemLoc = '';
   var itemSlug = '';
   var itemType = '';
   var contentType = '';
-
-  // Get authentication info.
-
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
 
   // Set up directory or file parameters.
   if (fileFlag) {
@@ -201,22 +169,23 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
   }
 
-  final encDataUrl = webId.contains('profile/card#me')
-      ? webId.replaceAll('profile/card#me', itemLoc)
-      : fileFlag
-          ? '$webId$itemLoc'
-          : '$webId/$itemLoc';
-
-  final dPopToken =
-      genDpopToken(encDataUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'POST');
+  // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
+  // final encDataUrl = webId!.contains(profCard)
+  //     ? webId.replaceAll(profCard, itemLoc)
+  //     : fileFlag
+  //         ? '$webId$itemLoc'
+  //         : '$webId/$itemLoc';
+  final resourceUrl = await getResourceUrl(itemLoc);
 
   final http.Response createResponse;
 
   if (aclFlag) {
-    final aclFileUrl = webId.contains('profile/card#me')
-        ? webId.replaceAll('profile/card#me', '$itemLoc$itemName')
-        : '$webId/$itemLoc$itemName';
-    final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
+    // final aclFileUrl = webId.contains(profCard)
+    //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
+    //     : '$webId/$itemLoc$itemName';
+    // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
+    final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
+    final (:accessToken, :dPopToken) = await getTokens(aclFileUrl, 'PUT');
 
     // The PUT request will create the acl item in the server.
 
@@ -233,10 +202,12 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
       body: itemBody,
     );
   } else {
+    final (:accessToken, :dPopToken) = await getTokens(resourceUrl, 'POST');
+
     // The POST request will create the item in the server.
 
     createResponse = await http.post(
-      Uri.parse(encDataUrl),
+      Uri.parse(resourceUrl),
       headers: <String, String>{
         'Accept': '*/*',
         'Authorization': 'DPoP $accessToken',
@@ -250,15 +221,63 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
     );
   }
 
-  if (createResponse.statusCode == 200 || createResponse.statusCode == 201) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return 'ok';
-  } else {
+  // if (createResponse.statusCode == 200 || createResponse.statusCode == 201) {
+  //   // If the server did return a 200 OK response,
+  //   // then parse the JSON.
+  //   return 'ok';
+  // } else {
+  if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
     // If the server did not return a 200 OK response,
     // then throw an exception.
     throw Exception('Failed to create resource! Try again in a while.');
   }
+}
+
+/// Delete a file or a directory
+Future<void> deleteItem(bool fileFlag, String itemLoc) async {
+  // Set up file (resource) or directory (container) parameters
+  String contentType = fileFlag ? 'text/turtle' : 'application/octet-stream';
+
+  // String encKeyUrl = webId!.replaceAll(profCard, itemLoc);
+  // String dPopToken =
+  //     genDpopToken(encKeyUrl, rsaKeyPair, publicKeyJwk, 'DELETE');
+
+  final resourceUrl = await getResourceUrl(itemLoc);
+  final (:accessToken, :dPopToken) = await getTokens(resourceUrl, 'DELETE');
+
+  final createResponse = await http.delete(
+    Uri.parse(resourceUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': contentType,
+      'DPoP': dPopToken,
+    },
+  );
+
+  // if (createResponse.statusCode == 200 || createResponse.statusCode == 205) {
+  //   // If the server did return a 200 OK response,
+  //   // then parse the JSON.
+  //   return 'ok';
+  // } else {
+  if (createResponse.statusCode != 200 && createResponse.statusCode != 205) {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to delete file! Try again in a while.');
+  }
+}
+
+/// Enum of resource status
+enum ResourceStatus {
+  /// The resource exist
+  exist,
+
+  /// The resource does not exist
+  notExist,
+
+  /// Do not know if the resource exist (e.g. error occurred when checking the status)
+  unknown
 }
 
 /// Asynchronously checks whether a given resource exists on the server.
@@ -266,8 +285,7 @@ Future<String> createItem(bool fileFlag, String itemName, String itemBody,
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
 
-Future<String> checkResourceExists(
-    String resUrl, String accessToken, String dPopToken, bool fileFlag) async {
+Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
   String contentType;
   String itemType;
   if (fileFlag) {
@@ -279,6 +297,7 @@ Future<String> checkResourceExists(
     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
   }
 
+  final (:accessToken, :dPopToken) = await getTokens(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
@@ -292,81 +311,14 @@ Future<String> checkResourceExists(
   if (response.statusCode == 200 || response.statusCode == 204) {
     // If the server did return a 200 OK response,
     // then return true.
-    return 'exist';
+    return ResourceStatus.exist;
   } else if (response.statusCode == 404) {
     // If the server did not return a 200 OK response,
     // then return false.
-    return 'not-exist';
+    return ResourceStatus.notExist;
   } else {
-    return 'other-error';
+    return ResourceStatus.unknown;
   }
-}
-
-/// Generates a list of default folder paths for a given application.
-///
-/// This function takes the name of an application as input and returns a list of strings.
-/// Each string in the list represents a path to a default folder for the application.
-
-List<String> generateDefaultFolders(String appName) {
-  final mainResDir = appName;
-  const myNotesDir = 'data';
-  const sharingDir = 'sharing';
-  const sharedDir = 'shared';
-  const encDir = 'encryption';
-  const logsDir = 'logs';
-
-  final myNotesDirLoc = '$mainResDir/$myNotesDir';
-  final sharingDirLoc = '$mainResDir/$sharingDir';
-  final sharedDirLoc = '$mainResDir/$sharedDir';
-  final encDirLoc = '$mainResDir/$encDir';
-  final logDirLoc = '$mainResDir/$logsDir';
-
-  final folders = [
-    mainResDir,
-    sharingDirLoc,
-    sharedDirLoc,
-    myNotesDirLoc,
-    encDirLoc,
-    logDirLoc,
-  ];
-  return folders;
-}
-
-/// Generates a list of default folder paths for a given application.
-///
-/// This function takes the name of an application as input and returns a list of strings.
-/// Each string in the list represents a path to a default folder for the application.
-
-Map<dynamic, dynamic> generateDefaultFiles(String appName) {
-  final mainResDir = appName;
-  const sharingDir = 'sharing';
-  const sharedDir = 'shared';
-  const encDir = 'encryption';
-  const logsDir = 'logs';
-
-  const encKeyFile = 'enc-keys.ttl';
-  const pubKeyFile = 'public-key.ttl';
-  const indKeyFile = 'ind-keys.ttl';
-  const permLogFile = 'permissions-log.ttl';
-
-  final sharingDirLoc = '$mainResDir/$sharingDir';
-  final sharedDirLoc = '$mainResDir/$sharedDir';
-  final encDirLoc = '$mainResDir/$encDir';
-  final logDirLoc = '$mainResDir/$logsDir';
-
-  final files = {
-    sharingDirLoc: [
-      pubKeyFile,
-      '$pubKeyFile.acl',
-    ],
-    logDirLoc: [
-      permLogFile,
-      '$permLogFile.acl',
-    ],
-    sharedDirLoc: ['.acl'],
-    encDirLoc: [encKeyFile, indKeyFile],
-  };
-  return files;
 }
 
 /// Updates a file on the server with the provided SPARQL query.
@@ -377,12 +329,11 @@ Map<dynamic, dynamic> generateDefaultFiles(String appName) {
 /// where RDF data stored on a Solid POD (Personal Online Datastore) needs to be
 /// modified.
 
-Future<String> updateFileByQuery(
+Future<void> updateFileByQuery(
   String fileUrl,
-  String accessToken,
-  String dPopToken,
   String query,
 ) async {
+  final (:accessToken, :dPopToken) = await getTokens(fileUrl, 'PATCH');
   final editResponse = await http.patch(
     Uri.parse(fileUrl),
     headers: <String, String>{
@@ -396,17 +347,21 @@ Future<String> updateFileByQuery(
     body: query,
   );
 
-  if (editResponse.statusCode == 200 || editResponse.statusCode == 205) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return 'ok';
-  } else {
+  // if (editResponse.statusCode == 200 || editResponse.statusCode == 205) {
+  //   // If the server did return a 200 OK response,
+  //   // then parse the JSON.
+  //   return 'ok';
+  // } else {
+  if (editResponse.statusCode != 200 && editResponse.statusCode != 205) {
     // If the server did not return a 200 OK response,
     // then throw an exception.
     throw Exception('Failed to write profile data! Try again in a while.');
   }
 }
 
+/// TODO:
+/// The predicates looks specific to podnotes, this likely needs to be updated.
+///
 /// Updates an individual key file with encrypted session key information.
 ///
 /// This asynchronous function is responsible for updating the key file located
@@ -414,7 +369,7 @@ Future<String> updateFileByQuery(
 /// key data. The function performs various checks and updates the file only if
 /// necessary to avoid redundant operations.
 
-Future<String> updateIndKeyFile(
+Future<void> updateIndKeyFile(
   String webId,
   Map<dynamic, dynamic> authData,
   String resName,
@@ -423,7 +378,7 @@ Future<String> updateIndKeyFile(
   String encNoteIv,
   String appName,
 ) async {
-  var createUpdateRes = '';
+  // var createUpdateRes = '';
 
   const encDir = 'encryption';
 
@@ -435,10 +390,10 @@ Future<String> updateIndKeyFile(
       ? webId.replaceAll(profCard, '$encDirLoc/$indKeyFile')
       : '$webId/$encDirLoc/$indKeyFile';
 
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'].toString();
+  // final rsaInfo = authData['rsaInfo'];
+  // final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  // final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  // final accessToken = authData['accessToken'].toString();
 
   final notesFile = '$webId/predicates/file#';
   final notesTerms = '$webId/predicates/terms#';
@@ -446,10 +401,9 @@ Future<String> updateIndKeyFile(
   // Update the file.
   // First check if the file already contain the same value.
 
-  final dPopTokenKeyFile =
-      genDpopToken(keyFileUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-  final keyFileContent =
-      await fetchPrvFile(keyFileUrl, accessToken, dPopTokenKeyFile);
+  // final dPopTokenKeyFile =
+  //     genDpopToken(keyFileUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+  final keyFileContent = await fetchPrvFile(keyFileUrl);
   final keyFileDataMap = getFileContent(keyFileContent);
 
   // Define query parameters.
@@ -487,16 +441,16 @@ Future<String> updateIndKeyFile(
 
       // Generate DPoP token.
 
-      final dPopTokenKeyFilePatch =
-          genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+      // final dPopTokenKeyFilePatch =
+      //     genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
 
       // Run the query.
 
-      createUpdateRes = await updateFileByQuery(
-          keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+      // createUpdateRes =
+      await updateFileByQuery(keyFileUrl, query);
     } else {
       // If the file contain same values, then no need to run anything.
-      createUpdateRes = 'ok';
+      // createUpdateRes = 'ok';
     }
   } else {
     // Generate insert only sparql query.
@@ -506,20 +460,20 @@ Future<String> updateIndKeyFile(
 
     // Generate DPoP token.
 
-    final dPopTokenKeyFilePatch =
-        genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
+    // final dPopTokenKeyFilePatch =
+    //     genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
 
     // Run the query.
 
-    createUpdateRes = await updateFileByQuery(
-        keyFileUrl, accessToken, dPopTokenKeyFilePatch, query);
+    // createUpdateRes =
+    await updateFileByQuery(keyFileUrl, query);
   }
 
-  if (createUpdateRes == 'ok') {
-    return createUpdateRes;
-  } else {
-    throw Exception('Failed to create/update the shared file.');
-  }
+  // if (createUpdateRes == 'ok') {
+  //   return createUpdateRes;
+  // } else {
+  //   throw Exception('Failed to create/update the shared file.');
+  // }
 }
 
 // Updates the initial profile data on the server.
@@ -530,20 +484,14 @@ Future<String> updateIndKeyFile(
 ///
 /// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
 
-Future<String> initialProfileUpdate(
-  String profBody,
-  Map<dynamic, dynamic> authData,
-  String webId,
-) async {
-  // Get authentication info
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'];
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'] as String;
+Future<void> initialProfileUpdate(String profBody) async {
+  final webId = await getWebId();
+  assert(webId != null);
+  final profUrl = webId!.replaceAll('#me', '');
+  // final dPopToken =
+  //     genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
 
-  final profUrl = webId.replaceAll('#me', '');
-  final dPopToken =
-      genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
+  final (:accessToken, :dPopToken) = await getTokens(profUrl, 'PUT');
 
   // The PUT request will create the acl item in the server
   final updateResponse = await http.put(
@@ -559,16 +507,20 @@ Future<String> initialProfileUpdate(
     body: profBody,
   );
 
-  if (updateResponse.statusCode == 200 || updateResponse.statusCode == 205) {
-    // If the server did return a 205 Reset response,
-    return 'ok';
-  } else {
+  // if (updateResponse.statusCode == 200 || updateResponse.statusCode == 205) {
+  //   // If the server did return a 205 Reset response,
+  //   return 'ok';
+  // } else {
+  if (updateResponse.statusCode != 200 && updateResponse.statusCode != 205) {
     // If the server did not return a 205 response,
     // then throw an exception.
     throw Exception('Failed to update resource! Try again in a while.');
   }
 }
 
+/// TODO:
+/// keypod is hard-coded in the keyFileUrl, this likely needs to be updated.
+///
 /// Get encryption keys from the private file
 ///
 /// returns the file content
@@ -587,272 +539,42 @@ Future<String> fetchKeyData() async {
   final dPopTokenKey =
       genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
-  final keyData = await fetchPrvFile(
-    keyFileUrl,
-    accessToken as String,
-    dPopTokenKey,
-  );
+  final keyData = await fetchPrvFile(keyFileUrl);
 
   return keyData;
 }
 
-/// Get tokens necessary to fetch a file from a POD
+/// Get tokens necessary to fetch a resource from a POD
 ///
 /// returns the access token and DPoP token
 
-Future<List<dynamic>> getTokens(String fileUrl) async {
+Future<({String accessToken, String dPopToken})> getTokens(
+    String resourceUrl, String httpMethod) async {
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
   final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'];
-  final dPopToken = genDpopToken(fileUrl, rsaKeyPair, publicKeyJwk, 'GET');
 
-  return [accessToken, dPopToken];
+  return (
+    accessToken: authData['accessToken'] as String,
+    dPopToken: genDpopToken(resourceUrl, rsaKeyPair, publicKeyJwk, httpMethod),
+  );
 }
 
 /// From a given file path create file URL
 ///
 /// returns the full file URL
 
-Future<String> createFileUrl(String filePath) async {
-  final webId = await getWebId();
+// Future<String> createFileUrl(String filePath) async {
+//   final webId = await getWebId();
+//   assert(webId != null);
+//   assert(webId!.contains(profCard));
 
-  final appDetails = await getAppNameVersion();
-  final appName = appDetails[0];
-  final keyFileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
+//   final appDetails = await getAppNameVersion();
+//   final appName = appDetails.name;
+//   final fileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
 
-  return keyFileUrl;
-}
-
-/// Extract the app name and the version from the package info
-
-Future<List<dynamic>> getAppNameVersion() async {
-  final info = await PackageInfo.fromPlatform();
-  final appName = info.appName;
-  final appVersion = info.version;
-
-  return [appName, appVersion];
-}
-
-/// Check whether a user is logged in or not
-///
-/// Check if the local storage has authentication
-/// details of the user and also check whether the
-/// access token is expired or not
-/// returns boolean
-
-Future<bool> checkLoggedIn() async {
-  final webId = await getWebId();
-
-  if (webId != null && webId.isNotEmpty) {
-    final accessToken = await AuthDataManager.getAccessToken();
-    if (accessToken != null && !JwtDecoder.isExpired(accessToken)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/// Delete login information from the local storage
-///
-/// returns true if successful
-
-Future<bool> deleteLogIn() async {
-  const success = true;
-  try {
-    await secureStorage.delete(key: 'webid');
-  } on Exception {
-    return false;
-  }
-  return success && (await AuthDataManager.removeAuthData());
-}
-
-/// Get the webId from local storage
-
-Future<String?> getWebId() async {
-  final webId = await secureStorage.read(key: 'webid');
-  return webId;
-}
-
-/// [AuthDataManager] is a class to manage auth data returned by
-/// solid-auth authenticate, including:
-/// - save auth data to secure storage
-/// - load auth data from secure storage
-/// - delete saved auth data from secure storage
-/// - refresh access token if necessary
-
-class AuthDataManager {
-  /// The URL for logging out
-  static String? _logoutUrl;
-
-  /// The RSA keypair and their JWK format
-  /// It seems Map<String, dynamic> does not work
-  static Map<dynamic, dynamic>? _rsaInfo;
-
-  /// The authentication response
-  static Credential? _authResponse;
-
-  /// The string key for storing auth data in secure storage
-  static const String authDataSecureStorageKey = '_solid_auth_data';
-
-  /// Save the auth data returned by solid-auth authenticate in secure storage
-  /// It seems Map<String, dynamic> does not work
-  static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
-    const keys = [
-      'client',
-      'rsaInfo',
-      'authResponse',
-      'tokenResponse',
-      'accessToken',
-      'idToken',
-      'refreshToken',
-      'expiresIn',
-      'logoutUrl',
-    ];
-
-    for (final key in keys) {
-      assert(authData.containsKey(key));
-    }
-
-    _logoutUrl = authData['logoutUrl'] as String;
-    _rsaInfo = authData['rsaInfo'] as Map<dynamic,
-        dynamic>; // Note that use Map<String, dynamic> does not seem to work
-    _authResponse = authData['authResponse'] as Credential;
-
-    await writeToSecureStorage(
-        authDataSecureStorageKey,
-        jsonEncode({
-          'logout_url': _logoutUrl,
-          'rsa_info': jsonEncode({
-            ..._rsaInfo!,
-            // Overwrite the 'rsa' keypair in rsaInfo
-            'rsa': {
-              'public_key': _rsaInfo!['rsa'].publicKey as String,
-              'private_key': _rsaInfo!['rsa'].privateKey as String,
-            },
-          }),
-          'auth_response': _authResponse!.toJson(),
-        }));
-
-    debugPrint('AuthDataManager => saveAuthData() done');
-  }
-
-  /// Retrieve (and reconstruct) auth data from secure storage
-  /// It seems Map<String, dynamic> does not work
-  static Future<Map<dynamic, dynamic>?> loadAuthData() async {
-    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
-      final loaded = await _loadData();
-      if (!loaded) {
-        debugPrint('AuthDataManager => loadAuthData() failed');
-        return null;
-      }
-    }
-
-    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
-    try {
-      final tokenResponse = await _getTokenResponse();
-      return {
-        'client': _authResponse!.client,
-        'rsaInfo': _rsaInfo,
-        'authResponse': _authResponse,
-        'tokenResponse': tokenResponse,
-        'accessToken': tokenResponse!.accessToken,
-        'idToken': _authResponse!.idToken,
-        'refreshToken': _authResponse!.refreshToken,
-        'expiresIn': tokenResponse.expiresIn,
-        'logoutUrl': _logoutUrl,
-      };
-    } on Exception catch (e) {
-      debugPrint('AuthDataManager => loadAuthData() failed: $e');
-    }
-    return null;
-  }
-
-  /// Remove/delete auth data from secure storage
-  static Future<bool> removeAuthData() async {
-    try {
-      await secureStorage.delete(key: authDataSecureStorageKey);
-      _logoutUrl = null;
-      _rsaInfo = null;
-      _authResponse = null;
-
-      return true;
-    } on Exception {
-      debugPrint('AuthDataManager => removeAuthData() failed');
-    }
-    return false;
-  }
-
-  /// Returns the (refreshed) access token
-  static Future<String?> getAccessToken() async {
-    final tokenResponse = await _getTokenResponse();
-    if (tokenResponse != null) {
-      return tokenResponse.accessToken;
-    } else {
-      debugPrint('AuthDataManager => getAccessToken() failed');
-    }
-    return null;
-  }
-
-  /// Returns the (updated) token response
-  static Future<TokenResponse?> _getTokenResponse() async {
-    if (_authResponse == null) {
-      final loaded = await _loadData();
-      if (!loaded) {
-        debugPrint('AuthDataManager => _getTokenResponse() failed');
-        return null;
-      }
-    }
-    assert(_authResponse != null);
-
-    try {
-      var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
-      if (JwtDecoder.isExpired(tokenResponse.accessToken!)) {
-        debugPrint(
-            'AuthDataManager => _getTokenResponse() refreshing expired token');
-        assert(_rsaInfo != null);
-        final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
-        final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
-        final tokenEndpoint =
-            _authResponse!.client.issuer.metadata['token_endpoint'] as String;
-        final dPopToken =
-            genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
-        tokenResponse = await _authResponse!
-            .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
-      }
-      return tokenResponse;
-    } on Exception catch (e) {
-      debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
-    }
-    return null;
-  }
-
-  /// Reconstruct the rsaInfo from JSON string
-  static Map<dynamic, dynamic> _getRsaInfo(String rsaJson) {
-    final rsaInfo_ = jsonDecode(rsaJson) as Map<String, dynamic>;
-    final publicKey = rsaInfo_['rsa']['public_key'] as String;
-    final privateKey = rsaInfo_['rsa']['private_key'] as String;
-
-    return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
-  }
-
-  /// Retrieve auth data from secure storage
-  static Future<bool> _loadData() async {
-    final dataStr = await secureStorage.read(key: authDataSecureStorageKey);
-
-    if (dataStr != null) {
-      final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
-      _logoutUrl = dataMap['logout_url'] as String;
-      _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
-      _authResponse =
-          Credential.fromJson((dataMap['auth_response'] as Map).cast());
-
-      return true;
-    }
-    return false;
-  }
-}
+//   return fileUrl;
+// }

@@ -1,6 +1,4 @@
-/// Common functions used across the package.
-///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+/// Common functions for package users.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,84 +24,86 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
-
-// ignore_for_file: comment_references
+/// Authors: Anushka Vidanage, Dawei Chen, Zheyuan Xu
 
 library;
 
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:flutter/material.dart' hide Key;
 
-/// Truncates the given [text] to a predefined maximum length.
-///
-/// If [text] exceeds the length defined by [longStrLength], it is truncated
-/// and ends with an ellipsis '...'. If [text] is shorter than [longStrLength],
-/// it is returned as is.
-///
+import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
+import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
+    show InitialSetupScreen;
+import 'package:solidpod/src/widgets/password_input_screen.dart'
+    show MasterPasswdInput;
 
-// comment out the following function as it is not used in the current version
-// of the app, anushka might need to use to in the future so keeping it here.
+/// Login if the user has not done so
 
-// String truncateString(String text) {
-//   var result = '';
-//   result = text.length > longStrLength
-//       ? '${text.substring(0, longStrLength - 4)}...'
-//       : text;
-
-//   return result;
-// }
-
-/// Write the given [key], [value] pair to the secure storage.
-///
-/// If [key] already exisits then delete that first and then
-/// write again.
-
-Future<void> writeToSecureStorage(String key, String value) async {
-  final isKeyExist = await secureStorage.containsKey(
-    key: key,
-  );
-
-  // Since write() method does not automatically overwrite an existing value.
-  // To overwrite an existing value, call delete() first.
-
-  if (isKeyExist) {
-    await secureStorage.delete(
-      key: key,
-    );
+Future<void> loginIfRequired(BuildContext context) async {
+  final loggedIn = await checkLoggedIn();
+  if (!loggedIn) {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SolidPopupLogin(),
+        ));
   }
-
-  await secureStorage.write(
-    key: key,
-    value: value,
-  );
 }
 
-/// Convert the given [keyPair] object to a map.
-///
-/// Returns a map with publicKey and privateKey.
+/// Initialise the user's PODs if the user has not done so
 
-// comment out the following function as it is not used in the current version
+Future<void> initPodsIfRequired(BuildContext context) async {
+  final defaultFolders = await generateDefaultFolders();
+  final defaultFiles = await generateDefaultFiles();
 
-// Map<String, dynamic> keyPairToMap(KeyPair keyPair) {
-//   return {
-//     'publicKey': keyPair.publicKey,
-//     'privateKey': keyPair.privateKey,
-//   };
-// }
+  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
+  final allExists = resCheckList.first as bool;
 
-/// Convert the given [authDataStr] jason string to a map.
-///
-/// Returns a authentication data map with KeyPair object.
+  if (!allExists) {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => InitialSetupScreen(
+                resCheckList: resCheckList,
+                child: AlertDialog(
+                  title: const Text('Notice'),
+                  content: const Text('PODs successfully initialised!'),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('OK'))
+                  ],
+                ),
+              )),
+    );
+  }
+}
 
-// comment out the following function as it is not used in the current version
+/// Ask for the master password from the user if the master password is not
+/// stored in local secure storage or
+/// it cannot be verfied using the verification key stored in PODs
 
-// Map<dynamic, dynamic> convertAuthData(String authDataStr) {
-//   final authData = jsonDecode(authDataStr);
-//   final rsaInfo = authData['rsaInfo'];
-//   final rsaKeyPair = KeyPair(rsaInfo['rsa']['publicKey'] as String,
-//       rsaInfo['rsa']['privateKey'] as String);
-//   rsaInfo['rsa'] = rsaKeyPair;
-//   authData['rsaInfo'] = rsaInfo;
+Future<String> getVerifiedMasterPassword(
+    BuildContext context, Widget child) async {
+  var masterPasswd = await loadMasterPassword();
+  final verificationKey = await getVerificationKey();
+  assert(verificationKey != null);
 
-//   return authData as Map;
-// }
+  if (masterPasswd == null ||
+      !verifyMasterPassword(masterPasswd, verificationKey!)) {
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MasterPasswdInput(
+              verifyPasswordFunc: (passwd) =>
+                  verifyMasterPassword(passwd, verificationKey!),
+              child: child),
+        ));
+    masterPasswd = await loadMasterPassword();
+  }
+
+  return masterPasswd!;
+}

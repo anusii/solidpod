@@ -1,6 +1,6 @@
 name: solidpod
 description: Support easy access to data stored on Solid Pod servers.
-version: 0.5.15
+version: 0.5.16
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -22,6 +22,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
   package_info_plus: ^5.0.1
+  path: ^1.9.0
   rdflib: ^0.2.8
   solid_auth: ^0.1.17  # solid-auth updated the token refreshing API since version 0.1.17
   solid_encrypt: ^0.1.10

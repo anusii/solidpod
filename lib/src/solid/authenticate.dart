@@ -34,12 +34,12 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/utils.dart'
+    show writeToSecureStorage, AuthDataManager, checkLoggedIn;
 
 // Scopes variables used in the authentication process.
 
@@ -90,15 +90,15 @@ Future<List<dynamic>?> solidAuthenticate(
 
     await writeToSecureStorage('webid', webId);
 
-    final rsaInfo = authData['rsaInfo'];
-    final rsaKeyPair = rsaInfo['rsa'];
-    final publicKeyJwk = rsaInfo['pubKeyJwk'];
+    // final rsaInfo = authData['rsaInfo'];
+    // final rsaKeyPair = rsaInfo['rsa'];
+    // final publicKeyJwk = rsaInfo['pubKeyJwk'];
     final profCardUrl = webId.replaceAll('#me', '');
 
-    final dPopToken =
-        genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
+    // final dPopToken =
+    //     genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
 
-    final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
+    final profData = await fetchPrvFile(profCardUrl);
 
     return [authData, webId, profData];
   } on Exception catch (e) {
