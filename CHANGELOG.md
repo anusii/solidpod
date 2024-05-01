@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Add writePod function and refactor (some part of) the code base [0.5.16]
 + Use the updated token refreshing API from solid-auth-0.1.17 [0.5.15]
 + On Initialise Pod page, added "Show Password" buttons [0.5.14]
 + Catch potential exception when getting tokens [0.5.13]
