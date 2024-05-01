@@ -600,24 +600,3 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   };
   return files;
 }
-
-/// Save key/value pairs in TTL format
-Future<String> getTTLStr(
-    List<({String key, dynamic value})> keyValuePairs) async {
-  assert(keyValuePairs.isNotEmpty);
-  assert({for (var p in keyValuePairs) p.key}.length ==
-      keyValuePairs.length); // No duplicate keys
-  final webId = await getWebId();
-  assert(webId != null);
-  final g = Graph();
-  final f = URIRef(webId!);
-  final ns = Namespace(ns: appsTerms);
-
-  for (final p in keyValuePairs) {
-    g.addTripleToGroups(f, ns.withAttr(p.key), p.value);
-  }
-
-  g.serialize(format: 'ttl', abbr: 'short');
-
-  return g.serializedString;
-}
