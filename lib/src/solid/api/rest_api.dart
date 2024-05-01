@@ -568,86 +568,15 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
   );
 }
 
-/// Get the list of files in a container
-/// Copied from gurriny/indi/lib/models/common/rest_api.dart (from line 1909)
-// Future<List> getContainerList(Map authData, String containerUrl) async {
-//   List<String> containerList = [];
-//   List<String> resourceList = [];
-//   String homePage;
-
-//   var rsaInfo = authData['rsaInfo'];
-//   var rsaKeyPair = rsaInfo['rsa'];
-//   var publicKeyJwk = rsaInfo['pubKeyJwk'];
-
-//   String accessToken = authData['accessToken'];
-//   //Map<String, dynamic> decodedToken = JwtDecoder.decode(accessToken);
-
-//   String dPopTokenHome =
-//       genDpopToken(containerUrl, rsaKeyPair, publicKeyJwk, 'GET');
-
-//   final profResponse = await http.get(
-//     Uri.parse(containerUrl),
-//     headers: <String, String>{
-//       'Accept': '*/*',
-//       'Authorization': 'DPoP $accessToken',
-//       'Connection': 'keep-alive',
-//       'DPoP': '$dPopTokenHome',
-//     },
-//   );
-
-//   if (profResponse.statusCode == 200) {
-//     // If the server did return a 200 OK response,
-//     // then parse the JSON.
-//     //var tagObjsJson = jsonDecode(profResponse.body) as Map;
-//     homePage = profResponse.body;
-//   } else {
-//     // If the server did not return a 200 OK response,
-//     // then throw an exception.
-//     throw Exception('Failed to load profile data! Try again in a while.');
-//   }
-
-//   PodProfile homePageFile = PodProfile(homePage);
-
-//   List rdfDataPrefixList = homePageFile.dividePrvRdfData();
-//   List rdfDataList = rdfDataPrefixList.first;
-
-//   for (var i = 0; i < rdfDataList.length; i++) {
-//     if (rdfDataList[i].contains('ldp:contains')) {
-//       var itemList = rdfDataList[i].split('<');
-
-//       for (var j = 0; j < itemList.length; j++) {
-//         // if (containerList.length >= 200) {
-//         //   break;
-//         // }
-//         if (itemList[j].contains('/>')) {
-//           var item = itemList[j].replaceAll('/>,', '');
-//           item = item.replaceAll('/>.', '');
-//           item = item.replaceAll(' ', '');
-//           // if((item.contains('H')) | (item.contains('R'))){
-//           //   containerList.add(item);
-//           // }
-//           containerList.add(item);
-//         } else if (itemList[j].contains('>')) {
-//           var item = itemList[j].replaceAll('>,', '');
-//           item = item.replaceAll('>.', '');
-//           item = item.replaceAll(' ', '');
-//           resourceList.add(item);
-//         }
-//       }
-//     }
-//   }
-
-//   return [containerList, resourceList];
-// }
-
-Future<void> getResourcesInContainer(String containerUrl) async {
+/// Get the list of sub-containers and files in a container
+/// Adapted from getContainerList() in
+/// gurriny/indi/lib/models/common/rest_api.dart
+Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
+    String containerUrl) async {
+  // The trailing "/" is essential for a directory
   final url = containerUrl.endsWith(path.separator)
       ? containerUrl
       : containerUrl + path.separator;
-
-  print(url);
-  List<String> subContainers = [];
-  List<String> files = [];
 
   final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
 
@@ -661,26 +590,51 @@ Future<void> getResourcesInContainer(String containerUrl) async {
     },
   );
 
-  print(profResponse.statusCode);
-
   if (profResponse.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    //var tagObjsJson = jsonDecode(profResponse.body) as Map;
-    print('\n${profResponse.body}');
-    final r = profResponse.body;
-    print(r.runtimeType); // String
-    final g = Graph();
-    g.parseTurtle(profResponse.body);
-    for (final t in g.triples) {
-      print('sub: ${t.sub.value}');
-      print('pre: ${t.pre.value}');
-      print('obj: ${t.obj.value}');
-      print('');
-    }
+    // print(profResponse.body.runtimeType); // String
+
+    // NB: rdflib-0.2.8 (dart) is not able to parse this but
+    //     rdflib-7.0.0 (python) can parse it
+    //
+    // final g = Graph();
+    // g.parseTurtle(profResponse.body);
+
+    final (:subDirs, :files) = _parseGetContainerResponse(profResponse.body);
+
+    // print('SubDirs: |${subDirs.join(", ")}|');
+    // print('Files  : |${files.join(", ")}|');
+
+    return (subDirs: subDirs, files: files);
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
-    throw Exception('Failed to load profile data! Try again in a while.');
+    throw Exception('Failed to get resource list.');
   }
+}
+
+/// A heuristic to parse the response body of a request getting the list of
+/// resources in a container.
+/// This heuristic is a temporary solution before rdflib (dart) is capable
+/// of parsing the response body.
+({List<String> subDirs, List<String> files}) _parseGetContainerResponse(
+    String responseBody) {
+  final containers = <String>[];
+  final files = <String>[];
+  final re = RegExp('^<[^>]+>'); // starts with <, ends with >, no > in between
+
+  final lines = responseBody.split('\n');
+  for (var l in lines) {
+    if (l.startsWith('<') && !l.startsWith('<>')) {
+      if (l.contains('ldp:Resource')) {
+        final name = re.firstMatch(l)?.group(0);
+        assert(name != null);
+        if (l.contains('ldp:Container')) {
+          containers.add(name!.substring(1, name.length - 2)); // <NAME/>
+        } else {
+          files.add(name!.substring(1, name.length - 1)); // <NAME>
+        }
+      }
+    }
+  }
+  return (subDirs: containers, files: files);
 }
