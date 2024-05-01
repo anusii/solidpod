@@ -106,20 +106,12 @@ bool verifyMasterPassword(String masterPasswd, String verificationKey) =>
     genVerificationKey(masterPasswd) == verificationKey;
 
 /// Save master password to local secure storage
-Future<void> saveMasterPassword(String masterPasswd) async {
-  await writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
-}
+Future<void> saveMasterPassword(String masterPasswd) async =>
+    writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
 
 /// Load master password from local secure storage
-Future<String?> loadMasterPassword() async {
-  // final webId = await getWebId();
-  // assert(webId != null);
-  // TODO: the current initialisation code uses web ID as key, update it.
-  // see src/screens/initial_setup/widgets/res_create_form_submission.dart
-  final masterPasswd =
-      await secureStorage.read(key: masterPasswdSecureStorageKey);
-  return masterPasswd;
-}
+Future<String?> loadMasterPassword() async =>
+    secureStorage.read(key: masterPasswdSecureStorageKey);
 
 /// Delete the saved master password from local secure storage
 Future<void> removeMasterPassword() async {
@@ -129,11 +121,8 @@ Future<void> removeMasterPassword() async {
 }
 
 /// Encrypt data using AES with the specified key
-String encryptData(String data, Key key, IV iv) {
-  final encrypter = Encrypter(AES(key));
-  final encryptVal = encrypter.encrypt(data, iv: iv);
-  return encryptVal.base64;
-}
+String encryptData(String data, Key key, IV iv) =>
+    Encrypter(AES(key)).encrypt(data, iv: iv).base64;
 
 /// Decrypt a ciphertext value
 String decryptData(String encData, Key key, IV iv) =>
@@ -356,7 +345,7 @@ Future<bool> checkLoggedIn() async {
 Future<bool> deleteLogIn() async {
   const success = true;
   try {
-    await secureStorage.delete(key: 'webid');
+    await secureStorage.delete(key: webIdSecureStorageKey);
   } on Exception {
     return false;
   }
@@ -366,7 +355,7 @@ Future<bool> deleteLogIn() async {
 /// Get the webId from local storage
 
 Future<String?> getWebId() async {
-  final webId = await secureStorage.read(key: 'webid');
+  final webId = await secureStorage.read(key: webIdSecureStorageKey);
   return webId;
 }
 
