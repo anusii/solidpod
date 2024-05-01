@@ -8,6 +8,9 @@ numbers.
 
 ## 0.6 Future Release
 
++ Remove TTL string generation function which should be app specific [0.5.17]
++ Add writePod function and refactor (some part of) the code base [0.5.16]
++ Use the updated token refreshing API from solid-auth-0.1.17 [0.5.15]
 + On Initialise Pod page, added "Show Password" buttons [0.5.14]
 + Catch potential exception when getting tokens [0.5.13]
 + add ButtonStyle class(data structure) to make all buttons customisable [0.5.12]

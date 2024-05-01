@@ -45,10 +45,11 @@ const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 
-// const String sharingDir = 'sharing';
-// const String sharedDir = 'shared';
-const String encDir = 'encryption';
-// const String logsDir = 'logs';
+const dataDir = 'data';
+const sharingDir = 'sharing';
+const sharedDir = 'shared';
+const encDir = 'encryption';
+const logsDir = 'logs';
 
 /// String terms used as predicates in ttl files.
 
@@ -57,9 +58,10 @@ const String ivPred = 'iv';
 const String titlePred = 'title';
 const String prvKeyPred = 'prvKey';
 const String pubKeyPred = 'pubKey';
-const String encKeyPred = 'encKey';
+const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String sessionKeyPred = 'sessionKey';
+const String encDataPred = 'encData';
 // const String createdDateTimePred = 'createdDateTime';
 // const String modifiedDateTimePred = 'modifiedDateTime';
 // const String noteTitlePred = 'noteTitle';
@@ -81,3 +83,9 @@ const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 /// This instance provides encrypted storage to securely store key-value pairs.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+
+/// The string key for storing the master password for encryption (from which
+/// we derive the master key to encrypt the individual keys -- AES keys that
+/// are used to encrypt the data in PODs) in secure storage.
+
+String masterPasswdSecureStorageKey = '_pods_master_passwd';

@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Sunday 2024-03-24 20:51:22 +1100 Graham Williams>
+// Time-stamp: <Monday 2024-04-22 14:36:36 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -34,13 +34,14 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/utils.dart'
+    show generateDefaultFolders, generateDefaultFiles;
 
 // Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -48,7 +49,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
-const Color defaultButtonBackground = Color.fromARGB(255, 214, 177, 165);
+const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
 const String defaultLoginButtonText = 'LOGIN';
 const String defaultRegisterButtonText = 'REGISTER';
@@ -238,13 +239,12 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
-    final info = await PackageInfo.fromPlatform();
+    final folders = await generateDefaultFolders();
+    final files = await generateDefaultFiles();
 
     setState(() {
-      appVersion = info.version;
-      appName = info.appName;
-      defaultFolders = generateDefaultFolders(appName);
-      defaultFiles = generateDefaultFiles(appName);
+      defaultFolders = folders;
+      defaultFiles = files;
     });
   }
 
@@ -442,15 +442,11 @@ class _SolidLoginState extends State<SolidLogin> {
 
           // Navigates to the Initial Setup Screen using the provided authentication data.
 
-          Future<void> navInitialSetupScreen(Map<dynamic, dynamic> authData,
-              List<dynamic> resCheckList) async {
+          Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
             await Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                   builder: (context) => InitialSetupScreen(
-                        authData: authData,
-                        webId: widget.webID,
-                        appName: appName,
                         resCheckList: resCheckList,
                         child: widget.child,
                       )),
@@ -459,7 +455,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
           // Navigates to the Home Screen if the account exits.
 
-          Future<void> navHomeScreen(Map<dynamic, dynamic> authData) async {
+          Future<void> navHomeScreen() async {
             await Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => widget.child),
@@ -469,16 +465,16 @@ class _SolidLoginState extends State<SolidLogin> {
           // Method to navigate to the child widget, requiring BuildContext, and
           // so avoiding the "don't use BuildContext across async gaps" warning.
 
-          Future<void> navigateToApp(Map<dynamic, dynamic> authData) async {
-            final resCheckList = await initialStructureTest(
-                appName, defaultFolders, defaultFiles);
+          Future<void> navigateToApp() async {
+            final resCheckList =
+                await initialStructureTest(defaultFolders, defaultFiles);
             final allExists = resCheckList.first as bool;
 
             if (!allExists) {
-              await navInitialSetupScreen(authData, resCheckList);
+              await navInitialSetupScreen(resCheckList);
             }
 
-            await navHomeScreen(authData);
+            await navHomeScreen();
           }
 
           // Method to navigate back to the login widget, requiring BuildContext,
@@ -497,7 +493,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // SolidLogin page.
 
           if (authResult != null && authResult.isNotEmpty) {
-            await navigateToApp(authResult.first as Map);
+            await navigateToApp();
           } else {
             // On moving to using navigateToLogin() the previously implemented
             // asynchronous showAuthFailedPopup() is lost due to the immediately
@@ -790,23 +786,20 @@ class PodButton extends StatelessWidget {
     return Tooltip(
       message: tooltip,
       child: ElevatedButton(
-        // Use the onPressed passed to the widget.
-
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              // Use the background color passed to the widget.
+          backgroundColor: background,
+          foregroundColor: foreground,
+          // Increase vertical padding.
 
-              background,
-          foregroundColor:
-              // Use the foreground color passed to the widget.
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          // Ensure a minimum size of 48px in height as per guidelines.
 
-              foreground,
+          minimumSize: const Size(88, 48),
         ),
         child: Text(
           text,
           style: buttonTextStyle,
-          // Style for the text inside the button can be defined here.
         ),
       ),
     );
