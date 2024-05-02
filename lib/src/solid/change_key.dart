@@ -25,11 +25,19 @@
 // SOFTWARE.
 ///
 /// Authors: Kevin Wang
+///
+///
+library;
 
 import 'package:flutter/material.dart';
 
+/// Change key dialog widget
 class ChangeKeyDialog extends StatefulWidget {
+  /// Constructor
+  const ChangeKeyDialog({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _ChangeKeyDialogState createState() => _ChangeKeyDialogState();
 }
 
@@ -60,66 +68,107 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
     });
   }
 
+  void _changeKey() {
+    if (_newKeyController.text == _repeatKeyController.text) {
+      // TODO: Implement the logic for changing the key
+
+      // Close the dialog on successful change.
+
+      Navigator.of(context).pop();
+    } else {
+      // Show a warning message if the keys do not match.
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The new keys do not match. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Use MediaQuery to get the size of the current screen.
+
+    final size = MediaQuery.of(context).size;
+
+    // Calculate the desired width and height.
+
+    final width = size.width * 0.6;
+    final height = size.height * 0.5;
+
     return AlertDialog(
-      title: Text('Change Encryption Key'),
-      content: SingleChildScrollView(
-        child: ListBody(
-          children: <Widget>[
-            TextField(
-              controller: _currentKeyController,
-              obscureText: _isObscuredCurrentKey,
-              decoration: InputDecoration(
-                labelText: 'Your current encryption key',
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isObscuredCurrentKey
-                        ? Icons.visibility_off
-                        : Icons.visibility,
+      title: const Text('Change Encryption Key'),
+      content: ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: width,
+          minHeight: height,
+        ),
+        child: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              TextField(
+                controller: _currentKeyController,
+                obscureText: _isObscuredCurrentKey,
+                decoration: InputDecoration(
+                  labelText: 'Your current encryption key',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isObscuredCurrentKey
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: _toggleVisibilityCurrentKey,
                   ),
-                  onPressed: _toggleVisibilityCurrentKey,
                 ),
               ),
-            ),
-            TextField(
-              controller: _newKeyController,
-              obscureText: _isObscuredNewKey,
-              decoration: InputDecoration(
-                labelText: 'New encryption key',
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isObscuredNewKey ? Icons.visibility_off : Icons.visibility,
+              TextField(
+                controller: _newKeyController,
+                obscureText: _isObscuredNewKey,
+                decoration: InputDecoration(
+                  labelText: 'New encryption key',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isObscuredNewKey
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: _toggleVisibilityNewKey,
                   ),
-                  onPressed: _toggleVisibilityNewKey,
                 ),
               ),
-            ),
-            TextField(
-              controller: _repeatKeyController,
-              obscureText: _isObscuredRepeatNewKey,
-              decoration: InputDecoration(
-                labelText: 'Repeat new encryption key',
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _isObscuredRepeatNewKey
-                        ? Icons.visibility_off
-                        : Icons.visibility,
+              TextField(
+                controller: _repeatKeyController,
+                obscureText: _isObscuredRepeatNewKey,
+                decoration: InputDecoration(
+                  labelText: 'Repeat new encryption key',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isObscuredRepeatNewKey
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: _toggleVisibilityRepeatNewKey,
                   ),
-                  onPressed: _toggleVisibilityRepeatNewKey,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: <Widget>[
-        ElevatedButton(
-          child: Text('Change Key'),
+        TextButton(
+          child: const Text('Cancel'),
           onPressed: () {
-            // TODO: Implement change key logic
+            // Close the dialog.
+
             Navigator.of(context).pop();
           },
+        ),
+        ElevatedButton(
+          onPressed: _changeKey,
+          child: const Text('Change Key'),
         ),
       ],
     );

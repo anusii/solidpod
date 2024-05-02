@@ -231,40 +231,6 @@ class _SolidLoginState extends State<SolidLogin> {
 
   Map<dynamic, dynamic> defaultFiles = {};
 
-  // // Define state variables to keep track of the visibility
-  // bool _isObscuredCurrentKey = true;
-  // bool _isObscuredNewKey = true;
-  // bool _isObscuredRepeatNewKey = true;
-
-  // // The controller for the current encryption key text field.
-  // final TextEditingController currentKeyController = TextEditingController();
-
-  // /// The controller for the new encryption key text field.
-  // final TextEditingController newKeyController = TextEditingController();
-
-  // /// The controller for the repeat new encryption key text field.
-  // final TextEditingController repeatKeyController = TextEditingController();
-
-  // // Method to toggle visibility
-  // void _toggleVisibilityCurrentKey() {
-  //   setState(() {
-  //     _isObscuredCurrentKey = !_isObscuredCurrentKey;
-  //     print("_isObscuredCurrentKey $_isObscuredCurrentKey");
-  //   });
-  // }
-
-  // void _toggleVisibilityNewKey() {
-  //   setState(() {
-  //     _isObscuredNewKey = !_isObscuredNewKey;
-  //   });
-  // }
-
-  // void _toggleVisibilityRepeatNewKey() {
-  //   setState(() {
-  //     _isObscuredRepeatNewKey = !_isObscuredRepeatNewKey;
-  //   });
-  // }
-
   @override
   void initState() {
     super.initState();
@@ -290,89 +256,6 @@ class _SolidLoginState extends State<SolidLogin> {
       _isDialogCanceled = true;
     });
   }
-
-  // void _showChangeKeyDialog(BuildContext context) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       // Use MediaQuery to get the size of the current screen
-  //       var size = MediaQuery.of(context).size;
-
-  //       // Calculate the desired width and height
-  //       var width = size.width * 0.6; // For example, 80% of screen width
-  //       var height = size.height * 0.5; // For example, 50% of screen height
-
-  //       return AlertDialog(
-  //         title: Text('Change Encryption Key'),
-  //         content: ConstrainedBox(
-  //           constraints: BoxConstraints(
-  //             minWidth: width,
-  //             minHeight: height,
-  //           ),
-  //           child: SingleChildScrollView(
-  //             child: ListBody(
-  //               children: <Widget>[
-  //                 // Your TextFields go here
-  //                 TextField(
-  //                   obscureText: _isObscuredCurrentKey,
-  //                   controller: currentKeyController,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Your current encryption key',
-  //                     suffixIcon: IconButton(
-  //                       icon: Icon(
-  //                         _isObscuredCurrentKey
-  //                             ? Icons.visibility_off
-  //                             : Icons.visibility,
-  //                       ),
-  //                       onPressed: _toggleVisibilityCurrentKey,
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 TextField(
-  //                   obscureText: _isObscuredNewKey,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'New encryption key',
-  //                     suffixIcon: IconButton(
-  //                       icon: Icon(
-  //                         _isObscuredNewKey
-  //                             ? Icons.visibility_off
-  //                             : Icons.visibility,
-  //                       ),
-  //                       onPressed: _toggleVisibilityNewKey,
-  //                     ),
-  //                   ),
-  //                 ),
-  //                 TextField(
-  //                   obscureText: _isObscuredRepeatNewKey,
-  //                   decoration: InputDecoration(
-  //                     labelText: 'Repeat new encryption key',
-  //                     suffixIcon: IconButton(
-  //                       icon: Icon(
-  //                         _isObscuredRepeatNewKey
-  //                             ? Icons.visibility_off
-  //                             : Icons.visibility,
-  //                       ),
-  //                       onPressed: _toggleVisibilityRepeatNewKey,
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //         actions: <Widget>[
-  //           ElevatedButton(
-  //             child: const Text('Change Key'),
-  //             onPressed: () {
-  //               // TODO: Implement change key logic
-  //               Navigator.of(context).pop(); // Close the dialog
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -649,36 +532,6 @@ class _SolidLoginState extends State<SolidLogin> {
         );
       },
     );
-
-    // final changeButton = PodButton(
-    //   text: 'CHANGE KEY',
-    //   background: widget.infoButtonStyle.background,
-    //   foreground: widget.infoButtonStyle.foreground,
-    //   tooltip: widget.infoButtonStyle.tooltip,
-    //   onPressed: () {
-    //     //TODO kevin
-    //     final authData = <dynamic, dynamic>{};
-
-    //     final webId = webIdController.text;
-
-    //     /// Setup SecureKey object
-    //     final secureKeyObject = SecureKey('', webId);
-
-    //     Navigator.pushReplacement(
-    //         context,
-    //         MaterialPageRoute(
-    //             builder: (context) => Settings(
-    //                   storage: secureStorage,
-    //                   authData: authData,
-    //                   webId: widget.webID,
-    //                   secureKeyObject: secureKeyObject,
-    //                   onBackButtonPressed: () => Navigator.push(
-    //                     context,
-    //                     MaterialPageRoute(builder: (context) => widget),
-    //                   ),
-    //                 )));
-    //   },
-    // );
 
     // A INFO button that when pressed will proceed to visit a link.
 
