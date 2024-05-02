@@ -1,6 +1,6 @@
-/// Support for flutter apps accessing solid PODs.
+/// change key button
 ///
-// Time-stamp: <Monday 2024-04-22 15:19:23 +1000 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 08:36:42 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,26 +26,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williamss
+/// Authors: Kevin Wang
+library;
 
-library solidpod;
+import 'package:flutter/material.dart';
+import 'package:solidpod/src/solid/change_key.dart';
 
-export 'src/solid/login.dart'
-    show
-        SolidLogin,
-        LoginButtonStyle,
-        ContinueButtonStyle,
-        RegisterButtonStyle,
-        InfoButtonStyle;
-export 'src/solid/popup_login.dart' show SolidPopupLogin;
+/// change key button
+class ChangeKeyButton extends StatelessWidget {
+  /// Constructor
+  const ChangeKeyButton({super.key});
 
-// TODO 20240417 gjw Can we please list or at least document what and why the
-// following are exported, PLEASE. ReadPod() I understand, but what from
-// rest_api?
-
-export 'src/solid/api/rest_api.dart';
-export 'src/solid/utils.dart';
-export 'src/solid/read_pod.dart' show readPod;
-export 'src/solid/write_pod.dart' show writePod;
-
-export 'src/widgets/change_key_button.dart' show ChangeKeyButton;
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      child: const Text('Change Key'),
+      onPressed: () async {
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return const ChangeKeyDialog();
+          },
+        );
+      },
+    );
+  }
+}
