@@ -609,7 +609,8 @@ Future<bool> logout() async {
     try {
       final uri = Uri.parse(logoutUrl);
       if (await canLaunchUrl(uri)) {
-        return await launchUrl(uri);
+        return (await AuthDataManager.removeAuthData()) &&
+            (await launchUrl(uri));
       }
     } on Exception catch (e) {
       print('Exception: $e');
