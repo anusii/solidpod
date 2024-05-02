@@ -79,6 +79,14 @@ const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
+/// String variables for creating files and directories on solid server
+
+const String fileContentType = 'text/turtle';
+const String dirContentType = 'application/octet-stream';
+const String fileTypeLink = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+const String dirTypeLink =
+    '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
 

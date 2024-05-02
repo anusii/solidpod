@@ -43,7 +43,6 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_auth/src/openid/openid_client.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -93,7 +92,7 @@ Future<String?> getVerificationKey() async {
     return null;
   }
 
-  final encKeyFileUrl = await getResourceUrl(encKeyPath);
+  final encKeyFileUrl = await getFileUrl(encKeyPath);
   if (!encKeyMap.containsKey(encKeyFileUrl)) {
     return null;
   }
@@ -157,7 +156,7 @@ Map<String, dynamic> parseTTL(String ttlContent) {
 
 /// Load and parse a private TTL file from POD
 Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
-  final fileUrl = await getResourceUrl(filePath);
+  final fileUrl = await getFileUrl(filePath);
   try {
     final rawContent = await fetchPrvFile(fileUrl);
     return parseTTL(rawContent);
@@ -168,7 +167,7 @@ Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
 }
 
 /// Create a directory
-Future<bool> createDir(String dirName, String dirParentPath) async {
+Future<bool> _createDir(String dirName, String dirParentPath) async {
   try {
     await createItem(false, dirName, '', fileLoc: dirParentPath);
     return true;
@@ -179,13 +178,13 @@ Future<bool> createDir(String dirName, String dirParentPath) async {
 }
 
 /// Create new TTL file with content
-Future<bool> createFile(String filePath, String fileContent) async {
+Future<bool> _createFile(String filePath, String fileContent) async {
   try {
     final fileName = path.basename(filePath);
     final folderPath = path.dirname(filePath);
 
     await createItem(true, fileName, fileContent,
-        fileType: 'text/turtle', fileLoc: folderPath);
+        fileType: fileContentType, fileLoc: folderPath);
 
     return true;
   } on Exception catch (e) {
@@ -236,17 +235,29 @@ class AppInfo {
   }
 }
 
-/// From a given resource path create its URL
-///
+/// From a given resource path [resourcePath] create its URL
+/// [isContainer] should be true if the resource is a directory, otherwise false
 /// returns the full resource URL
 
-Future<String> getResourceUrl(String resourcePath) async {
+Future<String> _getResourceUrl(String resourcePath, bool isContainer) async {
   final webId = await getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+  if (isContainer && !resourceUrl.endsWith('/')) {
+    return '$resourceUrl/';
+  }
+
   return resourceUrl;
 }
+
+/// Create the URL for a file
+Future<String> getFileUrl(String filePath) async =>
+    _getResourceUrl(filePath, false);
+
+/// Create the URL for a directory (container)
+Future<String> getDirUrl(String dirPath) async =>
+    _getResourceUrl(dirPath, true);
 
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
@@ -254,8 +265,7 @@ Future<String> getEncTTLStr(
   final encData = encryptData(fileContent, key, iv);
 
   final g = Graph();
-  //final f = URIRef(appsFile + filePath); //TODO: update this
-  final f = URIRef(await getResourceUrl(filePath));
+  final f = URIRef(await getFileUrl(filePath));
   final ns = Namespace(ns: appsTerms);
   g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
   g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
@@ -279,15 +289,15 @@ Future<String> getEncTTLStr(
 
 /// Returns the path of file with verification key and private key
 Future<String> getEncKeyPath() async =>
-    path.join(await AppInfo.canonicalName, encDir, encKeyFile);
+    [await AppInfo.canonicalName, encDir, encKeyFile].join('/');
 
 /// Returns the path of file with individual keys
 Future<String> getIndKeyPath() async =>
-    path.join(await AppInfo.canonicalName, encDir, indKeyFile);
+    [await AppInfo.canonicalName, encDir, indKeyFile].join('/');
 
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
-    path.join(await AppInfo.canonicalName, dataDir);
+    [await AppInfo.canonicalName, dataDir].join('/');
 
 /// Add (encrypted) individual/session key [encIndKey] and the corresponding
 /// IV [iv] for file with path [filePath]
@@ -296,7 +306,7 @@ Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
   // const termPrefix = '$appTermPrefix: <$appsTerms>';
   // final sub = appsFile + filePath;
   // final sub = '$appFilePrefix:$filePath';
-  final sub = await getResourceUrl(filePath);
+  final sub = await getFileUrl(filePath);
   // final query = [
   //   'PREFIX $filePrefix',
   //   'PREFIX $termPrefix',
@@ -309,7 +319,7 @@ Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
   //].join(' ');
   final query =
       'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; <$appsTerms$ivPred> "${iv.base64}"; <$appsTerms$sessionKeyPred> "$encIndKey".};';
-  final fileUrl = await getResourceUrl(await getIndKeyPath());
+  final fileUrl = await getFileUrl(await getIndKeyPath());
   await updateFileByQuery(fileUrl, query);
 }
 
@@ -563,11 +573,11 @@ Future<List<String>> generateDefaultFolders() async {
   final appName = await AppInfo.canonicalName;
   final mainResDir = appName;
 
-  final dataDirLoc = path.join(mainResDir, dataDir);
-  final sharingDirLoc = path.join(mainResDir, sharingDir);
-  final sharedDirLoc = path.join(mainResDir, sharedDir);
-  final encDirLoc = path.join(mainResDir, encDir);
-  final logDirLoc = path.join(mainResDir, logsDir);
+  final dataDirLoc = [mainResDir, dataDir].join('/');
+  final sharingDirLoc = [mainResDir, sharingDir].join('/');
+  final sharedDirLoc = [mainResDir, sharedDir].join('/');
+  final encDirLoc = [mainResDir, encDir].join('/');
+  final logDirLoc = [mainResDir, logsDir].join('/');
 
   final folders = [
     mainResDir,
@@ -594,10 +604,10 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   const indKeyFile = 'ind-keys.ttl';
   const permLogFile = 'permissions-log.ttl';
 
-  final sharingDirLoc = path.join(mainResDir, sharingDir);
-  final sharedDirLoc = path.join(mainResDir, sharedDir);
-  final encDirLoc = path.join(mainResDir, encDir);
-  final logDirLoc = path.join(mainResDir, logsDir);
+  final sharingDirLoc = [mainResDir, sharingDir].join('/');
+  final sharedDirLoc = [mainResDir, sharedDir].join('/');
+  final encDirLoc = [mainResDir, encDir].join('/');
+  final logDirLoc = [mainResDir, logsDir].join('/');
 
   final files = {
     sharingDirLoc: [

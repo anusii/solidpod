@@ -54,7 +54,7 @@ Future<String?> readPod(
 
   // Check if the requested file exists
 
-  final fileUrl = await getResourceUrl(filePath);
+  final fileUrl = await getFileUrl(filePath);
   final fileExists = await checkResourceExists(fileUrl, true);
 
   if (fileExists == ResourceStatus.exist) {

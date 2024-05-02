@@ -66,7 +66,7 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
 
   // Check if the file already exists
 
-  final fileUrl = await getResourceUrl(filePath);
+  final fileUrl = await getFileUrl(filePath);
   final fileExists = await checkResourceExists(fileUrl, true);
 
   // Reuse the individual key if the file already exists

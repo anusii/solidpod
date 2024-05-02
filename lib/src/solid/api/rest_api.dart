@@ -116,12 +116,12 @@ Future<List<dynamic>> initialStructureTest(
 
   for (final containerName in folders) {
     // NB: the trailing separator in path is essential for this check
-    final resourceUrl = await getResourceUrl(containerName + path.separator);
+    final resourceUrl = await getDirUrl(containerName);
     if (await checkResourceExists(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
       // NB: no trailing separator in order for the POD init code to work
-      final resourceUrlStr = await getResourceUrl(containerName);
+      final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
       resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
@@ -131,7 +131,7 @@ Future<List<dynamic>> initialStructureTest(
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
       final resourceUrl =
-          await getResourceUrl(path.join(containerName as String, fileName));
+          await getFileUrl([containerName as String, fileName].join('/'));
       if (await checkResourceExists(resourceUrl, false) ==
           ResourceStatus.notExist) {
         allExists = false;
@@ -144,14 +144,17 @@ Future<List<dynamic>> initialStructureTest(
   return [allExists, resNotExist];
 }
 
-/// Asynchronously creates a file on a server using HTTP PUT request
-/// PUT: create or replace a resource
-/// POST: create a resource
-Future<void> createOrReplaceFile(String fileUrl, String fileContent) async {
-  assert(!fileUrl.endsWith(path.separator));
+/// Asynchronously creates a file on a server using HTTP requests
+/// PUT request: create or replace a resource
+/// POST request: create a resource
+Future<void> createFile(String fileUrl, String fileContent,
+    {bool replaceIfExist = false}) async {
+  assert(!fileUrl.endsWith('/'));
 
-  final fileName = path.split(fileUrl).last;
-  final (:accessToken, :dPopToken) = await getTokensForResource(fileUrl, 'PUT');
+  final fileName = fileUrl.split('/').last;
+  final httpMethod = replaceIfExist ? 'PUT' : 'POST';
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(fileUrl, httpMethod);
 
   final response = await http.post(
     Uri.parse(fileUrl),
@@ -159,8 +162,9 @@ Future<void> createOrReplaceFile(String fileUrl, String fileContent) async {
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
-      'Content-Type': 'text/turtle',
-      'Link': '<http://www.w3.org/ns/ldp#Resource>; rel="type"',
+      'Content-Type': fileContentType,
+      'Content-Length': fileContent.length.toString(),
+      'Link': fileTypeLink,
       'Slug': fileName,
       'DPoP': dPopToken,
     },
@@ -169,7 +173,36 @@ Future<void> createOrReplaceFile(String fileUrl, String fileContent) async {
   if ([200, 201].contains(response.statusCode)) {
     return;
   } else {
-    throw Exception('Failed to create or replace resource!');
+    throw Exception('Create file failed! Error: ${response.body}');
+  }
+}
+
+/// Asynchronously creates a directory (container) on server using POST request
+Future<void> createDir(String dirUrl) async {
+  assert(dirUrl.endsWith('/'));
+
+  final items = dirUrl.split('/');
+  final dirName = items[items.length - 2];
+
+  final (:accessToken, :dPopToken) = await getTokensForResource(dirUrl, 'POST');
+
+  final response = await http.post(
+    Uri.parse(dirUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': dirContentType,
+      'Link': dirTypeLink,
+      'Slug': dirName,
+      'DPoP': dPopToken,
+    },
+    body: '',
+  );
+  if ([200, 201].contains(response.statusCode)) {
+    return;
+  } else {
+    throw Exception('Create directory failed! Error: ${response.body}');
   }
 }
 
@@ -191,12 +224,12 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     itemLoc = fileLoc;
     itemSlug = itemName;
     contentType = fileType!;
-    itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+    itemType = fileTypeLink;
   } else {
     itemLoc = fileLoc;
     itemSlug = itemName;
-    contentType = 'application/octet-stream';
-    itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+    contentType = dirContentType;
+    itemType = dirTypeLink;
   }
 
   // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
@@ -205,7 +238,8 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
   //     : fileFlag
   //         ? '$webId$itemLoc'
   //         : '$webId/$itemLoc';
-  final resourceUrl = await getResourceUrl(itemLoc);
+  final resourceUrl =
+      fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
 
   final http.Response createResponse;
 
@@ -214,7 +248,7 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
     //     : '$webId/$itemLoc$itemName';
     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
-    final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
+    final aclFileUrl = await getFileUrl([itemLoc, itemName].join('/'));
     final (:accessToken, :dPopToken) =
         await getTokensForResource(aclFileUrl, 'PUT');
 
@@ -274,7 +308,8 @@ Future<void> deleteItem(bool fileFlag, String itemLoc) async {
   // String dPopToken =
   //     genDpopToken(encKeyUrl, rsaKeyPair, publicKeyJwk, 'DELETE');
 
-  final resourceUrl = await getResourceUrl(itemLoc);
+  final resourceUrl =
+      fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
   final (:accessToken, :dPopToken) =
       await getTokensForResource(resourceUrl, 'DELETE');
 
@@ -323,11 +358,11 @@ Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
   String itemType;
   if (fileFlag) {
     contentType = '*/*';
-    itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+    itemType = fileTypeLink;
   } else {
     /// This is a directory (container)
-    contentType = 'application/octet-stream';
-    itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+    contentType = dirContentType;
+    itemType = dirTypeLink;
   }
 
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
