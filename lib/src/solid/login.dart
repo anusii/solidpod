@@ -299,8 +299,8 @@ class _SolidLoginState extends State<SolidLogin> {
         onPressed: () async {
           showDialog(
             context: context,
-            builder: (BuildContext context) {
-              return ChangeKeyDialog();
+            builder: (context) {
+              return const ChangeKeyDialog();
             },
           );
 

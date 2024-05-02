@@ -179,7 +179,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         final logoutUrl = await AuthDataManager
                                             .getLogoutUrl();
 
-                                        await logout(logoutUrl!);
+                                        await logout(logoutUrl);
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors

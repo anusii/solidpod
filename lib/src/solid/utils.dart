@@ -250,7 +250,7 @@ Future<String> getEncTTLStr(
   // g.bind(host, Namespace(ns: hostpath));
   // g.bind(host, ns);
 
-  g.serialize(format: 'ttl', abbr: 'short');
+  g.serialize(abbr: 'short');
 
   final encTTL = g.serializedString;
   return encTTL;
@@ -488,9 +488,9 @@ class AuthDataManager {
         assert(_rsaInfo != null);
         final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
         final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
-        String tokenEndpoint =
+        final tokenEndpoint =
             _authResponse!.client.issuer.metadata['token_endpoint'] as String;
-        String dPopToken =
+        final dPopToken =
             genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
         tokenResponse = await _authResponse!
             .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
