@@ -603,15 +603,18 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
 }
 
 /// Logging out the user
-Future<bool> logout() async {
+Future<bool> logoutPod() async {
   final logoutUrl = await AuthDataManager.getLogoutUrl();
   if (logoutUrl != null) {
     try {
-      final uri = Uri.parse(logoutUrl);
-      if (await canLaunchUrl(uri)) {
-        return (await AuthDataManager.removeAuthData()) &&
-            (await launchUrl(uri));
-      }
+      return (await AuthDataManager.removeAuthData()) &&
+          (await logout(logoutUrl));
+
+      // final uri = Uri.parse(logoutUrl);
+      // if (await canLaunchUrl(uri)) {
+      //   return (await AuthDataManager.removeAuthData()) &&
+      //       (await launchUrl(uri));
+      // }
     } on Exception catch (e) {
       print('Exception: $e');
       return false;
