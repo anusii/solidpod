@@ -297,7 +297,7 @@ class _SolidLoginState extends State<SolidLogin> {
         foreground: widget.changeKeyButtonStyle.foreground,
         tooltip: widget.changeKeyButtonStyle.tooltip,
         onPressed: () async {
-          showDialog(
+          await showDialog(
             context: context,
             builder: (context) {
               return const ChangeKeyDialog();
