@@ -241,9 +241,11 @@ class _SolidLoginState extends State<SolidLogin> {
   // Function to update [_isDialogCanceled].
 
   void updateState() {
-    setState(() {
-      _isDialogCanceled = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isDialogCanceled = true;
+      });
+    }
   }
 
   @override
