@@ -121,7 +121,8 @@ Future<List<dynamic>> initialStructureTest(
         ResourceStatus.notExist) {
       allExists = false;
       // NB: no trailing separator in order for the POD init code to work
-      final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
+      // final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
+      final resourceUrlStr = resourceUrl;
       resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
@@ -147,54 +148,60 @@ Future<List<dynamic>> initialStructureTest(
 /// Asynchronously creates a file on a server using HTTP requests
 /// PUT request: create or replace a resource
 /// POST request: create a resource
-Future<void> createFile(String fileUrl, String fileContent,
+Future<void> _createFile(String fileUrl, String fileContent,
     {bool replaceIfExist = false}) async {
   assert(!fileUrl.endsWith('/'));
 
-  final fileName = fileUrl.split('/').last;
-  final httpMethod = replaceIfExist ? 'PUT' : 'POST';
   final (:accessToken, :dPopToken) =
-      await getTokensForResource(fileUrl, httpMethod);
+      await getTokensForResource(fileUrl, replaceIfExist ? 'PUT' : 'POST');
 
-  final response = await http.post(
-    Uri.parse(fileUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': fileContentType,
-      'Content-Length': fileContent.length.toString(),
-      'Link': fileTypeLink,
-      'Slug': fileName,
-      'DPoP': dPopToken,
-    },
-    body: fileContent,
-  );
+  late final response;
+  if (replaceIfExist) {
+  } else {
+    final items = fileUrl.split('/');
+    final name = items.last;
+    final parentUrl = '${items.getRange(0, items.length - 1).join('/')}/';
+    response = await http.post(
+      Uri.parse(parentUrl),
+      headers: <String, String>{
+        'Accept': '*/*',
+        'Authorization': 'DPoP $accessToken',
+        'Connection': 'keep-alive',
+        'Content-Type': fileContentType,
+        'Link': fileTypeLink,
+        'Slug': name,
+        'DPoP': dPopToken,
+      },
+      body: fileContent,
+    );
+  }
   if ([200, 201].contains(response.statusCode)) {
     return;
   } else {
-    throw Exception('Create file failed! Error: ${response.body}');
+    throw Exception(
+        'Create file failed!\nURL: $fileUrl\nERROR: ${response.body}');
   }
 }
 
 /// Asynchronously creates a directory (container) on server using POST request
-Future<void> createDir(String dirUrl) async {
+Future<void> _createDir(String dirUrl) async {
   assert(dirUrl.endsWith('/'));
 
   final items = dirUrl.split('/');
-  final dirName = items[items.length - 2];
+  final name = items[items.length - 2];
+  final parentUrl = '${items.getRange(0, items.length - 2).join('/')}/';
 
   final (:accessToken, :dPopToken) = await getTokensForResource(dirUrl, 'POST');
 
   final response = await http.post(
-    Uri.parse(dirUrl),
+    Uri.parse(parentUrl),
     headers: <String, String>{
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': dirContentType,
       'Link': dirTypeLink,
-      'Slug': dirName,
+      'Slug': name,
       'DPoP': dPopToken,
     },
     body: '',
@@ -202,15 +209,22 @@ Future<void> createDir(String dirUrl) async {
   if ([200, 201].contains(response.statusCode)) {
     return;
   } else {
-    throw Exception('Create directory failed! Error: ${response.body}');
+    throw Exception(
+        'Create directory failed!\nURL: $dirUrl\nERROR: ${response.body}');
   }
 }
 
-/// Asynchronously creates a file or directory (item) on a server using HTTP
-/// requests.
+/// From a given resource path create its URL
 ///
-/// This function is used to send HTTP POST or PUT requests to a server in
-/// order to create a new file or directory.
+/// returns the full resource URL
+
+Future<String> getResourceUrl(String resourcePath) async {
+  final webId = await getWebId();
+  assert(webId != null);
+  assert(webId!.contains(profCard));
+  final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+  return resourceUrl;
+}
 
 Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
@@ -224,12 +238,12 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     itemLoc = fileLoc;
     itemSlug = itemName;
     contentType = fileType!;
-    itemType = fileTypeLink;
+    itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
   } else {
     itemLoc = fileLoc;
     itemSlug = itemName;
-    contentType = dirContentType;
-    itemType = dirTypeLink;
+    contentType = 'application/octet-stream';
+    itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
   }
 
   // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
@@ -238,8 +252,7 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
   //     : fileFlag
   //         ? '$webId$itemLoc'
   //         : '$webId/$itemLoc';
-  final resourceUrl =
-      fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
+  final resourceUrl = await getResourceUrl(itemLoc);
 
   final http.Response createResponse;
 
@@ -248,7 +261,7 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
     //     : '$webId/$itemLoc$itemName';
     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
-    final aclFileUrl = await getFileUrl([itemLoc, itemName].join('/'));
+    final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
     final (:accessToken, :dPopToken) =
         await getTokensForResource(aclFileUrl, 'PUT');
 
@@ -296,6 +309,73 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     // If the server did not return a 200 OK response,
     // then throw an exception.
     throw Exception('Failed to create resource! Try again in a while.');
+  }
+}
+
+/// Asynchronously creates a file or directory on a server using HTTP requests.
+///
+/// PUT request: create or replace a resource
+/// POST request: create a resource
+
+Future<void> _createItem(
+  String itemName, {
+  required String itemLoc,
+  String itemBody = '',
+  bool fileFlag = true,
+  bool aclFlag = false,
+  String contentType = fileContentType,
+}) async {
+  // Set up directory or file parameters
+
+  final itemType = fileFlag ? fileTypeLink : dirTypeLink;
+  final parentUrl = await getDirUrl(itemLoc);
+
+  final http.Response response;
+
+  if (aclFlag) {
+    final aclFileUrl = await getFileUrl([itemLoc, itemName].join('/'));
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(aclFileUrl, 'PUT');
+
+    // The PUT request will create or replace the acl item in the server.
+
+    response = await http.put(
+      Uri.parse(aclFileUrl),
+      headers: <String, String>{
+        'Accept': '*/*',
+        'Authorization': 'DPoP $accessToken',
+        'Connection': 'keep-alive',
+        'Content-Type': 'text/turtle',
+        'Content-Length': itemBody.length.toString(),
+        'DPoP': dPopToken,
+      },
+      body: itemBody,
+    );
+  } else {
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(parentUrl, 'POST');
+
+    // The POST request will create the item in the server.
+
+    response = await http.post(
+      Uri.parse(parentUrl),
+      headers: <String, String>{
+        'Accept': '*/*',
+        'Authorization': 'DPoP $accessToken',
+        'Connection': 'keep-alive',
+        'Content-Type': contentType,
+        'Link': itemType,
+        'Slug': itemName,
+        'DPoP': dPopToken,
+      },
+      body: itemBody,
+    );
+  }
+
+  if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception('Failed to create resource!'
+        '\nURL: $parentUrl$itemName'
+        '\nERROR: ${response.body}');
   }
 }
 

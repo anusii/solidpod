@@ -167,8 +167,10 @@ Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
 }
 
 /// Create a directory
-Future<bool> _createDir(String dirName, String dirParentPath) async {
+Future<bool> createDir(String dirName, String dirParentPath) async {
   try {
+    // await createItem(dirName,
+    //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
     await createItem(false, dirName, '', fileLoc: dirParentPath);
     return true;
   } on Exception catch (e) {
@@ -178,13 +180,14 @@ Future<bool> _createDir(String dirName, String dirParentPath) async {
 }
 
 /// Create new TTL file with content
-Future<bool> _createFile(String filePath, String fileContent) async {
+Future<bool> createFile(String filePath, String fileContent) async {
   try {
     final fileName = path.basename(filePath);
     final folderPath = path.dirname(filePath);
 
+    // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
     await createItem(true, fileName, fileContent,
-        fileType: fileContentType, fileLoc: folderPath);
+        fileType: 'text/turtle', fileLoc: folderPath);
 
     return true;
   } on Exception catch (e) {
@@ -363,12 +366,15 @@ Future<bool> deleteLogIn() async {
   return success && (await AuthDataManager.removeAuthData());
 }
 
-/// Get the webId from local storage
+/// Save the webId to local secure storage
 
-Future<String?> getWebId() async {
-  final webId = await secureStorage.read(key: webIdSecureStorageKey);
-  return webId;
-}
+Future<void> saveWebId(String webId) async =>
+    writeToSecureStorage(webIdSecureStorageKey, webId);
+
+/// Get the webId from local secure storage
+
+Future<String?> getWebId() async =>
+    secureStorage.read(key: webIdSecureStorageKey);
 
 /// [AuthDataManager] is a class to manage auth data returned by
 /// solid-auth authenticate, including:

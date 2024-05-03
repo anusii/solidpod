@@ -39,7 +39,7 @@ import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils.dart'
-    show writeToSecureStorage, AuthDataManager, checkLoggedIn;
+    show saveWebId, AuthDataManager, checkLoggedIn;
 
 // Scopes variables used in the authentication process.
 
@@ -88,7 +88,7 @@ Future<List<dynamic>?> solidAuthenticate(
     final decodedToken = JwtDecoder.decode(accessToken);
     final webId = decodedToken['webid'].toString();
 
-    await writeToSecureStorage('webid', webId);
+    await saveWebId(webId);
 
     // final rsaInfo = authData['rsaInfo'];
     // final rsaKeyPair = rsaInfo['rsa'];
