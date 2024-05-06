@@ -31,7 +31,7 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
-import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;

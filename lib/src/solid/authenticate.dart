@@ -38,8 +38,10 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/utils.dart'
-    show saveWebId, AuthDataManager, checkLoggedIn;
+import 'package:solidpod/src/solid/utils/authdata_manager.dart'
+    show AuthDataManager;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show saveWebId, checkLoggedIn;
 
 // Scopes variables used in the authentication process.
 
