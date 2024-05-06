@@ -159,6 +159,11 @@ Future<String> getResourceUrl(String resourcePath) async {
   return resourceUrl;
 }
 
+/// Asynchronously creates a file or directory on a server using HTTP requests.
+///
+/// PUT request: create or replace a resource
+/// POST request: create a resource
+
 Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
   String? itemLoc = '';
@@ -242,73 +247,6 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     // If the server did not return a 200 OK response,
     // then throw an exception.
     throw Exception('Failed to create resource! Try again in a while.');
-  }
-}
-
-/// Asynchronously creates a file or directory on a server using HTTP requests.
-///
-/// PUT request: create or replace a resource
-/// POST request: create a resource
-
-Future<void> _createItem(
-  String itemName, {
-  required String itemLoc,
-  String itemBody = '',
-  bool fileFlag = true,
-  bool aclFlag = false,
-  String contentType = fileContentType,
-}) async {
-  // Set up directory or file parameters
-
-  final itemType = fileFlag ? fileTypeLink : dirTypeLink;
-  final parentUrl = await getDirUrl(itemLoc);
-
-  final http.Response response;
-
-  if (aclFlag) {
-    final aclFileUrl = await getFileUrl([itemLoc, itemName].join('/'));
-    final (:accessToken, :dPopToken) =
-        await getTokensForResource(aclFileUrl, 'PUT');
-
-    // The PUT request will create or replace the acl item in the server.
-
-    response = await http.put(
-      Uri.parse(aclFileUrl),
-      headers: <String, String>{
-        'Accept': '*/*',
-        'Authorization': 'DPoP $accessToken',
-        'Connection': 'keep-alive',
-        'Content-Type': 'text/turtle',
-        'Content-Length': itemBody.length.toString(),
-        'DPoP': dPopToken,
-      },
-      body: itemBody,
-    );
-  } else {
-    final (:accessToken, :dPopToken) =
-        await getTokensForResource(parentUrl, 'POST');
-
-    // The POST request will create the item in the server.
-
-    response = await http.post(
-      Uri.parse(parentUrl),
-      headers: <String, String>{
-        'Accept': '*/*',
-        'Authorization': 'DPoP $accessToken',
-        'Connection': 'keep-alive',
-        'Content-Type': contentType,
-        'Link': itemType,
-        'Slug': itemName,
-        'DPoP': dPopToken,
-      },
-      body: itemBody,
-    );
-  }
-
-  if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception('Failed to create resource!'
-        '\nURL: $parentUrl$itemName'
-        '\nERROR: ${response.body}');
   }
 }
 
