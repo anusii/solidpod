@@ -35,13 +35,13 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 
@@ -192,48 +192,6 @@ Future<bool> createFile(String filePath, String fileContent) async {
     print('Exception: $e');
   }
   return false;
-}
-
-/// [AppInfo] is class that stores the information of a particular app
-/// (i.e. the app that invokes methods of this class), including:
-/// name, version, canonical name, package name, build number.
-
-class AppInfo {
-  /// Instance caching results of async call: `await PackageInfo.fromPlatform()`
-  static PackageInfo? _info;
-
-  /// Get the app name from pubspec.yml
-  static Future<String> get name async {
-    _info ??= await PackageInfo.fromPlatform();
-    return _info!.appName;
-  }
-
-  /// Get the version
-  static Future<String> get version async {
-    _info ??= await PackageInfo.fromPlatform();
-    return _info!.version;
-  }
-
-  /// Get the app name from pubspec.yml and
-  /// 1. Remove any leading and trailing whitespace
-  /// 2. Convert to lower case
-  /// 3. Replace (one or multiple) white spaces with an underscore
-  static Future<String> get canonicalName async {
-    _info ??= await PackageInfo.fromPlatform();
-    return _info!.appName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
-  }
-
-  /// Get the name of the package that provides the app
-  static Future<String> get packageName async {
-    _info ??= await PackageInfo.fromPlatform();
-    return _info!.packageName;
-  }
-
-  /// Get the build number
-  static Future<String> get buildNumber async {
-    _info ??= await PackageInfo.fromPlatform();
-    return _info!.buildNumber;
-  }
 }
 
 /// From a given resource path [resourcePath] create its URL
