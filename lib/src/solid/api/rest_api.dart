@@ -39,7 +39,9 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart'
+    show AuthDataManager;
 
 /// Parses file information and extracts content into a map.
 ///
@@ -121,8 +123,8 @@ Future<List<dynamic>> initialStructureTest(
         ResourceStatus.notExist) {
       allExists = false;
       // NB: no trailing separator in order for the POD init code to work
-      // final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
-      final resourceUrlStr = resourceUrl;
+      final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
+      //final resourceUrlStr = resourceUrl;
       resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
@@ -143,75 +145,6 @@ Future<List<dynamic>> initialStructureTest(
   }
 
   return [allExists, resNotExist];
-}
-
-/// Asynchronously creates a file on a server using HTTP requests
-/// PUT request: create or replace a resource
-/// POST request: create a resource
-Future<void> _createFile(String fileUrl, String fileContent,
-    {bool replaceIfExist = false}) async {
-  assert(!fileUrl.endsWith('/'));
-
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(fileUrl, replaceIfExist ? 'PUT' : 'POST');
-
-  late final response;
-  if (replaceIfExist) {
-  } else {
-    final items = fileUrl.split('/');
-    final name = items.last;
-    final parentUrl = '${items.getRange(0, items.length - 1).join('/')}/';
-    response = await http.post(
-      Uri.parse(parentUrl),
-      headers: <String, String>{
-        'Accept': '*/*',
-        'Authorization': 'DPoP $accessToken',
-        'Connection': 'keep-alive',
-        'Content-Type': fileContentType,
-        'Link': fileTypeLink,
-        'Slug': name,
-        'DPoP': dPopToken,
-      },
-      body: fileContent,
-    );
-  }
-  if ([200, 201].contains(response.statusCode)) {
-    return;
-  } else {
-    throw Exception(
-        'Create file failed!\nURL: $fileUrl\nERROR: ${response.body}');
-  }
-}
-
-/// Asynchronously creates a directory (container) on server using POST request
-Future<void> _createDir(String dirUrl) async {
-  assert(dirUrl.endsWith('/'));
-
-  final items = dirUrl.split('/');
-  final name = items[items.length - 2];
-  final parentUrl = '${items.getRange(0, items.length - 2).join('/')}/';
-
-  final (:accessToken, :dPopToken) = await getTokensForResource(dirUrl, 'POST');
-
-  final response = await http.post(
-    Uri.parse(parentUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': dirContentType,
-      'Link': dirTypeLink,
-      'Slug': name,
-      'DPoP': dPopToken,
-    },
-    body: '',
-  );
-  if ([200, 201].contains(response.statusCode)) {
-    return;
-  } else {
-    throw Exception(
-        'Create directory failed!\nURL: $dirUrl\nERROR: ${response.body}');
-  }
 }
 
 /// From a given resource path create its URL
