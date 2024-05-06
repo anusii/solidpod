@@ -177,7 +177,7 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
 
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
-Future<void> showChangeKeyDialog(BuildContext context) async {
+Future<void> changeKeyPopup(BuildContext context) async {
   await showDialog(
     context: context,
     builder: (context) {
