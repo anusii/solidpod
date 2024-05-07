@@ -85,8 +85,9 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
     // (the TTL file with encrypted individual keys and IVs)
 
     final indKeyPath = await getIndKeyPath();
-    final indKeyMap = await loadPrvTTL(indKeyPath);
-    assert(indKeyMap!.containsKey(fileUrl));
+    final indKeyUrl = await getFileUrl(indKeyPath);
+    final indKeyMap = await loadPrvTTL(indKeyUrl);
+    assert(indKeyMap.containsKey(fileUrl));
 
     final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
     final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
