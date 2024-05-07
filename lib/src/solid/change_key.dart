@@ -99,7 +99,7 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
     final height = size.height * 0.5;
 
     return AlertDialog(
-      title: const Text('Change Encryption Key'),
+      title: const Text('Change Security Key'),
       content: ConstrainedBox(
         constraints: BoxConstraints(
           minWidth: width,
@@ -112,7 +112,7 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
                 controller: _currentKeyController,
                 obscureText: _isObscuredCurrentKey,
                 decoration: InputDecoration(
-                  labelText: 'Your current encryption key',
+                  labelText: 'Your current security key',
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isObscuredCurrentKey
@@ -127,7 +127,7 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
                 controller: _newKeyController,
                 obscureText: _isObscuredNewKey,
                 decoration: InputDecoration(
-                  labelText: 'New encryption key',
+                  labelText: 'New security key',
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isObscuredNewKey
@@ -142,7 +142,7 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
                 controller: _repeatKeyController,
                 obscureText: _isObscuredRepeatNewKey,
                 decoration: InputDecoration(
-                  labelText: 'Repeat new encryption key',
+                  labelText: 'Repeat new security key',
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isObscuredRepeatNewKey
