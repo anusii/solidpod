@@ -85,12 +85,9 @@ String genVerificationKey(String masterPasswd) =>
 /// Get the verification key stored in PODs
 Future<String?> getVerificationKey() async {
   final encKeyPath = await getEncKeyPath();
-  final encKeyMap = await loadPrvTTL(encKeyPath);
-  if (encKeyMap == null) {
-    return null;
-  }
-
   final encKeyFileUrl = await getFileUrl(encKeyPath);
+  final encKeyMap = await loadPrvTTL(encKeyFileUrl);
+
   if (!encKeyMap.containsKey(encKeyFileUrl)) {
     return null;
   }
@@ -153,14 +150,13 @@ Map<String, dynamic> parseTTL(String ttlContent) {
 }
 
 /// Load and parse a private TTL file from POD
-Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
-  final fileUrl = await getFileUrl(filePath);
+Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
+  // final fileUrl = await getFileUrl(filePath);
   try {
     final rawContent = await fetchPrvFile(fileUrl);
     return parseTTL(rawContent);
   } on Exception catch (e) {
-    print('Exception: $e');
-    return null;
+    throw Exception(e);
   }
 }
 
@@ -253,6 +249,10 @@ Future<String> getEncKeyPath() async =>
 /// Returns the path of file with individual keys
 Future<String> getIndKeyPath() async =>
     [await AppInfo.canonicalName, encDir, indKeyFile].join('/');
+
+/// Returns the path of file with public keys
+Future<String> getPubKeyPath() async =>
+    [await AppInfo.canonicalName, sharingDir, pubKeyFile].join('/');
 
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
