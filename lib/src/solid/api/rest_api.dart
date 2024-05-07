@@ -147,6 +147,61 @@ Future<List<dynamic>> initialStructureTest(
   return [allExists, resNotExist];
 }
 
+/// Asynchronously creates a file or directory (container) on a server
+/// using HTTP requests:
+/// - PUT request: create or replace a resource (e.g. an ACL file)
+/// - POST request: create a resource (e.g. a TTL file or a directory)
+
+Future<void> createResource(String resourceUrl,
+    {String content = '',
+    bool fileFlag = true,
+    bool replaceIfExist = false}) async {
+  // Get the name and parent container URL of the resource to be created
+
+  final items = resourceUrl.split('/');
+  late final int index;
+  if (fileFlag) {
+    assert(!resourceUrl.endsWith('/'));
+    index = items.length - 1;
+  } else {
+    assert(resourceUrl.endsWith('/'));
+    index = items.length - 2;
+  }
+  final name = items[index];
+  final parentUrl = '${items.getRange(0, index).join('/')}/';
+
+// Use PUT request if create a file already exists
+
+  final put = (fileFlag && replaceIfExist) ? true : false;
+  final httpMethod = put ? http.put : http.post;
+
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, put ? 'PUT' : 'POST');
+
+  final response = await httpMethod(
+    Uri.parse(put ? resourceUrl : parentUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': fileFlag ? fileContentType : dirContentType,
+      if (put) 'Content-Length': content.length.toString(),
+      if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
+      if (!put) 'Slug': name,
+      'DPoP': dPopToken,
+    },
+    body: content,
+  );
+
+  if ([200, 201].contains(response.statusCode)) {
+    return;
+  } else {
+    throw Exception('Failed to create resource!'
+        '\nURL: $resourceUrl'
+        '\nERROR: ${response.body}');
+  }
+}
+
 /// From a given resource path create its URL
 ///
 /// returns the full resource URL
