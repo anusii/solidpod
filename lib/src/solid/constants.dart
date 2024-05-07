@@ -87,6 +87,12 @@ const String fileTypeLink = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
 const String dirTypeLink =
     '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
 
+/// String variables for encryption key files
+
+const String encKeyFileTitle = 'Encryption keys';
+const String indKeyFileTitle = 'Individual Encryption Keys';
+const String pubKeyFileTitle = 'Public key';
+
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
 
