@@ -27,8 +27,8 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:solidpod/src/solid/utils/misc.dart' show getAppNameVersion;
-import 'package:solidpod/src/solid/utils/authdata_manager.dart' show logoutPod;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show getAppNameVersion, logoutPod;
 
 /// A pop up widget for user to logout
 
