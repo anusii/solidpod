@@ -1,6 +1,6 @@
 name: solidpod
 description: Support easy access to data stored on Solid Pod servers.
-version: 0.5.17
+version: 0.5.19
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -14,6 +14,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_form_builder: ^9.2.1
+  flutter_riverpod: ^2.5.1
   flutter_secure_storage: ^9.0.0
   flutter_svg: ^2.0.5
   form_builder_validators: ^9.1.0

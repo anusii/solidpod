@@ -46,7 +46,6 @@ class SolidPopupLogin extends StatefulWidget {
 
 class _SolidPopupLoginState extends State<SolidPopupLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  // static Future<dynamic>? _asyncLogin;
 
   // Login and initialise PODs if required
   Future<void> _loginAndInitPods(String webId, BuildContext context) async {
@@ -68,27 +67,8 @@ class _SolidPopupLoginState extends State<SolidPopupLogin> {
             }));
   }
 
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     key: _scaffoldKey,
-  //     body: FutureBuilder(
-  //         future: _asyncLogin,
-  //         builder: (context, snapshot) {
-  //           Widget returnVal;
-  //           if (snapshot.connectionState == ConnectionState.done) {
-  //             returnVal = _loadedScreen();
-  //           } else {
-  //             returnVal = loadingScreen(200);
-  //           }
-  //           return returnVal;
-  //         }),
-  //   );
-  // }
-
   @override
   void initState() {
-    // _asyncLogin = solidAuthenticate(widget.webId, context);
     super.initState();
   }
 
