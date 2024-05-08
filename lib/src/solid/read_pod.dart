@@ -50,7 +50,6 @@ Future<String?> readPod(
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);
-  // await initPodsIfRequired(context);
 
   // Check if the requested file exists
 

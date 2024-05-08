@@ -49,15 +49,7 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
   // Write data to file in the data directory
   final filePath = path.join(await getDataDirPath(), fileName);
 
-  // if (path.split(filePath)[1] != dataDir) {
-  //   throw Exception('Writing data to directories other than "data/" is not'
-  //       ' currently supported!');
-  // }
-
-  // Login and initialise PODs if necessary
-
   await loginIfRequired(context);
-  // await initPodsIfRequired(context);
 
   // Get master key for encryption
 
