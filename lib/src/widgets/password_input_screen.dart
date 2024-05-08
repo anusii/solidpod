@@ -1,4 +1,4 @@
-/// A screen for inputting the master password for encryption, verify and
+/// A screen for inputting the security key for encryption, verify and
 /// save it to local secure storage
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
@@ -58,7 +58,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormBuilderState>();
     const passwordKey = 'password';
-    const passwordMsg = 'Please enter the password (also known as master key)'
+    const passwordMsg = 'Please enter the security key'
         ' you previously provided to encrypt your data.';
     var passwordVerified = false;
     return Scaffold(
@@ -76,7 +76,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     const Text(
-                      'Please provide your password used to secure your data',
+                      'Please provide your security key to unlock your data',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 20,
@@ -101,7 +101,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                           !_showPassword,
                       autocorrect: false,
                       decoration: InputDecoration(
-                        labelText: 'PASSWORD',
+                        labelText: 'SECURITY KEY',
                         labelStyle: const TextStyle(
                           color: Colors.blue,
                           letterSpacing: 1.5,
@@ -126,7 +126,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                           if (!widget.verifyPasswordFunc(val as String)) {
                             passwordVerified = false;
                             debugPrint('passwordVerified: $passwordVerified');
-                            return 'Incorrect Password';
+                            return 'Incorrect Security Key';
                           } else {
                             passwordVerified = true;
                             debugPrint('passwordVerified: $passwordVerified');
@@ -148,15 +148,15 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                         final formData = formKey.currentState?.value as Map;
                         await saveMasterPassword(
                             formData[passwordKey].toString());
-                        debugPrint('password saved');
+                        debugPrint('security key saved');
                         Navigator.pop(context);
                       } else {
                         await showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('Incorrect Password'),
+                            title: const Text('Incorrect Security Key'),
                             content: const Text(
-                                'The password entered is incorrect!'),
+                                'The security key entered is incorrect!'),
                             actions: [
                               ElevatedButton(
                                   onPressed: () {
