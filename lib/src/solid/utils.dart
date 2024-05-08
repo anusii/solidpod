@@ -43,6 +43,7 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 import 'package:solid_auth/src/openid/openid_client.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -599,4 +600,25 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     encDirLoc: [encKeyFile, indKeyFile],
   };
   return files;
+}
+
+/// Logging out the user
+Future<bool> logoutPod() async {
+  final logoutUrl = await AuthDataManager.getLogoutUrl();
+  if (logoutUrl != null) {
+    try {
+      return (await AuthDataManager.removeAuthData()) &&
+          (await logout(logoutUrl));
+
+      // final uri = Uri.parse(logoutUrl);
+      // if (await canLaunchUrl(uri)) {
+      //   return (await AuthDataManager.removeAuthData()) &&
+      //       (await launchUrl(uri));
+      // }
+    } on Exception catch (e) {
+      print('Exception: $e');
+      return false;
+    }
+  }
+  return true;
 }

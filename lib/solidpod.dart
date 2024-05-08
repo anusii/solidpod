@@ -44,6 +44,7 @@ export 'src/solid/popup_login.dart' show SolidPopupLogin;
 // rest_api?
 
 export 'src/solid/change_key.dart' show changeKeyPopup;
+export 'src/widgets/logout_dialog.dart' show logoutPopup;
 export 'src/solid/api/rest_api.dart';
 export 'src/solid/utils.dart';
 export 'src/solid/read_pod.dart' show readPod;
