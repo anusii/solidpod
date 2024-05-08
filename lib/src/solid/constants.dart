@@ -36,7 +36,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Length limit for long strings for a screen.
 
-const int longStrLength = 12;
+// const int longStrLength = 12;
 
 /// String terms used for files created and used inside a POD.
 
