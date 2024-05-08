@@ -72,18 +72,18 @@ Future<void> writeToSecureStorage(String key, String value) async {
 }
 
 /// Get the verification key stored in PODs
-Future<String?> getVerificationKey() async {
-  final encKeyPath = await getEncKeyPath();
-  final encKeyFileUrl = await getFileUrl(encKeyPath);
-  final encKeyMap = await loadPrvTTL(encKeyFileUrl);
+// Future<String?> getVerificationKey() async {
+//   final encKeyPath = await getEncKeyPath();
+//   final encKeyFileUrl = await getFileUrl(encKeyPath);
+//   final encKeyMap = await loadPrvTTL(encKeyFileUrl);
 
-  if (!encKeyMap.containsKey(encKeyFileUrl)) {
-    return null;
-  }
+//   if (!encKeyMap.containsKey(encKeyFileUrl)) {
+//     return null;
+//   }
 
-  final verificationKey = encKeyMap[encKeyFileUrl][encKeyPred] as String;
-  return verificationKey;
-}
+//   final verificationKey = encKeyMap[encKeyFileUrl][encKeyPred] as String;
+//   return verificationKey;
+// }
 
 // /// Verify the user provided master password for data encryption
 // bool verifyMasterPassword(String masterPasswd, String verificationKey) =>

@@ -49,9 +49,13 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 Key genMasterKey(String securityKey) => Key.fromUtf8(
     sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32));
 
-/// Derive the verification key from master password
-String genVerificationKey(String masterPasswd) =>
-    sha224.convert(utf8.encode(masterPasswd)).toString().substring(0, 32);
+/// Derive the verification key from the security key
+String genVerificationKey(String securityKey) =>
+    sha224.convert(utf8.encode(securityKey)).toString().substring(0, 32);
+
+/// Verify the security key
+bool verifySecurityKey(String securityKey, String verificationKey) =>
+    verificationKey == genVerificationKey(securityKey);
 
 /// Create a random individual/session key
 Key genRandIndividualKey() => Key.fromSecureRandom(32);
@@ -132,7 +136,11 @@ class KeyManager {
   static Future<void> setSecurityKey(String securityKey,
       {bool verify = true, bool saveLocally = true}) async {
     if (verify) {
-      final verified = await verifySecurityKey(securityKey);
+      if (_verificationKey == null) {
+        await _loadEncKeyFile();
+      }
+      assert(_verificationKey != null);
+      final verified = verifySecurityKey(securityKey, _verificationKey!);
       if (!verified) {
         throw Exception('Unable to verified the provided security key!');
       }
@@ -150,6 +158,15 @@ class KeyManager {
     _securityKey ??=
         await secureStorage.read(key: _securityKeySecureStorageKey);
     return _securityKey!;
+  }
+
+  /// Get the verification key
+  static Future<String> getVerificationKey() async {
+    if (_verificationKey == null) {
+      await _loadEncKeyFile();
+    }
+    assert(_verificationKey != null);
+    return _verificationKey!;
   }
 
   /// Remove the security key from local secure storage
@@ -225,13 +242,13 @@ class KeyManager {
   }
 
   /// Verify the provided security key using verification key stored in POD
-  static Future<bool> verifySecurityKey(String securityKey) async {
-    if (_verificationKey == null) {
-      await _loadEncKeyFile();
-    }
-    assert(_verificationKey != null);
-    return _verificationKey == genVerificationKey(securityKey);
-  }
+  // static Future<bool> verifySecurityKey(String securityKey) async {
+  //   if (_verificationKey == null) {
+  //     await _loadEncKeyFile();
+  //   }
+  //   assert(_verificationKey != null);
+  //   return _verificationKey == genVerificationKey(securityKey);
+  // }
 
   /// Return the public key
   static Future<String> getPublicKey() async {
