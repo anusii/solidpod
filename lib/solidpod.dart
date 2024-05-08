@@ -43,6 +43,7 @@ export 'src/solid/popup_login.dart' show SolidPopupLogin;
 // following are exported, PLEASE. ReadPod() I understand, but what from
 // rest_api?
 
+export 'src/solid/change_key.dart' show changeKeyPopup;
 export 'src/solid/api/rest_api.dart';
 export 'src/solid/utils.dart';
 export 'src/solid/read_pod.dart' show readPod;

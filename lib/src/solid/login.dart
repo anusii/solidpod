@@ -33,6 +33,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:solidpod/src/solid/change_key.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -55,6 +56,7 @@ const String defaultLoginButtonText = 'LOGIN';
 const String defaultRegisterButtonText = 'REGISTER';
 const String defaultInfoButtonText = 'INFO';
 const String defaultContinueButtonText = 'CONTINUE';
+const String defaultChangeKeyButtonText = 'CHANGE KEY';
 const String defaultLoginTooltip = 'Login to your Solid Pod';
 const String defaultRegisterTooltip = 'Get a Solid Pod';
 const String defaultInfoTooltip = 'Visit the Solid Project website';
@@ -111,6 +113,8 @@ class SolidLogin extends StatefulWidget {
     this.infoButtonStyle = const InfoButtonStyle(),
     this.loginButtonStyle = const LoginButtonStyle(),
     this.registerButtonStyle = const RegisterButtonStyle(),
+    this.changeKeyButtonStyle = const ChangeKeyButtonStyle(),
+    // this.secureKeyObject = const SecureKey('', ''),
     super.key,
   });
 
@@ -137,6 +141,10 @@ class SolidLogin extends StatefulWidget {
   /// The style of the CONTINUE button.
 
   final ContinueButtonStyle continueButtonStyle;
+
+  /// The style of the CHANGE KEY button.
+
+  final ChangeKeyButtonStyle changeKeyButtonStyle;
 
   /// The app's logo as displayed at the top of the login panel.
 
@@ -199,6 +207,9 @@ class SolidLogin extends StatefulWidget {
   /// is available on the Login page.
 
   final bool required;
+
+  // /// Secure key object
+  // final SecureKey secureKeyObject;
 
   @override
   State<SolidLogin> createState() => _SolidLoginState();
@@ -513,6 +524,9 @@ class _SolidLoginState extends State<SolidLogin> {
                   ),
                 ],
               ),
+              const SizedBox(
+                height: 15.0,
+              ),
             ],
           ),
 
@@ -647,6 +661,19 @@ class PodButton extends StatelessWidget {
 class ContinueButtonStyle {
   const ContinueButtonStyle({
     this.text = defaultContinueButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultContinueTooltip,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
+
+class ChangeKeyButtonStyle {
+  const ChangeKeyButtonStyle({
+    this.text = defaultChangeKeyButtonText,
     this.background = defaultButtonBackground,
     this.foreground = defaultButtonForeground,
     this.tooltip = defaultContinueTooltip,

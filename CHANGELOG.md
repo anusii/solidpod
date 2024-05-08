@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Add a changekeyPopup widget to open a popup window for changing the key. [0.5.18]
 + Remove TTL string generation function which should be app specific [0.5.17]
 + Add writePod function and refactor (some part of) the code base [0.5.16]
 + Use the updated token refreshing API from solid-auth-0.1.17 [0.5.15]
