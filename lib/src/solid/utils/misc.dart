@@ -30,9 +30,6 @@
 
 library;
 
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:path/path.dart' as path;
@@ -74,14 +71,6 @@ Future<void> writeToSecureStorage(String key, String value) async {
   );
 }
 
-/// Derive the master key from master password
-Key genMasterKey(String masterPasswd) => Key.fromUtf8(
-    sha256.convert(utf8.encode(masterPasswd)).toString().substring(0, 32));
-
-/// Derive the verification key from master password
-String genVerificationKey(String masterPasswd) =>
-    sha224.convert(utf8.encode(masterPasswd)).toString().substring(0, 32);
-
 /// Get the verification key stored in PODs
 Future<String?> getVerificationKey() async {
   final encKeyPath = await getEncKeyPath();
@@ -96,24 +85,24 @@ Future<String?> getVerificationKey() async {
   return verificationKey;
 }
 
-/// Verify the user provided master password for data encryption
-bool verifyMasterPassword(String masterPasswd, String verificationKey) =>
-    genVerificationKey(masterPasswd) == verificationKey;
+// /// Verify the user provided master password for data encryption
+// bool verifyMasterPassword(String masterPasswd, String verificationKey) =>
+//     genVerificationKey(masterPasswd) == verificationKey;
 
-/// Save master password to local secure storage
-Future<void> saveMasterPassword(String masterPasswd) async =>
-    writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
+// /// Save master password to local secure storage
+// Future<void> saveMasterPassword(String masterPasswd) async =>
+//     writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
 
-/// Load master password from local secure storage
-Future<String?> loadMasterPassword() async =>
-    secureStorage.read(key: masterPasswdSecureStorageKey);
+// /// Load master password from local secure storage
+// Future<String?> loadMasterPassword() async =>
+//     secureStorage.read(key: masterPasswdSecureStorageKey);
 
-/// Delete the saved master password from local secure storage
-Future<void> removeMasterPassword() async {
-  if (await secureStorage.containsKey(key: masterPasswdSecureStorageKey)) {
-    await secureStorage.delete(key: masterPasswdSecureStorageKey);
-  }
-}
+// /// Delete the saved master password from local secure storage
+// Future<void> removeMasterPassword() async {
+//   if (await secureStorage.containsKey(key: masterPasswdSecureStorageKey)) {
+//     await secureStorage.delete(key: masterPasswdSecureStorageKey);
+//   }
+// }
 
 /// Encrypt data using AES with the specified key
 String encryptData(String data, Key key, IV iv) =>
@@ -122,12 +111,6 @@ String encryptData(String data, Key key, IV iv) =>
 /// Decrypt a ciphertext value
 String decryptData(String encData, Key key, IV iv) =>
     Encrypter(AES(key)).decrypt(Encrypted.from64(encData), iv: iv);
-
-/// Create a random individual/session key
-Key getIndividualKey() => Key.fromSecureRandom(32);
-
-/// Create a random intialisation vector
-IV getIV() => IV.fromLength(16);
 
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
@@ -257,30 +240,6 @@ Future<String> getPubKeyPath() async =>
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
-
-/// Add (encrypted) individual/session key [encIndKey] and the corresponding
-/// IV [iv] for file with path [filePath]
-Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
-  // const filePrefix = '$appFilePrefix: <$appsFile>';
-  // const termPrefix = '$appTermPrefix: <$appsTerms>';
-  // final sub = appsFile + filePath;
-  // final sub = '$appFilePrefix:$filePath';
-  final sub = await getFileUrl(filePath);
-  // final query = [
-  //   'PREFIX $filePrefix',
-  //   'PREFIX $termPrefix',
-  //   'INSERT DATA {',
-  //   sub,
-  //   '$appTermPrefix:$pathPred $filePath;',
-  //   '$appTermPrefix:$ivPred ${iv.base64};',
-  //   '$appTermPrefix:$sessionKeyPred $encIndKey.',
-  //   '};'
-  //].join(' ');
-  final query =
-      'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; <$appsTerms$ivPred> "${iv.base64}"; <$appsTerms$sessionKeyPred> "$encIndKey".};';
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-  await updateFileByQuery(fileUrl, query);
-}
 
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)

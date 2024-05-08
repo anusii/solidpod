@@ -38,6 +38,7 @@ import 'package:path/path.dart' as path;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Read file content from a POD
@@ -66,7 +67,7 @@ Future<String?> readPod(
       if (path.split(filePath)[1] == dataDir) {
         // Get the master key
 
-        final masterPasswd = await getVerifiedMasterPassword(context, child);
+        final masterPasswd = await getVerifiedSecurityKey(context, child);
         final masterKey = genMasterKey(masterPasswd);
 
         // Get the (decrypted) individual key

@@ -40,6 +40,7 @@ import 'package:path/path.dart' as path;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Write file [fileName] and content [fileContent] to PODs
@@ -61,8 +62,8 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
 
   // Get master key for encryption
 
-  final masterPasswd = await getVerifiedMasterPassword(context, child);
-  final masterKey = genMasterKey(masterPasswd);
+  final securityKey = await getVerifiedSecurityKey(context, child);
+  final masterKey = genMasterKey(securityKey);
 
   // Check if the file already exists
 
@@ -96,8 +97,8 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
   } else if (fileExists == ResourceStatus.notExist) {
     // Generate individual/session key and its IV
 
-    indKey = getIndividualKey();
-    final indKeyIV = getIV();
+    indKey = genRandIndividualKey();
+    final indKeyIV = genRandIV();
 
     // Encrypt individual Key
     final encIndKeyStr = encryptData(indKey.base64, masterKey, indKeyIV);
@@ -111,5 +112,5 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
   // Create file with encrypted data on server
 
   await createFile(
-      filePath, await getEncTTLStr(filePath, fileContent, indKey, getIV()));
+      filePath, await getEncTTLStr(filePath, fileContent, indKey, genRandIV()));
 }

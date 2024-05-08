@@ -1,3 +1,12 @@
+/// Utilities for managing keys for data protection.
+///
+/// Some terminology used in this class are defined as follows:
+/// - security key: the string user provides to unlock encrypted data in PODs
+/// - master key: the sha256 of the security key
+/// - verification key: the sha224 of the security key
+/// - individual key: the AES key used to encrypt an individual file
+/// - public/private key pair: the RSA key pair for data sharing.
+///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
@@ -26,6 +35,9 @@
 
 library;
 
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:rdflib/rdflib.dart';
 
@@ -33,14 +45,46 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
+/// Derive the master key from the security key
+Key genMasterKey(String securityKey) => Key.fromUtf8(
+    sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32));
+
+/// Derive the verification key from master password
+String genVerificationKey(String masterPasswd) =>
+    sha224.convert(utf8.encode(masterPasswd)).toString().substring(0, 32);
+
+/// Create a random individual/session key
+Key genRandIndividualKey() => Key.fromSecureRandom(32);
+
+/// Create a random intialisation vector
+IV genRandIV() => IV.fromLength(16);
+
+/// Add (encrypted) individual/session key [encIndKey] and the corresponding
+/// IV [iv] for file with path [filePath]
+Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
+  // const filePrefix = '$appFilePrefix: <$appsFile>';
+  // const termPrefix = '$appTermPrefix: <$appsTerms>';
+  // final sub = appsFile + filePath;
+  // final sub = '$appFilePrefix:$filePath';
+  final sub = await getFileUrl(filePath);
+  // final query = [
+  //   'PREFIX $filePrefix',
+  //   'PREFIX $termPrefix',
+  //   'INSERT DATA {',
+  //   sub,
+  //   '$appTermPrefix:$pathPred $filePath;',
+  //   '$appTermPrefix:$ivPred ${iv.base64};',
+  //   '$appTermPrefix:$sessionKeyPred $encIndKey.',
+  //   '};'
+  //].join(' ');
+  final query =
+      'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; <$appsTerms$ivPred> "${iv.base64}"; <$appsTerms$sessionKeyPred> "$encIndKey".};';
+  final fileUrl = await getFileUrl(await getIndKeyPath());
+  await updateFileByQuery(fileUrl, query);
+}
+
 /// [KeyManager] is a class to manage security key and encryption keys
 /// for data stored in PODs.
-/// Part of the terminology used in this class are defined as follows:
-/// - security key: the string user provides to unlock encrypted data in PODs
-/// - master key: the sha256 of the security key
-/// - verification key: the sha224 of the security key
-/// - individual key: the AES key used to encrypt an individual file
-/// - public/private key pair: the RSA key pair for data sharing
 ///
 /// Some rules we follow:
 /// - The "security key" and "master key" are never stored in PODs
@@ -64,7 +108,7 @@ class KeyManager {
   static String? _pubKeyUrl;
 
   /// The security key
-  static late String _securityKey;
+  static String? _securityKey;
 
   /// The master key
   static Key? _masterKey;
@@ -86,18 +130,26 @@ class KeyManager {
 
   /// Set the security key
   static Future<void> setSecurityKey(String securityKey,
-      {bool saveLocally = true}) async {
-    final verified = await verifySecurityKey(securityKey);
-    if (!verified) {
-      throw Exception('Unable to verified the provided security key!');
-    } else {
-      _securityKey = securityKey;
-      _masterKey = genMasterKey(_securityKey);
-
-      if (saveLocally) {
-        await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey);
+      {bool verify = true, bool saveLocally = true}) async {
+    if (verify) {
+      final verified = await verifySecurityKey(securityKey);
+      if (!verified) {
+        throw Exception('Unable to verified the provided security key!');
       }
     }
+    _securityKey = securityKey;
+    _masterKey = genMasterKey(_securityKey!);
+
+    if (saveLocally) {
+      await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
+    }
+  }
+
+  /// Get the security key from local storage
+  static Future<String?> getSecurityKey() async {
+    _securityKey ??=
+        await secureStorage.read(key: _securityKeySecureStorageKey);
+    return _securityKey!;
   }
 
   /// Remove the security key from local secure storage
@@ -122,7 +174,7 @@ class KeyManager {
     _prvKey ??= await getPrivateKey();
     assert(_encKeyUrl != null);
     _verificationKey = genVerificationKey(newSecurityKey);
-    final prvKeyIV = getIV();
+    final prvKeyIV = genRandIV();
     encKeyTriples[_encKeyUrl!] = {
       titlePred: encKeyFileTitle,
       encKeyPred: _verificationKey!,
@@ -150,15 +202,15 @@ class KeyManager {
     for (final entry in _indKeyMap!.entries) {
       final fileUrl = entry.key;
       final keyRecord = entry.value;
-      final indIV = getIV();
-      final indKey = await getIndividualKey(resourceUrl: fileUrl);
-      final encIndKey = encryptData(indKey.base64, newMasterKey, indIV);
+      final newIV = genRandIV();
+      final record = await getIndividualKeyInfo(fileUrl);
+      final encIndKey = encryptData(record.indKey.base64, newMasterKey, newIV);
       indKeyTriples[fileUrl] = {
         pathPred: keyRecord.filePath,
-        ivPred: indIV.base64,
+        ivPred: newIV.base64,
         sessionKeyPred: encIndKey,
       };
-      _indKeyMap![fileUrl]!.ivBase64 = indIV.base64;
+      _indKeyMap![fileUrl]!.ivBase64 = newIV.base64;
       _indKeyMap![fileUrl]!.encKeyBase64 = encIndKey;
     }
 
@@ -202,11 +254,8 @@ class KeyManager {
 
   /// Generate a new individual key OR
   /// return the (decrypted) individual key for an existing resource
-  static Future<Key> getIndividualKey({String? resourceUrl}) async {
-    if (resourceUrl == null) {
-      return Key.fromSecureRandom(32);
-    }
-
+  static Future<({Key indKey, IV iv})> getIndividualKeyInfo(
+      String resourceUrl) async {
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
     }
@@ -228,7 +277,7 @@ class KeyManager {
           record.encKeyBase64, _masterKey!, IV.fromBase64(record.ivBase64)));
       _indKeyMap![resourceUrl] = record;
     }
-    return record.key!;
+    return (indKey: record.key!, iv: IV.fromBase64(record.ivBase64));
   }
 
   /// Check if the master key is available
