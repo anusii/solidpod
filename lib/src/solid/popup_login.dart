@@ -20,6 +20,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/solid/common_func.dart' show initPodsIfRequired;
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A widget to pop up the login prompt if the user is not logged in
@@ -36,6 +37,7 @@ class SolidPopupLogin extends StatefulWidget {
   /// authenticate against.
   /// Currently this is not a required argument here and is set
   /// by default.
+
   final String webId;
 
   @override
@@ -44,37 +46,37 @@ class SolidPopupLogin extends StatefulWidget {
 
 class _SolidPopupLoginState extends State<SolidPopupLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  static Future<dynamic>? _asyncLogin;
-  String appName = '';
+
+  // Login and initialise PODs if required
+  Future<void> _loginAndInitPods(String webId, BuildContext context) async {
+    await solidAuthenticate(webId, context);
+    await initPodsIfRequired(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
-      body: FutureBuilder(
-          future: _asyncLogin,
-          builder: (context, snapshot) {
-            Widget returnVal;
-            if (snapshot.connectionState == ConnectionState.done) {
-              returnVal = _loadedScreen(snapshot.data as List);
-            } else {
-              returnVal = loadingScreen(200);
-            }
-            return returnVal;
-          }),
-    );
+        key: _scaffoldKey,
+        body: FutureBuilder<void>(
+            future: _loginAndInitPods(widget.webId, context),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return _loadedScreen();
+              }
+              return loadingScreen(200);
+            }));
   }
 
   @override
   void initState() {
-    _asyncLogin = solidAuthenticate(widget.webId, context);
     super.initState();
   }
 
-  Widget _loadedScreen(List<dynamic> loginData) {
+  Widget _loadedScreen() {
     return AlertDialog(
         title: const Text('Success!'),
-        content: const Text('You are now successfully logged in'),
+        content: const Text(
+            'You have successfully logged in and/or initialised your PODs'),
         actions: <Widget>[
           ElevatedButton(
             child: const Text('OK'),

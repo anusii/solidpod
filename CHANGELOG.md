@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Check and initialise POD in SolidLoginPopup. [0.5.21]
 + Refactor code in rest_api.dart and utils.dart. [0.5.20]
 + Add a logout popup for user to logging out. [0.5.19]
 + Add a changekeyPopup widget to open a popup window for changing the key. [0.5.18]
