@@ -1,5 +1,5 @@
 /// A screen for inputting the security key for encryption, verify and
-/// save it to local secure storage
+/// save the security key to local secure storage
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -77,7 +77,7 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     const Text(
-                      'Please provide your security key used to lock/unlock your data',
+                      'Security Key',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 20,

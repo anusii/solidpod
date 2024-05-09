@@ -219,7 +219,7 @@ Future<String> getEncTTLStr(
   // g.bind(host, Namespace(ns: hostpath));
   // g.bind(host, ns);
 
-  g.serialize(format: 'ttl', abbr: 'short');
+  g.serialize(abbr: 'short');
 
   final encTTL = g.serializedString;
   return encTTL;

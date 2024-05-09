@@ -308,7 +308,7 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
 /// Delete a file or a directory
 Future<void> deleteItem(bool fileFlag, String itemLoc) async {
   // Set up file (resource) or directory (container) parameters
-  String contentType = fileFlag ? 'text/turtle' : 'application/octet-stream';
+  final contentType = fileFlag ? 'text/turtle' : 'application/octet-stream';
 
   // String encKeyUrl = webId!.replaceAll(profCard, itemLoc);
   // String dPopToken =
