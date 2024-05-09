@@ -30,6 +30,8 @@ library;
 
 import 'package:flutter/material.dart' hide Key;
 
+import 'package:encrypt/encrypt.dart' show Key;
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
@@ -84,17 +86,16 @@ Future<void> initPodsIfRequired(BuildContext context) async {
   }
 }
 
-/// Ask for the master password from the user if the master password is not
-/// stored in local secure storage or
-/// it cannot be verfied using the verification key stored in PODs
+/// Ask for the security key from the user if the security key is not available
+/// or cannot be verfied using the verification key stored in PODs.
 
-Future<String> getVerifiedSecurityKey(
+Future<void> getKeyFromUserIfRequired(
     BuildContext context, Widget child) async {
-  var securityKey = await KeyManager.getSecurityKey();
-  final verificationKey = await KeyManager.getVerificationKey();
+  if (await KeyManager.hasSecurityKey()) {
+    return;
+  } else {
+    final verificationKey = await KeyManager.getVerificationKey();
 
-  if (securityKey == null ||
-      !(await verifySecurityKey(securityKey, verificationKey))) {
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -103,8 +104,5 @@ Future<String> getVerifiedSecurityKey(
                   verifySecurityKey(key, verificationKey),
               child: child),
         ));
-    securityKey = await KeyManager.getSecurityKey();
   }
-
-  return securityKey!;
 }
