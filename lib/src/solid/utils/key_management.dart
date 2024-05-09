@@ -132,17 +132,51 @@ class KeyManager {
   /// The string key for storing auth data in secure storage
   static const String _securityKeySecureStorageKey = '_solid_security_key';
 
+  /// Remove stored security key and set all cached private members to null
+  static Future<void> clear() async {
+    await forgetSecurityKey();
+
+    _encKeyUrl = null;
+    _indKeyUrl = null;
+    _pubKeyUrl = null;
+
+    _securityKey = null;
+    _masterKey = null;
+    _verificationKey = null;
+
+    _pubKey = null;
+    _prvKey = null;
+
+    _indKeyMap = null;
+  }
+
+  /// Check if the security is available
+  static Future<bool> hasSecurityKey() async {
+    _securityKey ??=
+        await secureStorage.read(key: _securityKeySecureStorageKey);
+
+    if (_securityKey == null) {
+      return false;
+    }
+
+    if (!verifySecurityKey(_securityKey!, await getVerificationKey())) {
+      await forgetSecurityKey();
+      return false;
+    }
+
+    return true;
+  }
+
   /// Set the security key
   static Future<void> setSecurityKey(String securityKey,
       {bool verify = true, bool saveLocally = true}) async {
+    if (await hasSecurityKey()) {
+      return;
+    }
+
     if (verify) {
-      if (_verificationKey == null) {
-        await _loadEncKeyFile();
-      }
-      assert(_verificationKey != null);
-      final verified = verifySecurityKey(securityKey, _verificationKey!);
-      if (!verified) {
-        throw Exception('Unable to verified the provided security key!');
+      if (!verifySecurityKey(securityKey, await getVerificationKey())) {
+        throw Exception('Unable to verify the provided security key!');
       }
     }
     _securityKey = securityKey;
@@ -153,11 +187,26 @@ class KeyManager {
     }
   }
 
-  /// Get the security key from local storage
-  static Future<String?> getSecurityKey() async {
-    _securityKey ??=
-        await secureStorage.read(key: _securityKeySecureStorageKey);
-    return _securityKey!;
+  /// Get the master key
+  static Future<Key> getMasterKey() async {
+    if (_masterKey == null) {
+      _securityKey ??=
+          await secureStorage.read(key: _securityKeySecureStorageKey);
+
+      if (_securityKey == null) {
+        throw Exception('You must first set the security key!');
+      }
+
+      if (!verifySecurityKey(_securityKey!, await getVerificationKey())) {
+        await forgetSecurityKey();
+        throw Exception('Unable to verify the security key!');
+      }
+
+      _masterKey = genMasterKey(_securityKey!);
+    }
+
+    assert(_masterKey != null);
+    return _masterKey!;
   }
 
   /// Get the verification key
@@ -189,19 +238,24 @@ class KeyManager {
 
     final encKeyTriples = <String, Map<String, String>>{};
     _prvKey ??= await getPrivateKey();
-    assert(_encKeyUrl != null);
+
     _verificationKey = genVerificationKey(newSecurityKey);
     final prvKeyIV = genRandIV();
+
+    assert(_encKeyUrl != null);
+
     encKeyTriples[_encKeyUrl!] = {
       titlePred: encKeyFileTitle,
       encKeyPred: _verificationKey!,
       ivPred: prvKeyIV.base64,
       prvKeyPred: encryptData(_prvKey!, newMasterKey, prvKeyIV),
     };
+
     final encKeyContent = _genTTLStr(encKeyTriples);
     print(encKeyContent);
 
     // Write encKeyFile to server
+
     await createResource(_encKeyUrl!,
         content: encKeyContent, replaceIfExist: true);
 
@@ -219,36 +273,36 @@ class KeyManager {
     for (final entry in _indKeyMap!.entries) {
       final fileUrl = entry.key;
       final keyRecord = entry.value;
+
       final newIV = genRandIV();
-      final record = await getIndividualKeyInfo(fileUrl);
-      final encIndKey = encryptData(record.indKey.base64, newMasterKey, newIV);
+      final indKey = await getIndividualKey(fileUrl);
+
+      final encIndKey = encryptData(indKey.base64, newMasterKey, newIV);
+
       indKeyTriples[fileUrl] = {
         pathPred: keyRecord.filePath,
         ivPred: newIV.base64,
         sessionKeyPred: encIndKey,
       };
-      _indKeyMap![fileUrl]!.ivBase64 = newIV.base64;
-      _indKeyMap![fileUrl]!.encKeyBase64 = encIndKey;
+
+      keyRecord.ivBase64 = newIV.base64;
+      keyRecord.encKeyBase64 = encIndKey;
+
+      _indKeyMap![fileUrl] = keyRecord;
     }
 
     final indKeyContent = _genTTLStr(indKeyTriples);
     print(indKeyContent);
 
     // Write indKeyFile to server
+
     await createResource(_indKeyUrl!,
         content: indKeyContent, replaceIfExist: true);
 
+    // Sanity check
     await setSecurityKey(newSecurityKey);
+    // await setSecurityKey(newSecurityKey, verify: false);
   }
-
-  /// Verify the provided security key using verification key stored in POD
-  // static Future<bool> verifySecurityKey(String securityKey) async {
-  //   if (_verificationKey == null) {
-  //     await _loadEncKeyFile();
-  //   }
-  //   assert(_verificationKey != null);
-  //   return _verificationKey == genVerificationKey(securityKey);
-  // }
 
   /// Return the public key
   static Future<String> getPublicKey() async {
@@ -262,17 +316,15 @@ class KeyManager {
   /// Return the private key
   static Future<String> getPrivateKey() async {
     if (_prvKey == null) {
-      _checkMasterKey();
+      // _checkMasterKey();
       await _loadEncKeyFile();
     }
     assert(_prvKey != null);
     return _prvKey!;
   }
 
-  /// Generate a new individual key OR
-  /// return the (decrypted) individual key for an existing resource
-  static Future<({Key indKey, IV iv})> getIndividualKeyInfo(
-      String resourceUrl) async {
+  /// Return the (decrypted) individual key for an existing resource
+  static Future<Key> getIndividualKey(String resourceUrl) async {
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
     }
@@ -281,27 +333,18 @@ class KeyManager {
 
     if (!_indKeyMap!.containsKey(resourceUrl)) {
       throw Exception(
-          'Unable to find the individual key for resource: $resourceUrl');
+          'Unable to locate the individual key for resource:\n$resourceUrl');
     }
 
     final record = _indKeyMap![resourceUrl];
     assert(record != null);
 
     if (record!.key == null) {
-      _checkMasterKey();
-
-      record.key = Key.fromBase64(decryptData(
-          record.encKeyBase64, _masterKey!, IV.fromBase64(record.ivBase64)));
+      record.key = Key.fromBase64(decryptData(record.encKeyBase64,
+          await getMasterKey(), IV.fromBase64(record.ivBase64)));
       _indKeyMap![resourceUrl] = record;
     }
-    return (indKey: record.key!, iv: IV.fromBase64(record.ivBase64));
-  }
-
-  /// Check if the master key is available
-  static void _checkMasterKey() {
-    if (_masterKey == null) {
-      throw Exception('You must first set the security key.');
-    }
+    return record.key!;
   }
 
   /// Load the file with verification key and encrypted private key
@@ -315,7 +358,7 @@ class KeyManager {
       _encKeyUrl = await getFileUrl(encKeyPath);
     }
 
-    _checkMasterKey();
+    // _checkMasterKey();
 
     // Get and parse the encKeyFile
     final map = await loadPrvTTL(_encKeyUrl!);
@@ -328,7 +371,7 @@ class KeyManager {
     final v = map[_encKeyUrl] as Map;
     _verificationKey = v[encKeyPred] as String;
 
-    _prvKey = decryptData(v[prvKeyPred] as String, _masterKey!,
+    _prvKey = decryptData(v[prvKeyPred] as String, await getMasterKey(),
         IV.fromBase64(v[ivPred] as String));
   }
 
