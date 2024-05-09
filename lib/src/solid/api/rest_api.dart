@@ -198,7 +198,7 @@ Future<void> createResource(String resourceUrl,
     body: content,
   );
 
-  if ([200, 201].contains(response.statusCode)) {
+  if ([200, 201, 205].contains(response.statusCode)) {
     return;
   } else {
     throw Exception('Failed to create resource!'
