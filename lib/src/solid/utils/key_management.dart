@@ -150,43 +150,6 @@ class KeyManager {
     _indKeyMap = null;
   }
 
-  /// Check if the security is available
-  static Future<bool> hasSecurityKey() async {
-    _securityKey ??=
-        await secureStorage.read(key: _securityKeySecureStorageKey);
-
-    if (_securityKey == null) {
-      return false;
-    }
-
-    if (!verifySecurityKey(_securityKey!, await getVerificationKey())) {
-      await forgetSecurityKey();
-      return false;
-    }
-
-    return true;
-  }
-
-  /// Set the security key
-  static Future<void> setSecurityKey(String securityKey,
-      {bool verify = true, bool saveLocally = true}) async {
-    if (await hasSecurityKey()) {
-      return;
-    }
-
-    if (verify) {
-      if (!verifySecurityKey(securityKey, await getVerificationKey())) {
-        throw Exception('Unable to verify the provided security key!');
-      }
-    }
-    _securityKey = securityKey;
-    _masterKey = genMasterKey(_securityKey!);
-
-    if (saveLocally) {
-      await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
-    }
-  }
-
   /// Get the master key
   static Future<Key> getMasterKey() async {
     if (_masterKey == null) {
@@ -218,6 +181,40 @@ class KeyManager {
     return _verificationKey!;
   }
 
+  /// Check if the security is available
+  static Future<bool> hasSecurityKey() async {
+    _securityKey ??=
+        await secureStorage.read(key: _securityKeySecureStorageKey);
+
+    if (_securityKey == null) {
+      return false;
+    }
+
+    if (!verifySecurityKey(_securityKey!, await getVerificationKey())) {
+      await forgetSecurityKey();
+      return false;
+    }
+
+    return true;
+  }
+
+  /// Set the security key
+  static Future<void> setSecurityKey(String securityKey) async {
+    if (await hasSecurityKey()) {
+      print('Security key already set, do nothing.');
+      return;
+    }
+
+    if (!verifySecurityKey(securityKey, await getVerificationKey())) {
+      throw Exception('Unable to verify the provided security key!');
+    }
+
+    _securityKey = securityKey;
+    _masterKey = genMasterKey(_securityKey!);
+
+    await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
+  }
+
   /// Remove the security key from local secure storage
   static Future<void> forgetSecurityKey() async {
     if (await secureStorage.containsKey(key: _securityKeySecureStorageKey)) {
@@ -230,25 +227,25 @@ class KeyManager {
       String currentSecurityKey, String newSecurityKey) async {
     assert(newSecurityKey.trim().isNotEmpty);
 
-    await setSecurityKey(currentSecurityKey, saveLocally: false);
+    await setSecurityKey(currentSecurityKey);
 
     final newMasterKey = genMasterKey(newSecurityKey);
+    final newVerificationKey = genVerificationKey(newSecurityKey);
 
     // Re-generate the content of encKeyFile
 
     final encKeyTriples = <String, Map<String, String>>{};
     _prvKey ??= await getPrivateKey();
 
-    _verificationKey = genVerificationKey(newSecurityKey);
-    final prvKeyIV = genRandIV();
+    final newPrvKeyIV = genRandIV();
 
     assert(_encKeyUrl != null);
 
     encKeyTriples[_encKeyUrl!] = {
       titlePred: encKeyFileTitle,
-      encKeyPred: _verificationKey!,
-      ivPred: prvKeyIV.base64,
-      prvKeyPred: encryptData(_prvKey!, newMasterKey, prvKeyIV),
+      encKeyPred: newVerificationKey,
+      ivPred: newPrvKeyIV.base64,
+      prvKeyPred: encryptData(_prvKey!, newMasterKey, newPrvKeyIV),
     };
 
     final encKeyContent = _genTTLStr(encKeyTriples);
@@ -299,9 +296,11 @@ class KeyManager {
     await createResource(_indKeyUrl!,
         content: indKeyContent, replaceIfExist: true);
 
-    // Sanity check
-    await setSecurityKey(newSecurityKey);
-    // await setSecurityKey(newSecurityKey, verify: false);
+    // Set the new security key, master key, and verification key
+
+    _securityKey = newSecurityKey;
+    _masterKey = newMasterKey;
+    _verificationKey = newVerificationKey;
   }
 
   /// Return the public key
