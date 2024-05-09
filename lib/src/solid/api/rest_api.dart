@@ -39,7 +39,9 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart'
+    show AuthDataManager;
 
 /// Parses file information and extracts content into a map.
 ///
@@ -75,7 +77,8 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
 /// of token used in headers for enhanced security).
 
 Future<String> fetchPrvFile(String prvFileUrl) async {
-  final (:accessToken, :dPopToken) = await getTokens(prvFileUrl, 'GET');
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(prvFileUrl, 'GET');
   final profResponse = await http.get(
     Uri.parse(prvFileUrl),
     headers: <String, String>{
@@ -115,12 +118,13 @@ Future<List<dynamic>> initialStructureTest(
 
   for (final containerName in folders) {
     // NB: the trailing separator in path is essential for this check
-    final resourceUrl = await getResourceUrl(containerName + path.separator);
+    final resourceUrl = await getDirUrl(containerName);
     if (await checkResourceExists(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
       // NB: no trailing separator in order for the POD init code to work
-      final resourceUrlStr = await getResourceUrl(containerName);
+      final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
+      //final resourceUrlStr = resourceUrl;
       resNotExist['folders'].add(resourceUrlStr);
       resNotExist['folderNames'].add(containerName);
     }
@@ -130,7 +134,7 @@ Future<List<dynamic>> initialStructureTest(
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
       final resourceUrl =
-          await getResourceUrl(path.join(containerName as String, fileName));
+          await getFileUrl([containerName as String, fileName].join('/'));
       if (await checkResourceExists(resourceUrl, false) ==
           ResourceStatus.notExist) {
         allExists = false;
@@ -143,11 +147,22 @@ Future<List<dynamic>> initialStructureTest(
   return [allExists, resNotExist];
 }
 
-/// Asynchronously creates a file or directory (item) on a server using HTTP
-/// requests.
+/// From a given resource path create its URL
 ///
-/// This function is used to send HTTP POST or PUT requests to a server in
-/// order to create a new file or directory.
+/// returns the full resource URL
+
+Future<String> getResourceUrl(String resourcePath) async {
+  final webId = await getWebId();
+  assert(webId != null);
+  assert(webId!.contains(profCard));
+  final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+  return resourceUrl;
+}
+
+/// Asynchronously creates a file or directory on a server using HTTP requests.
+///
+/// PUT request: create or replace a resource
+/// POST request: create a resource
 
 Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
@@ -185,7 +200,8 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
     //     : '$webId/$itemLoc$itemName';
     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
     final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
-    final (:accessToken, :dPopToken) = await getTokens(aclFileUrl, 'PUT');
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(aclFileUrl, 'PUT');
 
     // The PUT request will create the acl item in the server.
 
@@ -202,7 +218,8 @@ Future<void> createItem(bool fileFlag, String itemName, String itemBody,
       body: itemBody,
     );
   } else {
-    final (:accessToken, :dPopToken) = await getTokens(resourceUrl, 'POST');
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(resourceUrl, 'POST');
 
     // The POST request will create the item in the server.
 
@@ -242,8 +259,10 @@ Future<void> deleteItem(bool fileFlag, String itemLoc) async {
   // String dPopToken =
   //     genDpopToken(encKeyUrl, rsaKeyPair, publicKeyJwk, 'DELETE');
 
-  final resourceUrl = await getResourceUrl(itemLoc);
-  final (:accessToken, :dPopToken) = await getTokens(resourceUrl, 'DELETE');
+  final resourceUrl =
+      fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, 'DELETE');
 
   final createResponse = await http.delete(
     Uri.parse(resourceUrl),
@@ -290,14 +309,14 @@ Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
   String itemType;
   if (fileFlag) {
     contentType = '*/*';
-    itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+    itemType = fileTypeLink;
   } else {
     /// This is a directory (container)
-    contentType = 'application/octet-stream';
-    itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+    contentType = dirContentType;
+    itemType = dirTypeLink;
   }
 
-  final (:accessToken, :dPopToken) = await getTokens(resUrl, 'GET');
+  final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
@@ -333,7 +352,8 @@ Future<void> updateFileByQuery(
   String fileUrl,
   String query,
 ) async {
-  final (:accessToken, :dPopToken) = await getTokens(fileUrl, 'PATCH');
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(fileUrl, 'PATCH');
   final editResponse = await http.patch(
     Uri.parse(fileUrl),
     headers: <String, String>{
@@ -491,7 +511,7 @@ Future<void> initialProfileUpdate(String profBody) async {
   // final dPopToken =
   //     genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
 
-  final (:accessToken, :dPopToken) = await getTokens(profUrl, 'PUT');
+  final (:accessToken, :dPopToken) = await getTokensForResource(profUrl, 'PUT');
 
   // The PUT request will create the acl item in the server
   final updateResponse = await http.put(
@@ -548,7 +568,7 @@ Future<String> fetchKeyData() async {
 ///
 /// returns the access token and DPoP token
 
-Future<({String accessToken, String dPopToken})> getTokens(
+Future<({String accessToken, String dPopToken})> getTokensForResource(
     String resourceUrl, String httpMethod) async {
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
@@ -563,18 +583,73 @@ Future<({String accessToken, String dPopToken})> getTokens(
   );
 }
 
-/// From a given file path create file URL
-///
-/// returns the full file URL
+/// Get the list of sub-containers and files in a container
+/// Adapted from getContainerList() in
+/// gurriny/indi/lib/models/common/rest_api.dart
+Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
+    String containerUrl) async {
+  // The trailing "/" is essential for a directory
+  final url = containerUrl.endsWith(path.separator)
+      ? containerUrl
+      : containerUrl + path.separator;
 
-// Future<String> createFileUrl(String filePath) async {
-//   final webId = await getWebId();
-//   assert(webId != null);
-//   assert(webId!.contains(profCard));
+  final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
 
-//   final appDetails = await getAppNameVersion();
-//   final appName = appDetails.name;
-//   final fileUrl = webId!.replaceAll(profCard, '$appName/$filePath');
+  final profResponse = await http.get(
+    Uri.parse(url),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
 
-//   return fileUrl;
-// }
+  if (profResponse.statusCode == 200) {
+    // print(profResponse.body.runtimeType); // String
+
+    // NB: rdflib-0.2.8 (dart) is not able to parse this but
+    //     rdflib-7.0.0 (python) can parse it
+    //
+    // final g = Graph();
+    // g.parseTurtle(profResponse.body);
+
+    final (:subDirs, :files) = _parseGetContainerResponse(profResponse.body);
+
+    // print('SubDirs: |${subDirs.join(", ")}|');
+    // print('Files  : |${files.join(", ")}|');
+
+    return (subDirs: subDirs, files: files);
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to get resource list.');
+  }
+}
+
+/// A heuristic to parse the response body of a request getting the list of
+/// resources in a container.
+/// This heuristic is a temporary solution before rdflib (dart) is capable
+/// of parsing the response body.
+({List<String> subDirs, List<String> files}) _parseGetContainerResponse(
+    String responseBody) {
+  final containers = <String>[];
+  final files = <String>[];
+  final re = RegExp('^<[^>]+>'); // starts with <, ends with >, no > in between
+
+  final lines = responseBody.split('\n');
+  for (var l in lines) {
+    if (l.startsWith('<') && !l.startsWith('<>')) {
+      if (l.contains('ldp:Resource')) {
+        final name = re.firstMatch(l)?.group(0);
+        assert(name != null);
+        if (l.contains('ldp:Container')) {
+          containers.add(name!.substring(1, name.length - 2)); // <NAME/>
+        } else {
+          files.add(name!.substring(1, name.length - 1)); // <NAME>
+        }
+      }
+    }
+  }
+  return (subDirs: containers, files: files);
+}

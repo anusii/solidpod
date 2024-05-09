@@ -38,7 +38,7 @@ import 'package:path/path.dart' as path;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/utils.dart';
+import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Read file content from a POD
 ///
@@ -54,7 +54,7 @@ Future<String?> readPod(
 
   // Check if the requested file exists
 
-  final fileUrl = await getResourceUrl(filePath);
+  final fileUrl = await getFileUrl(filePath);
   final fileExists = await checkResourceExists(fileUrl, true);
 
   if (fileExists == ResourceStatus.exist) {

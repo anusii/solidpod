@@ -41,7 +41,7 @@ import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/utils.dart'
+import 'package:solidpod/src/solid/utils/misc.dart'
     show generateDefaultFolders, generateDefaultFiles;
 
 // Screen size support functions to identify narrow and very narrow screens. The
