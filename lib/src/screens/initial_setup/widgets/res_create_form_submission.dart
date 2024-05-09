@@ -84,7 +84,7 @@ ElevatedButton resCreateFormSubmission(
         showAnimationDialog(context, 17, 'Creating resources!', false, null);
         final formData = formKey.currentState?.value as Map;
 
-        final passPlaintxt = formData['password'].toString();
+        final securityKey = formData[securityKeyStr].toString();
 
         final webId = await getWebId();
         assert(webId != null);
@@ -120,11 +120,11 @@ ElevatedButton resCreateFormSubmission(
           // Generate master key
 
           encMasterKey = sha256
-              .convert(utf8.encode(passPlaintxt))
+              .convert(utf8.encode(securityKey))
               .toString()
               .substring(0, 32);
           encMasterKeyVerify = sha224
-              .convert(utf8.encode(passPlaintxt))
+              .convert(utf8.encode(securityKey))
               .toString()
               .substring(0, 32);
 
@@ -152,7 +152,7 @@ ElevatedButton resCreateFormSubmission(
           if (!resFileNamesLink.contains(encKeyFile)) {
             final encryptClient =
                 solid_encrypt.EncryptClient(authData!, webId!);
-            keyVerifyFlag = await encryptClient.verifyEncKey(passPlaintxt);
+            keyVerifyFlag = await encryptClient.verifyEncKey(securityKey);
           }
         }
 
@@ -264,7 +264,7 @@ ElevatedButton resCreateFormSubmission(
           // await writeToSecureStorage(webId!, passPlaintxt);
           // authData['keyExist'] = true;  // the master key isn't auth data
           // }
-          await KeyManager.setSecurityKey(passPlaintxt, verify: false);
+          await KeyManager.setSecurityKey(securityKey);
 
           await Navigator.pushReplacement(
             // ignore: use_build_context_synchronously

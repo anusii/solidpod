@@ -65,10 +65,14 @@ const initialStructureMsg = 'We notice that you have either created'
     ' We will now setup the required resources to fully support'
     ' the app functionalities.';
 
-/// Text string variables used for informing the user about the input of
-/// master key for encryption.
+/// The string key of input form for the input of security key
 
-const requiredPwdMsg =
+const securityKeyStr = 'SecurityKey';
+
+/// Text string variables used for informing the user about the input of
+/// security key for encryption.
+
+const requiredSecurityKeyMsg =
     'A security key (or key for short) is used to make your data private'
     ' (using encryption) when it is stored in your Solid Pod.'
     ' This could be the password you use to login to your'

@@ -78,7 +78,7 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
           const Divider(color: Colors.grey),
           const SizedBox(height: 20),
           const Text(
-            requiredPwdMsg,
+            requiredSecurityKeyMsg,
             style: TextStyle(
               color: Colors.black,
               fontSize: 15,
