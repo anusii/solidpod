@@ -122,10 +122,8 @@ Future<List<dynamic>> initialStructureTest(
     if (await checkResourceExists(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
-      // NB: no trailing separator in order for the POD init code to work
-      final resourceUrlStr = resourceUrl.substring(0, resourceUrl.length - 1);
-      //final resourceUrlStr = resourceUrl;
-      resNotExist['folders'].add(resourceUrlStr);
+
+      resNotExist['folders'].add(resourceUrl);
       resNotExist['folderNames'].add(containerName);
     }
   }
@@ -147,36 +145,43 @@ Future<List<dynamic>> initialStructureTest(
   return [allExists, resNotExist];
 }
 
-/// Asynchronously creates a file or directory (container) on a server
-/// using HTTP requests:
-/// - PUT request: create or replace a resource (e.g. an ACL file)
+/// Asynchronously creates a resource (a file or directory / container)
+/// on a server using HTTP requests:
+/// - PUT request: create or replace a resource if exists (e.g. an ACL file)
 /// - POST request: create a resource (e.g. a TTL file or a directory)
 
 Future<void> createResource(String resourceUrl,
     {String content = '',
     bool fileFlag = true,
     bool replaceIfExist = false}) async {
-  // Get the name and parent container URL of the resource to be created
-
-  final items = resourceUrl.split('/');
-  late final int index;
+  // Sanity check
   if (fileFlag) {
     assert(!resourceUrl.endsWith('/'));
-    index = items.length - 1;
   } else {
     assert(resourceUrl.endsWith('/'));
-    index = items.length - 2;
   }
-  final name = items[index];
-  final parentUrl = '${items.getRange(0, index).join('/')}/';
 
-// Use PUT request if create a file already exists
+  // Use PUT request for creating and replacing a file if it already exists
 
   final put = (fileFlag && replaceIfExist) ? true : false;
   final httpMethod = put ? http.put : http.post;
 
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceUrl, put ? 'PUT' : 'POST');
+  // Get the name and parent container URL of the resource to be created for
+  // POST request
+
+  late String name;
+  late String parentUrl;
+
+  if (!put) {
+    final items = resourceUrl.split('/');
+    final index = fileFlag ? items.length - 1 : items.length - 2;
+
+    name = items[index];
+    parentUrl = '${items.getRange(0, index).join('/')}/';
+  }
+
+  final (:accessToken, :dPopToken) = await getTokensForResource(
+      put ? resourceUrl : parentUrl, put ? 'PUT' : 'POST');
 
   final response = await httpMethod(
     Uri.parse(put ? resourceUrl : parentUrl),
@@ -206,104 +211,108 @@ Future<void> createResource(String resourceUrl,
 ///
 /// returns the full resource URL
 
-Future<String> getResourceUrl(String resourcePath) async {
-  final webId = await getWebId();
-  assert(webId != null);
-  assert(webId!.contains(profCard));
-  final resourceUrl = webId!.replaceAll(profCard, resourcePath);
-  return resourceUrl;
-}
+// Future<String> getResourceUrl(String resourcePath) async {
+//   final webId = await getWebId();
+//   assert(webId != null);
+//   assert(webId!.contains(profCard));
+//   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+//   return resourceUrl;
+// }
 
-/// Asynchronously creates a file or directory on a server using HTTP requests.
-///
-/// PUT request: create or replace a resource
-/// POST request: create a resource
+// /// Asynchronously creates a file or directory on a server using HTTP requests.
+// ///
+// /// PUT request: create or replace a resource
+// /// POST request: create a resource
 
-Future<void> createItem(bool fileFlag, String itemName, String itemBody,
-    {required String fileLoc, String? fileType, bool aclFlag = false}) async {
-  String? itemLoc = '';
-  var itemSlug = '';
-  var itemType = '';
-  var contentType = '';
+// Future<void> createItem(bool fileFlag, String itemName, String itemBody,
+//     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
+//   String? itemLoc = '';
+//   var itemSlug = '';
+//   var itemType = '';
+//   var contentType = '';
 
-  // Set up directory or file parameters.
-  if (fileFlag) {
-    itemLoc = fileLoc;
-    itemSlug = itemName;
-    contentType = fileType!;
-    itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
-  } else {
-    itemLoc = fileLoc;
-    itemSlug = itemName;
-    contentType = 'application/octet-stream';
-    itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
-  }
+//   // Set up directory or file parameters.
+//   if (fileFlag) {
+//     itemLoc = fileLoc;
+//     itemSlug = itemName;
+//     contentType = fileType!;
+//     itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+//   } else {
+//     itemLoc = fileLoc;
+//     itemSlug = itemName;
+//     contentType = 'application/octet-stream';
+//     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+//   }
 
-  // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
-  // final encDataUrl = webId!.contains(profCard)
-  //     ? webId.replaceAll(profCard, itemLoc)
-  //     : fileFlag
-  //         ? '$webId$itemLoc'
-  //         : '$webId/$itemLoc';
-  final resourceUrl = await getResourceUrl(itemLoc);
+//   // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
+//   // final encDataUrl = webId!.contains(profCard)
+//   //     ? webId.replaceAll(profCard, itemLoc)
+//   //     : fileFlag
+//   //         ? '$webId$itemLoc'
+//   //         : '$webId/$itemLoc';
+//   final resourceUrl = await getResourceUrl(itemLoc);
 
-  final http.Response createResponse;
+//   final http.Response createResponse;
 
-  if (aclFlag) {
-    // final aclFileUrl = webId.contains(profCard)
-    //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
-    //     : '$webId/$itemLoc$itemName';
-    // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
-    final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
-    final (:accessToken, :dPopToken) =
-        await getTokensForResource(aclFileUrl, 'PUT');
+//   if (aclFlag) {
+//     // final aclFileUrl = webId.contains(profCard)
+//     //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
+//     //     : '$webId/$itemLoc$itemName';
+//     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
+//     final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
+//     final (:accessToken, :dPopToken) =
+//         await getTokensForResource(aclFileUrl, 'PUT');
 
-    // The PUT request will create the acl item in the server.
+//     // The PUT request will create the acl item in the server.
+//     print('CREATE: $aclFileUrl\n');
 
-    createResponse = await http.put(
-      Uri.parse(aclFileUrl),
-      headers: <String, String>{
-        'Accept': '*/*',
-        'Authorization': 'DPoP $accessToken',
-        'Connection': 'keep-alive',
-        'Content-Type': 'text/turtle',
-        'Content-Length': itemBody.length.toString(),
-        'DPoP': dPopToken,
-      },
-      body: itemBody,
-    );
-  } else {
-    final (:accessToken, :dPopToken) =
-        await getTokensForResource(resourceUrl, 'POST');
+//     createResponse = await http.put(
+//       Uri.parse(aclFileUrl),
+//       headers: <String, String>{
+//         'Accept': '*/*',
+//         'Authorization': 'DPoP $accessToken',
+//         'Connection': 'keep-alive',
+//         'Content-Type': 'text/turtle',
+//         'Content-Length': itemBody.length.toString(),
+//         'DPoP': dPopToken,
+//       },
+//       body: itemBody,
+//     );
+//   } else {
+//     final (:accessToken, :dPopToken) =
+//         await getTokensForResource(resourceUrl, 'POST');
 
-    // The POST request will create the item in the server.
+//     // The POST request will create the item in the server.
 
-    createResponse = await http.post(
-      Uri.parse(resourceUrl),
-      headers: <String, String>{
-        'Accept': '*/*',
-        'Authorization': 'DPoP $accessToken',
-        'Connection': 'keep-alive',
-        'Content-Type': contentType,
-        'Link': itemType,
-        'Slug': itemSlug,
-        'DPoP': dPopToken,
-      },
-      body: itemBody,
-    );
-  }
+//     print('CREATE: $resourceUrl');
+//     print('SLUG  : $itemSlug\n');
 
-  // if (createResponse.statusCode == 200 || createResponse.statusCode == 201) {
-  //   // If the server did return a 200 OK response,
-  //   // then parse the JSON.
-  //   return 'ok';
-  // } else {
-  if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to create resource! Try again in a while.');
-  }
-}
+//     createResponse = await http.post(
+//       Uri.parse(resourceUrl),
+//       headers: <String, String>{
+//         'Accept': '*/*',
+//         'Authorization': 'DPoP $accessToken',
+//         'Connection': 'keep-alive',
+//         'Content-Type': contentType,
+//         'Link': itemType,
+//         'Slug': itemSlug,
+//         'DPoP': dPopToken,
+//       },
+//       body: itemBody,
+//     );
+//   }
+
+//   // if (createResponse.statusCode == 200 || createResponse.statusCode == 201) {
+//   //   // If the server did return a 200 OK response,
+//   //   // then parse the JSON.
+//   //   return 'ok';
+//   // } else {
+//   if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
+//     // If the server did not return a 200 OK response,
+//     // then throw an exception.
+//     throw Exception('Failed to create resource! Try again in a while.');
+//   }
+// }
 
 /// Delete a file or a directory
 Future<void> deleteItem(bool fileFlag, String itemLoc) async {
