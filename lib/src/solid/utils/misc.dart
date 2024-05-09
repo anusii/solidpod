@@ -105,12 +105,13 @@ Future<void> writeToSecureStorage(String key, String value) async {
 // }
 
 /// Encrypt data using AES with the specified key
-String encryptData(String data, Key key, IV iv) =>
-    Encrypter(AES(key)).encrypt(data, iv: iv).base64;
+String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
+    Encrypter(AES(key, mode: mode)).encrypt(data, iv: iv).base64;
 
 /// Decrypt a ciphertext value
-String decryptData(String encData, Key key, IV iv) =>
-    Encrypter(AES(key)).decrypt(Encrypted.from64(encData), iv: iv);
+String decryptData(String encData, Key key, IV iv,
+        {AESMode mode = AESMode.sic}) =>
+    Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
 
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
