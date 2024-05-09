@@ -123,7 +123,7 @@ class KeyManager {
   /// The public key
   static String? _pubKey;
 
-  /// The private key
+  /// The (decrypted) private key
   static String? _prvKey;
 
   /// The encrypted (and decrypted) individual keys
@@ -245,7 +245,8 @@ class KeyManager {
       titlePred: encKeyFileTitle,
       encKeyPred: newVerificationKey,
       ivPred: newPrvKeyIV.base64,
-      prvKeyPred: encryptData(_prvKey!, newMasterKey, newPrvKeyIV),
+      prvKeyPred:
+          encryptData(_prvKey!, newMasterKey, newPrvKeyIV, mode: AESMode.cbc),
     };
 
     final encKeyContent = _genTTLStr(encKeyTriples);
@@ -315,7 +316,6 @@ class KeyManager {
   /// Return the private key
   static Future<String> getPrivateKey() async {
     if (_prvKey == null) {
-      // _checkMasterKey();
       await _loadEncKeyFile();
     }
     assert(_prvKey != null);
@@ -371,7 +371,8 @@ class KeyManager {
     _verificationKey = v[encKeyPred] as String;
 
     _prvKey = decryptData(v[prvKeyPred] as String, await getMasterKey(),
-        IV.fromBase64(v[ivPred] as String));
+        IV.fromBase64(v[ivPred] as String),
+        mode: AESMode.cbc);
   }
 
   /// Load the file with encrypted individual keys
@@ -456,7 +457,7 @@ String _genTTLStr(Map<String, Map<String, String>> triples) {
   assert(triples.isNotEmpty);
   final g = Graph();
   final nsTerms = Namespace(ns: appsTerms);
-  final nsTitle = Namespace(ns: '$terms$titlePred');
+  final nsTitle = Namespace(ns: terms);
 
   for (final sub in triples.keys) {
     assert(triples[sub] != null && triples[sub]!.isNotEmpty);
@@ -464,7 +465,7 @@ String _genTTLStr(Map<String, Map<String, String>> triples) {
     for (final pre in triples[sub]!.keys.toList()..sort()) {
       final obj = triples[sub]![pre] as String;
       if (pre == titlePred) {
-        g.addTripleToGroups(f, nsTitle, obj);
+        g.addTripleToGroups(f, nsTitle.withAttr(titlePred), obj);
       } else {
         g.addTripleToGroups(f, nsTerms.withAttr(pre), obj);
       }
