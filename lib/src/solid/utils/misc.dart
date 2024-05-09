@@ -144,34 +144,34 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
 }
 
 /// Create a directory
-Future<bool> createDir(String dirName, String dirParentPath) async {
-  try {
-    // await createItem(dirName,
-    //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
-    await createItem(false, dirName, '', fileLoc: dirParentPath);
-    return true;
-  } on Exception catch (e) {
-    print('Exception: $e');
-  }
-  return false;
-}
+// Future<bool> createDir(String dirName, String dirParentPath) async {
+//   try {
+//     // await createItem(dirName,
+//     //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
+//     await createItem(false, dirName, '', fileLoc: dirParentPath);
+//     return true;
+//   } on Exception catch (e) {
+//     print('Exception: $e');
+//   }
+//   return false;
+// }
 
 /// Create new TTL file with content
-Future<bool> createFile(String filePath, String fileContent) async {
-  try {
-    final fileName = path.basename(filePath);
-    final folderPath = path.dirname(filePath);
+// Future<bool> createFile(String filePath, String fileContent) async {
+//   try {
+//     final fileName = path.basename(filePath);
+//     final folderPath = path.dirname(filePath);
 
-    // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
-    await createItem(true, fileName, fileContent,
-        fileType: 'text/turtle', fileLoc: folderPath);
+//     // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
+//     await createItem(true, fileName, fileContent,
+//         fileType: 'text/turtle', fileLoc: folderPath);
 
-    return true;
-  } on Exception catch (e) {
-    print('Exception: $e');
-  }
-  return false;
-}
+//     return true;
+//   } on Exception catch (e) {
+//     print('Exception: $e');
+//   }
+//   return false;
+// }
 
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
