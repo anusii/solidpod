@@ -60,7 +60,7 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
     final formKey = GlobalKey<FormBuilderState>();
     const inputKey = 'SecurityKey';
     const message = 'Please enter the security key'
-        ' you previously provided to lock/unlock your data.';
+        ' you previously provided to secure your data.';
     var keyVerified = false;
     return Scaffold(
         body: Padding(
