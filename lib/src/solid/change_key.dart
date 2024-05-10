@@ -70,11 +70,13 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
   }
 
   // Show a message
-  void _showSnackBar(String msg, Color bgColor) {
+  void _showSnackBar(String msg, Color bgColor,
+      {Duration duration = const Duration(seconds: 4)}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
         backgroundColor: bgColor,
+        duration: duration,
       ),
     );
   }
@@ -88,21 +90,24 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
     } else {
       late String msg;
       late Color bgColor;
+      late Duration duration;
       try {
         await KeyManager.changeSecurityKey(
             _currentKeyController.text, _newKeyController.text);
 
         msg = 'Successfully changed the security key!';
-        bgColor = Colors.black;
+        bgColor = Colors.green;
+        duration = const Duration(seconds: 4);
       } on Exception catch (e) {
-        msg = 'Failed to change security key: $e';
+        msg = 'Failed to change security key! $e';
         bgColor = Colors.red;
+        duration = const Duration(seconds: 7);
       } finally {
         // Close the dialog
         Navigator.of(context).pop();
 
         // Show message
-        _showSnackBar(msg, bgColor);
+        _showSnackBar(msg, bgColor, duration: duration);
       }
     }
   }
