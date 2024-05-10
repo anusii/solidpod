@@ -86,17 +86,23 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
     } else if (_newKeyController.text != _repeatKeyController.text) {
       _showSnackBar('The new keys do not match. Please try again.', Colors.red);
     } else {
+      late String msg;
+      late Color bgColor;
       try {
         await KeyManager.changeSecurityKey(
             _currentKeyController.text, _newKeyController.text);
 
-        _showSnackBar('Successfully changed the security key!', Colors.black);
-
-        // Close the dialog on successful change.
-        Navigator.of(context).pop();
+        msg = 'Successfully changed the security key!';
+        bgColor = Colors.black;
       } on Exception catch (e) {
-        _showSnackBar('Change security key failed!', Colors.red);
-        print('Exception: $e');
+        msg = 'Failed to change security key: $e';
+        bgColor = Colors.red;
+      } finally {
+        // Close the dialog
+        Navigator.of(context).pop();
+
+        // Show message
+        _showSnackBar(msg, bgColor);
       }
     }
   }
