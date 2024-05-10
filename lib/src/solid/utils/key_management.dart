@@ -283,9 +283,7 @@ class KeyManager {
         encryptPrivateKey(_prvKeyRecord!.key!, _masterKey!, iv);
 
     // Re-generate the content of encKeyFile
-
     final encKeyContent = await _genEncKeyTTLStr();
-    print(encKeyContent);
 
     // Write the encKeyFile on server with new content
 
@@ -312,15 +310,16 @@ class KeyManager {
     }
 
     // Re-generate the content of indKeyFile
-
     final indKeyContent = await _genIndKeyTTLStr();
-    print(indKeyContent);
 
     // Write the indKeyFile on server with new content
 
     assert(_indKeyUrl != null);
     await createResource(_indKeyUrl!,
         content: indKeyContent, replaceIfExist: true);
+
+    // Save security key to local secure storage
+    await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
   }
 
   /// Return the public key
@@ -536,13 +535,10 @@ String _genTTLStr(Map<String, Map<String, String>> tripleMap) {
   for (final sub in tripleMap.keys) {
     assert(tripleMap[sub] != null && tripleMap[sub]!.isNotEmpty);
     final f = URIRef(sub);
-    for (final pre in tripleMap[sub]!.keys.toList()..sort()) {
+    for (final pre in tripleMap[sub]!.keys) {
       final obj = tripleMap[sub]![pre] as String;
-      if (pre == titlePred) {
-        g.addTripleToGroups(f, nsTitle.withAttr(titlePred), obj);
-      } else {
-        g.addTripleToGroups(f, nsTerms.withAttr(pre), obj);
-      }
+      final ns = (pre == titlePred) ? nsTitle : nsTerms;
+      g.addTripleToGroups(f, ns.withAttr(pre), obj);
     }
   }
 
