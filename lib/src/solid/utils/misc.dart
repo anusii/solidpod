@@ -35,6 +35,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
+import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -112,6 +113,14 @@ String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
 String decryptData(String encData, Key key, IV iv,
         {AESMode mode = AESMode.sic}) =>
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
+
+/// Encrypt the private key for data sharing
+String encryptPrivateKey(String privateKey, Key masterKey, IV iv) =>
+    encryptData(privateKey, masterKey, iv, mode: AESMode.cbc);
+
+/// Decrypt the (encrypted) private key for data sharing
+String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
+    decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
 
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
@@ -357,6 +366,7 @@ Future<bool> logoutPod() async {
   final logoutUrl = await AuthDataManager.getLogoutUrl();
   if (logoutUrl != null) {
     try {
+      await KeyManager.clear();
       return (await AuthDataManager.removeAuthData()) &&
           (await logout(logoutUrl));
 
