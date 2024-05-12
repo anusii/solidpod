@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2024-04-22 14:36:36 +1000 Graham Williams>
+// Time-stamp: <Saturday 2024-05-11 16:16:03 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -52,16 +52,16 @@ const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
 const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
-const String defaultLoginButtonText = 'LOGIN';
-const String defaultRegisterButtonText = 'REGISTER';
-const String defaultInfoButtonText = 'INFO';
-const String defaultContinueButtonText = 'CONTINUE';
-const String defaultChangeKeyButtonText = 'CHANGE KEY';
-const String defaultLoginTooltip = 'Login to your Solid Pod';
-const String defaultRegisterTooltip = 'Get a Solid Pod';
-const String defaultInfoTooltip = 'Visit the Solid Project website';
+const String defaultLoginButtonText = 'Login';
+const String defaultRegisterButtonText = 'Register';
+const String defaultInfoButtonText = 'Info';
+const String defaultContinueButtonText = 'Continue';
+const String defaultChangeKeyButtonText = 'Change Key';
+const String defaultLoginTooltip = 'Login to your Solid Pod.';
+const String defaultRegisterTooltip = 'Get a Solid Pod.';
+const String defaultInfoTooltip = 'Visit the Solid Project website.';
 const String defaultContinueTooltip =
-    'Continue to the app without logging in to your Solid Pod';
+    'Continue to the app without logging in to your Solid Pod.';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -628,9 +628,9 @@ class PodButton extends StatelessWidget {
   // Define a common style for the text of the two buttons, GET POD and LOGIN.
 
   final buttonTextStyle = const TextStyle(
-    fontSize: 12.0,
+    fontSize: 16.0,
     letterSpacing: 2.0,
-    fontWeight: FontWeight.bold,
+    // fontWeight: FontWeight.bold,
   );
 
   @override
