@@ -39,7 +39,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Write file [fileName] and content [fileContent] to PODs
@@ -51,10 +51,12 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
 
   await loginIfRequired(context);
 
+  await getKeyFromUserIfRequired(context, child);
+
   // Get master key for encryption
 
-  final masterPasswd = await getVerifiedMasterPassword(context, child);
-  final masterKey = genMasterKey(masterPasswd);
+  // final securityKey = await getVerifiedSecurityKey(context, child);
+  // final masterKey = genMasterKey(securityKey);
 
   // Check if the file already exists
 
@@ -63,32 +65,38 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
 
   // Reuse the individual key if the file already exists
   late final Key indKey;
+  late final bool replace;
 
   if (fileExists == ResourceStatus.exist) {
+    replace = true;
     // Delete the existing file
 
-    try {
-      await deleteItem(true, filePath);
-    } on Exception catch (e) {
-      print('Exception: $e');
-    }
+    // try {
+    //   await deleteItem(true, filePath);
+    // } on Exception catch (e) {
+    //   print('Exception: $e');
+    // }
 
     // Get (and decrypt) the individual key from ind-key file
     // (the TTL file with encrypted individual keys and IVs)
 
-    final indKeyPath = await getIndKeyPath();
-    final indKeyMap = await loadPrvTTL(indKeyPath);
-    assert(indKeyMap!.containsKey(fileUrl));
+    // final indKeyPath = await getIndKeyPath();
+    // final indKeyUrl = await getFileUrl(indKeyPath);
+    // final indKeyMap = await loadPrvTTL(indKeyUrl);
+    // assert(indKeyMap.containsKey(fileUrl));
 
-    final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
-    final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
+    // final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
+    // final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
 
-    indKey = Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
+    // indKey = Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
+    indKey = await KeyManager.getIndividualKey(fileUrl);
   } else if (fileExists == ResourceStatus.notExist) {
+    replace = false;
     // Generate individual/session key and its IV
 
-    indKey = getIndividualKey();
-    final indKeyIV = getIV();
+    indKey = genRandIndividualKey();
+    final indKeyIV = genRandIV();
+    final masterKey = await KeyManager.getMasterKey();
 
     // Encrypt individual Key
     final encIndKeyStr = encryptData(indKey.base64, masterKey, indKeyIV);
@@ -101,6 +109,7 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
 
   // Create file with encrypted data on server
 
-  await createFile(
-      filePath, await getEncTTLStr(filePath, fileContent, indKey, getIV()));
+  await createResource(fileUrl,
+      content: await getEncTTLStr(filePath, fileContent, indKey, genRandIV()),
+      replaceIfExist: replace);
 }

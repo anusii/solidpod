@@ -1,5 +1,5 @@
 /// A screen for inputting the security key for encryption, verify and
-/// save it to local secure storage
+/// save the security key to local secure storage
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -33,34 +33,35 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:solidpod/src/solid/utils/misc.dart' show saveMasterPassword;
 
-/// MasterPasswordInput is a [StatefulWidget] for user to enter
-/// the master password for data encryption.
-class MasterPasswdInput extends StatefulWidget {
+import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
+
+/// SecurityKeyInput is a [StatefulWidget] for user to enter
+/// the security key for data encryption.
+class SecurityKeyInput extends StatefulWidget {
   /// Constructor
-  const MasterPasswdInput(
-      {required this.verifyPasswordFunc, required this.child, super.key});
+  const SecurityKeyInput(
+      {required this.verifySecurityKeyFunc, required this.child, super.key});
 
   /// The verification function
-  final bool Function(String) verifyPasswordFunc;
+  final bool Function(String) verifySecurityKeyFunc;
   final Widget child;
 
   @override
   // ignore: library_private_types_in_public_api
-  _MasterPasswdInputState createState() => _MasterPasswdInputState();
+  _SecurityKeyInputState createState() => _SecurityKeyInputState();
 }
 
-class _MasterPasswdInputState extends State<MasterPasswdInput> {
-  bool _showPassword = false;
+class _SecurityKeyInputState extends State<SecurityKeyInput> {
+  bool _showKey = false;
 
   @override
   Widget build(BuildContext context) {
     final formKey = GlobalKey<FormBuilderState>();
-    const passwordKey = 'password';
-    const passwordMsg = 'Please enter the security key'
-        ' you previously provided to encrypt your data.';
-    var passwordVerified = false;
+    const inputKey = 'SecurityKey';
+    const message = 'Please enter the security key'
+        ' you previously provided to secure your data.';
+    var keyVerified = false;
     return Scaffold(
         body: Padding(
             padding: const EdgeInsets.all(32),
@@ -76,7 +77,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     const Text(
-                      'Please provide your security key to unlock your data',
+                      'Security Key',
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 20,
@@ -86,7 +87,7 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                     const Divider(color: Colors.grey),
                     const SizedBox(height: 20),
                     const Text(
-                      passwordMsg,
+                      message,
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 15,
@@ -95,10 +96,10 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                     ),
                     const SizedBox(height: 10),
                     FormBuilderTextField(
-                      name: passwordKey,
+                      name: inputKey,
                       obscureText:
-                          // Controls whether the password is shown or hidden.
-                          !_showPassword,
+                          // Controls whether the security key is shown or hidden.
+                          !_showKey,
                       autocorrect: false,
                       decoration: InputDecoration(
                         labelText: 'SECURITY KEY',
@@ -109,13 +110,13 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                           fontWeight: FontWeight.bold,
                         ),
                         suffixIcon: IconButton(
-                          icon: Icon(_showPassword
+                          icon: Icon(_showKey
                               ? Icons.visibility
                               : Icons.visibility_off),
                           onPressed: () {
                             setState(() {
-                              // Toggle the state to show/hide the password.
-                              _showPassword = !_showPassword;
+                              // Toggle the state to show/hide the security key.
+                              _showKey = !_showKey;
                             });
                           },
                         ),
@@ -123,13 +124,13 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                       validator: FormBuilderValidators.compose([
                         FormBuilderValidators.required(),
                         (val) {
-                          if (!widget.verifyPasswordFunc(val as String)) {
-                            passwordVerified = false;
-                            debugPrint('passwordVerified: $passwordVerified');
+                          if (!widget.verifySecurityKeyFunc(val as String)) {
+                            keyVerified = false;
+                            debugPrint('keyVerified: $keyVerified');
                             return 'Incorrect Security Key';
                           } else {
-                            passwordVerified = true;
-                            debugPrint('passwordVerified: $passwordVerified');
+                            keyVerified = true;
+                            debugPrint('keyVerified: $keyVerified');
                           }
                           return null;
                         },
@@ -143,11 +144,11 @@ class _MasterPasswdInputState extends State<MasterPasswdInput> {
                 ElevatedButton(
                     onPressed: () async {
                       //(formKey.currentState?.validate() ?? true)
-                      if (passwordVerified) {
-                        debugPrint('passwordVerified: $passwordVerified');
+                      if (keyVerified) {
+                        debugPrint('keyVerified: $keyVerified');
                         final formData = formKey.currentState?.value as Map;
-                        await saveMasterPassword(
-                            formData[passwordKey].toString());
+                        await KeyManager.setSecurityKey(
+                            formData[inputKey].toString());
                         debugPrint('security key saved');
                         Navigator.pop(context);
                       } else {

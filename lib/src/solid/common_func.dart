@@ -30,13 +30,17 @@ library;
 
 import 'package:flutter/material.dart' hide Key;
 
-import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
-import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:encrypt/encrypt.dart' show Key;
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
-import 'package:solidpod/src/widgets/password_input_screen.dart'
-    show MasterPasswdInput;
+import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
+import 'package:solidpod/src/solid/utils/key_management.dart'
+    show KeyManager, verifySecurityKey;
+import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/widgets/security_key_input.dart'
+    show SecurityKeyInput;
 
 /// Login if the user has not done so
 
@@ -82,28 +86,23 @@ Future<void> initPodsIfRequired(BuildContext context) async {
   }
 }
 
-/// Ask for the master password from the user if the master password is not
-/// stored in local secure storage or
-/// it cannot be verfied using the verification key stored in PODs
+/// Ask for the security key from the user if the security key is not available
+/// or cannot be verfied using the verification key stored in PODs.
 
-Future<String> getVerifiedMasterPassword(
+Future<void> getKeyFromUserIfRequired(
     BuildContext context, Widget child) async {
-  var masterPasswd = await loadMasterPassword();
-  final verificationKey = await getVerificationKey();
-  assert(verificationKey != null);
+  if (await KeyManager.hasSecurityKey()) {
+    return;
+  } else {
+    final verificationKey = await KeyManager.getVerificationKey();
 
-  if (masterPasswd == null ||
-      !verifyMasterPassword(masterPasswd, verificationKey!)) {
     await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MasterPasswdInput(
-              verifyPasswordFunc: (passwd) =>
-                  verifyMasterPassword(passwd, verificationKey!),
+          builder: (context) => SecurityKeyInput(
+              verifySecurityKeyFunc: (key) =>
+                  verifySecurityKey(key, verificationKey),
               child: child),
         ));
-    masterPasswd = await loadMasterPassword();
   }
-
-  return masterPasswd!;
 }

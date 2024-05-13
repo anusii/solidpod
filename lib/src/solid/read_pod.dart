@@ -38,6 +38,7 @@ import 'package:path/path.dart' as path;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Read file content from a POD
@@ -63,22 +64,22 @@ Future<String?> readPod(
       // Decrypt if reading a data file (which is encrypted)
 
       if (path.split(filePath)[1] == dataDir) {
-        // Get the master key
+        await getKeyFromUserIfRequired(context, child);
 
-        final masterPasswd = await getVerifiedMasterPassword(context, child);
-        final masterKey = genMasterKey(masterPasswd);
+        // Get the individual key for the file
+        final indKey = await KeyManager.getIndividualKey(fileUrl);
 
         // Get the (decrypted) individual key
 
-        final indKeyPath = await getIndKeyPath();
-        final indKeyMap = await loadPrvTTL(indKeyPath);
-        assert(indKeyMap!.containsKey(fileUrl));
+        // final indKeyPath = await getIndKeyPath();
+        // final indKeyMap = await loadPrvTTL(indKeyPath);
+        // assert(indKeyMap!.containsKey(fileUrl));
 
-        final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
-        final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
+        // final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
+        // final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
 
-        final indKey =
-            Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
+        // final indKey =
+        //     Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
 
         // Decrypt the file content
 

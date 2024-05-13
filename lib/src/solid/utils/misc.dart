@@ -30,12 +30,8 @@
 
 library;
 
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
 
@@ -44,6 +40,7 @@ import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
+import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
@@ -74,63 +71,14 @@ Future<void> writeToSecureStorage(String key, String value) async {
   );
 }
 
-/// Derive the master key from master password
-Key genMasterKey(String masterPasswd) => Key.fromUtf8(
-    sha256.convert(utf8.encode(masterPasswd)).toString().substring(0, 32));
-
-/// Derive the verification key from master password
-String genVerificationKey(String masterPasswd) =>
-    sha224.convert(utf8.encode(masterPasswd)).toString().substring(0, 32);
-
-/// Get the verification key stored in PODs
-Future<String?> getVerificationKey() async {
-  final encKeyPath = await getEncKeyPath();
-  final encKeyMap = await loadPrvTTL(encKeyPath);
-  if (encKeyMap == null) {
-    return null;
-  }
-
-  final encKeyFileUrl = await getFileUrl(encKeyPath);
-  if (!encKeyMap.containsKey(encKeyFileUrl)) {
-    return null;
-  }
-
-  final verificationKey = encKeyMap[encKeyFileUrl][encKeyPred] as String;
-  return verificationKey;
-}
-
-/// Verify the user provided master password for data encryption
-bool verifyMasterPassword(String masterPasswd, String verificationKey) =>
-    genVerificationKey(masterPasswd) == verificationKey;
-
-/// Save master password to local secure storage
-Future<void> saveMasterPassword(String masterPasswd) async =>
-    writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
-
-/// Load master password from local secure storage
-Future<String?> loadMasterPassword() async =>
-    secureStorage.read(key: masterPasswdSecureStorageKey);
-
-/// Delete the saved master password from local secure storage
-Future<void> removeMasterPassword() async {
-  if (await secureStorage.containsKey(key: masterPasswdSecureStorageKey)) {
-    await secureStorage.delete(key: masterPasswdSecureStorageKey);
-  }
-}
-
 /// Encrypt data using AES with the specified key
-String encryptData(String data, Key key, IV iv) =>
-    Encrypter(AES(key)).encrypt(data, iv: iv).base64;
+String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
+    Encrypter(AES(key, mode: mode)).encrypt(data, iv: iv).base64;
 
 /// Decrypt a ciphertext value
-String decryptData(String encData, Key key, IV iv) =>
-    Encrypter(AES(key)).decrypt(Encrypted.from64(encData), iv: iv);
-
-/// Create a random individual/session key
-Key getIndividualKey() => Key.fromSecureRandom(32);
-
-/// Create a random intialisation vector
-IV getIV() => IV.fromLength(16);
+String decryptData(String encData, Key key, IV iv,
+        {AESMode mode = AESMode.sic}) =>
+    Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
 
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
@@ -153,46 +101,45 @@ Map<String, dynamic> parseTTL(String ttlContent) {
 }
 
 /// Load and parse a private TTL file from POD
-Future<Map<String, dynamic>?> loadPrvTTL(String filePath) async {
-  final fileUrl = await getFileUrl(filePath);
+Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
+  // final fileUrl = await getFileUrl(filePath);
   try {
     final rawContent = await fetchPrvFile(fileUrl);
     return parseTTL(rawContent);
   } on Exception catch (e) {
-    print('Exception: $e');
-    return null;
+    throw Exception(e);
   }
 }
 
 /// Create a directory
-Future<bool> createDir(String dirName, String dirParentPath) async {
-  try {
-    // await createItem(dirName,
-    //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
-    await createItem(false, dirName, '', fileLoc: dirParentPath);
-    return true;
-  } on Exception catch (e) {
-    print('Exception: $e');
-  }
-  return false;
-}
+// Future<bool> createDir(String dirName, String dirParentPath) async {
+//   try {
+//     // await createItem(dirName,
+//     //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
+//     await createItem(false, dirName, '', fileLoc: dirParentPath);
+//     return true;
+//   } on Exception catch (e) {
+//     print('Exception: $e');
+//   }
+//   return false;
+// }
 
 /// Create new TTL file with content
-Future<bool> createFile(String filePath, String fileContent) async {
-  try {
-    final fileName = path.basename(filePath);
-    final folderPath = path.dirname(filePath);
+// Future<bool> createFile(String filePath, String fileContent) async {
+//   try {
+//     final fileName = path.basename(filePath);
+//     final folderPath = path.dirname(filePath);
 
-    // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
-    await createItem(true, fileName, fileContent,
-        fileType: 'text/turtle', fileLoc: folderPath);
+//     // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
+//     await createItem(true, fileName, fileContent,
+//         fileType: 'text/turtle', fileLoc: folderPath);
 
-    return true;
-  } on Exception catch (e) {
-    print('Exception: $e');
-  }
-  return false;
-}
+//     return true;
+//   } on Exception catch (e) {
+//     print('Exception: $e');
+//   }
+//   return false;
+// }
 
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
@@ -254,33 +201,13 @@ Future<String> getEncKeyPath() async =>
 Future<String> getIndKeyPath() async =>
     [await AppInfo.canonicalName, encDir, indKeyFile].join('/');
 
+/// Returns the path of file with public keys
+Future<String> getPubKeyPath() async =>
+    [await AppInfo.canonicalName, sharingDir, pubKeyFile].join('/');
+
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
-
-/// Add (encrypted) individual/session key [encIndKey] and the corresponding
-/// IV [iv] for file with path [filePath]
-Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
-  // const filePrefix = '$appFilePrefix: <$appsFile>';
-  // const termPrefix = '$appTermPrefix: <$appsTerms>';
-  // final sub = appsFile + filePath;
-  // final sub = '$appFilePrefix:$filePath';
-  final sub = await getFileUrl(filePath);
-  // final query = [
-  //   'PREFIX $filePrefix',
-  //   'PREFIX $termPrefix',
-  //   'INSERT DATA {',
-  //   sub,
-  //   '$appTermPrefix:$pathPred $filePath;',
-  //   '$appTermPrefix:$ivPred ${iv.base64};',
-  //   '$appTermPrefix:$sessionKeyPred $encIndKey.',
-  //   '};'
-  //].join(' ');
-  final query =
-      'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; <$appsTerms$ivPred> "${iv.base64}"; <$appsTerms$sessionKeyPred> "$encIndKey".};';
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-  await updateFileByQuery(fileUrl, query);
-}
 
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)
@@ -367,10 +294,10 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final appName = await AppInfo.canonicalName;
   final mainResDir = appName;
 
-  const encKeyFile = 'enc-keys.ttl';
-  const pubKeyFile = 'public-key.ttl';
-  const indKeyFile = 'ind-keys.ttl';
-  const permLogFile = 'permissions-log.ttl';
+  // const encKeyFile = 'enc-keys.ttl';
+  // const pubKeyFile = 'public-key.ttl';
+  // const indKeyFile = 'ind-keys.ttl';
+  // const permLogFile = 'permissions-log.ttl';
 
   final sharingDirLoc = [mainResDir, sharingDir].join('/');
   final sharedDirLoc = [mainResDir, sharedDir].join('/');
@@ -397,6 +324,7 @@ Future<bool> logoutPod() async {
   final logoutUrl = await AuthDataManager.getLogoutUrl();
   if (logoutUrl != null) {
     try {
+      await KeyManager.clear();
       return (await AuthDataManager.removeAuthData()) &&
           (await logout(logoutUrl));
 

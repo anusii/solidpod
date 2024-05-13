@@ -68,7 +68,7 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           const Text(
-            'We require a password to secure your data:',
+            'We require a security key to protect your data:',
             style: TextStyle(
               color: Colors.black,
               fontSize: 20,
@@ -78,7 +78,7 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
           const Divider(color: Colors.grey),
           const SizedBox(height: 20),
           const Text(
-            requiredPwdMsg,
+            requiredSecurityKeyMsg,
             style: TextStyle(
               color: Colors.black,
               fontSize: 15,
@@ -94,7 +94,7 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
                 !_showPassword,
             autocorrect: false,
             decoration: InputDecoration(
-              labelText: 'PASSWORD',
+              labelText: 'SECURITY KEY',
               labelStyle: const TextStyle(
                 color: Colors.blue,
                 letterSpacing: 1.5,
@@ -124,7 +124,7 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
             obscureText: !_showRetypePassword,
             autocorrect: false,
             decoration: InputDecoration(
-              labelText: 'RETYPE PASSWORD',
+              labelText: 'RETYPE SECURITY KEY',
               labelStyle: const TextStyle(
                 color: Colors.blue,
                 letterSpacing: 1.5,
@@ -147,7 +147,7 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
               (val) {
                 if (val !=
                     widget.formKey.currentState!.fields['password']?.value) {
-                  return 'Passwords do not match';
+                  return 'Security keys do not match';
                 }
                 return null;
               },

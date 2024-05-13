@@ -24,12 +24,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Kevin Wang
+/// Authors: Kevin Wang, Dawei Chen
 ///
 ///
 library;
 
 import 'package:flutter/material.dart';
+import 'package:solidpod/src/solid/utils/key_management.dart';
 
 /// Change key dialog widget
 class ChangeKeyDialog extends StatefulWidget {
@@ -68,22 +69,46 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
     });
   }
 
-  void _changeKey() {
-    if (_newKeyController.text == _repeatKeyController.text) {
-      // TODO: Implement the logic for changing the key
+  // Show a message
+  void _showSnackBar(String msg, Color bgColor,
+      {Duration duration = const Duration(seconds: 4)}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: bgColor,
+        duration: duration,
+      ),
+    );
+  }
 
-      // Close the dialog on successful change.
-
-      Navigator.of(context).pop();
+  Future<void> _changeKey() async {
+    if (_newKeyController.text == _currentKeyController.text) {
+      _showSnackBar('The new key and old key are the same. Please try again.',
+          Colors.red);
+    } else if (_newKeyController.text != _repeatKeyController.text) {
+      _showSnackBar('The new keys do not match. Please try again.', Colors.red);
     } else {
-      // Show a warning message if the keys do not match.
+      late String msg;
+      late Color bgColor;
+      late Duration duration;
+      try {
+        await KeyManager.changeSecurityKey(
+            _currentKeyController.text, _newKeyController.text);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('The new keys do not match. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+        msg = 'Successfully changed the security key!';
+        bgColor = Colors.green;
+        duration = const Duration(seconds: 4);
+      } on Exception catch (e) {
+        msg = 'Failed to change security key! $e';
+        bgColor = Colors.red;
+        duration = const Duration(seconds: 7);
+      } finally {
+        // Close the dialog
+        Navigator.of(context).pop();
+
+        // Show message
+        _showSnackBar(msg, bgColor, duration: duration);
+      }
     }
   }
 
@@ -142,7 +167,7 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
                 controller: _repeatKeyController,
                 obscureText: _isObscuredRepeatNewKey,
                 decoration: InputDecoration(
-                  labelText: 'Repeat new security key',
+                  labelText: 'Repeat the new security key',
                   suffixIcon: IconButton(
                     icon: Icon(
                       _isObscuredRepeatNewKey
@@ -167,7 +192,9 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
           },
         ),
         ElevatedButton(
-          onPressed: _changeKey,
+          onPressed: () async {
+            await _changeKey();
+          },
           child: const Text('Change Key'),
         ),
       ],

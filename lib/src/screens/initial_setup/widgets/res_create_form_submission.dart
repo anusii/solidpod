@@ -46,8 +46,8 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show getWebId, saveMasterPassword;
+import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
@@ -84,7 +84,7 @@ ElevatedButton resCreateFormSubmission(
         showAnimationDialog(context, 17, 'Creating resources!', false, null);
         final formData = formKey.currentState?.value as Map;
 
-        final passPlaintxt = formData['password'].toString();
+        final securityKey = formData[securityKeyStr].toString();
 
         final webId = await getWebId();
         assert(webId != null);
@@ -120,11 +120,11 @@ ElevatedButton resCreateFormSubmission(
           // Generate master key
 
           encMasterKey = sha256
-              .convert(utf8.encode(passPlaintxt))
+              .convert(utf8.encode(securityKey))
               .toString()
               .substring(0, 32);
           encMasterKeyVerify = sha224
-              .convert(utf8.encode(passPlaintxt))
+              .convert(utf8.encode(securityKey))
               .toString()
               .substring(0, 32);
 
@@ -152,7 +152,7 @@ ElevatedButton resCreateFormSubmission(
           if (!resFileNamesLink.contains(encKeyFile)) {
             final encryptClient =
                 solid_encrypt.EncryptClient(authData!, webId!);
-            keyVerifyFlag = await encryptClient.verifyEncKey(passPlaintxt);
+            keyVerifyFlag = await encryptClient.verifyEncKey(securityKey);
           }
         }
 
@@ -162,16 +162,22 @@ ElevatedButton resCreateFormSubmission(
         } else {
           try {
             for (final resLink in resFoldersLink) {
-              final serverUrl = webId!.replaceAll(profCard, '');
-              final resNameStr = resLink.replaceAll(serverUrl, '');
-              final resName = resNameStr.split('/').last;
+              await createResource(resLink, fileFlag: false);
 
-              // Get resource path
+              // final serverUrl = webId!.replaceAll(profCard, '');
+              // final resNameStr = resLink.replaceAll(serverUrl, '');
+              // final resName = resNameStr.split('/').last;
 
-              final folderPath = resNameStr.replaceAll(resName, '');
+              // // Get resource path
 
-              // final createDirRes =
-              await createItem(false, resName, '', fileLoc: folderPath);
+              // final folderPath = resNameStr.replaceAll(resName, '');
+
+              // // final createDirRes =
+              // await createItem(false, resName, '', fileLoc: folderPath);
+              // // print(resLink);
+              // // print(resName);
+              // // print(folderPath);
+              // // print('---\n');
 
               // if (createDirRes != 'ok') {
               //   createDirSuccess = false;
@@ -180,22 +186,23 @@ ElevatedButton resCreateFormSubmission(
 
             // Create files
             for (final resLink in resFilesLink) {
-              // Get base url
+              // // Get base url
 
-              final serverUrl = webId!.replaceAll(profCard, '');
+              // final serverUrl = webId!.replaceAll(profCard, '');
 
-              // Get resource path and name
+              // // Get resource path and name
 
-              final resNameStr = resLink.replaceAll(serverUrl, '');
+              // final resNameStr = resLink.replaceAll(serverUrl, '');
 
               // Get resource name
 
-              final resName = resNameStr.split('/').last;
+              // final resName = resNameStr.split('/').last;
 
-              // Get resource path
+              // // Get resource path
 
-              final filePath = resNameStr.replaceAll(resName, '');
+              // final filePath = resNameStr.replaceAll(resName, '');
 
+              final resName = resLink.split('/').last;
               var fileBody = '';
 
               if (resName == encKeyFile) {
@@ -205,7 +212,7 @@ ElevatedButton resCreateFormSubmission(
                   .contains(resName)) {
                 if (resName == '$permLogFile.acl') {
                   fileBody =
-                      genLogAclBody(webId, resName.replaceAll('.acl', ''));
+                      genLogAclBody(webId!, resName.replaceAll('.acl', ''));
                 } else {
                   fileBody = genPubFileAclBody(resName);
                 }
@@ -224,11 +231,18 @@ ElevatedButton resCreateFormSubmission(
                 aclFlag = true;
               }
 
-              // final createFileRes =
-              await createItem(true, resName, fileBody,
-                  fileLoc: filePath,
-                  fileType: fileType[resName.split('.').last],
-                  aclFlag: aclFlag);
+              await createResource(resLink,
+                  content: fileBody, replaceIfExist: aclFlag);
+
+              // // final createFileRes =
+              // await createItem(true, resName, fileBody,
+              //     fileLoc: filePath,
+              //     fileType: fileType[resName.split('.').last],
+              //     aclFlag: aclFlag);
+              // print(resLink);
+              // print(resName);
+              // print(filePath);
+              // print('---\n');
 
               // if (createFileRes != 'ok') {
               //   createFileSuccess = false;
@@ -250,7 +264,7 @@ ElevatedButton resCreateFormSubmission(
           // await writeToSecureStorage(webId!, passPlaintxt);
           // authData['keyExist'] = true;  // the master key isn't auth data
           // }
-          await saveMasterPassword(passPlaintxt);
+          await KeyManager.setSecurityKey(securityKey);
 
           await Navigator.pushReplacement(
             // ignore: use_build_context_synchronously
