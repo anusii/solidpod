@@ -30,21 +30,13 @@
 
 library;
 
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 
-import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:fast_rsa/fast_rsa.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 
 import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
@@ -89,70 +81,43 @@ ElevatedButton resCreateFormSubmission(
         final webId = await getWebId();
         assert(webId != null);
 
-        final authData = await AuthDataManager.loadAuthData();
-        assert(authData != null);
-
         // Variable to see whether we need to update the key files. Because if
         // one file is missing we need to create asymmetric key pairs again.
 
         var keyVerifyFlag = true;
-
-        // Enryption master key
-
         String? encMasterKeyVerify;
-        String? encMasterKey;
 
         // Asymmetric key pair
 
-        String? pubKey;
         String? pubKeyStr;
-        String? prvKey;
         String? prvKeyHash;
         String? prvKeyIvz;
 
         // Create files and directories flag
 
-        // var createFileSuccess = true;
-        // var createDirSuccess = true;
-
         if (resFileNamesLink.contains(encKeyFile) ||
             resFileNamesLink.contains(pubKeyFile)) {
           // Generate master key
 
-          encMasterKey = sha256
-              .convert(utf8.encode(securityKey))
-              .toString()
-              .substring(0, 32);
-          encMasterKeyVerify = sha224
-              .convert(utf8.encode(securityKey))
-              .toString()
-              .substring(0, 32);
+          final masterKey = genMasterKey(securityKey);
+          encMasterKeyVerify = genVerificationKey(securityKey);
 
           // Generate asymmetric key pair
-
-          final rsaKeyPair = await RSA.generate(2048);
-          prvKey = rsaKeyPair.privateKey;
-          pubKey = rsaKeyPair.publicKey;
+          final (:publicKey, :privateKey) = await genRandRSAKeyPair();
 
           // Encrypt private key
 
-          final key = encrypt.Key.fromUtf8(encMasterKey);
-          final iv = encrypt.IV.fromLength(16);
-          final encrypter =
-              encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
-          final encryptVal = encrypter.encrypt(prvKey, iv: iv);
-          prvKeyHash = encryptVal.base64;
+          final iv = genRandIV();
+          prvKeyHash = encryptPrivateKey(privateKey, masterKey, iv);
           prvKeyIvz = iv.base64;
 
           // Get public key without start and end bit
 
-          pubKeyStr = dividePubKeyStr(pubKey);
+          pubKeyStr = dividePubKeyStr(publicKey);
 
-          // TODO: update this code
           if (!resFileNamesLink.contains(encKeyFile)) {
-            final encryptClient =
-                solid_encrypt.EncryptClient(authData!, webId!);
-            keyVerifyFlag = await encryptClient.verifyEncKey(securityKey);
+            keyVerifyFlag = verifySecurityKey(
+                securityKey, await KeyManager.getVerificationKey());
           }
         }
 
@@ -163,45 +128,10 @@ ElevatedButton resCreateFormSubmission(
           try {
             for (final resLink in resFoldersLink) {
               await createResource(resLink, fileFlag: false);
-
-              // final serverUrl = webId!.replaceAll(profCard, '');
-              // final resNameStr = resLink.replaceAll(serverUrl, '');
-              // final resName = resNameStr.split('/').last;
-
-              // // Get resource path
-
-              // final folderPath = resNameStr.replaceAll(resName, '');
-
-              // // final createDirRes =
-              // await createItem(false, resName, '', fileLoc: folderPath);
-              // // print(resLink);
-              // // print(resName);
-              // // print(folderPath);
-              // // print('---\n');
-
-              // if (createDirRes != 'ok') {
-              //   createDirSuccess = false;
-              // }
             }
 
             // Create files
             for (final resLink in resFilesLink) {
-              // // Get base url
-
-              // final serverUrl = webId!.replaceAll(profCard, '');
-
-              // // Get resource path and name
-
-              // final resNameStr = resLink.replaceAll(serverUrl, '');
-
-              // Get resource name
-
-              // final resName = resNameStr.split('/').last;
-
-              // // Get resource path
-
-              // final filePath = resNameStr.replaceAll(resName, '');
-
               final resName = resLink.split('/').last;
               var fileBody = '';
 
@@ -233,37 +163,12 @@ ElevatedButton resCreateFormSubmission(
 
               await createResource(resLink,
                   content: fileBody, replaceIfExist: aclFlag);
-
-              // // final createFileRes =
-              // await createItem(true, resName, fileBody,
-              //     fileLoc: filePath,
-              //     fileType: fileType[resName.split('.').last],
-              //     aclFlag: aclFlag);
-              // print(resLink);
-              // print(resName);
-              // print(filePath);
-              // print('---\n');
-
-              // if (createFileRes != 'ok') {
-              //   createFileSuccess = false;
-              // }
             }
           } on Exception catch (e) {
             print('Exception: $e');
           }
 
-          // Update the profile with new information.
-
-          // if (createFileSuccess && createDirSuccess) {
-          imageCache.clear();
-
           // Add encryption key to the local secure storage.
-
-          // TODO: this needs refactoring with a pair of functions
-          // to load/save master password
-          // await writeToSecureStorage(webId!, passPlaintxt);
-          // authData['keyExist'] = true;  // the master key isn't auth data
-          // }
           await KeyManager.setSecurityKey(securityKey);
 
           await Navigator.pushReplacement(
