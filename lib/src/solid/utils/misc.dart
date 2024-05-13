@@ -80,14 +80,6 @@ String decryptData(String encData, Key key, IV iv,
         {AESMode mode = AESMode.sic}) =>
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
 
-/// Encrypt the private key for data sharing
-String encryptPrivateKey(String privateKey, Key masterKey, IV iv) =>
-    encryptData(privateKey, masterKey, iv, mode: AESMode.cbc);
-
-/// Decrypt the (encrypted) private key for data sharing
-String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
-    decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
-
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
   final g = Graph();
@@ -302,10 +294,10 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final appName = await AppInfo.canonicalName;
   final mainResDir = appName;
 
-  const encKeyFile = 'enc-keys.ttl';
-  const pubKeyFile = 'public-key.ttl';
-  const indKeyFile = 'ind-keys.ttl';
-  const permLogFile = 'permissions-log.ttl';
+  // const encKeyFile = 'enc-keys.ttl';
+  // const pubKeyFile = 'public-key.ttl';
+  // const indKeyFile = 'ind-keys.ttl';
+  // const permLogFile = 'permissions-log.ttl';
 
   final sharingDirLoc = [mainResDir, sharingDir].join('/');
   final sharedDirLoc = [mainResDir, sharedDir].join('/');

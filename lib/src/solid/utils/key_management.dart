@@ -63,6 +63,14 @@ Key genRandIndividualKey() => Key.fromSecureRandom(32);
 /// Create a random intialisation vector
 IV genRandIV() => IV.fromLength(16);
 
+/// Encrypt the private key for data sharing
+String encryptPrivateKey(String privateKey, Key masterKey, IV iv) =>
+    encryptData(privateKey, masterKey, iv, mode: AESMode.cbc);
+
+/// Decrypt the (encrypted) private key for data sharing
+String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
+    decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
+
 /// Add (encrypted) individual/session key [encIndKey] and the corresponding
 /// IV [iv] for file with path [filePath]
 Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
