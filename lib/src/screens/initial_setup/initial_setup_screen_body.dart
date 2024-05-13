@@ -35,13 +35,11 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:solid_auth/solid_auth.dart';
 
-import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
+import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
+import 'package:solidpod/src/widgets/logout_dialog.dart' show logoutPopup;
 
 /// A [StatefulWidget] that represents the initial setup screen for the desktop version of an application.
 ///
@@ -176,11 +174,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         ),
                                       ),
                                       onPressed: () async {
-                                        Navigator.pop(context);
-                                        final logoutUrl = await AuthDataManager
-                                            .getLogoutUrl();
+                                        // Navigator.pop(context);
 
-                                        await logout(logoutUrl);
+                                        await logoutPopup(
+                                            context, widget.child);
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors
