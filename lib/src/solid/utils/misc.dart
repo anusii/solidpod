@@ -32,16 +32,15 @@ library;
 
 import 'package:encrypt/encrypt.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart';
-import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
+import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
@@ -71,39 +70,6 @@ Future<void> writeToSecureStorage(String key, String value) async {
     value: value,
   );
 }
-
-/// Get the verification key stored in PODs
-// Future<String?> getVerificationKey() async {
-//   final encKeyPath = await getEncKeyPath();
-//   final encKeyFileUrl = await getFileUrl(encKeyPath);
-//   final encKeyMap = await loadPrvTTL(encKeyFileUrl);
-
-//   if (!encKeyMap.containsKey(encKeyFileUrl)) {
-//     return null;
-//   }
-
-//   final verificationKey = encKeyMap[encKeyFileUrl][encKeyPred] as String;
-//   return verificationKey;
-// }
-
-// /// Verify the user provided master password for data encryption
-// bool verifyMasterPassword(String masterPasswd, String verificationKey) =>
-//     genVerificationKey(masterPasswd) == verificationKey;
-
-// /// Save master password to local secure storage
-// Future<void> saveMasterPassword(String masterPasswd) async =>
-//     writeToSecureStorage(masterPasswdSecureStorageKey, masterPasswd);
-
-// /// Load master password from local secure storage
-// Future<String?> loadMasterPassword() async =>
-//     secureStorage.read(key: masterPasswdSecureStorageKey);
-
-// /// Delete the saved master password from local secure storage
-// Future<void> removeMasterPassword() async {
-//   if (await secureStorage.containsKey(key: masterPasswdSecureStorageKey)) {
-//     await secureStorage.delete(key: masterPasswdSecureStorageKey);
-//   }
-// }
 
 /// Encrypt data using AES with the specified key
 String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
