@@ -40,7 +40,7 @@ import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
+import 'package:solidpod/src/solid/utils/key_management.dart';
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
@@ -110,36 +110,6 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
     throw Exception(e);
   }
 }
-
-/// Create a directory
-// Future<bool> createDir(String dirName, String dirParentPath) async {
-//   try {
-//     // await createItem(dirName,
-//     //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
-//     await createItem(false, dirName, '', fileLoc: dirParentPath);
-//     return true;
-//   } on Exception catch (e) {
-//     print('Exception: $e');
-//   }
-//   return false;
-// }
-
-/// Create new TTL file with content
-// Future<bool> createFile(String filePath, String fileContent) async {
-//   try {
-//     final fileName = path.basename(filePath);
-//     final folderPath = path.dirname(filePath);
-
-//     // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
-//     await createItem(true, fileName, fileContent,
-//         fileType: 'text/turtle', fileLoc: folderPath);
-
-//     return true;
-//   } on Exception catch (e) {
-//     print('Exception: $e');
-//   }
-//   return false;
-// }
 
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
