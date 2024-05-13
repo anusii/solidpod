@@ -38,7 +38,8 @@ library;
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:encrypt/encrypt.dart' hide RSA;
+import 'package:fast_rsa/fast_rsa.dart' show RSA;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -62,6 +63,12 @@ Key genRandIndividualKey() => Key.fromSecureRandom(32);
 
 /// Create a random intialisation vector
 IV genRandIV() => IV.fromLength(16);
+
+/// Create a random public-private key pair
+Future<({String publicKey, String privateKey})> genRandRSAKeyPair() async {
+  final pair = await RSA.generate(2048);
+  return (publicKey: pair.publicKey, privateKey: pair.privateKey);
+}
 
 /// Encrypt the private key for data sharing
 String encryptPrivateKey(String privateKey, Key masterKey, IV iv) =>
