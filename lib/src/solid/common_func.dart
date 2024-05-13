@@ -28,9 +28,7 @@
 
 library;
 
-import 'package:flutter/material.dart' hide Key;
-
-import 'package:encrypt/encrypt.dart' show Key;
+import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
