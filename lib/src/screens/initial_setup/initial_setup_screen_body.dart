@@ -93,9 +93,14 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     final combinedLinks = resFoldersLink + resFilesLink;
 
-    final commonBaseUrl = extractCommonBaseUrl(combinedLinks);
+    // Get the common path among the URLs
 
-    final baseUrl = '$commonBaseUrl/';
+    combinedLinks.sort((a, b) => a.length.compareTo(b.length));
+    var baseUrl = combinedLinks.first;
+    if (!baseUrl.endsWith('/')) {
+      final items = baseUrl.split('/');
+      baseUrl = '${items.getRange(0, items.length - 2).join('/')}/';
+    }
 
     final extractedParts = combinedLinks
         .map((url) {
@@ -196,6 +201,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         children: [
                                           ResourceCreationTextWidget(
                                             resLinks: combinedLinks,
+                                            baseUrl: baseUrl,
                                           ),
                                           const Divider(
                                             color: Colors.grey,
@@ -204,7 +210,11 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                               in extractedParts) ...[
                                             ListTile(
                                               title: Text(resLink!),
-                                              leading: const Icon(Icons.folder),
+                                              leading: Icon(resLink
+                                                      .endsWith('/')
+                                                  ? Icons.folder
+                                                  : Icons
+                                                      .insert_drive_file_outlined),
                                             ),
                                           ],
                                           const SizedBox(
@@ -239,23 +249,16 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
   }
 }
 
-String extractCommonBaseUrl(List<String> urls) {
-  if (urls.isEmpty) return '';
-
-  final sampleUrl = urls.first;
-
-  return sampleUrl;
-}
-
 class ResourceCreationTextWidget extends StatelessWidget {
-  const ResourceCreationTextWidget({required this.resLinks, super.key});
+  const ResourceCreationTextWidget(
+      {required this.resLinks, required this.baseUrl, super.key});
   final List<String> resLinks;
+  final String baseUrl;
 
   String getResourceCreationMessage() {
     if (resLinks.isEmpty) return 'No resources specified';
 
-    final baseUrl = resLinks.first.split('/').take(5).join('/');
-    return 'Resources to be created within \n $baseUrl';
+    return 'Resources to be created within\n$baseUrl';
   }
 
   @override
