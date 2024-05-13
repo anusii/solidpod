@@ -8,6 +8,8 @@ numbers.
 
 ## 0.6 Future Release
 
++ Implement API for changing "security key". [0.5.23]
++ Update terminology: Use "security key" instead of "password". [0.5.22]
 + Check and initialise POD in SolidLoginPopup. [0.5.21]
 + Refactor code in rest_api.dart and utils.dart. [0.5.20]
 + Add a logout popup for user to logging out. [0.5.19]
