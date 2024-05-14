@@ -350,6 +350,8 @@ class _SolidLoginState extends State<SolidLogin> {
           // Navigates to the Home Screen if the account exits.
 
           Future<void> navHomeScreen() async {
+            // Close the dialog before navigating away.
+            Navigator.of(context, rootNavigator: true).pop();
             await Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => widget.child),
