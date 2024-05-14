@@ -130,7 +130,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
       // Sort alphabetically.
       ..sort();
 
-    final resFileNamesLink = (widget.resNeedToCreate['fileNames'] as List)
+    final resFileNames = (widget.resNeedToCreate['fileNames'] as List)
         .map((item) => item.toString())
         .toList();
 
@@ -235,7 +235,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                 resCreateFormSubmission(
                   formKey,
                   context,
-                  resFileNamesLink,
+                  resFileNames,
                   resFoldersLink,
                   resFilesLink,
                   widget.child,

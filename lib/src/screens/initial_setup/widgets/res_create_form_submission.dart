@@ -56,7 +56,7 @@ import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 ElevatedButton resCreateFormSubmission(
   GlobalKey<FormBuilderState> formKey,
   BuildContext context,
-  List<String> resFileNamesLink,
+  List<String> resFileNames,
   List<String> resFoldersLink,
   List<String> resFilesLink,
   Widget child,
@@ -95,8 +95,8 @@ ElevatedButton resCreateFormSubmission(
 
         // Create files and directories flag
 
-        if (resFileNamesLink.contains(encKeyFile) ||
-            resFileNamesLink.contains(pubKeyFile)) {
+        if (resFileNames.contains(encKeyFile) ||
+            resFileNames.contains(pubKeyFile)) {
           // Generate master key
 
           final masterKey = genMasterKey(securityKey);
@@ -117,7 +117,7 @@ ElevatedButton resCreateFormSubmission(
 
           pubKeyStr = dividePubKeyStr(publicKey);
 
-          if (!resFileNamesLink.contains(encKeyFile)) {
+          if (!resFileNames.contains(encKeyFile)) {
             keyVerifyFlag = verifySecurityKey(
                 securityKey, await KeyManager.getVerificationKey());
           }
