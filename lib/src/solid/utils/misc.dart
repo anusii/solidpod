@@ -31,9 +31,10 @@
 library;
 
 import 'package:encrypt/encrypt.dart';
+import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:rdflib/rdflib.dart';
-import 'package:solid_auth/solid_auth.dart';
+import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -287,6 +288,25 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     encDirLoc: [encKeyFile, indKeyFile],
   };
   return files;
+}
+
+/// Get tokens necessary to fetch a resource from a POD
+///
+/// returns the access token and DPoP token
+
+Future<({String accessToken, String dPopToken})> getTokensForResource(
+    String resourceUrl, String httpMethod) async {
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
+
+  final rsaInfo = authData!['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+
+  return (
+    accessToken: authData['accessToken'] as String,
+    dPopToken: genDpopToken(resourceUrl, rsaKeyPair, publicKeyJwk, httpMethod),
+  );
 }
 
 /// Logging out the user
