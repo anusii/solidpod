@@ -45,6 +45,7 @@ class AppInfo {
   /// Get the version
   static Future<String> get version async {
     _info ??= await PackageInfo.fromPlatform();
+    print("version: ${_info!.version}");
     return _info!.version;
   }
 

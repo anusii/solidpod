@@ -34,6 +34,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/change_key.dart';
+import 'dart:io';
+import 'package:yaml/yaml.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -237,6 +241,70 @@ class _SolidLoginState extends State<SolidLogin> {
     _initPackageInfo();
   }
 
+  Future<String?> getVersion() async {
+    // Read the pubspec.yaml file
+    final file = File('pubspec.yaml');
+    final content = await file.readAsString();
+
+    print("Content: $content");
+
+    // Load the YAML document
+    final doc = loadYaml(content);
+
+    print("Doc: $doc");
+
+    // Extract the version
+    final version = doc['version'];
+
+    return version as String;
+  }
+
+  Future<String?> getLatestVersion() async {
+    // URL of the CHANGELOG.md file
+    final url = 'https://your-server.com/path/to/CHANGELOG.md';
+
+    try {
+      // Fetch the content of the CHANGELOG.md file
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final content = response.body;
+        print("Content: $content");
+
+        // Define a regular expression to match version numbers
+        final versionRegExp = RegExp(r'\[(\d+\.\d+\.\d+)\]');
+
+        // Find all matches in the content
+        final matches = versionRegExp.allMatches(content);
+
+        // Extract version numbers and sort them to find the latest one
+        final versions = matches.map((match) => match.group(1)!).toList();
+        versions.sort((a, b) => compareVersions(b, a));
+
+        return versions.isNotEmpty ? versions.first : null;
+      } else {
+        print('Failed to load CHANGELOG.md: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching CHANGELOG.md: $e');
+      return null;
+    }
+  }
+
+  // Helper function to compare version strings
+  int compareVersions(String a, String b) {
+    final aParts = a.split('.').map(int.parse).toList();
+    final bParts = b.split('.').map(int.parse).toList();
+
+    for (int i = 0; i < aParts.length; i++) {
+      if (aParts[i] != bParts[i]) {
+        return aParts[i].compareTo(bParts[i]);
+      }
+    }
+    return 0;
+  }
+
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
@@ -426,7 +494,22 @@ class _SolidLoginState extends State<SolidLogin> {
       background: widget.infoButtonStyle.background,
       foreground: widget.infoButtonStyle.foreground,
       tooltip: widget.infoButtonStyle.tooltip,
-      onPressed: () {
+      onPressed: () async {
+        //test
+        // final version = await getVersion();
+        // if (version != null) {
+        //   print('Version: $version');
+        // } else {
+        //   print('Version not found');
+        // }
+
+        final latestVersion = await getLatestVersion();
+        if (latestVersion != null) {
+          print('Latest version: $latestVersion');
+        } else {
+          print('No version found');
+        }
+
         launchUrl(Uri.parse(widget.link));
       },
     );
