@@ -28,7 +28,6 @@ dependencies:
   solid_auth: ^0.1.17 # solid-auth updated the token refreshing API since version 0.1.17
   solid_encrypt: ^0.1.10
   url_launcher: ^6.2.4
-  yaml: ^3.1.0
 
 dev_dependencies:
   build_runner: ^2.4.8

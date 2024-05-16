@@ -233,6 +233,8 @@ class _SolidLoginState extends State<SolidLogin> {
       defaultFiles = files;
     });
 
+    // Fetch the app information.
+
     final appInfo = await getAppNameVersion();
     setState(() {
       appName = appInfo.name;
@@ -417,7 +419,7 @@ class _SolidLoginState extends State<SolidLogin> {
       background: widget.infoButtonStyle.background,
       foreground: widget.infoButtonStyle.foreground,
       tooltip: widget.infoButtonStyle.tooltip,
-      onPressed: () async {
+      onPressed: () {
         launchUrl(Uri.parse(widget.link));
       },
     );
