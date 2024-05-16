@@ -224,7 +224,7 @@ class _SolidLoginState extends State<SolidLogin> {
   // Initially, it's an empty string because the actual version number
   // will be obtained asynchronously from the app's package information.
 
-  String appVersion = '';
+  String appVersion = '0.5.23';
   String appName = '';
 
   /// Default folders will be generated after user logged in.
