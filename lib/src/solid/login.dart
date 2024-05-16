@@ -30,23 +30,15 @@
 
 // ignore_for_file: public_member_api_docs
 
-library;
-
 import 'package:flutter/material.dart';
-import 'package:solidpod/src/solid/change_key.dart';
-import 'dart:io';
-import 'package:yaml/yaml.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 import 'package:url_launcher/url_launcher.dart';
-
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show generateDefaultFolders, generateDefaultFiles;
+    show generateDefaultFiles, generateDefaultFolders, getAppNameVersion;
 
 // Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -78,14 +70,6 @@ bool _isVeryNarrowScreen(BuildContext context) =>
 // Check whether the dialog was dismissed by the user.
 
 bool _isDialogCanceled = false;
-
-// TODO 20240324 gjw How to get the current elevated button background color
-// from the theme that an app may have overriden from the default, so that we
-// can refer to it here as the default if the user has not specified it so that
-// the correct default BG colour is displayed, in line wit hthe app's use of a
-// theme to override the solidpod defaults.
-
-// Color? _backgroundColor = ElevatedButtonTheme.of(context).style.backgroundColor.resolve({MaterialState.pressed});
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
@@ -212,9 +196,6 @@ class SolidLogin extends StatefulWidget {
 
   final bool required;
 
-  // /// Secure key object
-  // final SecureKey secureKeyObject;
-
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -224,7 +205,7 @@ class _SolidLoginState extends State<SolidLogin> {
   // Initially, it's an empty string because the actual version number
   // will be obtained asynchronously from the app's package information.
 
-  String appVersion = '0.5.23';
+  String appVersion = '';
   String appName = '';
 
   /// Default folders will be generated after user logged in.
@@ -241,70 +222,6 @@ class _SolidLoginState extends State<SolidLogin> {
     _initPackageInfo();
   }
 
-  Future<String?> getVersion() async {
-    // Read the pubspec.yaml file
-    final file = File('pubspec.yaml');
-    final content = await file.readAsString();
-
-    print("Content: $content");
-
-    // Load the YAML document
-    final doc = loadYaml(content);
-
-    print("Doc: $doc");
-
-    // Extract the version
-    final version = doc['version'];
-
-    return version as String;
-  }
-
-  Future<String?> getLatestVersion() async {
-    // URL of the CHANGELOG.md file
-    final url = 'https://your-server.com/path/to/CHANGELOG.md';
-
-    try {
-      // Fetch the content of the CHANGELOG.md file
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final content = response.body;
-        print("Content: $content");
-
-        // Define a regular expression to match version numbers
-        final versionRegExp = RegExp(r'\[(\d+\.\d+\.\d+)\]');
-
-        // Find all matches in the content
-        final matches = versionRegExp.allMatches(content);
-
-        // Extract version numbers and sort them to find the latest one
-        final versions = matches.map((match) => match.group(1)!).toList();
-        versions.sort((a, b) => compareVersions(b, a));
-
-        return versions.isNotEmpty ? versions.first : null;
-      } else {
-        print('Failed to load CHANGELOG.md: ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      print('Error fetching CHANGELOG.md: $e');
-      return null;
-    }
-  }
-
-  // Helper function to compare version strings
-  int compareVersions(String a, String b) {
-    final aParts = a.split('.').map(int.parse).toList();
-    final bParts = b.split('.').map(int.parse).toList();
-
-    for (int i = 0; i < aParts.length; i++) {
-      if (aParts[i] != bParts[i]) {
-        return aParts[i].compareTo(bParts[i]);
-      }
-    }
-    return 0;
-  }
-
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
@@ -314,6 +231,12 @@ class _SolidLoginState extends State<SolidLogin> {
     setState(() {
       defaultFolders = folders;
       defaultFiles = files;
+    });
+
+    final appInfo = await getAppNameVersion();
+    setState(() {
+      appName = appInfo.name;
+      appVersion = appInfo.version;
     });
   }
 
@@ -495,21 +418,6 @@ class _SolidLoginState extends State<SolidLogin> {
       foreground: widget.infoButtonStyle.foreground,
       tooltip: widget.infoButtonStyle.tooltip,
       onPressed: () async {
-        //test
-        // final version = await getVersion();
-        // if (version != null) {
-        //   print('Version: $version');
-        // } else {
-        //   print('Version not found');
-        // }
-
-        final latestVersion = await getLatestVersion();
-        if (latestVersion != null) {
-          print('Latest version: $latestVersion');
-        } else {
-          print('No version found');
-        }
-
         launchUrl(Uri.parse(widget.link));
       },
     );
