@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Fix login animation won't disappear in some cases. [0.5.24]
 + Implement API for changing "security key". [0.5.23]
 + Update terminology: Use "security key" instead of "password". [0.5.22]
 + Check and initialise POD in SolidLoginPopup. [0.5.21]
