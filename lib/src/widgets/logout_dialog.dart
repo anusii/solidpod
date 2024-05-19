@@ -47,7 +47,7 @@ class _LogoutDialogState extends State<LogoutDialog> {
   Widget _build(BuildContext context, String title) {
     return AlertDialog(
       title: const Text('Notice'),
-      content: Text('Logging out $title?'),
+      content: Text('Logout from the remote Solid Server for $title?'),
       actions: [
         ElevatedButton(
             child: const Text('OK'),
