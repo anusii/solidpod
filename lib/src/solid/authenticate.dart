@@ -86,16 +86,19 @@ Future<List<dynamic>?> solidAuthenticate(
       await AuthDataManager.saveAuthData(authData);
     }
 
-    final accessToken = authData!['accessToken'].toString();
-    final decodedToken = JwtDecoder.decode(accessToken);
-    final webId = decodedToken['webid'].toString();
+    final webId = await AuthDataManager.getWebId();
+    assert(webId != null);
 
-    await saveWebId(webId);
+    // final accessToken = authData!['accessToken'].toString();
+    // final decodedToken = JwtDecoder.decode(accessToken);
+    // final webId = decodedToken['webid'].toString();
+
+    // await saveWebId(webId);
 
     // final rsaInfo = authData['rsaInfo'];
     // final rsaKeyPair = rsaInfo['rsa'];
     // final publicKeyJwk = rsaInfo['pubKeyJwk'];
-    final profCardUrl = webId.replaceAll('#me', '');
+    final profCardUrl = webId!.replaceAll('#me', '');
 
     // final dPopToken =
     //     genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');

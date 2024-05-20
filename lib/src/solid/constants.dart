@@ -98,12 +98,37 @@ const String pubKeyFileTitle = 'Public key';
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
-/// The string key for storing the master password for encryption (from which
-/// we derive the master key to encrypt the individual keys -- AES keys that
-/// are used to encrypt the data in PODs) in secure storage.
+/// Enum of resource status
 
-String masterPasswdSecureStorageKey = '_pods_master_passwd';
+enum ResourceStatus {
+  /// The resource exist
+  exist,
 
-/// The string key for storing the web ID
+  /// The resource does not exist
+  notExist,
 
-String webIdSecureStorageKey = '_web_id';
+  /// Do not know if the resource exist (e.g. error occurred when checking the status)
+  unknown
+}
+
+/// Types of access to a resource
+
+enum AccessType {
+  /// Read access
+  read('Read'),
+
+  /// Write access
+  write('Write'),
+
+  /// Control access
+  control('Control'),
+
+  /// Append data (a type of write)
+  append('Append');
+
+  /// Constructor
+  const AccessType(this.value);
+
+  /// String value of the access type
+  final String value;
+}

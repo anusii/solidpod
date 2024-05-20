@@ -38,8 +38,8 @@ import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
-import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
@@ -78,7 +78,7 @@ ElevatedButton resCreateFormSubmission(
 
         final securityKey = formData[securityKeyStr].toString();
 
-        final webId = await getWebId();
+        final webId = await AuthDataManager.getWebId();
         assert(webId != null);
 
         // Variable to see whether we need to update the key files. Because if

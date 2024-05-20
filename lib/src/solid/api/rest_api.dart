@@ -39,6 +39,7 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Parses file information and extracts content into a map.
@@ -228,18 +229,6 @@ Future<void> deleteResource(bool fileFlag, String itemLoc) async {
   }
 }
 
-/// Enum of resource status
-enum ResourceStatus {
-  /// The resource exist
-  exist,
-
-  /// The resource does not exist
-  notExist,
-
-  /// Do not know if the resource exist (e.g. error occurred when checking the status)
-  unknown
-}
-
 /// Asynchronously checks whether a given resource exists on the server.
 ///
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
@@ -424,7 +413,7 @@ Future<void> updateIndKeyFile(
 /// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
 
 Future<void> initialProfileUpdate(String profBody) async {
-  final webId = await getWebId();
+  final webId = await AuthDataManager.getWebId();
   assert(webId != null);
   final profUrl = webId!.replaceAll('#me', '');
 
