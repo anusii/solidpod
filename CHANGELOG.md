@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Add version number to login screen. [0.5.25]
 + Fix login animation won't disappear in some cases. [0.5.24]
 + Implement API for changing "security key". [0.5.23]
 + Update terminology: Use "security key" instead of "password". [0.5.22]
