@@ -117,7 +117,7 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
 /// returns the full resource URL
 
 Future<String> _getResourceUrl(String resourcePath, bool isContainer) async {
-  final webId = await getWebId();
+  final webId = await AuthDataManager.getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
@@ -194,7 +194,7 @@ Future<({String name, String version})> getAppNameVersion() async =>
 /// returns boolean
 
 Future<bool> checkLoggedIn() async {
-  final webId = await getWebId();
+  final webId = await AuthDataManager.getWebId();
 
   if (webId != null && webId.isNotEmpty) {
     final accessToken = await AuthDataManager.getAccessToken();
@@ -210,25 +210,17 @@ Future<bool> checkLoggedIn() async {
 ///
 /// returns true if successful
 
-Future<bool> deleteLogIn() async {
-  const success = true;
-  try {
-    await secureStorage.delete(key: webIdSecureStorageKey);
-  } on Exception {
-    return false;
-  }
-  return success && (await AuthDataManager.removeAuthData());
-}
+Future<bool> deleteLogIn() async => AuthDataManager.removeAuthData();
 
 /// Save the webId to local secure storage
 
-Future<void> saveWebId(String webId) async =>
-    writeToSecureStorage(webIdSecureStorageKey, webId);
+// Future<void> saveWebId(String webId) async =>
+//     writeToSecureStorage(webIdSecureStorageKey, webId);
 
-/// Get the webId from local secure storage
+// /// Get the webId from local secure storage
 
-Future<String?> getWebId() async =>
-    secureStorage.read(key: webIdSecureStorageKey);
+// Future<String?> getWebId() async =>
+//     secureStorage.read(key: webIdSecureStorageKey);
 
 /// Generates a list of default folder paths for a given application.
 ///
