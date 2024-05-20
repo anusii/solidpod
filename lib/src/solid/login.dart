@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Saturday 2024-05-11 16:16:03 +1000 Graham Williams>
+// Time-stamp: <Friday 2024-05-17 13:53:44 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -37,6 +37,12 @@ import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+
+// TODO 20240515 gjw Eventually remove the show - using for now to support API
+// development.
+
 import 'package:solidpod/src/solid/utils/misc.dart'
     show generateDefaultFiles, generateDefaultFolders, getAppNameVersion;
 
@@ -46,18 +52,21 @@ import 'package:solidpod/src/solid/utils/misc.dart'
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
+
 const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
+
 const String defaultLoginButtonText = 'Login';
 const String defaultRegisterButtonText = 'Register';
 const String defaultInfoButtonText = 'Info';
 const String defaultContinueButtonText = 'Continue';
 const String defaultChangeKeyButtonText = 'Change Key';
+
 const String defaultLoginTooltip = 'Login to your Solid Pod.';
 const String defaultRegisterTooltip = 'Get a Solid Pod.';
-const String defaultInfoTooltip = 'Visit the Solid Project website.';
-const String defaultContinueTooltip =
-    'Continue to the app without logging in to your Solid Pod.';
+// TODO 20240515 gjw replace `project` with the appname.
+const String defaultInfoTooltip = 'Visit the project documentation.';
+const String defaultContinueTooltip = 'Continue with no Solid Pod login.';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -89,12 +98,7 @@ class SolidLogin extends StatefulWidget {
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
-    this.title = 'LOG IN TO YOUR POD',
-    this.loginText = 'LOGIN',
-    this.continueText = 'CONTINUE',
-    this.continueBG = Colors.white,
-    this.registerText = 'GET A POD',
-    this.infoText = 'INFO',
+    this.title = 'Log in to your Solid Pod',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
     this.continueButtonStyle = const ContinueButtonStyle(),
@@ -146,38 +150,6 @@ class SolidLogin extends StatefulWidget {
   /// authenticate against.
 
   final String webID;
-
-  /// The text to display on the LOGIN button.
-  ///
-  /// An app may override this if they prefer, for example, AUTHENTICATE.
-
-  final String loginText;
-
-  /// The text to display on the GET A POD button.
-  ///
-  /// An app may override this to be more suggestive. For example the app
-  /// developer may prefere REGISTER.
-
-  final String registerText;
-
-  /// The text to display on the INFO button.
-  ///
-  /// An app may override this to be more suggestive. For example, it could be
-  /// HELP or README.
-
-  final String infoText;
-
-  /// The text to display on the CONTINUE button.
-  ///
-  /// An app may override this to be more suggestive of what is being continued
-  /// on to, such as SESSION for an app the manages sessions, or KEYS for an app
-  /// that manages keys.
-
-  final String continueText;
-
-  /// The background colour for the CONTINUE button.
-
-  final Color continueBG;
 
   /// The URL used as the value of the Visit link. Visit the link by clicking
   /// info button.
@@ -343,6 +315,8 @@ class _SolidLoginState extends State<SolidLogin> {
           // Navigates to the Home Screen if the account exits.
 
           Future<void> navHomeScreen() async {
+            // Close the dialog before navigating away.
+            Navigator.of(context, rootNavigator: true).pop();
             await Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => widget.child),
@@ -412,7 +386,8 @@ class _SolidLoginState extends State<SolidLogin> {
       },
     );
 
-    // A INFO button that when pressed will proceed to visit a link.
+    // An INFO button that when pressed will proceed to visit a link, often
+    // further information or a README or user guide.
 
     final infoButton = PodButton(
       text: widget.infoButtonStyle.text,
