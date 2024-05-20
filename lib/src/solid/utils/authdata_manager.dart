@@ -47,6 +47,9 @@ import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
 /// - refresh access token if necessary
 
 class AuthDataManager {
+  /// The web ID
+  static String? _webId;
+
   /// The URL for logging out
   static String? _logoutUrl;
 
@@ -79,6 +82,8 @@ class AuthDataManager {
       assert(authData.containsKey(key));
     }
 
+    final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
+    _webId = decodedToken['webid'] as String;
     _logoutUrl = authData['logoutUrl'] as String;
     _rsaInfo = authData['rsaInfo'] as Map<dynamic,
         dynamic>; // Note that use Map<String, dynamic> does not seem to work
@@ -87,6 +92,7 @@ class AuthDataManager {
     await writeToSecureStorage(
         _authDataSecureStorageKey,
         jsonEncode({
+          'web_id': _webId,
           'logout_url': _logoutUrl,
           'rsa_info': jsonEncode({
             ..._rsaInfo!,
@@ -138,6 +144,7 @@ class AuthDataManager {
     try {
       if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
         await secureStorage.delete(key: _authDataSecureStorageKey);
+        _webId = null;
         _logoutUrl = null;
         _rsaInfo = null;
         _authResponse = null;
@@ -194,6 +201,19 @@ class AuthDataManager {
     return null;
   }
 
+  /// Returns the web ID
+  static Future<String?> getWebId() async {
+    if (_webId == null) {
+      final loaded = await _loadData();
+      if (!loaded) {
+        debugPrint('AuthDataManager => getWebId() failed');
+        return null;
+      }
+    }
+    assert(_webId != null);
+    return _webId;
+  }
+
   /// Returns the logout URL
   static Future<String?> getLogoutUrl() async {
     if (_logoutUrl == null) {
@@ -222,6 +242,7 @@ class AuthDataManager {
 
     if (dataStr != null) {
       final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
+      _webId = dataMap['web_id'] as String;
       _logoutUrl = dataMap['logout_url'] as String;
       _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
       _authResponse =
