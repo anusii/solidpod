@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Saturday 2024-05-11 16:16:03 +1000 Graham Williams>
+// Time-stamp: <Friday 2024-05-17 13:53:44 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -30,19 +30,21 @@
 
 // ignore_for_file: public_member_api_docs
 
-library;
-
 import 'package:flutter/material.dart';
-import 'package:solidpod/src/solid/change_key.dart';
 
 import 'package:url_launcher/url_launcher.dart';
-
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+
+// TODO 20240515 gjw Eventually remove the show - using for now to support API
+// development.
+
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show generateDefaultFolders, generateDefaultFiles;
+    show generateDefaultFiles, generateDefaultFolders, getAppNameVersion;
 
 // Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -50,18 +52,21 @@ import 'package:solidpod/src/solid/utils/misc.dart'
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
+
 const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
+
 const String defaultLoginButtonText = 'Login';
 const String defaultRegisterButtonText = 'Register';
 const String defaultInfoButtonText = 'Info';
 const String defaultContinueButtonText = 'Continue';
 const String defaultChangeKeyButtonText = 'Change Key';
+
 const String defaultLoginTooltip = 'Login to your Solid Pod.';
 const String defaultRegisterTooltip = 'Get a Solid Pod.';
-const String defaultInfoTooltip = 'Visit the Solid Project website.';
-const String defaultContinueTooltip =
-    'Continue to the app without logging in to your Solid Pod.';
+// TODO 20240515 gjw replace `project` with the appname.
+const String defaultInfoTooltip = 'Visit the project documentation.';
+const String defaultContinueTooltip = 'Continue with no Solid Pod login.';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -74,14 +79,6 @@ bool _isVeryNarrowScreen(BuildContext context) =>
 // Check whether the dialog was dismissed by the user.
 
 bool _isDialogCanceled = false;
-
-// TODO 20240324 gjw How to get the current elevated button background color
-// from the theme that an app may have overriden from the default, so that we
-// can refer to it here as the default if the user has not specified it so that
-// the correct default BG colour is displayed, in line wit hthe app's use of a
-// theme to override the solidpod defaults.
-
-// Color? _backgroundColor = ElevatedButtonTheme.of(context).style.backgroundColor.resolve({MaterialState.pressed});
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
@@ -101,12 +98,7 @@ class SolidLogin extends StatefulWidget {
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
         const AssetImage('assets/images/default_logo.png', package: 'solid'),
-    this.title = 'LOG IN TO YOUR POD',
-    this.loginText = 'LOGIN',
-    this.continueText = 'CONTINUE',
-    this.continueBG = Colors.white,
-    this.registerText = 'GET A POD',
-    this.infoText = 'INFO',
+    this.title = 'Log in to your Solid Pod',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
     this.continueButtonStyle = const ContinueButtonStyle(),
@@ -159,38 +151,6 @@ class SolidLogin extends StatefulWidget {
 
   final String webID;
 
-  /// The text to display on the LOGIN button.
-  ///
-  /// An app may override this if they prefer, for example, AUTHENTICATE.
-
-  final String loginText;
-
-  /// The text to display on the GET A POD button.
-  ///
-  /// An app may override this to be more suggestive. For example the app
-  /// developer may prefere REGISTER.
-
-  final String registerText;
-
-  /// The text to display on the INFO button.
-  ///
-  /// An app may override this to be more suggestive. For example, it could be
-  /// HELP or README.
-
-  final String infoText;
-
-  /// The text to display on the CONTINUE button.
-  ///
-  /// An app may override this to be more suggestive of what is being continued
-  /// on to, such as SESSION for an app the manages sessions, or KEYS for an app
-  /// that manages keys.
-
-  final String continueText;
-
-  /// The background colour for the CONTINUE button.
-
-  final Color continueBG;
-
   /// The URL used as the value of the Visit link. Visit the link by clicking
   /// info button.
 
@@ -207,9 +167,6 @@ class SolidLogin extends StatefulWidget {
   /// is available on the Login page.
 
   final bool required;
-
-  // /// Secure key object
-  // final SecureKey secureKeyObject;
 
   @override
   State<SolidLogin> createState() => _SolidLoginState();
@@ -246,6 +203,14 @@ class _SolidLoginState extends State<SolidLogin> {
     setState(() {
       defaultFolders = folders;
       defaultFiles = files;
+    });
+
+    // Fetch the app information.
+
+    final appInfo = await getAppNameVersion();
+    setState(() {
+      appName = appInfo.name;
+      appVersion = appInfo.version;
     });
   }
 
@@ -421,7 +386,8 @@ class _SolidLoginState extends State<SolidLogin> {
       },
     );
 
-    // A INFO button that when pressed will proceed to visit a link.
+    // An INFO button that when pressed will proceed to visit a link, often
+    // further information or a README or user guide.
 
     final infoButton = PodButton(
       text: widget.infoButtonStyle.text,
