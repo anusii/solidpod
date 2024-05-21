@@ -33,7 +33,6 @@ library;
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -120,14 +119,21 @@ Future<String> getDirUrl(String dirPath) async =>
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
     String filePath, String fileContent, Key key, IV iv) async {
-  final encData = encryptData(fileContent, key, iv);
+  final tripleMap = {
+    await getFileUrl(filePath): {
+      pathPred: filePath,
+      ivPred: iv.base64,
+      encDataPred: encryptData(fileContent, key, iv),
+    }
+  };
+  return tripleMapToTTLStr(tripleMap);
 
-  final g = Graph();
-  final f = URIRef(await getFileUrl(filePath));
-  final ns = Namespace(ns: appsTerms);
-  g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
-  g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
-  g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
+  // final g = Graph();
+  // final f = URIRef(await getFileUrl(filePath));
+  // final ns = Namespace(ns: appsTerms);
+  // g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
+  // g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
+  // g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
 
   // Bind the long namespace to shorter string for better readability
   // String getPrefix(String UriStr) => Uri.parse(UriStr).pathSegments[-1];
@@ -139,10 +145,10 @@ Future<String> getEncTTLStr(
   // g.bind(host, Namespace(ns: hostpath));
   // g.bind(host, ns);
 
-  g.serialize(abbr: 'short');
+  // g.serialize(abbr: 'short');
 
-  final encTTL = g.serializedString;
-  return encTTL;
+  // final encTTL = g.serializedString;
+  // return encTTL;
 }
 
 /// Returns the path of file with verification key and private key
@@ -302,11 +308,4 @@ Future<bool> logoutPod() async {
     }
   }
   return true;
-}
-
-/// Generate TTL string for ACL file of a given resource
-Future<String> genAclTTLStr(String resourceUrl,
-    {AccessType ownerAccess = AccessType.control,
-    AccessType publicAccess = AccessType.read}) async {
-  return '';
 }
