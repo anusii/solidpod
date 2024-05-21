@@ -62,11 +62,24 @@ const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';
+const String typePred = 'type';
+const String accessToPred = 'accessTo';
+const String agentPred = 'agent';
+const String modePred = 'mode';
+const String agentClassPred = 'agentClass';
 // const String createdDateTimePred = 'createdDateTime';
 // const String modifiedDateTimePred = 'modifiedDateTime';
 // const String noteTitlePred = 'noteTitle';
 // const String encNoteContentPred = 'encNoteContent';
 // const String noteFileNamePrefix = 'note-';
+
+/// String terms used as values in ttl files.
+
+const String aclAuth = 'Authorization';
+const String aclRead = 'Read';
+const String aclWrite = 'Write';
+const String aclControl = 'Control';
+const String aclAgent = 'Agent';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
@@ -77,6 +90,7 @@ const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
+const String rdfVocab = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String variables for creating files and directories on solid server
