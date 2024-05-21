@@ -42,6 +42,7 @@ import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart';
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
@@ -80,26 +81,6 @@ String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
 String decryptData(String encData, Key key, IV iv,
         {AESMode mode = AESMode.sic}) =>
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
-
-/// Parse TTL content into a map {subject: {predicate: object}}
-Map<String, dynamic> parseTTL(String ttlContent) {
-  final g = Graph();
-  g.parseTurtle(ttlContent);
-  final dataMap = <String, dynamic>{};
-  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
-  for (final t in g.triples) {
-    final sub = extract(t.sub.value as String);
-    final pre = extract(t.pre.value as String);
-    final obj = extract(t.obj.value as String);
-    if (dataMap.containsKey(sub)) {
-      assert(!(dataMap[sub] as Map).containsKey(pre));
-      dataMap[sub][pre] = obj;
-    } else {
-      dataMap[sub] = {pre: obj};
-    }
-  }
-  return dataMap;
-}
 
 /// Load and parse a private TTL file from POD
 Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
@@ -321,4 +302,11 @@ Future<bool> logoutPod() async {
     }
   }
   return true;
+}
+
+/// Generate TTL string for ACL file of a given resource
+Future<String> genAclTTLStr(String resourceUrl,
+    {AccessType ownerAccess = AccessType.control,
+    AccessType publicAccess = AccessType.read}) async {
+  return '';
 }

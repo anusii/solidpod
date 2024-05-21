@@ -40,12 +40,11 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' hide RSA;
 import 'package:fast_rsa/fast_rsa.dart' show RSA;
-import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTTLStr;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
@@ -510,7 +509,7 @@ class KeyManager {
       prvKeyPred: _prvKeyRecord!.encKeyBase64,
     };
 
-    return _genTTLStr(tripleMap);
+    return tripleMapToTTLStr(tripleMap);
   }
 
   /// Generate the content of indKeyFile
@@ -536,7 +535,7 @@ class KeyManager {
       }
     }
 
-    return _genTTLStr(tripleMap);
+    return tripleMapToTTLStr(tripleMap);
   }
 
   /// Generate the content of pubKeyFile
@@ -551,7 +550,7 @@ class KeyManager {
       pubKeyPred: _pubKey!,
     };
 
-    return _genTTLStr(tripleMap);
+    return tripleMapToTTLStr(tripleMap);
   }
 }
 
@@ -593,31 +592,4 @@ class _PrvKeyRecord {
 
   /// The corresponding decrypted private key
   String? key;
-}
-
-/// Generate TTL string from triples stored in a map:
-/// {subject: {predicate: object}}
-/// where
-/// - subject: the URL of a file
-/// - predicate-object: the key-value pairs to be stores in the file
-
-String _genTTLStr(Map<String, Map<String, String>> tripleMap) {
-  assert(tripleMap.isNotEmpty);
-  final g = Graph();
-  final nsTerms = Namespace(ns: appsTerms);
-  final nsTitle = Namespace(ns: terms);
-
-  for (final sub in tripleMap.keys) {
-    assert(tripleMap[sub] != null && tripleMap[sub]!.isNotEmpty);
-    final f = URIRef(sub);
-    for (final pre in tripleMap[sub]!.keys) {
-      final obj = tripleMap[sub]![pre] as String;
-      final ns = (pre == titlePred) ? nsTitle : nsTerms;
-      g.addTripleToGroups(f, ns.withAttr(pre), obj);
-    }
-  }
-
-  g.serialize(abbr: 'short');
-
-  return g.serializedString;
 }
