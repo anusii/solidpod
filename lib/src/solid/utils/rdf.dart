@@ -30,6 +30,7 @@ library;
 
 import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 /// Generate TTL string from triples stored in a map:
 /// {subject: {predicate: object}}
@@ -76,4 +77,52 @@ Map<String, dynamic> parseTTL(String ttlContent) {
     }
   }
   return dataMap;
+}
+
+/// Generate TTL string for ACL file of a given resource
+Future<String> genAclTTLStr(String resourceUrl,
+    {AccessType ownerAccess = AccessType.control,
+    AccessType publicAccess = AccessType.read}) async {
+  final webId = await AuthDataManager.getWebId();
+  assert(webId != null);
+
+  final g = Graph();
+  final f = URIRef(resourceUrl);
+  final nsSub = Namespace(ns: '$resourceUrl.acl#');
+  final nsAcl = Namespace(ns: acl);
+  final nsFoaf = Namespace(ns: foaf);
+  final nsVocab = Namespace(ns: rdfVocab);
+
+  // URIRef(ACL_FILE_URL#owner):
+  // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
+  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef('URL_OF_public-key.ttl),
+  //         URIRef('http://www.w3.org/ns/auth/acl#agent'): URIRef(WEB_ID),
+  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Write')},
+
+  final ownerSub = nsSub.withAttr('owner');
+  g.addTripleToGroups(
+      ownerSub, nsVocab.withAttr(typePred), nsAcl.withAttr(aclAuth));
+  g.addTripleToGroups(ownerSub, nsAcl.withAttr(accessToPred), f);
+  g.addTripleToGroups(ownerSub, nsAcl.withAttr(agentPred), URIRef(webId!));
+  g.addTripleToGroups(
+      ownerSub, nsAcl.withAttr(modePred), nsAcl.withAttr(ownerAccess.value));
+
+  // URIRef('ACL_FILE_URL#public'):
+  // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
+  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(URL_OF_public-key.ttl),
+  //         URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
+  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Write')
+
+  final publicSub = nsSub.withAttr('public');
+  g.addTripleToGroups(
+      publicSub, nsVocab.withAttr(typePred), nsAcl.withAttr(aclAuth));
+  g.addTripleToGroups(publicSub, nsAcl.withAttr(accessToPred), f);
+  g.addTripleToGroups(
+      publicSub, nsAcl.withAttr(agentClassPred), nsFoaf.withAttr(aclAgent));
+  g.addTripleToGroups(
+      publicSub, nsAcl.withAttr(modePred), nsAcl.withAttr(publicAccess.value));
+
+  g.serialize(abbr: 'short');
+
+  return g.serializedString;
 }
