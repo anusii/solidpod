@@ -80,6 +80,7 @@ const String aclRead = 'Read';
 const String aclWrite = 'Write';
 const String aclControl = 'Control';
 const String aclAgent = 'Agent';
+const String profileDoc = 'PersonalProfileDocument';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
@@ -90,7 +91,7 @@ const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
-const String rdfVocab = 'http://www.w3.org/1999/02/22-rdf-syntax-ns';
+const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String variables for creating files and directories on solid server
@@ -106,6 +107,10 @@ const String dirTypeLink =
 const String encKeyFileTitle = 'Encryption keys';
 const String indKeyFileTitle = 'Individual Encryption Keys';
 const String pubKeyFileTitle = 'Public key';
+
+/// String variable for log files
+
+const String logFileTitle = 'Permissions Log';
 
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
