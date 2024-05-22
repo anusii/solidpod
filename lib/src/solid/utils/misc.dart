@@ -179,6 +179,9 @@ Future<String> getEncDirPath() async =>
 Future<({String name, String version})> getAppNameVersion() async =>
     (name: await AppInfo.name, version: await AppInfo.version);
 
+/// Return the web ID
+Future<String?> getWebId() async => AuthDataManager.getWebId();
+
 /// Check whether a user is logged in or not
 ///
 /// Check if the local storage has authentication
@@ -379,6 +382,7 @@ Future<void> initPod(String securityKey,
   fileUrls.remove(await getFileUrl(await getEncKeyPath()));
   fileUrls.remove(await getFileUrl(await getIndKeyPath()));
   fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+  debugPrint(fileUrls.toString());
 
   for (final f in fileUrls) {
     final fileName = f.split('/').last;
@@ -392,6 +396,7 @@ Future<void> initPod(String securityKey,
               : AccessType.read);
       aclFlag = true;
     } else {
+      debugPrint(fileName);
       assert(fileName == permLogFile);
       fileContent = await genPermLogTTLStr(f);
       aclFlag = false;
