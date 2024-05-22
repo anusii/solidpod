@@ -30,6 +30,8 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -167,6 +169,10 @@ Future<String> getPubKeyPath() async =>
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
 
+/// Returns the path of the encryption directory
+Future<String> getEncDirPath() async =>
+    [await AppInfo.canonicalName, encDir].join('/');
+
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)
 
@@ -215,8 +221,7 @@ Future<bool> deleteLogIn() async => AuthDataManager.removeAuthData();
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<List<String>> generateDefaultFolders() async {
-  final appName = await AppInfo.canonicalName;
-  final mainResDir = appName;
+  final mainResDir = await AppInfo.canonicalName;
 
   final dataDirLoc = [mainResDir, dataDir].join('/');
   final sharingDirLoc = [mainResDir, sharingDir].join('/');
@@ -241,13 +246,7 @@ Future<List<String>> generateDefaultFolders() async {
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
-  final appName = await AppInfo.canonicalName;
-  final mainResDir = appName;
-
-  // const encKeyFile = 'enc-keys.ttl';
-  // const pubKeyFile = 'public-key.ttl';
-  // const indKeyFile = 'ind-keys.ttl';
-  // const permLogFile = 'permissions-log.ttl';
+  final mainResDir = await AppInfo.canonicalName;
 
   final sharingDirLoc = [mainResDir, sharingDir].join('/');
   final sharedDirLoc = [mainResDir, sharedDir].join('/');
@@ -303,9 +302,101 @@ Future<bool> logoutPod() async {
       //       (await launchUrl(uri));
       // }
     } on Exception catch (e) {
-      print('Exception: $e');
+      debugPrint('Exception: $e');
       return false;
     }
   }
   return true;
+}
+
+/// Removes header and footer (which mess up the TTL format) from a PEM-formatted public key string.
+///
+/// This function takes a public key string, typically in PEM format, and removes
+/// the standard PEM headers and footers.
+
+String trimPubKeyStr(String keyStr) {
+  final itemList = keyStr.split('\n');
+  itemList.remove('-----BEGIN RSA PUBLIC KEY-----');
+  itemList.remove('-----END RSA PUBLIC KEY-----');
+  itemList.remove('-----BEGIN PUBLIC KEY-----');
+  itemList.remove('-----END PUBLIC KEY-----');
+
+  final keyStrTrimmed = itemList.join();
+
+  return keyStrTrimmed;
+}
+
+/// Initialise the directory and file structure in a POD
+
+Future<void> initPod(String securityKey,
+    {List<String>? dirUrls, List<String>? fileUrls}) async {
+  // Check if the user has logged in
+
+  final loggedIn = await checkLoggedIn();
+  if (!loggedIn) {
+    throw Exception('Can not initialise POD without logging in');
+  }
+
+  // Check (and generate) the directory URLs
+
+  if (dirUrls == null || dirUrls.isEmpty) {
+    final defaultDirs = await generateDefaultFolders();
+    dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
+  }
+
+  // Require the creation of the encryption directory and
+  // the encKeyFile and indKeyFile in it.
+  // (The app asks for the security key, so this is a reasonable requirement?)
+
+  final encDirUrl = await getDirUrl(await getEncDirPath());
+  if (!dirUrls.contains(encDirUrl)) {
+    throw Exception('Can not initialise POD without creating $encDirUrl');
+  }
+
+  // Create the required directories
+
+  for (final d in dirUrls) {
+    await createResource(d, fileFlag: false);
+  }
+
+  // Check (and generate) the file URLs
+
+  if (fileUrls == null || fileUrls.isEmpty) {
+    final defaultFiles = await generateDefaultFiles();
+    fileUrls = <String>[];
+    for (final entry in defaultFiles.entries) {
+      final d = entry.key;
+      for (final f in entry.value as List) {
+        fileUrls.add([d, f].join('/'));
+      }
+    }
+  }
+
+  // Create the encKeyFile, indKeyFile and pubKeyFile
+  // and remove them from the fileUrls list
+
+  await KeyManager.initPodKeys(securityKey);
+  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
+  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
+  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+
+  for (final f in fileUrls) {
+    final fileName = f.split('/').last;
+    late String fileContent;
+    late bool aclFlag;
+
+    if (f.split('.').last == 'acl') {
+      fileContent = await genAclTTLStr(f,
+          publicAccess: fileName == '$permLogFile.acl'
+              ? AccessType.append
+              : AccessType.read);
+      aclFlag = true;
+    } else {
+      assert(fileName == permLogFile);
+      fileContent = await genPermLogTTLStr(f);
+      aclFlag = false;
+    }
+
+    await createResource(f, content: fileContent, replaceIfExist: aclFlag);
+  }
 }
