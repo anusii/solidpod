@@ -91,36 +91,73 @@ Future<String> genAclTTLStr(String resourceUrl,
   final nsSub = Namespace(ns: '$resourceUrl.acl#');
   final nsAcl = Namespace(ns: acl);
   final nsFoaf = Namespace(ns: foaf);
-  final nsVocab = Namespace(ns: rdfVocab);
+  final nsSyntax = Namespace(ns: rdfSyntax);
 
-  // URIRef(ACL_FILE_URL#owner):
+  // URIRef(RESOURCE_URL.acl#owner):
   // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef('URL_OF_public-key.ttl),
+  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
   //         URIRef('http://www.w3.org/ns/auth/acl#agent'): URIRef(WEB_ID),
-  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Write')},
+  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Control')},
 
   final ownerSub = nsSub.withAttr('owner');
   g.addTripleToGroups(
-      ownerSub, nsVocab.withAttr(typePred), nsAcl.withAttr(aclAuth));
+      ownerSub, nsSyntax.withAttr(typePred), nsAcl.withAttr(aclAuth));
   g.addTripleToGroups(ownerSub, nsAcl.withAttr(accessToPred), f);
   g.addTripleToGroups(ownerSub, nsAcl.withAttr(agentPred), URIRef(webId!));
   g.addTripleToGroups(
       ownerSub, nsAcl.withAttr(modePred), nsAcl.withAttr(ownerAccess.value));
 
-  // URIRef('ACL_FILE_URL#public'):
-  // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(URL_OF_public-key.ttl),
-  //         URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
-  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Write')
+  // URIRef(RESOURCE_URL.acl#public'):
+  //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
+  //    URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
+  //    URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
+  //    URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Read')
 
   final publicSub = nsSub.withAttr('public');
   g.addTripleToGroups(
-      publicSub, nsVocab.withAttr(typePred), nsAcl.withAttr(aclAuth));
+      publicSub, nsSyntax.withAttr(typePred), nsAcl.withAttr(aclAuth));
   g.addTripleToGroups(publicSub, nsAcl.withAttr(accessToPred), f);
   g.addTripleToGroups(
       publicSub, nsAcl.withAttr(agentClassPred), nsFoaf.withAttr(aclAgent));
   g.addTripleToGroups(
       publicSub, nsAcl.withAttr(modePred), nsAcl.withAttr(publicAccess.value));
+
+  // Bind the long namespace to shorter string for better readability
+
+  g.bind('acl', nsAcl);
+  g.bind('foaf', nsFoaf);
+  g.bind('syntax', nsSyntax);
+
+  // Serialise to TTL string
+
+  g.serialize(abbr: 'short');
+
+  return g.serializedString;
+}
+
+/// Generate permission log file content
+Future<String> genPermLogTTLStr(String resourceUrl) async {
+  final g = Graph();
+  final f = URIRef(resourceUrl);
+  final nsTerm = Namespace(ns: terms);
+  final nsFoaf = Namespace(ns: foaf);
+  final nsSyntax = Namespace(ns: rdfSyntax);
+
+  // URIRef(RESOURCE_URL):
+  //     URIRef('http://purl.org/dc/terms/title'): Literal('Permissions Log'),
+  //     URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://xmlns.com/foaf/0.1/PersonalProfileDocument')
+
+  g.addTripleToGroups(f, nsTerm.withAttr(titlePred), logFileTitle);
+  g.addTripleToGroups(
+      f, nsSyntax.withAttr(typePred), nsFoaf.withAttr(profileDoc));
+
+// Bind the long namespace to shorter string for better readability
+
+  g.bind('terms', nsTerm);
+  g.bind('foaf', nsFoaf);
+  g.bind('syntax', nsSyntax);
+
+  // Serialise to TTL string
 
   g.serialize(abbr: 'short');
 
