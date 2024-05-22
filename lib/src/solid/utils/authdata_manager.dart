@@ -241,14 +241,19 @@ class AuthDataManager {
     final dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
 
     if (dataStr != null) {
-      final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
-      _webId = dataMap['web_id'] as String;
-      _logoutUrl = dataMap['logout_url'] as String;
-      _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
-      _authResponse =
-          Credential.fromJson((dataMap['auth_response'] as Map).cast());
+      try {
+        final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
+        _webId = dataMap['web_id'] as String;
+        _logoutUrl = dataMap['logout_url'] as String;
+        _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
+        _authResponse =
+            Credential.fromJson((dataMap['auth_response'] as Map).cast());
 
-      return true;
+        return true;
+      } on Exception catch (e) {
+        debugPrint('AuthDataManager => _loadData() failed! $e');
+        return false;
+      }
     }
     return false;
   }
