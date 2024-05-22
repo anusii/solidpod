@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu, Anushka Vidanage
+/// Authors: Zheyuan Xu, Anushka Vidanage, Dawei Chen
 
 library;
 
@@ -38,8 +38,10 @@ import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart'
+    show AuthDataManager;
 import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/misc.dart' show initPod;
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
@@ -66,9 +68,101 @@ ElevatedButton resCreateFormSubmission(
   final isSmallDevice =
       screenWidth < 360; // A threshold for small devices, can be adjusted.
 
-// TODO:
-// This function needs refactoring to move the complex logic code into a
-// separate function (i.e. the middle level code)
+  // The (updated) original version of POD initialisation function
+  Future<void> _initPod(String securityKey) async {
+    final webId = await AuthDataManager.getWebId();
+    assert(webId != null);
+
+    // Variable to see whether we need to update the key files. Because if
+    // one file is missing we need to create asymmetric key pairs again.
+
+    var keyVerifyFlag = true;
+    String? encMasterKeyVerify;
+
+    // Asymmetric key pair
+
+    String? pubKeyStr;
+    String? prvKeyHash;
+    String? prvKeyIvz;
+
+    // Create files and directories flag
+
+    if (resFileNames.contains(encKeyFile) ||
+        resFileNames.contains(pubKeyFile)) {
+      // Generate master key
+
+      final masterKey = genMasterKey(securityKey);
+      encMasterKeyVerify = genVerificationKey(securityKey);
+      debugPrint('Security key: $securityKey');
+      debugPrint('Verification key: $encMasterKeyVerify');
+
+      // Generate asymmetric key pair
+      final (:publicKey, :privateKey) = await genRandRSAKeyPair();
+
+      // Encrypt private key
+
+      final iv = genRandIV();
+      prvKeyHash = encryptPrivateKey(privateKey, masterKey, iv);
+      prvKeyIvz = iv.base64;
+
+      // Get public key without start and end bit
+
+      pubKeyStr = dividePubKeyStr(publicKey);
+
+      if (!resFileNames.contains(encKeyFile)) {
+        keyVerifyFlag = verifySecurityKey(
+            securityKey, await KeyManager.getVerificationKey());
+      }
+    }
+
+    if (!keyVerifyFlag) {
+      // ignore: use_build_context_synchronously
+      await showErrDialog(context, 'Wrong encode key. Please try again!');
+    } else {
+      try {
+        for (final resLink in resFoldersLink) {
+          await createResource(resLink, fileFlag: false);
+        }
+
+        // Create files
+        for (final resLink in resFilesLink) {
+          final resName = resLink.split('/').last;
+          late String fileBody;
+
+          switch (resName) {
+            case encKeyFile:
+              fileBody = genEncKeyBody(
+                  encMasterKeyVerify!, prvKeyHash!, prvKeyIvz!, resLink);
+            case '$permLogFile.acl':
+              fileBody = genLogAclBody(webId!, resName.replaceAll('.acl', ''));
+            case '$pubKeyFile.acl':
+              fileBody = genPubFileAclBody(resName);
+            case '.acl':
+              fileBody = genPubDirAclBody();
+            case indKeyFile:
+              fileBody = genIndKeyFileBody();
+            case pubKeyFile:
+              fileBody = genPubKeyFileBody(resLink, pubKeyStr!);
+            case permLogFile:
+              fileBody = genLogFileBody();
+            default:
+              throw Exception('Unknown file $resName');
+          }
+
+          final aclFlag = resName.split('.').last == 'acl' ? true : false;
+
+          await createResource(resLink,
+              content: fileBody, replaceIfExist: aclFlag);
+        }
+      } on Exception catch (e) {
+        debugPrint('$e');
+      }
+
+      // Add encryption key to the local secure storage.
+      await KeyManager.setSecurityKey(securityKey);
+    }
+  }
+
   return ElevatedButton(
     onPressed: () async {
       if (formKey.currentState?.saveAndValidate() ?? false) {
@@ -78,108 +172,19 @@ ElevatedButton resCreateFormSubmission(
 
         final securityKey = formData[securityKeyStr].toString();
 
-        final webId = await AuthDataManager.getWebId();
-        assert(webId != null);
-
-        // Variable to see whether we need to update the key files. Because if
-        // one file is missing we need to create asymmetric key pairs again.
-
-        var keyVerifyFlag = true;
-        String? encMasterKeyVerify;
-
-        // Asymmetric key pair
-
-        String? pubKeyStr;
-        String? prvKeyHash;
-        String? prvKeyIvz;
-
-        // Create files and directories flag
-
-        if (resFileNames.contains(encKeyFile) ||
-            resFileNames.contains(pubKeyFile)) {
-          // Generate master key
-
-          final masterKey = genMasterKey(securityKey);
-          encMasterKeyVerify = genVerificationKey(securityKey);
-          debugPrint('Security key: $securityKey');
-          debugPrint('Verification key: $encMasterKeyVerify');
-
-          // Generate asymmetric key pair
-          final (:publicKey, :privateKey) = await genRandRSAKeyPair();
-
-          // Encrypt private key
-
-          final iv = genRandIV();
-          prvKeyHash = encryptPrivateKey(privateKey, masterKey, iv);
-          prvKeyIvz = iv.base64;
-
-          // Get public key without start and end bit
-
-          pubKeyStr = dividePubKeyStr(publicKey);
-
-          if (!resFileNames.contains(encKeyFile)) {
-            keyVerifyFlag = verifySecurityKey(
-                securityKey, await KeyManager.getVerificationKey());
-          }
+        try {
+          // await _initPod(securityKey);
+          await initPod(securityKey);
+        } on Exception catch (e) {
+          debugPrint(e.toString());
         }
 
-        if (!keyVerifyFlag) {
+        await Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
-          await showErrDialog(context, 'Wrong encode key. Please try again!');
-        } else {
-          try {
-            for (final resLink in resFoldersLink) {
-              await createResource(resLink, fileFlag: false);
-            }
-
-            // Create files
-            for (final resLink in resFilesLink) {
-              final resName = resLink.split('/').last;
-              var fileBody = '';
-
-              if (resName == encKeyFile) {
-                fileBody = genEncKeyBody(
-                    encMasterKeyVerify!, prvKeyHash!, prvKeyIvz!, resLink);
-              } else if (['$pubKeyFile.acl', '$permLogFile.acl']
-                  .contains(resName)) {
-                if (resName == '$permLogFile.acl') {
-                  fileBody =
-                      genLogAclBody(webId!, resName.replaceAll('.acl', ''));
-                } else {
-                  fileBody = genPubFileAclBody(resName);
-                }
-              } else if (resName == '.acl') {
-                fileBody = genPubDirAclBody();
-              } else if (resName == indKeyFile) {
-                fileBody = genIndKeyFileBody();
-              } else if (resName == pubKeyFile) {
-                fileBody = genPubKeyFileBody(resLink, pubKeyStr!);
-              } else if (resName == permLogFile) {
-                fileBody = genLogFileBody();
-              }
-
-              var aclFlag = false;
-              if (resName.split('.').last == 'acl') {
-                aclFlag = true;
-              }
-
-              await createResource(resLink,
-                  content: fileBody, replaceIfExist: aclFlag);
-            }
-          } on Exception catch (e) {
-            print('Exception: $e');
-          }
-
-          // Add encryption key to the local secure storage.
-          await KeyManager.setSecurityKey(securityKey);
-
-          await Navigator.pushReplacement(
-            // ignore: use_build_context_synchronously
-            context,
-            MaterialPageRoute(builder: (context) => child),
-          );
-          Navigator.pop(context);
-        }
+          context,
+          MaterialPageRoute(builder: (context) => child),
+        );
+        Navigator.pop(context);
       }
     },
     style: ElevatedButton.styleFrom(
