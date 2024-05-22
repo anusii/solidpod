@@ -174,7 +174,8 @@ ElevatedButton resCreateFormSubmission(
 
         try {
           // await _initPod(securityKey);
-          await initPod(securityKey);
+          await initPod(securityKey,
+              dirUrls: resFoldersLink, fileUrls: resFilesLink);
         } on Exception catch (e) {
           debugPrint(e.toString());
         }
