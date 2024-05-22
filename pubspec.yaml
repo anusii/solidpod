@@ -14,7 +14,6 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_form_builder: ^9.2.1
-  flutter_riverpod: ^2.5.1
   flutter_secure_storage: ^9.2.1
   flutter_svg: ^2.0.5
   form_builder_validators: ^9.1.0
@@ -26,7 +25,6 @@ dependencies:
   path: ^1.9.0
   rdflib: ^0.2.8
   solid_auth: ^0.1.17 # solid-auth updated the token refreshing API since version 0.1.17
-  solid_encrypt: ^0.1.10
   url_launcher: ^6.2.4
 
 dev_dependencies:
