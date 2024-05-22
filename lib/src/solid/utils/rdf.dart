@@ -125,7 +125,7 @@ Future<String> genAclTTLStr(String resourceUrl,
   // Bind the long namespace to shorter string for better readability
 
   g.bind('acl', nsAcl);
-  g.bind('foaf', nsFoaf);
+  // g.bind('foaf', nsFoaf); // causes "Exception: foaf: already exists in prefixed namespaces!"
   g.bind('syntax', nsSyntax);
 
   // Serialise to TTL string
@@ -154,7 +154,7 @@ Future<String> genPermLogTTLStr(String resourceUrl) async {
 // Bind the long namespace to shorter string for better readability
 
   g.bind('terms', nsTerm);
-  g.bind('foaf', nsFoaf);
+  // g.bind('foaf', nsFoaf);
   g.bind('syntax', nsSyntax);
 
   // Serialise to TTL string
