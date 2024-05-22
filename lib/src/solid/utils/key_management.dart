@@ -183,7 +183,7 @@ class KeyManager {
     // Set the public-private key pair
 
     final pair = await genRandRSAKeyPair();
-    _pubKey = pair.publicKey;
+    _pubKey = trimPubKeyStr(pair.publicKey);
     final iv = genRandIV();
     _prvKeyRecord = _PrvKeyRecord(
         encKeyBase64: encryptPrivateKey(pair.privateKey, _masterKey!, iv),
