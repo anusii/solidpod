@@ -44,6 +44,7 @@ const String encKeyFile = 'enc-keys.ttl';
 const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
+const String sharedKeyFile = 'shared-keys.ttl';
 
 const dataDir = 'data';
 const sharingDir = 'sharing';
@@ -71,12 +72,9 @@ const String encDataPred = 'encData';
 /// String link variables used in files generation process for defining ttl
 /// file content.
 
-const String appsTerms = 'https://solidcommunity.au/predicates/terms#';
 const String terms = 'http://purl.org/dc/terms/';
 const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String appsFile = 'https://solidcommunity.au/predicates/file#';
-const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String variables for creating files and directories on solid server

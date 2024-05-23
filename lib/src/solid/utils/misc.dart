@@ -37,6 +37,7 @@ import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
@@ -209,6 +210,18 @@ Future<String> getPubKeyPath() async =>
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
 
+/// Returns the path of the shared directory
+Future<String> getSharedDirPath() async =>
+    [await AppInfo.canonicalName, sharedDir].join('/');
+
+/// Returns the path of the shared directory
+Future<String> getSharedKeyFilePath(String senderName) async => [
+      await AppInfo.canonicalName,
+      sharedDir,
+      senderName,
+      sharedKeyFile
+    ].join('/');
+
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)
 
@@ -317,6 +330,19 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     encDirLoc: [encKeyFile, indKeyFile],
   };
   return files;
+}
+
+/// Get resource acl file path
+String getResAclFile(String resourceUrl) {
+  final resourceAclUrl =
+      resourceUrl.endsWith('.acl') ? resourceUrl : resourceUrl + '.acl';
+
+  return resourceAclUrl;
+}
+
+/// Get resource name from URL
+String getResNameFromUrl(String resourceUrl) {
+  return resourceUrl.split('/').last;
 }
 
 /// Logging out the user

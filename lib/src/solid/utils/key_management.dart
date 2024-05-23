@@ -43,6 +43,7 @@ import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Derive the master key from the security key
