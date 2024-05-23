@@ -95,46 +95,50 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    FormBuilderTextField(
-                      name: inputKey,
-                      obscureText:
-                          // Controls whether the security key is shown or hidden.
-                          !_showKey,
-                      autocorrect: false,
-                      decoration: InputDecoration(
-                        labelText: 'SECURITY KEY',
-                        labelStyle: const TextStyle(
-                          color: Colors.blue,
-                          letterSpacing: 1.5,
-                          fontSize: 13.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(_showKey
-                              ? Icons.visibility
-                              : Icons.visibility_off),
-                          onPressed: () {
-                            setState(() {
-                              // Toggle the state to show/hide the security key.
-                              _showKey = !_showKey;
-                            });
-                          },
-                        ),
-                      ),
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(),
-                        (val) {
-                          if (!widget.verifySecurityKeyFunc(val as String)) {
-                            keyVerified = false;
-                            debugPrint('keyVerified: $keyVerified');
-                            return 'Incorrect Security Key';
-                          } else {
-                            keyVerified = true;
-                            debugPrint('keyVerified: $keyVerified');
-                          }
-                          return null;
-                        },
-                      ]),
+                    StatefulBuilder(
+                      builder: (BuildContext context, StateSetter setState) {
+                        return FormBuilderTextField(
+                          name: inputKey,
+                          obscureText:
+                              !_showKey, // Controls whether the security key is shown or hidden.
+                          autocorrect: false,
+                          decoration: InputDecoration(
+                            labelText: 'SECURITY KEY',
+                            labelStyle: const TextStyle(
+                              color: Colors.blue,
+                              letterSpacing: 1.5,
+                              fontSize: 13.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(_showKey
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
+                              onPressed: () {
+                                setState(() {
+                                  // Toggle the state to show/hide the security key.
+                                  _showKey = !_showKey;
+                                });
+                              },
+                            ),
+                          ),
+                          validator: FormBuilderValidators.compose([
+                            FormBuilderValidators.required(),
+                            (val) {
+                              if (!widget
+                                  .verifySecurityKeyFunc(val as String)) {
+                                keyVerified = false;
+                                debugPrint('keyVerified: $keyVerified');
+                                return 'Incorrect Security Key';
+                              } else {
+                                keyVerified = true;
+                                debugPrint('keyVerified: $keyVerified');
+                              }
+                              return null;
+                            },
+                          ]),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -143,7 +147,6 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 ElevatedButton(
                     onPressed: () async {
-                      //(formKey.currentState?.validate() ?? true)
                       if (keyVerified) {
                         debugPrint('keyVerified: $keyVerified');
                         final formData = formKey.currentState?.value as Map;
@@ -171,7 +174,7 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
                     },
                     child: const Text(
                       'OK',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(color: Colors.black, fontSize: 12),
                     )),
                 const SizedBox(width: 10),
                 ElevatedButton(
@@ -183,7 +186,7 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
                     },
                     child: const Text(
                       'Cancel',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(color: Colors.black, fontSize: 12),
                     ))
               ]),
             ])));
