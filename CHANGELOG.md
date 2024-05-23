@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Fix security key reloads bug, change button text colour. [0.5.26] 
 + Add version number to login screen. [0.5.25]
 + Fix login animation won't disappear in some cases. [0.5.24]
 + Implement API for changing "security key". [0.5.23]
