@@ -34,14 +34,12 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show saveWebId, checkLoggedIn;
+import 'package:solidpod/src/solid/utils/misc.dart' show checkLoggedIn;
 
 // Scopes variables used in the authentication process.
 
@@ -75,6 +73,7 @@ Future<List<dynamic>?> solidAuthenticate(
       assert(authData != null);
     } else {
       // Authentication process for the POD issuer.
+
       final issuerUri = await getIssuer(serverId);
       authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
@@ -86,20 +85,10 @@ Future<List<dynamic>?> solidAuthenticate(
       await AuthDataManager.saveAuthData(authData);
     }
 
-    final accessToken = authData!['accessToken'].toString();
-    final decodedToken = JwtDecoder.decode(accessToken);
-    final webId = decodedToken['webid'].toString();
+    final webId = await AuthDataManager.getWebId();
+    assert(webId != null);
 
-    await saveWebId(webId);
-
-    // final rsaInfo = authData['rsaInfo'];
-    // final rsaKeyPair = rsaInfo['rsa'];
-    // final publicKeyJwk = rsaInfo['pubKeyJwk'];
-    final profCardUrl = webId.replaceAll('#me', '');
-
-    // final dPopToken =
-    //     genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-
+    final profCardUrl = webId!.replaceAll('#me', '');
     final profData = await fetchPrvFile(profCardUrl);
 
     return [authData, webId, profData];

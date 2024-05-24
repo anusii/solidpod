@@ -32,16 +32,15 @@
 
 library;
 
-import 'package:fast_rsa/fast_rsa.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
-import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
 
 /// Parses file information and extracts content into a map.
 ///
@@ -119,7 +118,7 @@ Future<List<dynamic>> initialStructureTest(
   for (final containerName in folders) {
     // NB: the trailing separator in path is essential for this check
     final resourceUrl = await getDirUrl(containerName);
-    if (await checkResourceExists(resourceUrl, false) ==
+    if (await checkResourceStatus(resourceUrl, false) ==
         ResourceStatus.notExist) {
       allExists = false;
 
@@ -133,7 +132,7 @@ Future<List<dynamic>> initialStructureTest(
     for (final fileName in fileNameList) {
       final resourceUrl =
           await getFileUrl([containerName as String, fileName].join('/'));
-      if (await checkResourceExists(resourceUrl, false) ==
+      if (await checkResourceStatus(resourceUrl, false) ==
           ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
@@ -207,122 +206,8 @@ Future<void> createResource(String resourceUrl,
   }
 }
 
-/// From a given resource path create its URL
-///
-/// returns the full resource URL
-
-// Future<String> getResourceUrl(String resourcePath) async {
-//   final webId = await getWebId();
-//   assert(webId != null);
-//   assert(webId!.contains(profCard));
-//   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
-//   return resourceUrl;
-// }
-
-// /// Asynchronously creates a file or directory on a server using HTTP requests.
-// ///
-// /// PUT request: create or replace a resource
-// /// POST request: create a resource
-
-// Future<void> createItem(bool fileFlag, String itemName, String itemBody,
-//     {required String fileLoc, String? fileType, bool aclFlag = false}) async {
-//   String? itemLoc = '';
-//   var itemSlug = '';
-//   var itemType = '';
-//   var contentType = '';
-
-//   // Set up directory or file parameters.
-//   if (fileFlag) {
-//     itemLoc = fileLoc;
-//     itemSlug = itemName;
-//     contentType = fileType!;
-//     itemType = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
-//   } else {
-//     itemLoc = fileLoc;
-//     itemSlug = itemName;
-//     contentType = 'application/octet-stream';
-//     itemType = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
-//   }
-
-//   // final resourcePath = fileFlag ? itemLoc : '$itemLoc/';
-//   // final encDataUrl = webId!.contains(profCard)
-//   //     ? webId.replaceAll(profCard, itemLoc)
-//   //     : fileFlag
-//   //         ? '$webId$itemLoc'
-//   //         : '$webId/$itemLoc';
-//   final resourceUrl = await getResourceUrl(itemLoc);
-
-//   final http.Response createResponse;
-
-//   if (aclFlag) {
-//     // final aclFileUrl = webId.contains(profCard)
-//     //     ? webId.replaceAll(profCard, '$itemLoc$itemName')
-//     //     : '$webId/$itemLoc$itemName';
-//     // final dPopToken = genDpopToken(aclFileUrl, rsaKeyPair, publicKeyJwk, 'PUT');
-//     final aclFileUrl = await getResourceUrl(path.join(itemLoc, itemName));
-//     final (:accessToken, :dPopToken) =
-//         await getTokensForResource(aclFileUrl, 'PUT');
-
-//     // The PUT request will create the acl item in the server.
-//     print('CREATE: $aclFileUrl\n');
-
-//     createResponse = await http.put(
-//       Uri.parse(aclFileUrl),
-//       headers: <String, String>{
-//         'Accept': '*/*',
-//         'Authorization': 'DPoP $accessToken',
-//         'Connection': 'keep-alive',
-//         'Content-Type': 'text/turtle',
-//         'Content-Length': itemBody.length.toString(),
-//         'DPoP': dPopToken,
-//       },
-//       body: itemBody,
-//     );
-//   } else {
-//     final (:accessToken, :dPopToken) =
-//         await getTokensForResource(resourceUrl, 'POST');
-
-//     // The POST request will create the item in the server.
-
-//     print('CREATE: $resourceUrl');
-//     print('SLUG  : $itemSlug\n');
-
-//     createResponse = await http.post(
-//       Uri.parse(resourceUrl),
-//       headers: <String, String>{
-//         'Accept': '*/*',
-//         'Authorization': 'DPoP $accessToken',
-//         'Connection': 'keep-alive',
-//         'Content-Type': contentType,
-//         'Link': itemType,
-//         'Slug': itemSlug,
-//         'DPoP': dPopToken,
-//       },
-//       body: itemBody,
-//     );
-//   }
-
-//   // if (createResponse.statusCode == 200 || createResponse.statusCode == 201) {
-//   //   // If the server did return a 200 OK response,
-//   //   // then parse the JSON.
-//   //   return 'ok';
-//   // } else {
-//   if (createResponse.statusCode != 200 && createResponse.statusCode != 201) {
-//     // If the server did not return a 200 OK response,
-//     // then throw an exception.
-//     throw Exception('Failed to create resource! Try again in a while.');
-//   }
-// }
-
 /// Delete a file or a directory
-Future<void> deleteItem(bool fileFlag, String itemLoc) async {
-  // Set up file (resource) or directory (container) parameters
-  final contentType = fileFlag ? 'text/turtle' : 'application/octet-stream';
-
-  // String encKeyUrl = webId!.replaceAll(profCard, itemLoc);
-  // String dPopToken =
-  //     genDpopToken(encKeyUrl, rsaKeyPair, publicKeyJwk, 'DELETE');
-
+Future<void> deleteResource(bool fileFlag, String itemLoc) async {
   final resourceUrl =
       fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
   final (:accessToken, :dPopToken) =
@@ -334,33 +219,14 @@ Future<void> deleteItem(bool fileFlag, String itemLoc) async {
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
-      'Content-Type': contentType,
+      'Content-Type': fileFlag ? fileContentType : dirContentType,
       'DPoP': dPopToken,
     },
   );
 
-  // if (createResponse.statusCode == 200 || createResponse.statusCode == 205) {
-  //   // If the server did return a 200 OK response,
-  //   // then parse the JSON.
-  //   return 'ok';
-  // } else {
   if (createResponse.statusCode != 200 && createResponse.statusCode != 205) {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
     throw Exception('Failed to delete file! Try again in a while.');
   }
-}
-
-/// Enum of resource status
-enum ResourceStatus {
-  /// The resource exist
-  exist,
-
-  /// The resource does not exist
-  notExist,
-
-  /// Do not know if the resource exist (e.g. error occurred when checking the status)
-  unknown
 }
 
 /// Asynchronously checks whether a given resource exists on the server.
@@ -368,36 +234,21 @@ enum ResourceStatus {
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
 
-Future<ResourceStatus> checkResourceExists(String resUrl, bool fileFlag) async {
-  String contentType;
-  String itemType;
-  if (fileFlag) {
-    contentType = '*/*';
-    itemType = fileTypeLink;
-  } else {
-    /// This is a directory (container)
-    contentType = dirContentType;
-    itemType = dirTypeLink;
-  }
-
+Future<ResourceStatus> checkResourceStatus(String resUrl, bool fileFlag) async {
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
-      'Content-Type': contentType,
+      'Content-Type': fileFlag ? '*/*' : dirContentType,
       'Authorization': 'DPoP $accessToken',
-      'Link': itemType,
+      'Link': fileFlag ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
     },
   );
 
   if (response.statusCode == 200 || response.statusCode == 204) {
-    // If the server did return a 200 OK response,
-    // then return true.
     return ResourceStatus.exist;
   } else if (response.statusCode == 404) {
-    // If the server did not return a 200 OK response,
-    // then return false.
     return ResourceStatus.notExist;
   } else {
     return ResourceStatus.unknown;
@@ -431,14 +282,7 @@ Future<void> updateFileByQuery(
     body: query,
   );
 
-  // if (editResponse.statusCode == 200 || editResponse.statusCode == 205) {
-  //   // If the server did return a 200 OK response,
-  //   // then parse the JSON.
-  //   return 'ok';
-  // } else {
   if (editResponse.statusCode != 200 && editResponse.statusCode != 205) {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
     throw Exception('Failed to write profile data! Try again in a while.');
   }
 }
@@ -569,11 +413,9 @@ Future<void> updateIndKeyFile(
 /// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
 
 Future<void> initialProfileUpdate(String profBody) async {
-  final webId = await getWebId();
+  final webId = await AuthDataManager.getWebId();
   assert(webId != null);
   final profUrl = webId!.replaceAll('#me', '');
-  // final dPopToken =
-  //     genDpopToken(profUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'PUT');
 
   final (:accessToken, :dPopToken) = await getTokensForResource(profUrl, 'PUT');
 
@@ -591,60 +433,9 @@ Future<void> initialProfileUpdate(String profBody) async {
     body: profBody,
   );
 
-  // if (updateResponse.statusCode == 200 || updateResponse.statusCode == 205) {
-  //   // If the server did return a 205 Reset response,
-  //   return 'ok';
-  // } else {
   if (updateResponse.statusCode != 200 && updateResponse.statusCode != 205) {
-    // If the server did not return a 205 response,
-    // then throw an exception.
     throw Exception('Failed to update resource! Try again in a while.');
   }
-}
-
-/// TODO:
-/// keypod is hard-coded in the keyFileUrl, this likely needs to be updated.
-///
-/// Get encryption keys from the private file
-///
-/// returns the file content
-
-Future<String> fetchKeyData() async {
-  final webId = await getWebId();
-  assert(webId != null);
-  final authData = await AuthDataManager.loadAuthData();
-  assert(authData != null);
-
-  final rsaInfo = authData!['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  final accessToken = authData['accessToken'];
-  final keyFileUrl = webId!.replaceAll(profCard, 'keypod/$encDir/$encKeyFile');
-  final dPopTokenKey =
-      genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'GET');
-
-  final keyData = await fetchPrvFile(keyFileUrl);
-
-  return keyData;
-}
-
-/// Get tokens necessary to fetch a resource from a POD
-///
-/// returns the access token and DPoP token
-
-Future<({String accessToken, String dPopToken})> getTokensForResource(
-    String resourceUrl, String httpMethod) async {
-  final authData = await AuthDataManager.loadAuthData();
-  assert(authData != null);
-
-  final rsaInfo = authData!['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
-
-  return (
-    accessToken: authData['accessToken'] as String,
-    dPopToken: genDpopToken(resourceUrl, rsaKeyPair, publicKeyJwk, httpMethod),
-  );
 }
 
 /// Get the list of sub-containers and files in a container
@@ -670,7 +461,7 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
   );
 
   if (profResponse.statusCode == 200) {
-    // print(profResponse.body.runtimeType); // String
+    debugPrint(profResponse.body.runtimeType as String); // String
 
     // NB: rdflib-0.2.8 (dart) is not able to parse this but
     //     rdflib-7.0.0 (python) can parse it
@@ -680,8 +471,8 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 
     final (:subDirs, :files) = _parseGetContainerResponse(profResponse.body);
 
-    // print('SubDirs: |${subDirs.join(", ")}|');
-    // print('Files  : |${files.join(", ")}|');
+    debugPrint('SubDirs: |${subDirs.join(", ")}|');
+    debugPrint('Files  : |${files.join(", ")}|');
 
     return (subDirs: subDirs, files: files);
   } else {

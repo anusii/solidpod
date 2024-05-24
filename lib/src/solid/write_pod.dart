@@ -39,6 +39,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/constants.dart' show ResourceStatus;
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
@@ -61,7 +62,7 @@ Future<void> writePod(String fileName, String fileContent, BuildContext context,
   // Check if the file already exists
 
   final fileUrl = await getFileUrl(filePath);
-  final fileExists = await checkResourceExists(fileUrl, true);
+  final fileExists = await checkResourceStatus(fileUrl, true);
 
   // Reuse the individual key if the file already exists
   late final Key indKey;

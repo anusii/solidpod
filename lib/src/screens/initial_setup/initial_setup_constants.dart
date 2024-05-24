@@ -67,7 +67,10 @@ const initialStructureMsg = 'We notice that you have either created'
 
 /// The string key of input form for the input of security key
 
-const securityKeyStr = 'SecurityKey';
+const securityKeyStr = '_security_key';
+
+/// The string key of the input form for retyping the security key
+const securityKeyStrReType = '__security_key';
 
 /// Text string variables used for informing the user about the input of
 /// security key for encryption.

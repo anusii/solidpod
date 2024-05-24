@@ -36,6 +36,9 @@ class AppInfo {
   /// Instance caching results of async call: `await PackageInfo.fromPlatform()`
   static PackageInfo? _info;
 
+  /// The canonical name of the app, see `_genCanonicalName()`
+  static String? _canonicalName;
+
   /// Get the app name from pubspec.yml
   static Future<String> get name async {
     _info ??= await PackageInfo.fromPlatform();
@@ -48,13 +51,10 @@ class AppInfo {
     return _info!.version;
   }
 
-  /// Get the app name from pubspec.yml and
-  /// 1. Remove any leading and trailing whitespace
-  /// 2. Convert to lower case
-  /// 3. Replace (one or multiple) white spaces with an underscore
+  /// Get the canonical name of the app, see `_genCanonicalName()`
   static Future<String> get canonicalName async {
-    _info ??= await PackageInfo.fromPlatform();
-    return _info!.appName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+    _canonicalName ??= await _genCanonicalName();
+    return _canonicalName!;
   }
 
   /// Get the name of the package that provides the app
@@ -67,5 +67,14 @@ class AppInfo {
   static Future<String> get buildNumber async {
     _info ??= await PackageInfo.fromPlatform();
     return _info!.buildNumber;
+  }
+
+  /// Generate the canonical name of the app from the name in pubspec.yml:
+  /// 1. Remove any leading and trailing whitespace
+  /// 2. Convert to lower case
+  /// 3. Replace (one or multiple) white spaces with an underscore
+  static Future<String> _genCanonicalName() async {
+    _info ??= await PackageInfo.fromPlatform();
+    return _info!.appName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
   }
 }

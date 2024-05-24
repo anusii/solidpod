@@ -40,6 +40,7 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Read file content from a POD
 ///
@@ -55,7 +56,7 @@ Future<String?> readPod(
   // Check if the requested file exists
 
   final fileUrl = await getFileUrl(filePath);
-  final fileExists = await checkResourceExists(fileUrl, true);
+  final fileExists = await checkResourceStatus(fileUrl, true);
 
   if (fileExists == ResourceStatus.exist) {
     try {
@@ -68,18 +69,6 @@ Future<String?> readPod(
 
         // Get the individual key for the file
         final indKey = await KeyManager.getIndividualKey(fileUrl);
-
-        // Get the (decrypted) individual key
-
-        // final indKeyPath = await getIndKeyPath();
-        // final indKeyMap = await loadPrvTTL(indKeyPath);
-        // assert(indKeyMap!.containsKey(fileUrl));
-
-        // final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
-        // final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
-
-        // final indKey =
-        //     Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
 
         // Decrypt the file content
 

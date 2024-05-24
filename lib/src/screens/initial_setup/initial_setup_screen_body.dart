@@ -35,13 +35,11 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:solid_auth/solid_auth.dart';
 
-import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
+import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
+import 'package:solidpod/src/widgets/logout_dialog.dart' show logoutPopup;
 
 /// A [StatefulWidget] that represents the initial setup screen for the desktop version of an application.
 ///
@@ -95,9 +93,14 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 
     final combinedLinks = resFoldersLink + resFilesLink;
 
-    final commonBaseUrl = extractCommonBaseUrl(combinedLinks);
+    // Get the common path among the URLs
 
-    final baseUrl = '$commonBaseUrl/';
+    combinedLinks.sort((a, b) => a.length.compareTo(b.length));
+    var baseUrl = combinedLinks.first;
+    if (!baseUrl.endsWith('/')) {
+      final items = baseUrl.split('/');
+      baseUrl = '${items.getRange(0, items.length - 2).join('/')}/';
+    }
 
     final extractedParts = combinedLinks
         .map((url) {
@@ -127,7 +130,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
       // Sort alphabetically.
       ..sort();
 
-    final resFileNamesLink = (widget.resNeedToCreate['fileNames'] as List)
+    final resFileNames = (widget.resNeedToCreate['fileNames'] as List)
         .map((item) => item.toString())
         .toList();
 
@@ -176,11 +179,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         ),
                                       ),
                                       onPressed: () async {
-                                        Navigator.pop(context);
-                                        final logoutUrl = await AuthDataManager
-                                            .getLogoutUrl();
+                                        // Navigator.pop(context);
 
-                                        await logout(logoutUrl);
+                                        await logoutPopup(
+                                            context, widget.child);
                                       },
                                       style: TextButton.styleFrom(
                                         backgroundColor: Colors
@@ -199,6 +201,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                         children: [
                                           ResourceCreationTextWidget(
                                             resLinks: combinedLinks,
+                                            baseUrl: baseUrl,
                                           ),
                                           const Divider(
                                             color: Colors.grey,
@@ -207,7 +210,11 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                                               in extractedParts) ...[
                                             ListTile(
                                               title: Text(resLink!),
-                                              leading: const Icon(Icons.folder),
+                                              leading: Icon(resLink
+                                                      .endsWith('/')
+                                                  ? Icons.folder
+                                                  : Icons
+                                                      .insert_drive_file_outlined),
                                             ),
                                           ],
                                           const SizedBox(
@@ -228,7 +235,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                 resCreateFormSubmission(
                   formKey,
                   context,
-                  resFileNamesLink,
+                  resFileNames,
                   resFoldersLink,
                   resFilesLink,
                   widget.child,
@@ -242,23 +249,16 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
   }
 }
 
-String extractCommonBaseUrl(List<String> urls) {
-  if (urls.isEmpty) return '';
-
-  final sampleUrl = urls.first;
-
-  return sampleUrl;
-}
-
 class ResourceCreationTextWidget extends StatelessWidget {
-  const ResourceCreationTextWidget({required this.resLinks, super.key});
+  const ResourceCreationTextWidget(
+      {required this.resLinks, required this.baseUrl, super.key});
   final List<String> resLinks;
+  final String baseUrl;
 
   String getResourceCreationMessage() {
     if (resLinks.isEmpty) return 'No resources specified';
 
-    final baseUrl = resLinks.first.split('/').take(5).join('/');
-    return 'Resources to be created within \n $baseUrl';
+    return 'Resources to be created within\n$baseUrl';
   }
 
   @override

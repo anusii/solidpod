@@ -62,11 +62,25 @@ const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';
+const String typePred = 'type';
+const String accessToPred = 'accessTo';
+const String agentPred = 'agent';
+const String modePred = 'mode';
+const String agentClassPred = 'agentClass';
 // const String createdDateTimePred = 'createdDateTime';
 // const String modifiedDateTimePred = 'modifiedDateTime';
 // const String noteTitlePred = 'noteTitle';
 // const String encNoteContentPred = 'encNoteContent';
 // const String noteFileNamePrefix = 'note-';
+
+/// String terms used as values in ttl files.
+
+const String aclAuth = 'Authorization';
+const String aclRead = 'Read';
+const String aclWrite = 'Write';
+const String aclControl = 'Control';
+const String aclAgent = 'Agent';
+const String profileDoc = 'PersonalProfileDocument';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
@@ -77,6 +91,7 @@ const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
+const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String variables for creating files and directories on solid server
@@ -93,17 +108,46 @@ const String encKeyFileTitle = 'Encryption keys';
 const String indKeyFileTitle = 'Individual Encryption Keys';
 const String pubKeyFileTitle = 'Public key';
 
+/// String variable for log files
+
+const String logFileTitle = 'Permissions Log';
+
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage();
 
-/// The string key for storing the master password for encryption (from which
-/// we derive the master key to encrypt the individual keys -- AES keys that
-/// are used to encrypt the data in PODs) in secure storage.
+/// Enum of resource status
 
-String masterPasswdSecureStorageKey = '_pods_master_passwd';
+enum ResourceStatus {
+  /// The resource exist
+  exist,
 
-/// The string key for storing the web ID
+  /// The resource does not exist
+  notExist,
 
-String webIdSecureStorageKey = '_web_id';
+  /// Do not know if the resource exist (e.g. error occurred when checking the status)
+  unknown
+}
+
+/// Types of access to a resource
+
+enum AccessType {
+  /// Read access
+  read('Read'),
+
+  /// Write access
+  write('Write'),
+
+  /// Control access
+  control('Control'),
+
+  /// Append data (a type of write)
+  append('Append');
+
+  /// Constructor
+  const AccessType(this.value);
+
+  /// String value of the access type
+  final String value;
+}
