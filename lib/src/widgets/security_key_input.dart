@@ -1,5 +1,4 @@
-/// A screen for inputting the security key for encryption, verify and
-/// save the security key to local secure storage
+/// Input security key for encryption.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -36,10 +35,12 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 
 import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
 
-/// SecurityKeyInput is a [StatefulWidget] for user to enter
-/// the security key for data encryption.
+/// A [StatefulWidget] for user to enter the security key for data
+/// encryption. It is verified and saved to local secure storage
+
 class SecurityKeyInput extends StatefulWidget {
-  /// Constructor
+  /// Constructor.
+
   const SecurityKeyInput(
       {required this.verifySecurityKeyFunc, required this.child, super.key});
 
