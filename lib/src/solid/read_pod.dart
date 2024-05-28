@@ -62,9 +62,9 @@ Future<String?> readPod(
     try {
       final fileContent = await fetchPrvFile(fileUrl);
 
-      // Decrypt if reading a data file (which is encrypted)
+      // Decrypt if reading an encrypted file
 
-      if (path.split(filePath)[1] == dataDir) {
+      if (await KeyManager.hasIndividualKey(fileUrl)) {
         await getKeyFromUserIfRequired(context, child);
 
         // Get the individual key for the file
@@ -81,8 +81,10 @@ Future<String?> readPod(
         return fileContent;
       }
     } on Exception catch (e) {
-      print('Exception: $e');
+      debugPrint(e.toString());
     }
   }
+
+  debugPrint('Resource "$filePath" does not exist.');
   return null;
 }
