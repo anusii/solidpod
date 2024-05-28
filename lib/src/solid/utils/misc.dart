@@ -359,7 +359,8 @@ Future<void> initPod(String securityKey,
   // Create the required directories
 
   for (final d in dirUrls) {
-    await createResource(d, fileFlag: false);
+    await createResource(d,
+        fileFlag: false, contentType: ContentType.directory);
   }
 
   // Check (and generate) the file URLs

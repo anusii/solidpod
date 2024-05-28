@@ -152,12 +152,14 @@ Future<List<dynamic>> initialStructureTest(
 Future<void> createResource(String resourceUrl,
     {String content = '',
     bool fileFlag = true,
-    bool replaceIfExist = false}) async {
+    bool replaceIfExist = false,
+    ContentType contentType = ContentType.turtleText}) async {
   // Sanity check
   if (fileFlag) {
     assert(!resourceUrl.endsWith('/'));
   } else {
     assert(resourceUrl.endsWith('/'));
+    assert(contentType == ContentType.directory);
   }
 
   // Use PUT request for creating and replacing a file if it already exists
@@ -188,7 +190,7 @@ Future<void> createResource(String resourceUrl,
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
-      'Content-Type': fileFlag ? fileContentType : dirContentType,
+      'Content-Type': contentType.value,
       if (put) 'Content-Length': content.length.toString(),
       if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
       if (!put) 'Slug': name,
@@ -207,7 +209,8 @@ Future<void> createResource(String resourceUrl,
 }
 
 /// Delete a file or a directory
-Future<void> deleteResource(bool fileFlag, String itemLoc) async {
+Future<void> deleteResource(bool fileFlag, String itemLoc,
+    {required ContentType contentType}) async {
   final resourceUrl =
       fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
   final (:accessToken, :dPopToken) =
@@ -219,7 +222,7 @@ Future<void> deleteResource(bool fileFlag, String itemLoc) async {
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
-      'Content-Type': fileFlag ? fileContentType : dirContentType,
+      'Content-Type': contentType.value,
       'DPoP': dPopToken,
     },
   );
@@ -239,7 +242,8 @@ Future<ResourceStatus> checkResourceStatus(String resUrl, bool fileFlag) async {
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
-      'Content-Type': fileFlag ? '*/*' : dirContentType,
+      'Content-Type':
+          fileFlag ? ContentType.any.value : ContentType.directory.value,
       'Authorization': 'DPoP $accessToken',
       'Link': fileFlag ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
