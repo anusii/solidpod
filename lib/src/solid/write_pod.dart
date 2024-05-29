@@ -44,11 +44,11 @@ import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Write file [fileName] and content [fileContent] to PODs
-/// The content will be encrypted if [encryptContent] is true.
+/// The content will be encrypted if [encrypted] is true.
 
 Future<void> writePod(
     String fileName, String fileContent, BuildContext context, Widget child,
-    {bool encryptContent = true}) async {
+    {bool encrypted = true}) async {
   // Write data to file in the data directory
   final filePath = path.join(await getDataDirPath(), fileName);
 
@@ -62,7 +62,7 @@ Future<void> writePod(
   final replace = fileExists == ResourceStatus.exist ? true : false;
   late final String content;
 
-  if (encryptContent) {
+  if (encrypted) {
     // Get the security key (and cache it in KeyManager)
     await getKeyFromUserIfRequired(context, child);
 
