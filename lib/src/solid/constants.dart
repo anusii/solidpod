@@ -139,6 +139,9 @@ enum ContentType {
   /// Directory
   directory('application/octet-stream'),
 
+  /// Binary data
+  binary('application/octet-stream'),
+
   /// Any
   any('*/*');
 
