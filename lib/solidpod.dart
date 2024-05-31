@@ -44,6 +44,7 @@ export 'src/solid/popup_login.dart' show SolidPopupLogin;
 // rest_api?
 
 export 'src/solid/api/rest_api.dart' show getFileContent;
+export 'src/solid/common_func.dart';
 export 'src/solid/utils/misc.dart';
 export 'src/solid/utils/key_management.dart' show KeyManager;
 export 'src/solid/change_key.dart' show changeKeyPopup;
