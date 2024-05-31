@@ -44,73 +44,52 @@ import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Write file [fileName] and content [fileContent] to PODs
+/// The content will be encrypted if [encrypted] is true.
 
-Future<void> writePod(String fileName, String fileContent, BuildContext context,
-    Widget child) async {
+Future<void> writePod(
+    String fileName, String fileContent, BuildContext context, Widget child,
+    {bool encrypted = true}) async {
   // Write data to file in the data directory
   final filePath = path.join(await getDataDirPath(), fileName);
 
   await loginIfRequired(context);
-
-  await getKeyFromUserIfRequired(context, child);
-
-  // Get master key for encryption
-
-  // final securityKey = await getVerifiedSecurityKey(context, child);
-  // final masterKey = genMasterKey(securityKey);
 
   // Check if the file already exists
 
   final fileUrl = await getFileUrl(filePath);
   final fileExists = await checkResourceStatus(fileUrl, true);
 
-  // Reuse the individual key if the file already exists
-  late final Key indKey;
-  late final bool replace;
+  final replace = fileExists == ResourceStatus.exist ? true : false;
+  late final String content;
 
-  if (fileExists == ResourceStatus.exist) {
-    replace = true;
-    // Delete the existing file
+  if (encrypted) {
+    // Get the security key (and cache it in KeyManager)
+    await getKeyFromUserIfRequired(context, child);
 
-    // try {
-    //   await deleteItem(true, filePath);
-    // } on Exception catch (e) {
-    //   print('Exception: $e');
-    // }
+    late final Key indKey;
 
-    // Get (and decrypt) the individual key from ind-key file
-    // (the TTL file with encrypted individual keys and IVs)
+    switch (fileExists) {
+      case ResourceStatus.exist:
+        // Reuse the individual key if the file already exists
+        indKey = await KeyManager.getIndividualKey(fileUrl);
 
-    // final indKeyPath = await getIndKeyPath();
-    // final indKeyUrl = await getFileUrl(indKeyPath);
-    // final indKeyMap = await loadPrvTTL(indKeyUrl);
-    // assert(indKeyMap.containsKey(fileUrl));
+      case ResourceStatus.notExist:
+        // Generate random individual key
+        indKey = genRandIndividualKey();
 
-    // final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
-    // final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
+        // Add the encrypted individual key and its IV to the ind-key file
+        await KeyManager.putIndividualKey(filePath, indKey);
 
-    // indKey = Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
-    indKey = await KeyManager.getIndividualKey(fileUrl);
-  } else if (fileExists == ResourceStatus.notExist) {
-    replace = false;
-    // Generate individual/session key and its IV
+      default:
+        throw Exception('Unable to determine if file "$filePath" exists');
+    }
 
-    indKey = genRandIndividualKey();
-    final indKeyIV = genRandIV();
-    final masterKey = await KeyManager.getMasterKey();
-
-    // Encrypt individual Key
-    final encIndKeyStr = encryptData(indKey.base64, masterKey, indKeyIV);
-
-    // Add the encrypted individual key and its IV to the ind-key file
-    await addIndKey(filePath, encIndKeyStr, indKeyIV);
+    // Encrypt the file content
+    content = await getEncTTLStr(filePath, fileContent, indKey, genRandIV());
   } else {
-    print('Exception: Unable to determine if file "$filePath" exists');
+    content = fileContent;
   }
 
-  // Create file with encrypted data on server
-
-  await createResource(fileUrl,
-      content: await getEncTTLStr(filePath, fileContent, indKey, genRandIV()),
-      replaceIfExist: replace);
+  // Create file on server
+  await createResource(fileUrl, content: content, replaceIfExist: replace);
 }

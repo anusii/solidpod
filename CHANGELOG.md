@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Support the read/write of non-encrypted data file. [0.5.28].
 + Refactor POD initialisation code. [0.5.27]
 + Fix security key reloads bug, change button text colour. [0.5.26] 
 + Add version number to login screen. [0.5.25]

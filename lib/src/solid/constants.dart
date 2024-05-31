@@ -96,8 +96,6 @@ const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 
 /// String variables for creating files and directories on solid server
 
-const String fileContentType = 'text/turtle';
-const String dirContentType = 'application/octet-stream';
 const String fileTypeLink = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
 const String dirTypeLink =
     '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
@@ -128,6 +126,27 @@ enum ResourceStatus {
 
   /// Do not know if the resource exist (e.g. error occurred when checking the status)
   unknown
+}
+
+/// Types of the content of resources
+enum ContentType {
+  /// TTL text file
+  turtleText('text/turtle'),
+
+  /// Plain text file
+  plainText('text/plain'),
+
+  /// Directory
+  directory('application/octet-stream'),
+
+  /// Any
+  any('*/*');
+
+  /// Constructor
+  const ContentType(this.value);
+
+  /// String value of the access type
+  final String value;
 }
 
 /// Types of access to a resource

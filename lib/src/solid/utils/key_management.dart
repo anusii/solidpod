@@ -80,12 +80,13 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
 
 /// Add (encrypted) individual/session key [encIndKey] and the corresponding
 /// IV [iv] for file with path [filePath]
-Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
+Future<void> _addIndKey(String filePath, String encIndKey, IV iv) async {
   // const filePrefix = '$appFilePrefix: <$appsFile>';
   // const termPrefix = '$appTermPrefix: <$appsTerms>';
   // final sub = appsFile + filePath;
   // final sub = '$appFilePrefix:$filePath';
   final sub = await getFileUrl(filePath);
+
   // final query = [
   //   'PREFIX $filePrefix',
   //   'PREFIX $termPrefix',
@@ -96,9 +97,13 @@ Future<void> addIndKey(String filePath, String encIndKey, IV iv) async {
   //   '$appTermPrefix:$sessionKeyPred $encIndKey.',
   //   '};'
   //].join(' ');
-  final query =
-      'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; <$appsTerms$ivPred> "${iv.base64}"; <$appsTerms$sessionKeyPred> "$encIndKey".};';
+
+  final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
+      '<$appsTerms$ivPred> "${iv.base64}"; '
+      '<$appsTerms$sessionKeyPred> "$encIndKey".};';
+
   final fileUrl = await getFileUrl(await getIndKeyPath());
+
   await updateFileByQuery(fileUrl, query);
 }
 
@@ -380,6 +385,15 @@ class KeyManager {
     return _prvKeyRecord!.key!;
   }
 
+  /// Returns true if there is an individual key for a given resource
+  static Future<bool> hasIndividualKey(String resourceUrl) async {
+    if (_indKeyMap == null) {
+      await _loadIndKeyFile();
+    }
+    assert(_indKeyMap != null);
+    return _indKeyMap!.containsKey(resourceUrl);
+  }
+
   /// Return the (decrypted) individual key for an existing resource
   static Future<Key> getIndividualKey(String resourceUrl) async {
     if (_indKeyMap == null) {
@@ -401,6 +415,22 @@ class KeyManager {
       _indKeyMap![resourceUrl] = record;
     }
     return record.key!;
+  }
+
+  /// Add or update the individual key for resouce
+  static Future<void> putIndividualKey(String filePath, Key indKey) async {
+    final fileUrl = await getFileUrl(filePath);
+    if (_indKeyMap == null) {
+      await _loadIndKeyFile();
+    }
+    assert(_indKeyMap != null);
+
+    final iv = genRandIV();
+    final encIndKey = encryptData(indKey.base64, await getMasterKey(), iv);
+    _indKeyMap![fileUrl] = _IndKeyRecord(
+        filePath: filePath, encKeyBase64: encIndKey, ivBase64: iv.base64);
+
+    await _addIndKey(filePath, encIndKey, iv);
   }
 
   /// Load the file with verification key and encrypted private key

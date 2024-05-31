@@ -69,7 +69,7 @@ ElevatedButton resCreateFormSubmission(
       screenWidth < 360; // A threshold for small devices, can be adjusted.
 
   // The (updated) original version of POD initialisation function
-  Future<void> _initPod(String securityKey) async {
+  Future<void> _initPodOriginalFunc(String securityKey) async {
     final webId = await AuthDataManager.getWebId();
     assert(webId != null);
 
@@ -121,7 +121,8 @@ ElevatedButton resCreateFormSubmission(
     } else {
       try {
         for (final resLink in resFoldersLink) {
-          await createResource(resLink, fileFlag: false);
+          await createResource(resLink,
+              fileFlag: false, contentType: ContentType.directory);
         }
 
         // Create files
@@ -173,7 +174,7 @@ ElevatedButton resCreateFormSubmission(
         final securityKey = formData[securityKeyStr].toString();
 
         try {
-          // await _initPod(securityKey);
+          // await _initPodOriginalFunc(securityKey);
           await initPod(securityKey,
               dirUrls: resFoldersLink, fileUrls: resFilesLink);
         } on Exception catch (e) {
