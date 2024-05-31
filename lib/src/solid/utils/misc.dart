@@ -406,3 +406,36 @@ Future<void> initPod(String securityKey,
     await createResource(f, content: fileContent, replaceIfExist: aclFlag);
   }
 }
+
+/// Delete the ACL file for a resource
+Future<void> deleteAclForResource(String resourceUrl) async {
+  final aclUrl = '$resourceUrl.acl';
+  final status = await checkResourceStatus(aclUrl, true);
+  switch (status) {
+    case ResourceStatus.exist:
+      await deleteResource(aclUrl, ContentType.turtleText);
+    case ResourceStatus.notExist:
+      debugPrint('ACL file for "$resourceUrl" does not exist.');
+    case ResourceStatus.unknown:
+      throw Exception(
+          'Error occurred when checking status of ACL file for "$resourceUrl"');
+  }
+}
+
+/// Delete a data file (and its ACL file if exist)
+Future<void> deleteFile(String filePath, ContentType contentType) async {
+  final fileUrl = await getFileUrl(filePath);
+  final status = await checkResourceStatus(fileUrl, true);
+  switch (status) {
+    case ResourceStatus.exist:
+      await deleteResource(fileUrl, contentType);
+      await deleteAclForResource(fileUrl);
+      if (filePath.split('/')[1] == dataDir) {
+        await KeyManager.removeIndividualKey(filePath);
+      }
+    case ResourceStatus.notExist:
+      debugPrint('File "$fileUrl" does not exist.');
+    case ResourceStatus.unknown:
+      throw Exception('Error occurred when checking status of file "$fileUrl"');
+  }
+}
