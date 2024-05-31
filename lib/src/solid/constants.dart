@@ -129,7 +129,7 @@ enum ResourceStatus {
 }
 
 /// Types of the content of resources
-enum ContentType {
+enum ResourceContentType {
   /// TTL text file
   turtleText('text/turtle'),
 
@@ -146,7 +146,7 @@ enum ContentType {
   any('*/*');
 
   /// Constructor
-  const ContentType(this.value);
+  const ResourceContentType(this.value);
 
   /// String value of the access type
   final String value;

@@ -153,13 +153,13 @@ Future<void> createResource(String resourceUrl,
     {String content = '',
     bool fileFlag = true,
     bool replaceIfExist = false,
-    ContentType contentType = ContentType.turtleText}) async {
+    ResourceContentType contentType = ResourceContentType.turtleText}) async {
   // Sanity check
   if (fileFlag) {
     assert(!resourceUrl.endsWith('/'));
   } else {
     assert(resourceUrl.endsWith('/'));
-    assert(contentType == ContentType.directory);
+    assert(contentType == ResourceContentType.directory);
   }
 
   // Use PUT request for creating and replacing a file if it already exists
@@ -209,7 +209,8 @@ Future<void> createResource(String resourceUrl,
 }
 
 /// Delete a file or a directory
-Future<void> deleteResource(String resourceUrl, ContentType contentType) async {
+Future<void> deleteResource(
+    String resourceUrl, ResourceContentType contentType) async {
   final (:accessToken, :dPopToken) =
       await getTokensForResource(resourceUrl, 'DELETE');
 
@@ -241,8 +242,9 @@ Future<ResourceStatus> checkResourceStatus(String resUrl, bool fileFlag) async {
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
-      'Content-Type':
-          fileFlag ? ContentType.any.value : ContentType.directory.value,
+      'Content-Type': fileFlag
+          ? ResourceContentType.any.value
+          : ResourceContentType.directory.value,
       'Authorization': 'DPoP $accessToken',
       'Link': fileFlag ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
