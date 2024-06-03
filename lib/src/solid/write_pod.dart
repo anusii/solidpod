@@ -35,7 +35,6 @@ import 'dart:core';
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -46,11 +45,12 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// Write file [fileName] and content [fileContent] to PODs
 /// The content will be encrypted if [encrypted] is true.
 
+// TODO (dc): optionally create the ACL file for the data file
 Future<void> writePod(
     String fileName, String fileContent, BuildContext context, Widget child,
     {bool encrypted = true}) async {
   // Write data to file in the data directory
-  final filePath = path.join(await getDataDirPath(), fileName);
+  final filePath = [await getDataDirPath(), fileName].join('/');
 
   await loginIfRequired(context);
 
@@ -78,7 +78,7 @@ Future<void> writePod(
         indKey = genRandIndividualKey();
 
         // Add the encrypted individual key and its IV to the ind-key file
-        await KeyManager.putIndividualKey(filePath, indKey);
+        await KeyManager.addIndividualKey(filePath, indKey);
 
       default:
         throw Exception('Unable to determine if file "$filePath" exists');

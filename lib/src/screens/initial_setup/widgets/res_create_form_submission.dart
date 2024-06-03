@@ -41,7 +41,7 @@ import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/key_management.dart';
-import 'package:solidpod/src/solid/utils/misc.dart' show initPod;
+import 'package:solidpod/src/solid/utils/misc.dart' show initPod, trimPubKeyStr;
 import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
@@ -69,6 +69,7 @@ ElevatedButton resCreateFormSubmission(
       screenWidth < 360; // A threshold for small devices, can be adjusted.
 
   // The (updated) original version of POD initialisation function
+  // Keep it here as a backup
   Future<void> _initPodOriginalFunc(String securityKey) async {
     final webId = await AuthDataManager.getWebId();
     assert(webId != null);
@@ -107,7 +108,7 @@ ElevatedButton resCreateFormSubmission(
 
       // Get public key without start and end bit
 
-      pubKeyStr = dividePubKeyStr(publicKey);
+      pubKeyStr = trimPubKeyStr(publicKey);
 
       if (!resFileNames.contains(encKeyFile)) {
         keyVerifyFlag = verifySecurityKey(
@@ -122,7 +123,7 @@ ElevatedButton resCreateFormSubmission(
       try {
         for (final resLink in resFoldersLink) {
           await createResource(resLink,
-              fileFlag: false, contentType: ContentType.directory);
+              fileFlag: false, contentType: ResourceContentType.directory);
         }
 
         // Create files

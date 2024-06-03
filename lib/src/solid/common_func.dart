@@ -32,7 +32,8 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
-import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
 import 'package:solidpod/src/solid/utils/key_management.dart'
     show KeyManager, verifySecurityKey;
@@ -103,4 +104,73 @@ Future<void> getKeyFromUserIfRequired(
               child: child),
         ));
   }
+}
+
+/// Delete a data file (and its ACL file if exist), remove its individual key
+/// and the corresponding IV from the ind-key-file
+Future<void> deleteDataFile(String fileName, BuildContext context,
+    {ResourceContentType contentType = ResourceContentType.turtleText}) async {
+  await loginIfRequired(context);
+
+  final filePath = [await getDataDirPath(), fileName].join('/');
+  final fileUrl = await getFileUrl(filePath);
+  final status = await checkResourceStatus(fileUrl, true);
+
+  const smallGapH = SizedBox(width: 10);
+  String msg;
+
+  switch (status) {
+    case ResourceStatus.exist:
+      await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: const Text('Notice'),
+                content: Text('Delete data file "$fileName"?'),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await deleteResource(fileUrl, contentType);
+                      await deleteAclForResource(fileUrl);
+                      await KeyManager.removeIndividualKey(filePath);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Successfully deleted data file "$fileName".'),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    },
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text('Delete',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                  smallGapH,
+                  ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel')),
+                ],
+              ));
+      return;
+
+    case ResourceStatus.notExist:
+      msg = 'Data file "$fileName" does not exist.';
+
+    case ResourceStatus.unknown:
+      msg = 'Error occurred when checking the status of data file "$fileName".';
+  }
+
+  await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: const Text('Notice'),
+            content: Text(msg),
+            actions: [
+              ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'))
+            ],
+          ));
 }

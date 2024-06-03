@@ -153,13 +153,13 @@ Future<void> createResource(String resourceUrl,
     {String content = '',
     bool fileFlag = true,
     bool replaceIfExist = false,
-    ContentType contentType = ContentType.turtleText}) async {
+    ResourceContentType contentType = ResourceContentType.turtleText}) async {
   // Sanity check
   if (fileFlag) {
     assert(!resourceUrl.endsWith('/'));
   } else {
     assert(resourceUrl.endsWith('/'));
-    assert(contentType == ContentType.directory);
+    assert(contentType == ResourceContentType.directory);
   }
 
   // Use PUT request for creating and replacing a file if it already exists
@@ -209,14 +209,12 @@ Future<void> createResource(String resourceUrl,
 }
 
 /// Delete a file or a directory
-Future<void> deleteResource(bool fileFlag, String itemLoc,
-    {required ContentType contentType}) async {
-  final resourceUrl =
-      fileFlag ? await getFileUrl(itemLoc) : await getDirUrl(itemLoc);
+Future<void> deleteResource(
+    String resourceUrl, ResourceContentType contentType) async {
   final (:accessToken, :dPopToken) =
       await getTokensForResource(resourceUrl, 'DELETE');
 
-  final createResponse = await http.delete(
+  final response = await http.delete(
     Uri.parse(resourceUrl),
     headers: <String, String>{
       'Accept': '*/*',
@@ -227,8 +225,10 @@ Future<void> deleteResource(bool fileFlag, String itemLoc,
     },
   );
 
-  if (createResponse.statusCode != 200 && createResponse.statusCode != 205) {
-    throw Exception('Failed to delete file! Try again in a while.');
+  if (response.statusCode != 200 && response.statusCode != 205) {
+    throw Exception('Failed to delete resource!'
+        '\nURL: $resourceUrl'
+        '\nERROR: ${response.body}');
   }
 }
 
@@ -242,8 +242,9 @@ Future<ResourceStatus> checkResourceStatus(String resUrl, bool fileFlag) async {
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
-      'Content-Type':
-          fileFlag ? ContentType.any.value : ContentType.directory.value,
+      'Content-Type': fileFlag
+          ? ResourceContentType.any.value
+          : ResourceContentType.directory.value,
       'Authorization': 'DPoP $accessToken',
       'Link': fileFlag ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
