@@ -37,6 +37,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' hide RSA;
 import 'package:fast_rsa/fast_rsa.dart' show RSA;
@@ -78,28 +80,29 @@ String encryptPrivateKey(String privateKey, Key masterKey, IV iv) =>
 String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
     decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
 
-/// Add (encrypted) individual/session key [encIndKey] and the corresponding
-/// IV [iv] for file with path [filePath]
-Future<void> _addIndKey(String filePath, String encIndKey, IV iv) async {
-  // const filePrefix = '$appFilePrefix: <$appsFile>';
-  // const termPrefix = '$appTermPrefix: <$appsTerms>';
-  // final sub = appsFile + filePath;
-  // final sub = '$appFilePrefix:$filePath';
+/// Add the encrypted individual/session key string [encIndKey] and
+/// the corresponding IV string [ivBase64] for file with path [filePath]
+Future<void> _addIndKey(
+    String filePath, String encIndKey, String ivBase64) async {
   final sub = await getFileUrl(filePath);
 
-  // final query = [
-  //   'PREFIX $filePrefix',
-  //   'PREFIX $termPrefix',
-  //   'INSERT DATA {',
-  //   sub,
-  //   '$appTermPrefix:$pathPred $filePath;',
-  //   '$appTermPrefix:$ivPred ${iv.base64};',
-  //   '$appTermPrefix:$sessionKeyPred $encIndKey.',
-  //   '};'
-  //].join(' ');
-
   final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
-      '<$appsTerms$ivPred> "${iv.base64}"; '
+      '<$appsTerms$ivPred> "$ivBase64"; '
+      '<$appsTerms$sessionKeyPred> "$encIndKey".};';
+
+  final fileUrl = await getFileUrl(await getIndKeyPath());
+
+  await updateFileByQuery(fileUrl, query);
+}
+
+/// Delete the encrypted individual/session key string [encIndKey] and
+/// the corresponding IV string [ivBase64] for file with path [filePath]
+Future<void> _delIndKey(
+    String filePath, String encIndKey, String ivBase64) async {
+  final sub = await getFileUrl(filePath);
+
+  final query = 'DELETE DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
+      '<$appsTerms$ivPred> "$ivBase64"; '
       '<$appsTerms$sessionKeyPred> "$encIndKey".};';
 
   final fileUrl = await getFileUrl(await getIndKeyPath());
@@ -252,7 +255,7 @@ class KeyManager {
   /// Set the security key
   static Future<void> setSecurityKey(String securityKey) async {
     if (await hasSecurityKey()) {
-      print('Security key already set, do nothing.');
+      debugPrint('Security key already set, do nothing.');
       return;
     }
 
@@ -417,8 +420,8 @@ class KeyManager {
     return record.key!;
   }
 
-  /// Add or update the individual key for resouce
-  static Future<void> putIndividualKey(String filePath, Key indKey) async {
+  /// Add the (encrypted) individual key for file
+  static Future<void> addIndividualKey(String filePath, Key indKey) async {
     final fileUrl = await getFileUrl(filePath);
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
@@ -430,7 +433,25 @@ class KeyManager {
     _indKeyMap![fileUrl] = _IndKeyRecord(
         filePath: filePath, encKeyBase64: encIndKey, ivBase64: iv.base64);
 
-    await _addIndKey(filePath, encIndKey, iv);
+    await _addIndKey(filePath, encIndKey, iv.base64);
+  }
+
+  /// Remove the (encrypted) individual key for file
+  static Future<void> removeIndividualKey(String filePath) async {
+    final fileUrl = await getFileUrl(filePath);
+    if (_indKeyMap == null) {
+      await _loadIndKeyFile();
+    }
+    assert(_indKeyMap != null);
+
+    if (_indKeyMap!.containsKey(fileUrl)) {
+      final record = _indKeyMap!.remove(fileUrl);
+      assert(record != null);
+      await _delIndKey(filePath, record!.encKeyBase64, record.ivBase64);
+      debugPrint('Deleted $record');
+    } else {
+      debugPrint('Individual key for "$filePath" does not exist, do nothing.');
+    }
   }
 
   /// Load the file with verification key and encrypted private key
@@ -605,6 +626,15 @@ class _IndKeyRecord {
 
   /// The corresponding decrypted key
   Key? key;
+
+  @override
+  String toString() {
+    return 'IndividualKeyRecord {\n'
+        '    filePath: $filePath,\n'
+        '    encIndKey: $encKeyBase64,\n'
+        '    iv: $ivBase64\n'
+        '}';
+  }
 }
 
 /// [_PrvKeyRecord] is a simple class to store encrypted and decrypted

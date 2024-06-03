@@ -129,28 +129,6 @@ Future<String> getEncTTLStr(
     }
   };
   return tripleMapToTTLStr(tripleMap);
-
-  // final g = Graph();
-  // final f = URIRef(await getFileUrl(filePath));
-  // final ns = Namespace(ns: appsTerms);
-  // g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
-  // g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
-  // g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
-
-  // Bind the long namespace to shorter string for better readability
-  // String getPrefix(String UriStr) => Uri.parse(UriStr).pathSegments[-1];
-  // g.bind(appFilePrefix, Namespace(ns: appsFile));
-  // g.bind(appTermPrefix, ns);
-  // final uri = Uri.parse(appsTerms);
-  // final host = uri.host.split('.')[0];
-  // final hostpath = uri.removeFragment().toString();
-  // g.bind(host, Namespace(ns: hostpath));
-  // g.bind(host, ns);
-
-  // g.serialize(abbr: 'short');
-
-  // final encTTL = g.serializedString;
-  // return encTTL;
 }
 
 /// Returns the path of file with verification key and private key
@@ -207,16 +185,6 @@ Future<bool> checkLoggedIn() async {
 /// returns true if successful
 
 Future<bool> deleteLogIn() async => AuthDataManager.removeAuthData();
-
-/// Save the webId to local secure storage
-
-// Future<void> saveWebId(String webId) async =>
-//     writeToSecureStorage(webIdSecureStorageKey, webId);
-
-// /// Get the webId from local secure storage
-
-// Future<String?> getWebId() async =>
-//     secureStorage.read(key: webIdSecureStorageKey);
 
 /// Generates a list of default folder paths for a given application.
 ///
@@ -298,12 +266,6 @@ Future<bool> logoutPod() async {
       await KeyManager.clear();
       return (await AuthDataManager.removeAuthData()) &&
           (await logout(logoutUrl));
-
-      // final uri = Uri.parse(logoutUrl);
-      // if (await canLaunchUrl(uri)) {
-      //   return (await AuthDataManager.removeAuthData()) &&
-      //       (await launchUrl(uri));
-      // }
     } on Exception catch (e) {
       debugPrint('Exception: $e');
       return false;
@@ -360,7 +322,7 @@ Future<void> initPod(String securityKey,
 
   for (final d in dirUrls) {
     await createResource(d,
-        fileFlag: false, contentType: ContentType.directory);
+        fileFlag: false, contentType: ResourceContentType.directory);
   }
 
   // Check (and generate) the file URLs
@@ -404,5 +366,23 @@ Future<void> initPod(String securityKey,
     }
 
     await createResource(f, content: fileContent, replaceIfExist: aclFlag);
+  }
+}
+
+/// Delete the ACL file for a resource
+Future<void> deleteAclForResource(String resourceUrl) async {
+  final aclUrl = '$resourceUrl.acl';
+  final status = await checkResourceStatus(aclUrl, true);
+
+  switch (status) {
+    case ResourceStatus.exist:
+      await deleteResource(aclUrl, ResourceContentType.turtleText);
+
+    case ResourceStatus.notExist:
+      debugPrint('ACL file for "$resourceUrl" does not exist.');
+
+    case ResourceStatus.unknown:
+      throw Exception(
+          'Error occurred when checking status of ACL file for "$resourceUrl"');
   }
 }
