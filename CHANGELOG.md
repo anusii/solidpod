@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Input security key by pressing the enter key. [0.5.30]
 + Add/Delete corresponding individual keys when adding/deleting data files. [0.5.29]
 + Support the read/write of non-encrypted data file. [0.5.28].
 + Refactor POD initialisation code. [0.5.27]
