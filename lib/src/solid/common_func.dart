@@ -40,6 +40,9 @@ import 'package:solidpod/src/solid/utils/key_management.dart'
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/widgets/security_key_input.dart'
     show SecurityKeyInput;
+import 'package:solidpod/src/widgets/secret_input_form.dart';
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:solidpod/src/widgets/error_dialog.dart';
 
 /// Login if the user has not done so
 
@@ -95,14 +98,47 @@ Future<void> getKeyFromUserIfRequired(
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
 
+    const msg = 'Please enter the security key'
+        ' you previously provided to secure your data.';
+    const inputKey = 'security_key';
+    final field = (
+      fieldKey: inputKey,
+      fieldLabel: 'Security Key',
+      verifyFunc: (key) => verifySecurityKey(key as String, verificationKey),
+      repeatOf: null,
+    );
+    final formKey = GlobalKey<FormBuilderState>();
     await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => SecurityKeyInput(
-              verifySecurityKeyFunc: (key) =>
-                  verifySecurityKey(key, verificationKey),
-              child: child),
-        ));
+            builder: (context) => SecretInputForm(
+                title: 'Security Key',
+                message: msg,
+                textFields: [field],
+                formKey: formKey,
+                onSubmit: (context, formKey) async {
+                  print('on submit');
+                  final formData = formKey.currentState?.value as Map;
+                  print(formData);
+                  if (field.verifyFunc(formData[inputKey])) {
+                    await KeyManager.setSecurityKey(
+                        formData[inputKey].toString());
+                    debugPrint('Security key saved');
+                    Navigator.pop(context);
+                  } else {
+                    await showErrDialog(
+                        context, 'The security key entered is incorrect!');
+                  }
+                })));
+
+    // await Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (context) => SecurityKeyInput(
+    //           verifySecurityKeyFunc: (key) =>
+    //               verifySecurityKey(key, verificationKey),
+    //           child: child),
+    //     ));
   }
 }
 
