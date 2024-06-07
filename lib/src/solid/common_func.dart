@@ -37,6 +37,7 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
+import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -110,9 +111,8 @@ Future<void> getKeyFromUserIfRequired(
         message: msg,
         textFields: [field],
         formKey: GlobalKey<FormBuilderState>(),
-        onSubmit: (formKey) async {
-          final formData = formKey.currentState?.value as Map;
-          await KeyManager.setSecurityKey(formData[inputKey].toString());
+        onSubmit: (formDataMap) async {
+          await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
           debugPrint('Security key saved');
         });
 
@@ -186,15 +186,17 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
       msg = 'Error occurred when checking the status of data file "$fileName".';
   }
 
-  await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-            title: const Text('Notice'),
-            content: Text(msg),
-            actions: [
-              ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'))
-            ],
-          ));
+  await alert(context, msg);
+
+  // await showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //           title: const Text('Notice'),
+  //           content: Text(msg),
+  //           actions: [
+  //             ElevatedButton(
+  //                 onPressed: () => Navigator.pop(context),
+  //                 child: const Text('OK'))
+  //           ],
+  //         ));
 }

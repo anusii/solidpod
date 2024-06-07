@@ -34,6 +34,7 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/widgets/error_dialog.dart';
+import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/widgets/secret_text_field.dart';
 
 /// A [StatefulWidget] for user to enter, validate and submit secret text.
@@ -68,13 +69,15 @@ class SecretInputForm extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
 
   /// The submit function
-  final Future<void> Function(GlobalKey<FormBuilderState>) onSubmit;
+  final Future<void> Function(Map<dynamic, dynamic> formDataMap) onSubmit;
 
   @override
   State<SecretInputForm> createState() => _SecretInputFormState();
 }
 
 class _SecretInputFormState extends State<SecretInputForm> {
+  Map<String, bool> _verifiedMap = {};
+
   @override
   void initState() {
     super.initState();
@@ -86,16 +89,27 @@ class _SecretInputFormState extends State<SecretInputForm> {
         assert(fieldKeys.contains(f.repeatOf));
       }
     }
+
+    _verifiedMap = {for (final f in widget.textFields) f.fieldKey: false};
   }
 
   Future<void> _submit(BuildContext context) async {
-    print('on submit');
     final formData = widget.formKey.currentState?.value as Map;
-    print(formData);
-    //field.validateFunc(formData[inputKey])
+    debugPrint('formData: $formData');
+    if (_verifiedMap.containsValue(false)) {
+      debugPrint('_verifidMap: $_verifiedMap');
+      return;
+    }
+    for (final f in widget.textFields) {
+      if (formData[f.fieldKey] == null) {
+        debugPrint('${f.fieldKey} is null');
+        return;
+      }
+    }
 
-    await widget.onSubmit(widget.formKey);
-    await showErrDialog(context, 'The security key entered is incorrect!');
+    await widget.onSubmit(formData);
+    await alert(context, 'Successfully submitted!');
+    // await showErrDialog(context, 'The security key entered is incorrect!');
     Navigator.pop(context);
   }
 
@@ -124,12 +138,24 @@ class _SecretInputFormState extends State<SecretInputForm> {
               fieldLabel: f.fieldLabel,
               validateFunc: (val) {
                 if (f.validateFunc != null && !f.validateFunc!(val)) {
+                  setState(() {
+                    _verifiedMap[f.fieldKey] = false;
+                  });
                   return 'Incorrect ${f.fieldLabel}';
                 }
+
                 if (f.repeatOf != null &&
                     val != formKey.currentState!.fields[f.repeatOf!]?.value) {
+                  setState(() {
+                    _verifiedMap[f.fieldKey] = false;
+                  });
                   return '${f.fieldLabel}s Do Not Match';
                 }
+
+                setState(() {
+                  _verifiedMap[f.fieldKey] = true;
+                });
+
                 return null;
               })));
     }
