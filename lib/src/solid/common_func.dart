@@ -30,6 +30,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -38,11 +40,7 @@ import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
 import 'package:solidpod/src/solid/utils/key_management.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/widgets/security_key_input.dart'
-    show SecurityKeyInput;
 import 'package:solidpod/src/widgets/secret_input_form.dart';
-import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:solidpod/src/widgets/error_dialog.dart';
 
 /// Login if the user has not done so
 
@@ -98,38 +96,28 @@ Future<void> getKeyFromUserIfRequired(
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
 
-    const msg = 'Please enter the security key'
-        ' you previously provided to secure your data.';
+    const msg = 'Please enter the security key you previously provided'
+        ' for securing your data.';
     const inputKey = 'security_key';
     final field = (
       fieldKey: inputKey,
       fieldLabel: 'Security Key',
-      verifyFunc: (key) => verifySecurityKey(key as String, verificationKey),
+      validateFunc: (key) => verifySecurityKey(key as String, verificationKey),
       repeatOf: null,
     );
-    final formKey = GlobalKey<FormBuilderState>();
+    final securityKeyInput = SecretInputForm(
+        title: 'Security Key',
+        message: msg,
+        textFields: [field],
+        formKey: GlobalKey<FormBuilderState>(),
+        onSubmit: (formKey) async {
+          final formData = formKey.currentState?.value as Map;
+          await KeyManager.setSecurityKey(formData[inputKey].toString());
+          debugPrint('Security key saved');
+        });
+
     await Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => SecretInputForm(
-                title: 'Security Key',
-                message: msg,
-                textFields: [field],
-                formKey: formKey,
-                onSubmit: (context, formKey) async {
-                  print('on submit');
-                  final formData = formKey.currentState?.value as Map;
-                  print(formData);
-                  if (field.verifyFunc(formData[inputKey])) {
-                    await KeyManager.setSecurityKey(
-                        formData[inputKey].toString());
-                    debugPrint('Security key saved');
-                    Navigator.pop(context);
-                  } else {
-                    await showErrDialog(
-                        context, 'The security key entered is incorrect!');
-                  }
-                })));
+        context, MaterialPageRoute(builder: (context) => securityKeyInput));
 
     // await Navigator.push(
     //     context,

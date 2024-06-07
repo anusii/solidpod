@@ -41,7 +41,7 @@ class SecretTextField extends StatefulWidget {
   const SecretTextField(
       {required this.fieldKey,
       required this.fieldLabel,
-      required this.verifyFunc,
+      required this.validateFunc,
       super.key});
 
   /// The key of this text field (to be used in a form)
@@ -51,7 +51,7 @@ class SecretTextField extends StatefulWidget {
   final String fieldLabel;
 
   /// The verification function
-  final String? Function(String) verifyFunc;
+  final String? Function(String) validateFunc;
 
   @override
   State<SecretTextField> createState() => _SecretTextFieldState();
@@ -68,10 +68,11 @@ class _SecretTextFieldState extends State<SecretTextField> {
     // The label text style
 
     const style = TextStyle(
-      color: Colors.blue,
+      color: Colors.grey,
       letterSpacing: 1.5,
       fontSize: 13.0,
       fontWeight: FontWeight.bold,
+      // fontStyle: FontStyle.italic,
     );
 
     // The suffix icon
@@ -88,7 +89,7 @@ class _SecretTextFieldState extends State<SecretTextField> {
 
     final secretValidator = FormBuilderValidators.compose([
       FormBuilderValidators.required(),
-      (val) => widget.verifyFunc(val as String),
+      (val) => widget.validateFunc(val as String),
     ]);
 
     return FormBuilderTextField(

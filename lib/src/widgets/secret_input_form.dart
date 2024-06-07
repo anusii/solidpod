@@ -33,6 +33,7 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
+import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/widgets/secret_text_field.dart';
 
 /// A [StatefulWidget] for user to enter, validate and submit secret text.
@@ -59,7 +60,7 @@ class SecretInputForm extends StatefulWidget {
       ({
         String fieldKey,
         String fieldLabel,
-        bool Function(String)? verifyFunc,
+        bool Function(String)? validateFunc,
         String? repeatOf,
       })> textFields;
 
@@ -67,8 +68,7 @@ class SecretInputForm extends StatefulWidget {
   final GlobalKey<FormBuilderState> formKey;
 
   /// The submit function
-  final Future<void> Function(BuildContext, GlobalKey<FormBuilderState>)
-      onSubmit;
+  final Future<void> Function(GlobalKey<FormBuilderState>) onSubmit;
 
   @override
   State<SecretInputForm> createState() => _SecretInputFormState();
@@ -82,13 +82,21 @@ class _SecretInputFormState extends State<SecretInputForm> {
     final fieldKeys = {for (final f in widget.textFields) f.fieldKey};
 
     for (final f in widget.textFields) {
-      // only one of verifyFunc and repeat is null (XOR)
-      assert((f.verifyFunc == null) ^ (f.repeatOf == null));
-
       if (f.repeatOf != null) {
         assert(fieldKeys.contains(f.repeatOf));
       }
     }
+  }
+
+  Future<void> _submit(BuildContext context) async {
+    print('on submit');
+    final formData = widget.formKey.currentState?.value as Map;
+    print(formData);
+    //field.validateFunc(formData[inputKey])
+
+    await widget.onSubmit(widget.formKey);
+    await showErrDialog(context, 'The security key entered is incorrect!');
+    Navigator.pop(context);
   }
 
   @override
@@ -102,7 +110,7 @@ class _SecretInputFormState extends State<SecretInputForm> {
     const smallGapH = SizedBox(width: 10);
 
     final column = <Widget>[
-      _createText(widget.title, fontSize: 20),
+      _createText(widget.title, fontSize: 20, fontWeight: FontWeight.w500),
       const Divider(color: Colors.grey),
       smallGapV,
       _createText(widget.message, fontSize: 17),
@@ -114,26 +122,27 @@ class _SecretInputFormState extends State<SecretInputForm> {
           builder: (context, setState) => SecretTextField(
               fieldKey: f.fieldKey,
               fieldLabel: f.fieldLabel,
-              verifyFunc: f.verifyFunc != null
-                  ? (val) =>
-                      f.verifyFunc!(val) ? null : 'Incorrect ${f.fieldLabel}'
-                  : (val) =>
-                      val == formKey.currentState!.fields[f.repeatOf!]?.value
-                          ? null
-                          : '${f.fieldLabel}s do not match')));
+              validateFunc: (val) {
+                if (f.validateFunc != null && !f.validateFunc!(val)) {
+                  return 'Incorrect ${f.fieldLabel}';
+                }
+                if (f.repeatOf != null &&
+                    val != formKey.currentState!.fields[f.repeatOf!]?.value) {
+                  return '${f.fieldLabel}s Do Not Match';
+                }
+                return null;
+              })));
     }
 
     final form = FormBuilder(
         key: formKey,
-        onChanged: () {
-          formKey.currentState!.save();
-        },
+        onChanged: () => formKey.currentState!.save(),
         autovalidateMode: AutovalidateMode.always,
         child: KeyboardListener(
             focusNode: FocusNode(),
             onKeyEvent: (event) async {
               if (event.logicalKey == LogicalKeyboardKey.enter) {
-                await widget.onSubmit(context, formKey);
+                await _submit(context);
               }
             },
             child: Column(
@@ -141,20 +150,19 @@ class _SecretInputFormState extends State<SecretInputForm> {
               children: column,
             )));
 
-    // The OK button
+    // The submit button
 
-    final okButton = ElevatedButton(
-      child: _createText('OK', fontSize: 15, weighted: false),
-      onPressed: () async {
-        await widget.onSubmit(context, formKey);
-      },
+    final submitButton = ElevatedButton(
+      onPressed: () async => _submit(context),
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+      child: _createText('Submit', fontSize: 15, color: Colors.white),
     );
 
     // The Cancel button
 
     final cancelButton = ElevatedButton(
-      child: _createText('Cancel', fontSize: 15, weighted: false),
       onPressed: () => Navigator.pop(context),
+      child: _createText('Cancel', fontSize: 15),
     );
 
     return Scaffold(
@@ -166,18 +174,21 @@ class _SecretInputFormState extends State<SecretInputForm> {
               smallGapV,
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [okButton, smallGapH, cancelButton],
+                children: [submitButton, smallGapH, cancelButton],
               ),
             ])));
   }
 }
 
 // Create a Text widget
-Text _createText(String str, {required double fontSize, bool weighted = true}) {
+Text _createText(String str,
+    {required double fontSize,
+    FontWeight? fontWeight,
+    Color? color = Colors.black}) {
   return Text(str,
       style: TextStyle(
-        color: Colors.black,
+        color: color,
         fontSize: fontSize,
-        fontWeight: weighted ? FontWeight.w500 : null,
+        fontWeight: fontWeight,
       ));
 }
