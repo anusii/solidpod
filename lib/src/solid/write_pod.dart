@@ -55,41 +55,38 @@ Future<void> writePod(
   await loginIfRequired(context);
 
   // Check if the file already exists
+  // The file should exist if its individual key exists
 
   final fileUrl = await getFileUrl(filePath);
-  final fileExists = await checkResourceStatus(fileUrl, true);
+  if (await checkResourceStatus(fileUrl, true) == ResourceStatus.unknown) {
+    throw Exception('Unable to determine if file "$filePath" exists');
+  }
 
-  final replace = fileExists == ResourceStatus.exist ? true : false;
-  late final String content;
+  late String content;
 
   if (encrypted) {
     // Get the security key (and cache it in KeyManager)
     await getKeyFromUserIfRequired(context, child);
 
-    late final Key indKey;
+    // Reuse the individual key if the key already exists,
+    // otherwise, generate a random key and add it to the individual key file.
 
-    switch (fileExists) {
-      case ResourceStatus.exist:
-        // Reuse the individual key if the file already exists
-        indKey = await KeyManager.getIndividualKey(fileUrl);
-
-      case ResourceStatus.notExist:
-        // Generate random individual key
-        indKey = genRandIndividualKey();
-
-        // Add the encrypted individual key and its IV to the ind-key file
-        await KeyManager.addIndividualKey(filePath, indKey);
-
-      default:
-        throw Exception('Unable to determine if file "$filePath" exists');
+    if (!(await KeyManager.hasIndividualKey(fileUrl))) {
+      await KeyManager.addIndividualKey(filePath, genRandIndividualKey());
     }
 
-    // Encrypt the file content
-    content = await getEncTTLStr(filePath, fileContent, indKey, genRandIV());
+    content = await getEncTTLStr(filePath, fileContent,
+        await KeyManager.getIndividualKey(fileUrl), genRandIV());
   } else {
+    // Delete existing (encrypted) file if the new content is unencrypted
+
+    if (await KeyManager.hasIndividualKey(fileUrl)) {
+      await deleteFile(filePath);
+    }
+
     content = fileContent;
   }
 
   // Create file on server
-  await createResource(fileUrl, content: content, replaceIfExist: replace);
+  await createResource(fileUrl, content: content, replaceIfExist: true);
 }
