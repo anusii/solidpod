@@ -79,7 +79,7 @@ Future<void> writePod(
     // Delete existing (encrypted) file if the new content is unencrypted
 
     if (await KeyManager.hasIndividualKey(fileUrl)) {
-      await deleteFile(filePath);
+      await deleteDataFile(fileName, context);
     }
 
     content = fileContent;
