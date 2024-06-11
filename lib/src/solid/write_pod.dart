@@ -56,41 +56,53 @@ Future<void> writePod(
   // The file should exist if its individual key exists
 
   final fileUrl = await getFileUrl(filePath);
+  final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
+
   switch (await checkResourceStatus(fileUrl, true)) {
     case ResourceStatus.exist:
-      final overwriteMsg =
-          'File "$fileName" already exists, do you want to overwrite it?';
-      late bool overwrite;
-      await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: const Text('Notice'),
-                content: Text(overwriteMsg),
-                actions: [
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        overwrite = true;
-                      },
-                      style:
-                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Overwrite',
-                          style: TextStyle(color: Colors.white))),
-                  const SizedBox(width: 10),
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        overwrite = false;
-                      },
-                      child: const Text('Cancel'))
-                ],
-              ));
 
-      if (!overwrite) {
-        debugPrint('Not overwriting file "$filePath"');
-        return;
-      } else {
-        debugPrint('Overwrite file "$filePath"');
+      // Ask user to confirm when the encryption status of the file is changed
+
+      if (encrypted != existingFileEncrypted) {
+        late bool overwrite;
+
+        final overwriteMsg =
+            '${existingFileEncrypted ? "Encrypted" : "Unencrypted"}'
+            ' data file "$fileName" already exists,'
+            ' do you want to overwrite it with '
+            '${encrypted ? "encrypted" : "unencrypted"} data?';
+
+        await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: const Text('Notice'),
+                  content: Text(overwriteMsg),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          overwrite = true;
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                        child: const Text('Overwrite',
+                            style: TextStyle(color: Colors.white))),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          overwrite = false;
+                        },
+                        child: const Text('Cancel'))
+                  ],
+                ));
+
+        if (!overwrite) {
+          debugPrint('Not overwriting file "$filePath"');
+          return;
+        } else {
+          debugPrint('Overwrite file "$filePath"');
+        }
       }
 
     case ResourceStatus.unknown:
@@ -108,7 +120,7 @@ Future<void> writePod(
     // Reuse the individual key if the key already exists,
     // otherwise, generate a random key and add it to the individual key file.
 
-    if (!(await KeyManager.hasIndividualKey(fileUrl))) {
+    if (!existingFileEncrypted) {
       await KeyManager.addIndividualKey(filePath, genRandIndividualKey());
     }
 
@@ -117,7 +129,7 @@ Future<void> writePod(
   } else {
     // Delete existing (encrypted) file if the new content is unencrypted
 
-    if (await KeyManager.hasIndividualKey(fileUrl)) {
+    if (existingFileEncrypted) {
       await deleteFile(filePath);
     }
 
