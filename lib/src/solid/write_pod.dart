@@ -70,7 +70,7 @@ Future<void> writePod(
             '${existingFileEncrypted ? "Encrypted" : "Unencrypted"}'
             ' data file "$fileName" already exists,'
             ' do you want to overwrite it with '
-            '${encrypted ? "encrypted" : "unencrypted"} data?';
+            '${encrypted ? "encrypted" : "unencrypted"} content?';
 
         await showDialog(
             context: context,
@@ -98,15 +98,16 @@ Future<void> writePod(
                 ));
 
         if (!overwrite) {
-          debugPrint('Not overwriting file "$filePath"');
-          return;
+          throw Exception(
+              'Not overwriting file "$filePath", writePod() aborted');
         } else {
           debugPrint('Overwrite file "$filePath"');
         }
       }
 
     case ResourceStatus.unknown:
-      throw Exception('Unable to determine if file "$filePath" exists');
+      throw Exception(
+          'Unable to determine if file "$filePath" exists, writePod() aborted');
     default:
       debugPrint('File "$filePath" does not exist');
   }
