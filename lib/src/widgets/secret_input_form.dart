@@ -47,6 +47,7 @@ class SecretInputForm extends StatefulWidget {
       required this.inputFields,
       required this.formKey,
       required this.submitFunc,
+      required this.child,
       super.key});
 
   /// Title of the form
@@ -68,6 +69,9 @@ class SecretInputForm extends StatefulWidget {
 
   /// The submit function
   final Future<void> Function(Map<String, dynamic> formDataMap) submitFunc;
+
+  /// The child widget
+  final Widget child;
 
   @override
   State<SecretInputForm> createState() => _SecretInputFormState();
@@ -101,9 +105,6 @@ class _SecretInputFormState extends State<SecretInputForm> {
 
     try {
       await widget.submitFunc(formData);
-      await alert(context, 'Successfully submitted!');
-      // await showErrDialog(context, 'The security key entered is incorrect!');
-      Navigator.pop(context);
     } on Exception catch (e) {
       debugPrint('$e');
     }
@@ -114,10 +115,11 @@ class _SecretInputFormState extends State<SecretInputForm> {
     // Key of the form for data retrieval
     final formKey = widget.formKey;
 
-    // Small vertical and horizontal gaps
+    // Vertical and horizontal gaps
 
-    const smallGapV = SizedBox(height: 10);
     const smallGapH = SizedBox(width: 10);
+    const smallGapV = SizedBox(width: 10);
+    const medGapV = SizedBox(height: 20);
 
     final column = <Widget>[
       _createText(widget.title, fontSize: 20, fontWeight: FontWeight.w500),
@@ -145,7 +147,10 @@ class _SecretInputFormState extends State<SecretInputForm> {
 
     final form = FormBuilder(
         key: formKey,
-        onChanged: () => formKey.currentState!.save(),
+        onChanged: () {
+          formKey.currentState!.save();
+          debugPrint('${formKey.currentState?.value as Map}');
+        },
         autovalidateMode: AutovalidateMode.always,
         child: KeyboardListener(
             focusNode: FocusNode(),
@@ -170,7 +175,12 @@ class _SecretInputFormState extends State<SecretInputForm> {
     // The Cancel button
 
     final cancelButton = ElevatedButton(
-      onPressed: () => Navigator.pop(context),
+      //onPressed: () => Navigator.pop(context),
+      onPressed: () async => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => widget.child,
+          )),
       child: _createText('Cancel', fontSize: 15),
     );
 
@@ -180,9 +190,9 @@ class _SecretInputFormState extends State<SecretInputForm> {
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               form,
-              smallGapV,
+              medGapV,
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                //crossAxisAlignment: CrossAxisAlignment.center,
                 children: [submitButton, smallGapH, cancelButton],
               ),
             ])));
