@@ -62,9 +62,6 @@ class _SecretTextFieldState extends State<SecretTextField> {
 
   @override
   Widget build(BuildContext context) {
-    // // If the secret entered is verfied
-    // var verified = false;
-
     // The label text style
 
     const style = TextStyle(
@@ -83,7 +80,7 @@ class _SecretTextFieldState extends State<SecretTextField> {
         // Toggle the state to show/hide the secret.
         _showSecret = !_showSecret;
       }),
-      // not participate in focus traversal
+      // not participate in focus traversal (ignore TAB key)
       focusNode: FocusNode(skipTraversal: true),
     );
 
