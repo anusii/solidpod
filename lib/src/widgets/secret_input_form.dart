@@ -33,7 +33,6 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/widgets/secret_text_field.dart';
 
 /// A [StatefulWidget] for user to enter, validate and submit secret text.
@@ -132,17 +131,18 @@ class _SecretInputFormState extends State<SecretInputForm> {
       column.add(smallGapV);
       column.add(StatefulBuilder(
           builder: (context, setState) => SecretTextField(
-              fieldKey: f.fieldKey,
-              fieldLabel: f.fieldLabel,
-              validateFunc: (val) {
-                final r = f.validateFunc(val);
+                fieldKey: f.fieldKey,
+                fieldLabel: f.fieldLabel,
+                validateFunc: (val) {
+                  final r = f.validateFunc(val);
 
-                setState(() {
-                  _verifiedMap[f.fieldKey] = (r == null);
-                });
+                  setState(() {
+                    _verifiedMap[f.fieldKey] = (r == null);
+                  });
 
-                return r;
-              })));
+                  return r;
+                },
+              )));
     }
 
     final form = FormBuilder(
@@ -187,15 +187,16 @@ class _SecretInputFormState extends State<SecretInputForm> {
     return Scaffold(
         body: Padding(
             padding: const EdgeInsets.all(32),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              form,
-              medGapV,
-              Row(
-                //crossAxisAlignment: CrossAxisAlignment.center,
-                children: [submitButton, smallGapH, cancelButton],
-              ),
-            ])));
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  form,
+                  medGapV,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [submitButton, smallGapH, cancelButton],
+                  ),
+                ])));
   }
 }
 
