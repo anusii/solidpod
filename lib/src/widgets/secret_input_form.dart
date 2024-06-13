@@ -33,7 +33,6 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'package:solidpod/src/widgets/error_dialog.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/widgets/secret_text_field.dart';
 
@@ -45,9 +44,9 @@ class SecretInputForm extends StatefulWidget {
   const SecretInputForm(
       {required this.title,
       required this.message,
-      required this.textFields,
+      required this.inputFields,
       required this.formKey,
-      required this.onSubmit,
+      required this.submitFunc,
       super.key});
 
   /// Title of the form
@@ -56,20 +55,19 @@ class SecretInputForm extends StatefulWidget {
   /// Message of the form
   final String message;
 
-  /// The text fields
+  /// The input text fields
   final List<
       ({
         String fieldKey,
         String fieldLabel,
-        bool Function(String)? validateFunc,
-        String? repeatOf,
-      })> textFields;
+        String? Function(String?) validateFunc,
+      })> inputFields;
 
   /// Key of the form for data retrieval
   final GlobalKey<FormBuilderState> formKey;
 
   /// The submit function
-  final Future<void> Function(Map<dynamic, dynamic> formDataMap) onSubmit;
+  final Future<void> Function(Map<String, dynamic> formDataMap) submitFunc;
 
   @override
   State<SecretInputForm> createState() => _SecretInputFormState();
@@ -81,36 +79,34 @@ class _SecretInputFormState extends State<SecretInputForm> {
   @override
   void initState() {
     super.initState();
-    assert(widget.textFields.isNotEmpty);
-    final fieldKeys = {for (final f in widget.textFields) f.fieldKey};
-
-    for (final f in widget.textFields) {
-      if (f.repeatOf != null) {
-        assert(fieldKeys.contains(f.repeatOf));
-      }
-    }
-
-    _verifiedMap = {for (final f in widget.textFields) f.fieldKey: false};
+    assert(widget.inputFields.isNotEmpty);
+    final fieldKeys = {for (final f in widget.inputFields) f.fieldKey};
+    assert(fieldKeys.length == widget.inputFields.length);
+    _verifiedMap = {for (final k in fieldKeys) k: false};
   }
 
   Future<void> _submit(BuildContext context) async {
-    final formData = widget.formKey.currentState?.value as Map;
+    final formData = widget.formKey.currentState?.value as Map<String, dynamic>;
     debugPrint('formData: $formData');
     if (_verifiedMap.containsValue(false)) {
       debugPrint('_verifidMap: $_verifiedMap');
       return;
     }
-    for (final f in widget.textFields) {
+    for (final f in widget.inputFields) {
       if (formData[f.fieldKey] == null) {
         debugPrint('${f.fieldKey} is null');
         return;
       }
     }
 
-    await widget.onSubmit(formData);
-    await alert(context, 'Successfully submitted!');
-    // await showErrDialog(context, 'The security key entered is incorrect!');
-    Navigator.pop(context);
+    try {
+      await widget.submitFunc(formData);
+      await alert(context, 'Successfully submitted!');
+      // await showErrDialog(context, 'The security key entered is incorrect!');
+      Navigator.pop(context);
+    } on Exception catch (e) {
+      debugPrint('$e');
+    }
   }
 
   @override
@@ -130,33 +126,20 @@ class _SecretInputFormState extends State<SecretInputForm> {
       _createText(widget.message, fontSize: 17),
     ];
 
-    for (final f in widget.textFields) {
+    for (final f in widget.inputFields) {
       column.add(smallGapV);
       column.add(StatefulBuilder(
           builder: (context, setState) => SecretTextField(
               fieldKey: f.fieldKey,
               fieldLabel: f.fieldLabel,
               validateFunc: (val) {
-                if (f.validateFunc != null && !f.validateFunc!(val)) {
-                  setState(() {
-                    _verifiedMap[f.fieldKey] = false;
-                  });
-                  return 'Incorrect ${f.fieldLabel}';
-                }
-
-                if (f.repeatOf != null &&
-                    val != formKey.currentState!.fields[f.repeatOf!]?.value) {
-                  setState(() {
-                    _verifiedMap[f.fieldKey] = false;
-                  });
-                  return '${f.fieldLabel}s Do Not Match';
-                }
+                final r = f.validateFunc(val);
 
                 setState(() {
-                  _verifiedMap[f.fieldKey] = true;
+                  _verifiedMap[f.fieldKey] = (r == null);
                 });
 
-                return null;
+                return r;
               })));
     }
 
