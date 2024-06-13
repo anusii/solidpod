@@ -83,6 +83,8 @@ class _SecretTextFieldState extends State<SecretTextField> {
         // Toggle the state to show/hide the secret.
         _showSecret = !_showSecret;
       }),
+      // not participate in focus traversal
+      focusNode: FocusNode(skipTraversal: true),
     );
 
     // The validator
