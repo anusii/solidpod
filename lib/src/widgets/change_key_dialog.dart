@@ -48,10 +48,12 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
   final formKey = GlobalKey<FormBuilderState>();
 
   String? validateCurrentKey(String key) =>
-      verifySecurityKey(key, verificationKey) ? null : 'Incorrect security key';
+      verifySecurityKey(key, verificationKey)
+          ? null
+          : 'Incorrect security key.';
 
   String? validateNewKey(String key) => verifySecurityKey(key, verificationKey)
-      ? 'New security key is identical to current security key'
+      ? 'New security key is identical to current security key.'
       : null;
 
   String? validateNewKeyRepeat(String key) {
@@ -60,7 +62,7 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
         formData.containsKey(newKeyRepeatStr) &&
         formData[newKeyStr].toString() !=
             formData[newKeyRepeatStr].toString()) {
-      return 'New security keys do not match';
+      return 'New security keys do not match.';
     }
     return null;
   }
@@ -129,7 +131,7 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
 
   // Calculate the desired width and height.
 
-  final width = size.width * 0.6;
+  final width = size.width * 0.5;
   final height = size.height * 0.5;
 
   await showDialog(
