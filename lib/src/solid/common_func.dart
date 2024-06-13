@@ -129,9 +129,7 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
                 actions: [
                   ElevatedButton(
                     onPressed: () async {
-                      await deleteResource(fileUrl, contentType);
-                      await deleteAclForResource(fileUrl);
-                      await KeyManager.removeIndividualKey(filePath);
+                      await deleteFile(filePath, contentType: contentType);
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(

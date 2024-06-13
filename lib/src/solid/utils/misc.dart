@@ -386,3 +386,16 @@ Future<void> deleteAclForResource(String resourceUrl) async {
           'Error occurred when checking status of ACL file for "$resourceUrl"');
   }
 }
+
+/// Delete a file with path [filePath], its ACL file, and its encryption key
+/// if exists.
+/// Throws an exception if the file does not exist or any error occurs.
+Future<void> deleteFile(String filePath,
+    {ResourceContentType contentType = ResourceContentType.turtleText}) async {
+  final fileUrl = await getFileUrl(filePath);
+  await deleteResource(fileUrl, contentType);
+  await deleteAclForResource(fileUrl);
+  if (await KeyManager.hasIndividualKey(fileUrl)) {
+    await KeyManager.removeIndividualKey(filePath);
+  }
+}

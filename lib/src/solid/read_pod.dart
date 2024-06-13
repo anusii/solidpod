@@ -33,7 +33,6 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
