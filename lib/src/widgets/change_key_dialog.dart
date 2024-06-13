@@ -29,226 +29,286 @@
 library;
 
 import 'package:flutter/material.dart';
+
+import 'package:flutter_form_builder/flutter_form_builder.dart';
+// import 'package:path/path.dart';
+
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/widgets/secret_input_form.dart';
 
-/// Change key dialog widget
-class ChangeKeyDialog extends StatefulWidget {
-  /// Constructor
-  const ChangeKeyDialog({super.key});
+// /// Change key dialog widget
+// class ChangeKeyDialog extends StatefulWidget {
+//   /// Constructor
+//   const ChangeKeyDialog({super.key});
 
-  @override
-  State<ChangeKeyDialog> createState() => _ChangeKeyDialogState();
-}
+//   @override
+//   State<ChangeKeyDialog> createState() => _ChangeKeyDialogState();
+// }
 
-class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
-  bool _isObscuredCurrentKey = true;
-  bool _isObscuredNewKey = true;
-  bool _isObscuredRepeatNewKey = true;
+// class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
+//   bool _isObscuredCurrentKey = true;
+//   bool _isObscuredNewKey = true;
+//   bool _isObscuredRepeatNewKey = true;
 
-  final TextEditingController _currentKeyController = TextEditingController();
-  final TextEditingController _newKeyController = TextEditingController();
-  final TextEditingController _repeatKeyController = TextEditingController();
+//   final TextEditingController _currentKeyController = TextEditingController();
+//   final TextEditingController _newKeyController = TextEditingController();
+//   final TextEditingController _repeatKeyController = TextEditingController();
 
-  void _toggleVisibilityCurrentKey() {
-    setState(() {
-      _isObscuredCurrentKey = !_isObscuredCurrentKey;
-    });
-  }
+//   void _toggleVisibilityCurrentKey() {
+//     setState(() {
+//       _isObscuredCurrentKey = !_isObscuredCurrentKey;
+//     });
+//   }
 
-  void _toggleVisibilityNewKey() {
-    setState(() {
-      _isObscuredNewKey = !_isObscuredNewKey;
-    });
-  }
+//   void _toggleVisibilityNewKey() {
+//     setState(() {
+//       _isObscuredNewKey = !_isObscuredNewKey;
+//     });
+//   }
 
-  void _toggleVisibilityRepeatNewKey() {
-    setState(() {
-      _isObscuredRepeatNewKey = !_isObscuredRepeatNewKey;
-    });
-  }
+//   void _toggleVisibilityRepeatNewKey() {
+//     setState(() {
+//       _isObscuredRepeatNewKey = !_isObscuredRepeatNewKey;
+//     });
+//   }
 
-  // Show a message
-  void _showSnackBar(String msg, Color bgColor,
-      {Duration duration = const Duration(seconds: 4)}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: bgColor,
-        duration: duration,
-      ),
-    );
-  }
+//   // Show a message
+//   void _showSnackBar(String msg, Color bgColor,
+//       {Duration duration = const Duration(seconds: 4)}) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(msg),
+//         backgroundColor: bgColor,
+//         duration: duration,
+//       ),
+//     );
+//   }
 
-  Future<void> _changeKey() async {
-    if (_newKeyController.text == _currentKeyController.text) {
-      _showSnackBar('The new key and old key are the same. Please try again.',
-          Colors.red);
-    } else if (_newKeyController.text != _repeatKeyController.text) {
-      _showSnackBar('The new keys do not match. Please try again.', Colors.red);
-    } else {
-      late String msg;
-      late Color bgColor;
-      late Duration duration;
-      try {
-        await KeyManager.changeSecurityKey(
-            _currentKeyController.text, _newKeyController.text);
+//   Future<void> _changeKey() async {
+//     if (_newKeyController.text == _currentKeyController.text) {
+//       _showSnackBar('The new key and old key are the same. Please try again.',
+//           Colors.red);
+//     } else if (_newKeyController.text != _repeatKeyController.text) {
+//       _showSnackBar('The new keys do not match. Please try again.', Colors.red);
+//     } else {
+//       late String msg;
+//       late Color bgColor;
+//       late Duration duration;
+//       try {
+//         await KeyManager.changeSecurityKey(
+//             _currentKeyController.text, _newKeyController.text);
 
-        msg = 'Successfully changed the security key!';
-        bgColor = Colors.green;
-        duration = const Duration(seconds: 4);
-      } on Exception catch (e) {
-        msg = 'Failed to change security key! $e';
-        bgColor = Colors.red;
-        duration = const Duration(seconds: 7);
-      } finally {
-        // Close the dialog
-        Navigator.of(context).pop();
+//         msg = 'Successfully changed the security key!';
+//         bgColor = Colors.green;
+//         duration = const Duration(seconds: 4);
+//       } on Exception catch (e) {
+//         msg = 'Failed to change security key! $e';
+//         bgColor = Colors.red;
+//         duration = const Duration(seconds: 7);
+//       } finally {
+//         // Close the dialog
+//         Navigator.of(context).pop();
 
-        // Show message
-        _showSnackBar(msg, bgColor, duration: duration);
-      }
-    }
-  }
+//         // Show message
+//         _showSnackBar(msg, bgColor, duration: duration);
+//       }
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Use MediaQuery to get the size of the current screen.
+//   @override
+//   Widget build(BuildContext context) {
+//     // Use MediaQuery to get the size of the current screen.
 
-    final size = MediaQuery.of(context).size;
+//     final size = MediaQuery.of(context).size;
 
-    // Calculate the desired width and height.
+//     // Calculate the desired width and height.
 
-    final width = size.width * 0.6;
-    final height = size.height * 0.5;
+//     final width = size.width * 0.6;
+//     final height = size.height * 0.5;
 
-    return AlertDialog(
-      title: const Text('Change Security Key'),
-      content: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: width,
-          minHeight: height,
-        ),
-        child: SingleChildScrollView(
-          child: ListBody(
-            children: <Widget>[
-              TextField(
-                controller: _currentKeyController,
-                obscureText: _isObscuredCurrentKey,
-                decoration: InputDecoration(
-                  labelText: 'Your current security key',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isObscuredCurrentKey
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: _toggleVisibilityCurrentKey,
-                  ),
-                ),
-              ),
-              TextField(
-                controller: _newKeyController,
-                obscureText: _isObscuredNewKey,
-                decoration: InputDecoration(
-                  labelText: 'New security key',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isObscuredNewKey
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: _toggleVisibilityNewKey,
-                  ),
-                ),
-              ),
-              TextField(
-                controller: _repeatKeyController,
-                obscureText: _isObscuredRepeatNewKey,
-                decoration: InputDecoration(
-                  labelText: 'Repeat the new security key',
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isObscuredRepeatNewKey
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: _toggleVisibilityRepeatNewKey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          child: const Text('Cancel'),
-          onPressed: () {
-            // Close the dialog.
+//     return AlertDialog(
+//       title: const Text('Change Security Key'),
+//       content: ConstrainedBox(
+//         constraints: BoxConstraints(
+//           minWidth: width,
+//           minHeight: height,
+//         ),
+//         child: SingleChildScrollView(
+//           child: ListBody(
+//             children: <Widget>[
+//               TextField(
+//                 controller: _currentKeyController,
+//                 obscureText: _isObscuredCurrentKey,
+//                 decoration: InputDecoration(
+//                   labelText: 'Your current security key',
+//                   suffixIcon: IconButton(
+//                     icon: Icon(
+//                       _isObscuredCurrentKey
+//                           ? Icons.visibility_off
+//                           : Icons.visibility,
+//                     ),
+//                     onPressed: _toggleVisibilityCurrentKey,
+//                   ),
+//                 ),
+//               ),
+//               TextField(
+//                 controller: _newKeyController,
+//                 obscureText: _isObscuredNewKey,
+//                 decoration: InputDecoration(
+//                   labelText: 'New security key',
+//                   suffixIcon: IconButton(
+//                     icon: Icon(
+//                       _isObscuredNewKey
+//                           ? Icons.visibility_off
+//                           : Icons.visibility,
+//                     ),
+//                     onPressed: _toggleVisibilityNewKey,
+//                   ),
+//                 ),
+//               ),
+//               TextField(
+//                 controller: _repeatKeyController,
+//                 obscureText: _isObscuredRepeatNewKey,
+//                 decoration: InputDecoration(
+//                   labelText: 'Repeat the new security key',
+//                   suffixIcon: IconButton(
+//                     icon: Icon(
+//                       _isObscuredRepeatNewKey
+//                           ? Icons.visibility_off
+//                           : Icons.visibility,
+//                     ),
+//                     onPressed: _toggleVisibilityRepeatNewKey,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//       actions: <Widget>[
+//         TextButton(
+//           child: const Text('Cancel'),
+//           onPressed: () {
+//             // Close the dialog.
 
-            Navigator.of(context).pop();
-          },
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            await _changeKey();
-          },
-          child: const Text('Change Key'),
-        ),
-      ],
-    );
-  }
-}
+//             Navigator.of(context).pop();
+//           },
+//         ),
+//         ElevatedButton(
+//           onPressed: () async {
+//             await _changeKey();
+//           },
+//           child: const Text('Change Key'),
+//         ),
+//       ],
+//     );
+//   }
+// }
 
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
 Future<void> changeKeyPopup(BuildContext context) async {
   final verificationKey = await KeyManager.getVerificationKey();
 
-  const msg = 'Please enter the current security key, the new security key,'
-      ' and then repeat the new security key.';
-  const currentFieldKey = 'current_security_key';
-  const newFieldKey = 'new_security_key';
-  const newFieldKeyRepeat = 'new_security_key_repeat';
+  const message = 'Please enter the current security key, the new security key,'
+      ' and repeat the new security key.';
+  const currentKeyStr = 'current_security_key';
+  const newKeyStr = 'new_security_key';
+  const newKeyRepeatStr = 'new_security_key_repeat';
+  final formKey = GlobalKey<FormBuilderState>();
 
-  final fields = [(
-    fieldKey: currentFieldKey,
-    fieldLabel: 'Current Security Key',
-    validateFunc: (key) => verifySecurityKey(key as String, verificationKey),
-    repeatOf: null,
-  ),
-  (fieldKey: newFieldKey,
-  fieldLabel: 'New Security Key',
-  validateFunc: (key) {
-    if (key as String)
+  String? validateCurrentKey(String key) =>
+      verifySecurityKey(key, verificationKey) ? null : 'Incorrect security key';
+
+  String? validateNewKey(String key) => verifySecurityKey(key, verificationKey)
+      ? 'New security key is identical to current security key'
+      : null;
+
+  String? validateNewKeyRepeat(String key) {
+    final formData = formKey.currentState?.value as Map<String, dynamic>;
+    if (formData.containsKey(newKeyStr) &&
+        formData.containsKey(newKeyRepeatStr) &&
+        formData[newKeyStr].toString() !=
+            formData[newKeyRepeatStr].toString()) {
+      return 'New security keys do not match';
+    }
+    return null;
   }
-  )
+
+  Future<void> submitForm(Map<String, dynamic> formDataMap) async {
+    final currentKey = formDataMap[currentKeyStr].toString();
+    final newKey = formDataMap[newKeyStr].toString();
+    final newKeyRepeat = formDataMap[newKeyRepeatStr].toString();
+
+    if (validateCurrentKey(currentKey) != null ||
+        validateNewKey(newKey) != null ||
+        validateNewKeyRepeat(newKeyRepeat) != null) {
+      return;
+    }
+
+    late Color bgColor;
+    late Duration duration;
+    late String msg;
+
+    try {
+      await KeyManager.changeSecurityKey(currentKey, newKeyStr);
+
+      msg = 'Successfully changed the security key!';
+      bgColor = Colors.green;
+      duration = const Duration(seconds: 4);
+    } on Exception catch (e) {
+      msg = 'Failed to change security key! $e';
+      bgColor = Colors.red;
+      duration = const Duration(seconds: 7);
+    } finally {
+      // Close the dialog
+      Navigator.of(context).pop();
+
+      // Show message
+      _showSnackBar(context, msg, bgColor, duration: duration);
+    }
+  }
+
+  final inputFields = [
+    (
+      fieldKey: currentKeyStr,
+      fieldLabel: 'Current Security Key',
+      validateFunc: (key) => validateCurrentKey(key as String),
+    ),
+    (
+      fieldKey: newKeyStr,
+      fieldLabel: 'New Security Key',
+      validateFunc: (key) => validateNewKey(key as String),
+    ),
+    (
+      fieldKey: newKeyRepeatStr,
+      fieldLabel: 'Repeat New Security Key',
+      validateFunc: (key) => validateNewKeyRepeat(key as String),
+    )
   ];
 
-  final field = (
-    fieldKey: inputKey,
-    fieldLabel: 'Security Key',
-    validateFunc: (key) => verifySecurityKey(key as String, verificationKey),
-    repeatOf: null,
+  final changeKeyForm = SecretInputForm(
+    title: 'Change Security Key',
+    message: message,
+    inputFields: inputFields,
+    formKey: formKey,
+    submitFunc: submitForm,
   );
-  final securityKeyInput = SecretInputForm(
-      title: 'Security Key',
-      message: msg,
-      textFields: [field],
-      formKey: GlobalKey<FormBuilderState>(),
-      onSubmit: (formDataMap) async {
-        await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
-        debugPrint('Security key saved');
-      });
-
-  await Navigator.push(
-      context, MaterialPageRoute(builder: (context) => securityKeyInput));
 
   await showDialog(
     context: context,
-    builder: (context) {
-      return const ChangeKeyDialog();
-    },
+    builder: (context) => changeKeyForm,
+  );
+}
+
+// Show a message
+void _showSnackBar(BuildContext context, String msg, Color bgColor,
+    {Duration duration = const Duration(seconds: 4)}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(msg),
+      backgroundColor: bgColor,
+      duration: duration,
+    ),
   );
 }
