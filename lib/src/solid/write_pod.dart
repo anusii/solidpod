@@ -108,6 +108,8 @@ Future<void> writePod(
     case ResourceStatus.unknown:
       throw Exception(
           'Unable to determine if file "$filePath" exists, writePod() aborted');
+
+    case ResourceStatus.notExist: // Empty case falls through.
     default:
       debugPrint('File "$filePath" does not exist');
   }
