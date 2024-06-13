@@ -97,21 +97,25 @@ Future<void> getKeyFromUserIfRequired(
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
 
-    const msg = 'Please enter the security key you previously provided'
+    const message = 'Please enter the security key you previously provided'
         ' for securing your data.';
     const inputKey = 'security_key';
-    final field = (
+    final inputField = (
       fieldKey: inputKey,
       fieldLabel: 'Security Key',
-      validateFunc: (key) => verifySecurityKey(key as String, verificationKey),
-      repeatOf: null,
+      validateFunc: (key) {
+        assert(key != null);
+        return verifySecurityKey(key as String, verificationKey)
+            ? null
+            : 'Incorrect Security Key';
+      }
     );
     final securityKeyInput = SecretInputForm(
         title: 'Security Key',
-        message: msg,
-        textFields: [field],
+        message: message,
+        inputFields: [inputField],
         formKey: GlobalKey<FormBuilderState>(),
-        onSubmit: (formDataMap) async {
+        submitFunc: (formDataMap) async {
           await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
           debugPrint('Security key saved');
         });
