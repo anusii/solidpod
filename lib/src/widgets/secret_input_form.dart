@@ -78,6 +78,7 @@ class SecretInputForm extends StatefulWidget {
 
 class _SecretInputFormState extends State<SecretInputForm> {
   Map<String, bool> _verifiedMap = {};
+  bool _canSubmit = false;
 
   @override
   void initState() {
@@ -91,7 +92,8 @@ class _SecretInputFormState extends State<SecretInputForm> {
   Future<void> _submit(BuildContext context) async {
     final formData = widget.formKey.currentState?.value as Map<String, dynamic>;
     debugPrint('formData: $formData');
-    if (_verifiedMap.containsValue(false)) {
+
+    if (!_canSubmit) {
       debugPrint('_verifidMap: $_verifiedMap');
       return;
     }
@@ -125,6 +127,7 @@ class _SecretInputFormState extends State<SecretInputForm> {
       const Divider(color: Colors.grey),
       smallGapV,
       _createText(widget.message, fontSize: 17),
+      medGapV,
     ];
 
     for (final f in widget.inputFields) {
@@ -148,10 +151,23 @@ class _SecretInputFormState extends State<SecretInputForm> {
     final form = FormBuilder(
         key: formKey,
         onChanged: () {
+          // Save input and validate them
+
           formKey.currentState!.save();
+          formKey.currentState!.validate(
+            focusOnInvalid: false, // allow update new key even if it is valid
+          );
+
+          // Update state
+          setState(() {
+            _canSubmit = !_verifiedMap.containsValue(false);
+          });
+
           debugPrint('${formKey.currentState?.value as Map}');
+          debugPrint('onChange(): _verifiedMap = $_verifiedMap');
+          debugPrint('onChange(): _canSubmit =  $_canSubmit');
         },
-        autovalidateMode: AutovalidateMode.always,
+        autovalidateMode: AutovalidateMode.disabled, // called in onChanged()
         child: KeyboardListener(
             focusNode: FocusNode(),
             onKeyEvent: (event) async {
@@ -167,7 +183,9 @@ class _SecretInputFormState extends State<SecretInputForm> {
     // The submit button
 
     final submitButton = ElevatedButton(
-      onPressed: () async => _submit(context),
+      onPressed:
+          // Disable the button (set onPressed: null) if _canSubmit = false
+          _canSubmit ? () async => _submit(context) : null,
       style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
       child: _createText('Submit', fontSize: 15, color: Colors.white),
     );
@@ -175,7 +193,6 @@ class _SecretInputFormState extends State<SecretInputForm> {
     // The Cancel button
 
     final cancelButton = ElevatedButton(
-      //onPressed: () => Navigator.pop(context),
       onPressed: () async => Navigator.push(
           context,
           MaterialPageRoute(
