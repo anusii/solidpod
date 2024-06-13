@@ -118,7 +118,9 @@ Future<void> getKeyFromUserIfRequired(
         submitFunc: (formDataMap) async {
           await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
           debugPrint('Security key saved');
-        });
+          Navigator.pop(context);
+        },
+        child: child);
 
     await Navigator.push(
         context, MaterialPageRoute(builder: (context) => securityKeyInput));
