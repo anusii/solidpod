@@ -1,4 +1,4 @@
-/// A pop up widget for changing security key
+/// Show a pop up widget to change the security key
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -31,183 +31,13 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-// import 'package:path/path.dart';
 
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/widgets/secret_input_form.dart';
 
-// /// Change key dialog widget
-// class ChangeKeyDialog extends StatefulWidget {
-//   /// Constructor
-//   const ChangeKeyDialog({super.key});
-
-//   @override
-//   State<ChangeKeyDialog> createState() => _ChangeKeyDialogState();
-// }
-
-// class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
-//   bool _isObscuredCurrentKey = true;
-//   bool _isObscuredNewKey = true;
-//   bool _isObscuredRepeatNewKey = true;
-
-//   final TextEditingController _currentKeyController = TextEditingController();
-//   final TextEditingController _newKeyController = TextEditingController();
-//   final TextEditingController _repeatKeyController = TextEditingController();
-
-//   void _toggleVisibilityCurrentKey() {
-//     setState(() {
-//       _isObscuredCurrentKey = !_isObscuredCurrentKey;
-//     });
-//   }
-
-//   void _toggleVisibilityNewKey() {
-//     setState(() {
-//       _isObscuredNewKey = !_isObscuredNewKey;
-//     });
-//   }
-
-//   void _toggleVisibilityRepeatNewKey() {
-//     setState(() {
-//       _isObscuredRepeatNewKey = !_isObscuredRepeatNewKey;
-//     });
-//   }
-
-//   // Show a message
-//   void _showSnackBar(String msg, Color bgColor,
-//       {Duration duration = const Duration(seconds: 4)}) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(
-//         content: Text(msg),
-//         backgroundColor: bgColor,
-//         duration: duration,
-//       ),
-//     );
-//   }
-
-//   Future<void> _changeKey() async {
-//     if (_newKeyController.text == _currentKeyController.text) {
-//       _showSnackBar('The new key and old key are the same. Please try again.',
-//           Colors.red);
-//     } else if (_newKeyController.text != _repeatKeyController.text) {
-//       _showSnackBar('The new keys do not match. Please try again.', Colors.red);
-//     } else {
-//       late String msg;
-//       late Color bgColor;
-//       late Duration duration;
-//       try {
-//         await KeyManager.changeSecurityKey(
-//             _currentKeyController.text, _newKeyController.text);
-
-//         msg = 'Successfully changed the security key!';
-//         bgColor = Colors.green;
-//         duration = const Duration(seconds: 4);
-//       } on Exception catch (e) {
-//         msg = 'Failed to change security key! $e';
-//         bgColor = Colors.red;
-//         duration = const Duration(seconds: 7);
-//       } finally {
-//         // Close the dialog
-//         Navigator.of(context).pop();
-
-//         // Show message
-//         _showSnackBar(msg, bgColor, duration: duration);
-//       }
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // Use MediaQuery to get the size of the current screen.
-
-//     final size = MediaQuery.of(context).size;
-
-//     // Calculate the desired width and height.
-
-//     final width = size.width * 0.6;
-//     final height = size.height * 0.5;
-
-//     return AlertDialog(
-//       title: const Text('Change Security Key'),
-//       content: ConstrainedBox(
-//         constraints: BoxConstraints(
-//           minWidth: width,
-//           minHeight: height,
-//         ),
-//         child: SingleChildScrollView(
-//           child: ListBody(
-//             children: <Widget>[
-//               TextField(
-//                 controller: _currentKeyController,
-//                 obscureText: _isObscuredCurrentKey,
-//                 decoration: InputDecoration(
-//                   labelText: 'Your current security key',
-//                   suffixIcon: IconButton(
-//                     icon: Icon(
-//                       _isObscuredCurrentKey
-//                           ? Icons.visibility_off
-//                           : Icons.visibility,
-//                     ),
-//                     onPressed: _toggleVisibilityCurrentKey,
-//                   ),
-//                 ),
-//               ),
-//               TextField(
-//                 controller: _newKeyController,
-//                 obscureText: _isObscuredNewKey,
-//                 decoration: InputDecoration(
-//                   labelText: 'New security key',
-//                   suffixIcon: IconButton(
-//                     icon: Icon(
-//                       _isObscuredNewKey
-//                           ? Icons.visibility_off
-//                           : Icons.visibility,
-//                     ),
-//                     onPressed: _toggleVisibilityNewKey,
-//                   ),
-//                 ),
-//               ),
-//               TextField(
-//                 controller: _repeatKeyController,
-//                 obscureText: _isObscuredRepeatNewKey,
-//                 decoration: InputDecoration(
-//                   labelText: 'Repeat the new security key',
-//                   suffixIcon: IconButton(
-//                     icon: Icon(
-//                       _isObscuredRepeatNewKey
-//                           ? Icons.visibility_off
-//                           : Icons.visibility,
-//                     ),
-//                     onPressed: _toggleVisibilityRepeatNewKey,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//       actions: <Widget>[
-//         TextButton(
-//           child: const Text('Cancel'),
-//           onPressed: () {
-//             // Close the dialog.
-
-//             Navigator.of(context).pop();
-//           },
-//         ),
-//         ElevatedButton(
-//           onPressed: () async {
-//             await _changeKey();
-//           },
-//           child: const Text('Change Key'),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
-Future<void> changeKeyPopup(BuildContext context) async {
+Future<void> changeKeyPopup(BuildContext context, Widget child) async {
   final verificationKey = await KeyManager.getVerificationKey();
 
   const message = 'Please enter the current security key, the new security key,'
@@ -251,7 +81,7 @@ Future<void> changeKeyPopup(BuildContext context) async {
     late String msg;
 
     try {
-      await KeyManager.changeSecurityKey(currentKey, newKeyStr);
+      await KeyManager.changeSecurityKey(currentKey, newKey);
 
       msg = 'Successfully changed the security key!';
       bgColor = Colors.green;
@@ -261,10 +91,7 @@ Future<void> changeKeyPopup(BuildContext context) async {
       bgColor = Colors.red;
       duration = const Duration(seconds: 7);
     } finally {
-      // Close the dialog
-      Navigator.of(context).pop();
-
-      // Show message
+      Navigator.pop(context);
       _showSnackBar(context, msg, bgColor, duration: duration);
     }
   }
@@ -293,12 +120,28 @@ Future<void> changeKeyPopup(BuildContext context) async {
     inputFields: inputFields,
     formKey: formKey,
     submitFunc: submitForm,
+    child: child,
   );
 
+  // Use MediaQuery to get the size of the current screen.
+
+  final size = MediaQuery.of(context).size;
+
+  // Calculate the desired width and height.
+
+  final width = size.width * 0.6;
+  final height = size.height * 0.5;
+
   await showDialog(
-    context: context,
-    builder: (context) => changeKeyForm,
-  );
+      context: context,
+      builder: (context) => AlertDialog(
+            content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: width,
+                  minHeight: height,
+                ),
+                child: changeKeyForm),
+          ));
 }
 
 // Show a message
