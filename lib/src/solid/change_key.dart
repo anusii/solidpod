@@ -33,6 +33,10 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 
 /// Change key dialog widget
+@Deprecated('''
+[ChangeKeyDialog] is deprecated.
+Use [ChangeKeyPopup(context, child)] instead.
+''')
 class ChangeKeyDialog extends StatefulWidget {
   /// Constructor
   const ChangeKeyDialog({super.key});
@@ -202,13 +206,13 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
   }
 }
 
-/// Displays a dialog for changing the key
-/// [context] is the BuildContext from which this function is called.
-Future<void> changeKeyPopup(BuildContext context) async {
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return const ChangeKeyDialog();
-    },
-  );
-}
+// /// Displays a dialog for changing the key
+// /// [context] is the BuildContext from which this function is called.
+// Future<void> changeKeyPopup(BuildContext context) async {
+//   await showDialog(
+//     context: context,
+//     builder: (context) {
+//       return const ChangeKeyDialog();
+//     },
+//   );
+// }
