@@ -34,25 +34,22 @@ import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
 
-import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
-
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
-/// Grant permission to [resourceUrl] for a given [receiverWebId].
+/// Grant permission to [resourceUrl] for a given [recipientWebId].
 /// Parameters:
 ///   [resourceUrl] is the path of the file in the POD including the file name
 ///   [permissionList] is the list of permission to be granted
-///   [receiverWebId] is the webId of the permission receiver
+///   [recipientWebId] is the webId of the permission receiver
 ///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
 
 Future<void> grantPermission(
     String resourceUrl,
     List<dynamic> permissionList,
-    String receiverWebId,
+    String recipientWebId,
     bool isFileEncrypted,
     BuildContext context,
     Widget child) async {
@@ -61,7 +58,7 @@ Future<void> grantPermission(
   await getKeyFromUserIfRequired(context, child);
 
   // Add the permission line to the relevant ACL file
-  await setPermissionAcl(resourceUrl, receiverWebId, permissionList);
+  await setPermissionAcl(resourceUrl, recipientWebId, permissionList);
 
   // Check if the file is encrypted
   final fileIsEncrypted = await checkFileEnc(resourceUrl);
@@ -69,53 +66,27 @@ Future<void> grantPermission(
   // If the file is encrypted then share the individual encryption key
   // with the receiver
   if (fileIsEncrypted) {
-    // Get user's security key.
-    // final secureKey = await getSecureKeyPlain(secureKeyObject, webId);
-    // final encKey =
-    //     sha256.convert(utf8.encode(secureKey)).toString().substring(0, 32);
+    // Get the individual security key for the file
+    final indKey = await KeyManager.getIndividualKey(resourceUrl);
 
-    // /// Get the individual security key for the file
-    // final indKey = await KeyManager.getIndividualKey(resourceUrl);
+    // Setup recipient's public key
+    final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
 
-    // final indKeyFileLoc =
-    //     webId.replaceAll('profile/card#me', IND_KEY_FILE_LOC);
-    // final dPopTokenKeyFile =
-    //     genDpopToken(indKeyFileLoc, rsaKeyPair, publicKeyJwk, 'GET');
-    // final keyFileContent =
-    //     await fetchPrvData(indKeyFileLoc, accessToken, dPopTokenKeyFile);
-    // final keyFileDataMap = getEncFileContent(keyFileContent);
+    // Encrypt individual key
+    final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
 
-    // //String filePath = keyFileDataMap[resourceName]['path'];
-    // final String fileKeyInd =
-    //     keyFileDataMap['indEncFile-$resourceName']['indKey'];
+    // Encrypt resource URL
+    final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
 
-    // /// Decrypt the individual key using master key
-    // final masterKey = encrypt.Key.fromUtf8(encKey);
-    // final ivInd = encrypt.IV
-    //     .fromBase64(keyFileDataMap['indEncFile-$resourceName']['ivz']);
-    // final encrypterInd = encrypt.Encrypter(
-    //     encrypt.AES(masterKey, mode: encrypt.AESMode.cbc));
-    // final eccInd = encrypt.Encrypted.from64(fileKeyInd);
-    // final plainKeyInd = encrypterInd.decrypt(eccInd, iv: ivInd);
+    // Encrypt the list of permissions
+    permissionList.sort();
+    final sharedAccessList =
+        await recipientPubKey.encryptData(permissionList.join(','));
 
-    // /// Get recipient's public key
-    // var otherPubKey = await fetchOtherPubKey(authData, permissionWebId);
-    // otherPubKey = otherPubKey.replaceAll('"', '');
-    // otherPubKey = genPubKeyStr(otherPubKey);
-
-    // /// Encrypt individual key, file path, and access list using recipient's public key
-    // final parser = encrypt.RSAKeyParser();
-    // final pubKey = parser.parse(otherPubKey) as RSAPublicKey;
-    // final encrypterPub = encrypt.Encrypter(encrypt.RSA(publicKey: pubKey));
-    // final encShareKey = encrypterPub.encrypt(plainKeyInd).base64;
-    // final encSharePath = encrypterPub.encrypt(resourceUrl).base64;
-
-    // selectedItems.sort();
-    // final accessListStr = selectedItems.join(',');
-    // final encSharedAccess = encrypterPub.encrypt(accessListStr).base64;
-
-    // /// Get username to create a directory
-    // final List webIdContent = webId.split('/');
-    // final String dirName = webIdContent[3];
+    // Copy shared content to recipient's POD
+    final senderUniqueName = getUniqueStrWebId(await getWebId() as String);
+    final resourceName = resourceUrl.split('/').last;
+    await copySharedKey(recipientWebId, senderUniqueName, resourceName,
+        sharedIndKey, sharedResPath, sharedAccessList);
   }
 }

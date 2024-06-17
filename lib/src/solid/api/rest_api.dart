@@ -763,7 +763,7 @@ Future<bool> checkFileEnc(String fileUrl) async {
   var encryptedFlag = false;
   final prvDataMap = getFileContent(fileContent);
 
-  if (prvDataMap.containsKey('encryptVal')) {
+  if (prvDataMap.containsKey('encData')) {
     encryptedFlag = true;
   }
 
@@ -915,8 +915,8 @@ Future<void> copySharedKey(
   final sharedDirPath = await getSharedDirPath();
 
   /// Get name of the directory inside the shared directory
-  final senderDirUrl = receiverWebId.replaceAll(
-      'profile/card#me', '$sharedDirPath/$senderDirName/');
+  final senderDirUrl =
+      receiverWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
 
   /// Create a directory if not exists
   if (await checkResourceExists(senderDirUrl, false) ==
@@ -930,7 +930,7 @@ Future<void> copySharedKey(
   /// Get shared key file url.
   final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
   final receiverSharedKeyFileUrl =
-      receiverWebId.replaceAll('profile/card#me', sharedKeyFilePath);
+      receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
   /// Create file if not exists
   if (await checkResourceExists(receiverSharedKeyFileUrl, false) ==

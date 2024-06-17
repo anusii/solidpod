@@ -112,6 +112,20 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
   }
 }
 
+/// Generates a public key block from a given key content.
+String genPubKeyStr(String pubKeyContent) =>
+    '''-----BEGIN RSA PUBLIC KEY-----\n$pubKeyContent\n-----END RSA PUBLIC KEY-----''';
+
+/// Get unique bit of the webId
+String getUniqueStrWebId(String webId) {
+  var uniqueStr = webId.replaceAll('https://', '');
+  uniqueStr = uniqueStr.replaceAll('http://', '');
+  uniqueStr = uniqueStr.replaceAll('/$profCard', '');
+  uniqueStr = uniqueStr.replaceAll('/', '-');
+
+  return uniqueStr;
+}
+
 /// Create a directory
 // Future<bool> createDir(String dirName, String dirParentPath) async {
 //   try {
