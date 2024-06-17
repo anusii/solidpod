@@ -89,8 +89,6 @@ const String profileDoc = 'PersonalProfileDocument';
 const String terms = 'http://purl.org/dc/terms/';
 const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String appsFile = 'https://solidcommunity.au/predicates/file#';
-const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 

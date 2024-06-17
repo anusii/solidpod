@@ -30,6 +30,7 @@ library;
 
 import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 /// Generate TTL string from triples stored in a map:

@@ -715,7 +715,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
 
   /// Create a directory if not exists
-  if (await checkResourceExists(senderDirUrl, false) ==
+  if (await checkResourceStatus(senderDirUrl, false) ==
       ResourceStatus.notExist) {
     await createResource(
       senderDirUrl,
@@ -729,7 +729,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
   /// Create file if not exists
-  if (await checkResourceExists(receiverSharedKeyFileUrl, false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
       ResourceStatus.notExist) {
     final keyFileBody =
         '@prefix : <#>.\n@prefix foaf: <$httpFoaf>.\n@prefix terms: <$httpDcTerms>.\n@prefix file: <$appsFile>.\n@prefix data: <$appsData>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Shared Encryption Keys".\nfile:$resName\n    data:path "$encSharedPath";\n    data:accessList "$encSharedAccess";\n    data:sharedKey "$encSharedKey".';

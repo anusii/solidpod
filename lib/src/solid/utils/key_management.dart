@@ -42,8 +42,9 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:crypto/crypto.dart';
 import 'package:rdflib/rdflib.dart';
 import 'package:pointycastle/asymmetric/api.dart';
-import 'package:encrypt/encrypt.dart' hide RSA;
-import 'package:fast_rsa/fast_rsa.dart' show RSA;
+//import 'package:encrypt/encrypt.dart' hide RSA;
+import 'package:encrypt/encrypt.dart';
+import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -71,7 +72,7 @@ IV genRandIV() => IV.fromLength(16);
 
 /// Create a random public-private key pair
 Future<({String publicKey, String privateKey})> genRandRSAKeyPair() async {
-  final pair = await RSA.generate(2048);
+  final pair = await fast_rsa.RSA.generate(2048);
   return (publicKey: pair.publicKey, privateKey: pair.privateKey);
 }
 
