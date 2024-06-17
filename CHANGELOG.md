@@ -8,6 +8,13 @@ numbers.
 
 ## 0.6 Future Release
 
++ Validate input security keys when changing security key. [0.5.32]
++ Support the use of the same filename to store encrypted/unencrypted data. [0.5.31]
++ Input security key by pressing the enter key. [0.5.30]
++ Add/Delete corresponding individual keys when adding/deleting data files. [0.5.29]
++ Support the read/write of non-encrypted data file. [0.5.28].
++ Refactor POD initialisation code. [0.5.27]
++ Fix security key reloads bug, change button text colour. [0.5.26] 
 + Add version number to login screen. [0.5.25]
 + Fix login animation won't disappear in some cases. [0.5.24]
 + Implement API for changing "security key". [0.5.23]

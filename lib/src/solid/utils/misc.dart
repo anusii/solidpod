@@ -30,10 +30,12 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:encrypt/encrypt.dart';
+import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:rdflib/rdflib.dart';
-import 'package:solid_auth/solid_auth.dart';
+import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
@@ -41,7 +43,8 @@ import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
+import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart';
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
@@ -80,26 +83,6 @@ String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
 String decryptData(String encData, Key key, IV iv,
         {AESMode mode = AESMode.sic}) =>
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
-
-/// Parse TTL content into a map {subject: {predicate: object}}
-Map<String, dynamic> parseTTL(String ttlContent) {
-  final g = Graph();
-  g.parseTurtle(ttlContent);
-  final dataMap = <String, dynamic>{};
-  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
-  for (final t in g.triples) {
-    final sub = extract(t.sub.value as String);
-    final pre = extract(t.pre.value as String);
-    final obj = extract(t.obj.value as String);
-    if (dataMap.containsKey(sub)) {
-      assert(!(dataMap[sub] as Map).containsKey(pre));
-      dataMap[sub][pre] = obj;
-    } else {
-      dataMap[sub] = {pre: obj};
-    }
-  }
-  return dataMap;
-}
 
 /// Load and parse a private TTL file from POD
 Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
@@ -161,7 +144,7 @@ String getUniqueStrWebId(String webId) {
 /// returns the full resource URL
 
 Future<String> _getResourceUrl(String resourcePath, bool isContainer) async {
-  final webId = await getWebId();
+  final webId = await AuthDataManager.getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
@@ -183,29 +166,14 @@ Future<String> getDirUrl(String dirPath) async =>
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
     String filePath, String fileContent, Key key, IV iv) async {
-  final encData = encryptData(fileContent, key, iv);
-
-  final g = Graph();
-  final f = URIRef(await getFileUrl(filePath));
-  final ns = Namespace(ns: appsTerms);
-  g.addTripleToGroups(f, ns.withAttr(pathPred), filePath);
-  g.addTripleToGroups(f, ns.withAttr(ivPred), iv.base64);
-  g.addTripleToGroups(f, ns.withAttr(encDataPred), encData);
-
-  // Bind the long namespace to shorter string for better readability
-  // String getPrefix(String UriStr) => Uri.parse(UriStr).pathSegments[-1];
-  // g.bind(appFilePrefix, Namespace(ns: appsFile));
-  // g.bind(appTermPrefix, ns);
-  // final uri = Uri.parse(appsTerms);
-  // final host = uri.host.split('.')[0];
-  // final hostpath = uri.removeFragment().toString();
-  // g.bind(host, Namespace(ns: hostpath));
-  // g.bind(host, ns);
-
-  g.serialize(abbr: 'short');
-
-  final encTTL = g.serializedString;
-  return encTTL;
+  final tripleMap = {
+    await getFileUrl(filePath): {
+      pathPred: filePath,
+      ivPred: iv.base64,
+      encDataPred: encryptData(fileContent, key, iv),
+    }
+  };
+  return tripleMapToTTLStr(tripleMap);
 }
 
 /// Returns the path of file with verification key and private key
@@ -236,11 +204,18 @@ Future<String> getSharedKeyFilePath(String senderName) async => [
       sharedKeyFile
     ].join('/');
 
+/// Returns the path of the encryption directory
+Future<String> getEncDirPath() async =>
+    [await AppInfo.canonicalName, encDir].join('/');
+
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)
 
 Future<({String name, String version})> getAppNameVersion() async =>
     (name: await AppInfo.name, version: await AppInfo.version);
+
+/// Return the web ID
+Future<String?> getWebId() async => AuthDataManager.getWebId();
 
 /// Check whether a user is logged in or not
 ///
@@ -250,7 +225,7 @@ Future<({String name, String version})> getAppNameVersion() async =>
 /// returns boolean
 
 Future<bool> checkLoggedIn() async {
-  final webId = await getWebId();
+  final webId = await AuthDataManager.getWebId();
 
   if (webId != null && webId.isNotEmpty) {
     final accessToken = await AuthDataManager.getAccessToken();
@@ -266,25 +241,7 @@ Future<bool> checkLoggedIn() async {
 ///
 /// returns true if successful
 
-Future<bool> deleteLogIn() async {
-  const success = true;
-  try {
-    await secureStorage.delete(key: webIdSecureStorageKey);
-  } on Exception {
-    return false;
-  }
-  return success && (await AuthDataManager.removeAuthData());
-}
-
-/// Save the webId to local secure storage
-
-Future<void> saveWebId(String webId) async =>
-    writeToSecureStorage(webIdSecureStorageKey, webId);
-
-/// Get the webId from local secure storage
-
-Future<String?> getWebId() async =>
-    secureStorage.read(key: webIdSecureStorageKey);
+Future<bool> deleteLogIn() async => AuthDataManager.removeAuthData();
 
 /// Generates a list of default folder paths for a given application.
 ///
@@ -292,8 +249,7 @@ Future<String?> getWebId() async =>
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<List<String>> generateDefaultFolders() async {
-  final appName = await AppInfo.canonicalName;
-  final mainResDir = appName;
+  final mainResDir = await AppInfo.canonicalName;
 
   final dataDirLoc = [mainResDir, dataDir].join('/');
   final sharingDirLoc = [mainResDir, sharingDir].join('/');
@@ -318,13 +274,7 @@ Future<List<String>> generateDefaultFolders() async {
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
-  final appName = await AppInfo.canonicalName;
-  final mainResDir = appName;
-
-  // const encKeyFile = 'enc-keys.ttl';
-  // const pubKeyFile = 'public-key.ttl';
-  // const indKeyFile = 'ind-keys.ttl';
-  // const permLogFile = 'permissions-log.ttl';
+  final mainResDir = await AppInfo.canonicalName;
 
   final sharingDirLoc = [mainResDir, sharingDir].join('/');
   final sharedDirLoc = [mainResDir, sharedDir].join('/');
@@ -359,6 +309,24 @@ String getResNameFromUrl(String resourceUrl) {
   return resourceUrl.split('/').last;
 }
 
+/// Get tokens necessary to fetch a resource from a POD
+///
+/// returns the access token and DPoP token
+Future<({String accessToken, String dPopToken})> getTokensForResource(
+    String resourceUrl, String httpMethod) async {
+  final authData = await AuthDataManager.loadAuthData();
+  assert(authData != null);
+
+  final rsaInfo = authData!['rsaInfo'];
+  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
+  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+
+  return (
+    accessToken: authData['accessToken'] as String,
+    dPopToken: genDpopToken(resourceUrl, rsaKeyPair, publicKeyJwk, httpMethod),
+  );
+}
+
 /// Logging out the user
 Future<bool> logoutPod() async {
   final logoutUrl = await AuthDataManager.getLogoutUrl();
@@ -367,16 +335,136 @@ Future<bool> logoutPod() async {
       await KeyManager.clear();
       return (await AuthDataManager.removeAuthData()) &&
           (await logout(logoutUrl));
-
-      // final uri = Uri.parse(logoutUrl);
-      // if (await canLaunchUrl(uri)) {
-      //   return (await AuthDataManager.removeAuthData()) &&
-      //       (await launchUrl(uri));
-      // }
     } on Exception catch (e) {
-      print('Exception: $e');
+      debugPrint('Exception: $e');
       return false;
     }
   }
   return true;
+}
+
+/// Removes header and footer (which mess up the TTL format) from a PEM-formatted public key string.
+///
+/// This function takes a public key string, typically in PEM format, and removes
+/// the standard PEM headers and footers.
+
+String trimPubKeyStr(String keyStr) {
+  final itemList = keyStr.split('\n');
+  itemList.remove('-----BEGIN RSA PUBLIC KEY-----');
+  itemList.remove('-----END RSA PUBLIC KEY-----');
+  itemList.remove('-----BEGIN PUBLIC KEY-----');
+  itemList.remove('-----END PUBLIC KEY-----');
+
+  final keyStrTrimmed = itemList.join();
+
+  return keyStrTrimmed;
+}
+
+/// Initialise the directory and file structure in a POD
+
+Future<void> initPod(String securityKey,
+    {List<String>? dirUrls, List<String>? fileUrls}) async {
+  // Check if the user has logged in
+
+  final loggedIn = await checkLoggedIn();
+  if (!loggedIn) {
+    throw Exception('Can not initialise POD without logging in');
+  }
+
+  // Check (and generate) the directory URLs
+
+  if (dirUrls == null || dirUrls.isEmpty) {
+    final defaultDirs = await generateDefaultFolders();
+    dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
+  }
+
+  // Require the creation of the encryption directory and
+  // the encKeyFile and indKeyFile in it.
+  // (The app asks for the security key, so this is a reasonable requirement?)
+
+  final encDirUrl = await getDirUrl(await getEncDirPath());
+  if (!dirUrls.contains(encDirUrl)) {
+    throw Exception('Can not initialise POD without creating $encDirUrl');
+  }
+
+  // Create the required directories
+
+  for (final d in dirUrls) {
+    await createResource(d,
+        fileFlag: false, contentType: ResourceContentType.directory);
+  }
+
+  // Check (and generate) the file URLs
+
+  if (fileUrls == null || fileUrls.isEmpty) {
+    final defaultFiles = await generateDefaultFiles();
+    fileUrls = <String>[];
+    for (final entry in defaultFiles.entries) {
+      final d = entry.key;
+      for (final f in entry.value as List) {
+        fileUrls.add([d, f].join('/'));
+      }
+    }
+  }
+
+  // Create the encKeyFile, indKeyFile and pubKeyFile
+  // and remove them from the fileUrls list
+
+  await KeyManager.initPodKeys(securityKey);
+  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
+  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
+  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+  debugPrint(fileUrls.toString());
+
+  for (final f in fileUrls) {
+    final fileName = f.split('/').last;
+    late String fileContent;
+    late bool aclFlag;
+
+    if (f.split('.').last == 'acl') {
+      fileContent = await genAclTTLStr(f,
+          publicAccess: fileName == '$permLogFile.acl'
+              ? AccessType.append
+              : AccessType.read);
+      aclFlag = true;
+    } else {
+      debugPrint(fileName);
+      assert(fileName == permLogFile);
+      fileContent = await genPermLogTTLStr(f);
+      aclFlag = false;
+    }
+
+    await createResource(f, content: fileContent, replaceIfExist: aclFlag);
+  }
+}
+
+/// Delete the ACL file for a resource
+Future<void> deleteAclForResource(String resourceUrl) async {
+  final aclUrl = '$resourceUrl.acl';
+  final status = await checkResourceStatus(aclUrl, true);
+
+  switch (status) {
+    case ResourceStatus.exist:
+      await deleteResource(aclUrl, ResourceContentType.turtleText);
+
+    case ResourceStatus.notExist:
+      debugPrint('ACL file for "$resourceUrl" does not exist.');
+
+    case ResourceStatus.unknown:
+      throw Exception(
+          'Error occurred when checking status of ACL file for "$resourceUrl"');
+  }
+}
+
+/// Delete a file with path [filePath], its ACL file, and its encryption key
+/// if exists.
+/// Throws an exception if the file does not exist or any error occurs.
+Future<void> deleteFile(String filePath,
+    {ResourceContentType contentType = ResourceContentType.turtleText}) async {
+  final fileUrl = await getFileUrl(filePath);
+  await deleteResource(fileUrl, contentType);
+  await deleteAclForResource(fileUrl);
+  if (await KeyManager.hasIndividualKey(fileUrl)) {
+    await KeyManager.removeIndividualKey(filePath);
+  }
 }

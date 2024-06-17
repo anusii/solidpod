@@ -75,7 +75,7 @@ Future<void> showAnimationDialog(
             padding: const EdgeInsets.all(50),
             child: Center(
               child: SizedBox(
-                width: 150,
+                width: 200,
                 height: 280,
                 child: SingleChildScrollView(
                   child: Column(
@@ -88,6 +88,7 @@ Future<void> showAnimationDialog(
                             ? const Color.fromARGB(59, 0, 0, 0)
                             : null,
                       ),
+                      const SizedBox(height: 5),
                       DefaultTextStyle(
                         style: const TextStyle(
                           fontSize: 20,

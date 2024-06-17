@@ -34,82 +34,111 @@ import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
 
-import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
-
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/constants.dart' show ResourceStatus;
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Write file [fileName] and content [fileContent] to PODs
+/// The content will be encrypted if [encrypted] is true.
 
-Future<void> writePod(String fileName, String fileContent, BuildContext context,
-    Widget child) async {
+// TODO (dc): optionally create the ACL file for the data file
+Future<void> writePod(
+    String fileName, String fileContent, BuildContext context, Widget child,
+    {bool encrypted = true}) async {
   // Write data to file in the data directory
-  final filePath = path.join(await getDataDirPath(), fileName);
+  final filePath = [await getDataDirPath(), fileName].join('/');
 
   await loginIfRequired(context);
 
-  await getKeyFromUserIfRequired(context, child);
-
-  // Get master key for encryption
-
-  // final securityKey = await getVerifiedSecurityKey(context, child);
-  // final masterKey = genMasterKey(securityKey);
-
   // Check if the file already exists
+  // The file should exist if its individual key exists
 
   final fileUrl = await getFileUrl(filePath);
-  final fileExists = await checkResourceExists(fileUrl, true);
+  final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
-  // Reuse the individual key if the file already exists
-  late final Key indKey;
-  late final bool replace;
+  switch (await checkResourceStatus(fileUrl, true)) {
+    case ResourceStatus.exist:
 
-  if (fileExists == ResourceStatus.exist) {
-    replace = true;
-    // Delete the existing file
+      // Ask user to confirm when the encryption status of the file is changed
 
-    // try {
-    //   await deleteItem(true, filePath);
-    // } on Exception catch (e) {
-    //   print('Exception: $e');
-    // }
+      if (encrypted != existingFileEncrypted) {
+        late bool overwrite;
 
-    // Get (and decrypt) the individual key from ind-key file
-    // (the TTL file with encrypted individual keys and IVs)
+        final overwriteMsg =
+            '${existingFileEncrypted ? "Encrypted" : "Unencrypted"}'
+            ' data file "$fileName" already exists,'
+            ' do you want to overwrite it with '
+            '${encrypted ? "encrypted" : "unencrypted"} content?';
 
-    // final indKeyPath = await getIndKeyPath();
-    // final indKeyUrl = await getFileUrl(indKeyPath);
-    // final indKeyMap = await loadPrvTTL(indKeyUrl);
-    // assert(indKeyMap.containsKey(fileUrl));
+        await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: const Text('Notice'),
+                  content: Text(overwriteMsg),
+                  actions: [
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          overwrite = true;
+                        },
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                        child: const Text('Overwrite',
+                            style: TextStyle(color: Colors.white))),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          overwrite = false;
+                        },
+                        child: const Text('Cancel'))
+                  ],
+                ));
 
-    // final indKeyIV = IV.fromBase64(indKeyMap![fileUrl][ivPred] as String);
-    // final encIndKeyStr = indKeyMap[fileUrl][sessionKeyPred] as String;
+        if (!overwrite) {
+          throw Exception(
+              'Not overwriting file "$filePath", writePod() aborted');
+        } else {
+          debugPrint('Overwrite file "$filePath"');
+        }
+      }
 
-    // indKey = Key.fromBase64(decryptData(encIndKeyStr, masterKey, indKeyIV));
-    indKey = await KeyManager.getIndividualKey(fileUrl);
-  } else if (fileExists == ResourceStatus.notExist) {
-    replace = false;
-    // Generate individual/session key and its IV
+    case ResourceStatus.unknown:
+      throw Exception(
+          'Unable to determine if file "$filePath" exists, writePod() aborted');
 
-    indKey = genRandIndividualKey();
-    final indKeyIV = genRandIV();
-    final masterKey = await KeyManager.getMasterKey();
-
-    // Encrypt individual Key
-    final encIndKeyStr = encryptData(indKey.base64, masterKey, indKeyIV);
-
-    // Add the encrypted individual key and its IV to the ind-key file
-    await addIndKey(filePath, encIndKeyStr, indKeyIV);
-  } else {
-    print('Exception: Unable to determine if file "$filePath" exists');
+    case ResourceStatus.notExist: // Empty case falls through.
+    default:
+      debugPrint('File "$filePath" does not exist');
   }
 
-  // Create file with encrypted data on server
+  late String content;
 
-  await createResource(fileUrl,
-      content: await getEncTTLStr(filePath, fileContent, indKey, genRandIV()),
-      replaceIfExist: replace);
+  if (encrypted) {
+    // Get the security key (and cache it in KeyManager)
+    await getKeyFromUserIfRequired(context, child);
+
+    // Reuse the individual key if the key already exists,
+    // otherwise, generate a random key and add it to the individual key file.
+
+    if (!existingFileEncrypted) {
+      await KeyManager.addIndividualKey(filePath, genRandIndividualKey());
+    }
+
+    content = await getEncTTLStr(filePath, fileContent,
+        await KeyManager.getIndividualKey(fileUrl), genRandIV());
+  } else {
+    // Delete existing (encrypted) file if the new content is unencrypted
+
+    if (existingFileEncrypted) {
+      await deleteFile(filePath);
+    }
+
+    content = fileContent;
+  }
+
+  // Create file on server
+  await createResource(fileUrl, content: content, replaceIfExist: true);
 }

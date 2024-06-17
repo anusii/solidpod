@@ -28,19 +28,20 @@
 
 library;
 
-import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/material.dart';
 
-import 'package:encrypt/encrypt.dart' show Key;
+import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
-import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
+import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/widgets/security_key_input.dart'
-    show SecurityKeyInput;
+import 'package:solidpod/src/widgets/secret_input_form.dart';
 
 /// Login if the user has not done so
 
@@ -96,13 +97,110 @@ Future<void> getKeyFromUserIfRequired(
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
 
+    const message = 'Please enter the security key you previously provided'
+        ' for securing your data.';
+    const inputKey = 'security_key';
+    final inputField = (
+      fieldKey: inputKey,
+      fieldLabel: 'Security Key',
+      validateFunc: (key) {
+        assert(key != null);
+        return verifySecurityKey(key as String, verificationKey)
+            ? null
+            : 'Incorrect Security Key';
+      }
+    );
+    final securityKeyInput = SecretInputForm(
+        title: 'Security Key',
+        message: message,
+        inputFields: [inputField],
+        formKey: GlobalKey<FormBuilderState>(),
+        submitFunc: (formDataMap) async {
+          await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
+          debugPrint('Security key saved');
+          Navigator.pop(context);
+        },
+        child: child);
+
     await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SecurityKeyInput(
-              verifySecurityKeyFunc: (key) =>
-                  verifySecurityKey(key, verificationKey),
-              child: child),
-        ));
+        context, MaterialPageRoute(builder: (context) => securityKeyInput));
+
+    // await Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (context) => SecurityKeyInput(
+    //           verifySecurityKeyFunc: (key) =>
+    //               verifySecurityKey(key, verificationKey),
+    //           child: child),
+    //     ));
   }
+}
+
+/// Delete a data file (and its ACL file if exist), remove its individual key
+/// and the corresponding IV from the ind-key-file
+Future<void> deleteDataFile(String fileName, BuildContext context,
+    {ResourceContentType contentType = ResourceContentType.turtleText}) async {
+  await loginIfRequired(context);
+
+  final filePath = [await getDataDirPath(), fileName].join('/');
+  final fileUrl = await getFileUrl(filePath);
+  final status = await checkResourceStatus(fileUrl, true);
+
+  const smallGapH = SizedBox(width: 10);
+  String msg;
+
+  switch (status) {
+    case ResourceStatus.exist:
+      await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+                title: const Text('Notice'),
+                content: Text('Delete data file "$fileName"?'),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await deleteFile(filePath, contentType: contentType);
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Successfully deleted data file "$fileName".'),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    },
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text('Delete',
+                        style: TextStyle(color: Colors.white)),
+                  ),
+                  smallGapH,
+                  ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel')),
+                ],
+              ));
+      return;
+
+    case ResourceStatus.notExist:
+      msg = 'Data file "$fileName" does not exist.';
+
+    case ResourceStatus.unknown:
+      msg = 'Error occurred when checking the status of data file "$fileName".';
+  }
+
+  await alert(context, msg);
+
+  // await showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //           title: const Text('Notice'),
+  //           content: Text(msg),
+  //           actions: [
+  //             ElevatedButton(
+  //                 onPressed: () => Navigator.pop(context),
+  //                 child: const Text('OK'))
+  //           ],
+  //         ));
 }

@@ -1,6 +1,4 @@
-/// Support for flutter apps accessing solid PODs.
-///
-// Time-stamp: <Monday 2024-04-22 15:19:23 +1000 Graham Williams>
+/// Show an Alert dialog
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,28 +24,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williamss
+/// Authors: Dawei Chen
 
-library solidpod;
+library;
 
-export 'src/solid/login.dart'
-    show
-        SolidLogin,
-        LoginButtonStyle,
-        ContinueButtonStyle,
-        RegisterButtonStyle,
-        InfoButtonStyle;
-export 'src/solid/popup_login.dart' show SolidPopupLogin;
+import 'package:flutter/material.dart';
 
-// TODO 20240417 gjw Can we please list or at least document what and why the
-// following are exported, PLEASE. ReadPod() I understand, but what from
-// rest_api?
-
-export 'src/solid/api/rest_api.dart' show getFileContent;
-export 'src/solid/common_func.dart';
-export 'src/solid/utils/misc.dart';
-export 'src/solid/utils/key_management.dart' show KeyManager;
-export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
-export 'src/solid/read_pod.dart' show readPod;
-export 'src/solid/write_pod.dart' show writePod;
-export 'src/widgets/logout_dialog.dart' show logoutPopup;
+Future<void> alert(BuildContext context, String msg,
+    [String title = 'Notice']) async {
+  await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: Text(title),
+            content: Text(msg),
+            actions: [
+              ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'))
+            ],
+          ));
+}

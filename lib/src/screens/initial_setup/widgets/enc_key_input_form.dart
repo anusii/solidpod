@@ -52,8 +52,8 @@ class EncKeyInputForm extends StatefulWidget {
 }
 
 class _EncKeyInputFormState extends State<EncKeyInputForm> {
-  bool _showPassword = false;
-  bool _showRetypePassword = false;
+  bool _showSecurityKey = false;
+  bool _showRetypedSecurityKey = false;
 
   @override
   Widget build(BuildContext context) {
@@ -87,11 +87,11 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
           ),
           const SizedBox(height: 10),
           FormBuilderTextField(
-            name: 'password',
+            name: securityKeyStr,
             obscureText:
-                // Controls whether the password is shown or hidden.
+                // Controls whether the security key is shown or hidden.
 
-                !_showPassword,
+                !_showSecurityKey,
             autocorrect: false,
             decoration: InputDecoration(
               labelText: 'SECURITY KEY',
@@ -103,13 +103,13 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
               ),
               suffixIcon: IconButton(
                 icon: Icon(
-                    _showPassword ? Icons.visibility : Icons.visibility_off),
+                    _showSecurityKey ? Icons.visibility : Icons.visibility_off),
                 onPressed: () {
                   setState(() {
-                    _showPassword =
-                        // Toggle the state to show/hide the password.
+                    _showSecurityKey =
+                        // Toggle the state to show/hide the security key
 
-                        !_showPassword;
+                        !_showSecurityKey;
                   });
                 },
               ),
@@ -120,8 +120,8 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
           ),
           const SizedBox(height: 10),
           FormBuilderTextField(
-            name: 'repassword',
-            obscureText: !_showRetypePassword,
+            name: securityKeyStrReType,
+            obscureText: !_showRetypedSecurityKey,
             autocorrect: false,
             decoration: InputDecoration(
               labelText: 'RETYPE SECURITY KEY',
@@ -132,12 +132,12 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
                 fontWeight: FontWeight.bold,
               ),
               suffixIcon: IconButton(
-                icon: Icon(_showRetypePassword
+                icon: Icon(_showRetypedSecurityKey
                     ? Icons.visibility
                     : Icons.visibility_off),
                 onPressed: () {
                   setState(() {
-                    _showRetypePassword = !_showRetypePassword;
+                    _showRetypedSecurityKey = !_showRetypedSecurityKey;
                   });
                 },
               ),
@@ -146,7 +146,8 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
               FormBuilderValidators.required(),
               (val) {
                 if (val !=
-                    widget.formKey.currentState!.fields['password']?.value) {
+                    widget
+                        .formKey.currentState!.fields[securityKeyStr]?.value) {
                   return 'Security keys do not match';
                 }
                 return null;
