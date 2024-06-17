@@ -39,15 +39,15 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
-/// Grant permission to [resourceUrl] for a given [recipientWebId].
+/// Grant permission to [fileName] for a given [recipientWebId].
 /// Parameters:
-///   [resourceUrl] is the path of the file in the POD including the file name
+///   [fileName] is the name of the file providing permission to
 ///   [permissionList] is the list of permission to be granted
 ///   [recipientWebId] is the webId of the permission receiver
 ///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
 
 Future<void> grantPermission(
-    String resourceUrl,
+    String fileName,
     List<dynamic> permissionList,
     String recipientWebId,
     bool isFileEncrypted,
@@ -56,6 +56,14 @@ Future<void> grantPermission(
   await loginIfRequired(context);
 
   await getKeyFromUserIfRequired(context, child);
+
+  // Get the file path
+  final filePath = [await getDataDirPath(), fileName].join('/');
+
+  await loginIfRequired(context);
+
+  // Get the url of the file
+  final resourceUrl = await getFileUrl(filePath);
 
   // Add the permission line to the relevant ACL file
   await setPermissionAcl(resourceUrl, recipientWebId, permissionList);
