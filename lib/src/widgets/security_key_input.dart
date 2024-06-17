@@ -38,7 +38,10 @@ import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
 
 /// A [StatefulWidget] for user to enter the security key for data
 /// encryption. It is verified and saved to local secure storage
-
+@Deprecated('''
+[SecurityKeyInput] is deprecated.
+See [getKeyFromUserIfRequired(context, child)] for alternatives.
+''')
 class SecurityKeyInput extends StatefulWidget {
   /// Constructor.
 

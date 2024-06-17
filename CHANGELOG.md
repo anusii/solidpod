@@ -8,6 +8,7 @@ numbers.
 
 ## 0.6 Future Release
 
++ Validate input security keys when changing security key. [0.5.32]
 + Support the use of the same filename to store encrypted/unencrypted data. [0.5.31]
 + Input security key by pressing the enter key. [0.5.30]
 + Add/Delete corresponding individual keys when adding/deleting data files. [0.5.29]
