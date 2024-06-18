@@ -80,6 +80,37 @@ Map<String, dynamic> parseTTL(String ttlContent) {
   return dataMap;
 }
 
+/// Parse ACL content into a map {subject: {predicate: object}}
+Map<String, dynamic> parseACL(String aclContent) {
+  final g = Graph();
+  g.parseTurtle(aclContent);
+  final dataMap = <String, dynamic>{};
+  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
+  for (final t in g.triples) {
+    final sub = extract(t.sub.value as String);
+    final pre = extract(t.pre.value as String);
+    var obj = '';
+    if (pre == 'agent') {
+      obj = t.obj.value as String;
+    } else {
+      obj = extract(t.obj.value as String);
+    }
+
+    if (dataMap.containsKey(sub)) {
+      if ((dataMap[sub] as Map).containsKey(pre)) {
+        dataMap[sub][pre].add(obj);
+      } else {
+        dataMap[sub][pre] = [obj];
+      }
+    } else {
+      dataMap[sub] = {
+        pre: [obj]
+      };
+    }
+  }
+  return dataMap;
+}
+
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTTLStr(String resourceUrl,
     {AccessType ownerAccess = AccessType.control,

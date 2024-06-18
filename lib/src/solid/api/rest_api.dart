@@ -40,6 +40,7 @@ import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart';
 import 'package:solidpod/src/solid/utils/rdfdata_manager.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -785,4 +786,15 @@ Future<void> copySharedKey(
       await updateFileByQuery(receiverSharedKeyFileUrl, insertQuery);
     }
   }
+}
+
+/// Retrieves the permission details of a file from the respective ACL file.
+///
+/// Returns a Future that completes with a Map containing the permission data.
+/// The Map structure is defined by the REST API response.
+Future<Map> readAcl(String resourceUrl, [bool fileFlag = true]) async {
+  final resourceAclUrl = getResAclFile(resourceUrl, fileFlag);
+
+  final aclContent = await fetchPrvFile(resourceAclUrl);
+  return parseACL(aclContent);
 }

@@ -39,7 +39,6 @@ import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
@@ -297,11 +296,31 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
 }
 
 /// Get resource acl file path
-String getResAclFile(String resourceUrl) {
-  final resourceAclUrl =
-      resourceUrl.endsWith('.acl') ? resourceUrl : resourceUrl + '.acl';
+String getResAclFile(String resourceUrl, [bool fileFlag = true]) {
+  final resourceAclUrl = resourceUrl.endsWith('.acl')
+      ? resourceUrl
+      : fileFlag
+          ? '$resourceUrl.acl'
+          : '$resourceUrl/.acl';
 
   return resourceAclUrl;
+}
+
+/// Extract permission details of a file into a map.
+/// Returns a map where keys are permission receiver webIds and
+/// values are the list of permissions
+Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
+  final filePermMap = <dynamic, dynamic>{};
+  for (final accessStr in aclFileContentMap.keys) {
+    final permList = aclFileContentMap[accessStr]['mode'];
+    final receiverList = aclFileContentMap[accessStr]['agent'];
+
+    for (final receiverWebId in receiverList as List) {
+      filePermMap[receiverWebId] = permList;
+    }
+  }
+
+  return filePermMap;
 }
 
 /// Get resource name from URL
