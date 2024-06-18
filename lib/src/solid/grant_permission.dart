@@ -60,8 +60,6 @@ Future<void> grantPermission(
   // Get the file path
   final filePath = [await getDataDirPath(), fileName].join('/');
 
-  await loginIfRequired(context);
-
   // Get the url of the file
   final resourceUrl = await getFileUrl(filePath);
 

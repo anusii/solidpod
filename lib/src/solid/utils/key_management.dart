@@ -40,7 +40,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
-import 'package:rdflib/rdflib.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 //import 'package:encrypt/encrypt.dart' hide RSA;
 import 'package:encrypt/encrypt.dart';
@@ -722,31 +721,4 @@ class RecipientPubKey {
     final encrypter = Encrypter(RSA(publicKey: _recipientPubKey));
     return encrypter.encrypt(dataVal).base64;
   }
-}
-
-/// Generate TTL string from triples stored in a map:
-/// {subject: {predicate: object}}
-/// where
-/// - subject: the URL of a file
-/// - predicate-object: the key-value pairs to be stores in the file
-
-String _genTTLStr(Map<String, Map<String, String>> tripleMap) {
-  assert(tripleMap.isNotEmpty);
-  final g = Graph();
-  final nsTerms = Namespace(ns: appsTerms);
-  final nsTitle = Namespace(ns: terms);
-
-  for (final sub in tripleMap.keys) {
-    assert(tripleMap[sub] != null && tripleMap[sub]!.isNotEmpty);
-    final f = URIRef(sub);
-    for (final pre in tripleMap[sub]!.keys) {
-      final obj = tripleMap[sub]![pre] as String;
-      final ns = (pre == titlePred) ? nsTitle : nsTerms;
-      g.addTripleToGroups(f, ns.withAttr(pre), obj);
-    }
-  }
-
-  g.serialize(abbr: 'short');
-
-  return g.serializedString;
 }
