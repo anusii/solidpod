@@ -695,10 +695,6 @@ Future<String> setPermissionAcl(
   }
 }
 
-// Future<void> shareIndEncKey () {
-
-// }
-
 /// Create a shared file on recepient's POD.
 Future<void> copySharedKey(
     String receiverWebId,
@@ -720,6 +716,7 @@ Future<void> copySharedKey(
     await createResource(
       senderDirUrl,
       fileFlag: false,
+      contentType: ResourceContentType.directory,
     );
   }
 
@@ -788,10 +785,4 @@ Future<void> copySharedKey(
       await updateFileByQuery(receiverSharedKeyFileUrl, insertQuery);
     }
   }
-
-  // if (createUpdateRes == 'ok') {
-  //   return createUpdateRes;
-  // } else {
-  //   throw Exception('Failed to create/update the shared file.');
-  // }
 }

@@ -51,3 +51,4 @@ export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
 export 'src/solid/read_pod.dart' show readPod;
 export 'src/solid/write_pod.dart' show writePod;
 export 'src/widgets/logout_dialog.dart' show logoutPopup;
+export 'src/solid/grant_permission.dart' show grantPermission;
