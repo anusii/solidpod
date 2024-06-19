@@ -36,6 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
@@ -63,8 +64,12 @@ Future<void> grantPermission(
   // Get the url of the file
   final resourceUrl = await getFileUrl(filePath);
 
+  // Get user webID
+  final userWebId = await AuthDataManager.getWebId() as String;
+
   // Add the permission line to the relevant ACL file
-  await setPermissionAcl(resourceUrl, recipientWebId, permissionList);
+  await setPermissionAcl(
+      resourceUrl, userWebId, recipientWebId, permissionList);
 
   // Check if the file is encrypted
   final fileIsEncrypted = await checkFileEnc(resourceUrl);

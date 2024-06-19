@@ -573,116 +573,113 @@ Future<bool> checkFileEnc(String fileUrl) async {
 /// set the permission for a resource.
 /// It returns a Future that resolves to a String
 /// representing the result of the operation.
-Future<String> setPermissionAcl(
-    String resourceUrl, String receiverWebId, List permissionList) async {
-  final resourceAcl = getResAclFile(resourceUrl);
+Future<String> setPermissionAcl(String resourceUrl, String userWebId,
+    String receiverWebId, List permissionList) async {
+  // Read acl content
+  final aclContent = await readAcl(resourceUrl);
 
-  final fileInfo = await fetchPrvFile(resourceAcl);
-
-  final aclResFile = AclResource(fileInfo);
-
-  final userPermRes = aclResFile.divideAclData();
-  final userNameMap = userPermRes.first as Map;
-  final userPermMap = userPermRes[1] as Map;
-
-  final userPrefixList = [];
-  userNameMap.forEach((key, val) => userPrefixList.add(key));
-
-  final userUrlList = [];
-  String newUserPrefix = '';
-  if (userNameMap.isNotEmpty) {
-    userNameMap.forEach((key, val) => userUrlList.add(userNameMap[key]));
-    var permissionWebIdStr = '<${receiverWebId.trim()}>';
-    permissionWebIdStr = permissionWebIdStr.replaceAll('#me', '#');
-    if (!userUrlList.contains(permissionWebIdStr)) {
-      newUserPrefix = 'c${userPrefixList.length - 1}:';
-      var i = userPrefixList.length - 1;
-      while (userPrefixList.contains(newUserPrefix)) {
-        i += 1;
-        newUserPrefix = 'c$i:';
-      }
-    }
-    if (newUserPrefix.isNotEmpty) {
-      userNameMap[newUserPrefix] = permissionWebIdStr;
-    }
-  } else {
-    newUserPrefix = '<${receiverWebId.trim()}>';
-  }
+  // A map to store new acl content
+  final newAclContentMap = {};
 
   permissionList.sort();
   final newAccessStr = permissionList.join();
+  var newEntryAdded = false;
+  var resourceName = '';
 
-  final resourceName = getResNameFromUrl(resourceUrl);
-
-  if (userPermMap.containsKey(newAccessStr)) {
-    final resouceList = userPermMap[newAccessStr];
-    final resourceSet = resouceList.first;
-    final userSet = resouceList[1];
-    final accessSet = resouceList[2];
-    resourceSet.add('<$resourceName>');
-    userSet.add(newUserPrefix);
-    userPermMap[newAccessStr] = [resourceSet, userSet, accessSet];
-  } else {
-    final accessSet = <dynamic>{};
-    for (final element in permissionList) {
-      accessSet.add('acl:$element');
+  // Go through the current acl content and do the following
+  // - Get the name of the resource user is granting permission to
+  // - If the receiver webId is already in the acl content remove it
+  // - Add receiver webId and the respective access modes as a new entry
+  // - only if the access mode combination is already in the acl content
+  for (final accessStr in aclContent.keys) {
+    final webIdList = aclContent[accessStr][agentPred] as List;
+    if (resourceName.isEmpty) {
+      resourceName =
+          (aclContent[accessStr][accessToPred] as List).first as String;
     }
-    userPermMap[newAccessStr] = [
-      {'<$resourceName>'},
-      {newUserPrefix},
-      accessSet
-    ];
-  }
 
-  var aclPrefixTemp =
-      '''@prefix : <#>.\n@prefix acl: <http://www.w3.org/ns/auth/acl#>.\n@prefix foaf: <$httpFoaf>.\n''';
+    if (webIdList.contains(receiverWebId)) {
+      webIdList.remove(receiverWebId);
+    }
 
-  if (userNameMap.isNotEmpty) {
-    for (final userPrefix in userNameMap.keys) {
-      final userWebId = userNameMap[userPrefix] as String;
-      userPrefix as String;
-      final prefixLineStr = '@prefix $userPrefix $userWebId.\n';
-      aclPrefixTemp += prefixLineStr;
+    if (newAccessStr == accessStr) {
+      webIdList.add(receiverWebId);
+      newEntryAdded = true;
+    }
+
+    if (webIdList.isNotEmpty) {
+      newAclContentMap[accessStr] = aclContent[accessStr];
     }
   }
 
-  var aclBodyTemp = '';
-
-  for (final accessStr in userPermMap.keys) {
-    final resouceList = userPermMap[accessStr];
-    final resourceSet = resouceList.first;
-    final userSet = resouceList[1] as Set;
-    final accessSet = resouceList[2];
-
-    final resourceStr = resourceSet.join(', ');
-    final userStrSet = <dynamic>{};
-    for (final user in userSet) {
-      userStrSet.add(user + 'me');
-    }
-    final userStr = userStrSet.join(', ');
-    final accessModeStr = accessSet.join(', ');
-
-    final accessBlock =
-        ':$accessStr\n    a acl:Authorization;\n    acl:accessTo $resourceStr;\n    acl:agent $userStr;\n    acl:mode $accessModeStr.\n';
-    aclBodyTemp += accessBlock;
+  // If the new entry is not added to the acl content add that here
+  if (!newEntryAdded) {
+    newAclContentMap[newAccessStr] = {
+      typePred: [aclAuth],
+      accessToPred: [resourceName],
+      agentPred: [receiverWebId],
+      modePred: permissionList
+    };
   }
 
-  final aclNewStr = '$aclPrefixTemp\n$aclBodyTemp';
+  // Generate ACL file content string from the permissions
+
+  var aclPrefixStr =
+      '''@prefix $selfPrefix <#>.\n@prefix $aclPrefix <$acl>.\n@prefix $foafPrefix <$foaf>.\n''';
+  var aclBodyStr = '';
+
+  // increment variable for webId prefixes
+  var i = 0;
+
+  // Go through the new acl content and create relevant prefix Strings and body entry Strings
+  for (final accessStr in newAclContentMap.keys) {
+    final webIdList = newAclContentMap[accessStr][agentPred] as List;
+    final resourceName = newAclContentMap[accessStr][accessToPred].first;
+    final accessList = newAclContentMap[accessStr][modePred] as List;
+
+    final agentList = [];
+    final accessModeList = [];
+
+    for (final webId in webIdList) {
+      final webIdPrefix = '@prefix c$i: <${webId.replaceAll('me', '')}>.';
+      agentList.add('c$i:me');
+
+      aclPrefixStr += '$webIdPrefix\n';
+      i += 1;
+    }
+
+    for (final accessMode in accessList) {
+      accessModeList.add('$aclPrefix$accessMode');
+    }
+
+    final agentStr = agentList.join(', ');
+    final accessModeStr = accessModeList.join(', ');
+
+    aclBodyStr +=
+        ':$accessStr\n    a $aclPrefix$aclAuth;\n    $aclPrefix$accessToPred <$resourceName>;\n    $aclPrefix$agentPred $agentStr;\n    $aclPrefix$modePred $accessModeStr.\n';
+  }
+
+  // Combine prefixes and body entries into a single String
+  final aclFullContentStr = '$aclPrefixStr\n$aclBodyStr';
+
+  // Get acl file url
+  final resourceAclUrl = getResAclFile(resourceUrl);
 
   final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceAcl, 'PUT');
+      await getTokensForResource(resourceAclUrl, 'PUT');
 
+  // http request to update the acl file on the server
   final editResponse = await http.put(
-    Uri.parse(resourceAcl),
+    Uri.parse(resourceAclUrl),
     headers: <String, String>{
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'text/turtle',
-      'Content-Length': aclNewStr.length.toString(),
+      'Content-Length': aclFullContentStr.length.toString(),
       'DPoP': dPopToken,
     },
-    body: aclNewStr,
+    body: aclFullContentStr,
   );
 
   if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
@@ -730,7 +727,7 @@ Future<void> copySharedKey(
   if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
       ResourceStatus.notExist) {
     final keyFileBody =
-        '@prefix : <#>.\n@prefix foaf: <$httpFoaf>.\n@prefix terms: <$httpDcTerms>.\n@prefix file: <$appsFile>.\n@prefix data: <$appsData>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Shared Encryption Keys".\nfile:$resName\n    data:path "$encSharedPath";\n    data:accessList "$encSharedAccess";\n    data:sharedKey "$encSharedKey".';
+        '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $filePrefix <$appsFile>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$filePrefix$resName\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
 
     /// Update the ttl file with the shared info
     await createResource(
@@ -745,19 +742,19 @@ Future<void> copySharedKey(
     final keyFileDataMap = getEncFileContent(keyFileContent);
 
     /// Define query parameters
-    const prefix1 = 'file: <$appsFile>';
-    const prefix2 = 'data: <$appsData>';
+    const prefix1 = '$filePrefix <$appsFile>';
+    const prefix2 = '$dataPrefix <$appsData>';
 
-    final subject = 'file:$resName';
-    final predObjPath = 'data:path "$encSharedPath";';
-    final predObjAcc = 'data:accessList "$encSharedAccess";';
-    final predObjKey = 'data:sharedKey "$encSharedKey".';
+    final subject = '$filePrefix$resName';
+    final predObjPath = '$dataPrefix$pathPred "$encSharedPath";';
+    final predObjAcc = '$dataPrefix$accessListPred "$encSharedAccess";';
+    final predObjKey = '$dataPrefix$sharedKeyPred "$encSharedKey".';
 
     /// Check if the resource is previously added or not
     if (keyFileDataMap.containsKey(resName)) {
-      final existKey = keyFileDataMap[resName]['sharedKey'];
-      final existPath = keyFileDataMap[resName]['path'];
-      final existAcc = keyFileDataMap[resName]['accessList'];
+      final existKey = keyFileDataMap[resName][sharedKeyPred];
+      final existPath = keyFileDataMap[resName][pathPred];
+      final existAcc = keyFileDataMap[resName][accessListPred];
 
       /// If file does not contain the same encrypted value then delete and update
       /// the file
@@ -766,9 +763,9 @@ Future<void> copySharedKey(
       if (existKey != encSharedKey ||
           existPath != encSharedPath ||
           existAcc != encSharedAccess) {
-        final predObjPathPrev = 'data:path "$existPath";';
-        final predObjAccPrev = 'data:accessList "$existAcc";';
-        final predObjKeyPrev = 'data:sharedKey "$existKey".';
+        final predObjPathPrev = '$dataPrefix$pathPred "$existPath";';
+        final predObjAccPrev = '$dataPrefix$accessListPred "$existAcc";';
+        final predObjKeyPrev = '$dataPrefix$sharedKeyPred "$existKey".';
 
         // Generate update sparql query
         final updateQuery =
