@@ -252,7 +252,7 @@ class AuthDataManager {
 
         return true;
       } on Object catch (e) {
-        debugPrint('AuthDataManager => _loadData() failed! $e');
+        debugPrint('AuthDataManager => _loadData() failed: $e');
         return false;
       }
     }
