@@ -41,7 +41,6 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
-import 'package:solidpod/src/solid/utils/rdfdata_manager.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
