@@ -353,10 +353,12 @@ Future<void> initPod(String securityKey,
     late bool aclFlag;
 
     if (f.split('.').last == 'acl') {
-      fileContent = await genAclTTLStr(f,
+      final items = f.split('.');
+      final resourceUrl = items.getRange(0, items.length - 1).join('.');
+      fileContent = await genAclTTLStr(resourceUrl,
           publicAccess: fileName == '$permLogFile.acl'
-              ? AccessType.append
-              : AccessType.read);
+              ? AccessMode.append
+              : AccessMode.read);
       aclFlag = true;
     } else {
       debugPrint(fileName);

@@ -81,8 +81,8 @@ Map<String, dynamic> parseTTL(String ttlContent) {
 
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTTLStr(String resourceUrl,
-    {AccessType ownerAccess = AccessType.control,
-    AccessType publicAccess = AccessType.read}) async {
+    {AccessMode ownerAccess = AccessMode.control,
+    AccessMode publicAccess = AccessMode.read}) async {
   final webId = await AuthDataManager.getWebId();
   assert(webId != null);
 

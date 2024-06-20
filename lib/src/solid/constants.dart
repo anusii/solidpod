@@ -78,8 +78,10 @@ const String agentClassPred = 'agentClass';
 const String aclAuth = 'Authorization';
 const String aclRead = 'Read';
 const String aclWrite = 'Write';
+const String aclAppend = 'Append';
 const String aclControl = 'Control';
 const String aclAgent = 'Agent';
+const String aclAuthAgent = 'AuthenticatedAgent';
 const String profileDoc = 'PersonalProfileDocument';
 
 /// String link variables used in files generation process for defining ttl
@@ -154,7 +156,7 @@ enum ResourceContentType {
 
 /// Types of access to a resource
 
-enum AccessType {
+enum AccessMode {
   /// Read access
   read('Read'),
 
@@ -168,7 +170,7 @@ enum AccessType {
   append('Append');
 
   /// Constructor
-  const AccessType(this.value);
+  const AccessMode(this.value);
 
   /// String value of the access type
   final String value;
