@@ -33,6 +33,36 @@ import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
+/// Generate Turtle string from triples stored in a map:
+/// {subject: {predicate: {object}}}
+/// - subject: URIRef
+/// - predicate: URIRef
+/// - object: dynamic
+String tripleMapToTurtle(Map<URIRef, Map<URIRef, Set<dynamic>>> triples,
+    {Map<String, Namespace>? bindNamespaces}) {
+  final g = Graph();
+  // triples.forEach((sub, preobj) => preobj.forEach((pre, objset) =>
+  //    objset.forEach((obj) => g.addTripleToGroups(sub, pre, obj))));
+  for (final entry in triples.entries) {
+    final sub = entry.key;
+    final preobj = entry.value;
+    for (final pre in preobj.keys) {
+      final objset = preobj[pre];
+      for (final obj in objset!) {
+        g.addTripleToGroups(sub, pre, obj);
+      }
+    }
+  }
+
+  if (bindNamespaces != null) {
+    bindNamespaces.forEach(g.bind);
+  }
+
+  g.serialize(abbr: 'short');
+
+  return g.serializedString;
+}
+
 /// Generate TTL string from triples stored in a map:
 /// {subject: {predicate: object}}
 /// where
