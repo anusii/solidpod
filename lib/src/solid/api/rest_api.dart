@@ -49,7 +49,9 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// This function processes the provided file information, which is expected to be
 /// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
 /// to parse the Turtle data and extract key attributes and their values.
-
+@Deprecated('''This function has been deprecated.
+Use `Map<String, dynamic> parseTTL(String ttlContent)` as an alternative.
+''')
 Map<dynamic, dynamic> getFileContent(String fileInfo) {
   final g = Graph();
   g.parseTurtle(fileInfo);
@@ -339,7 +341,9 @@ Future<void> updateFileByQuery(
 /// at a user's Solid POD (Personal Online Datastore) with new encrypted session
 /// key data. The function performs various checks and updates the file only if
 /// necessary to avoid redundant operations.
-
+@Deprecated('''This function has been deprecated.
+Use `KeyManager` as an alternative.
+''')
 Future<void> updateIndKeyFile(
   String webId,
   Map<dynamic, dynamic> authData,

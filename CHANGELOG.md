@@ -8,6 +8,8 @@ numbers.
 
 ## 0.6 Future Release
 
++ Deprecate APIs: `updateIndKeyFile` and `getFileContent`. [0.5.34]
++ Check and grant access permissions to data file. [0.5.33]
 + Validate input security keys when changing security key. [0.5.32]
 + Support the use of the same filename to store encrypted/unencrypted data. [0.5.31]
 + Input security key by pressing the enter key. [0.5.30]
