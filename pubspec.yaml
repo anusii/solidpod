@@ -23,6 +23,7 @@ dependencies:
   loading_indicator: ^3.1.1
   package_info_plus: ^5.0.1
   path: ^1.9.0
+  pointycastle: ^3.9.1
   rdflib: ^0.2.8
   solid_auth: ^0.1.17 # solid-auth updated the token refreshing API since version 0.1.17
   url_launcher: ^6.2.4

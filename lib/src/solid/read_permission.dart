@@ -1,6 +1,4 @@
-/// Support for flutter apps accessing solid PODs.
-///
-// Time-stamp: <Monday 2024-04-22 15:19:23 +1000 Graham Williams>
+/// Function to grant permission to a private file in a POD.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,29 +24,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Anushka Vidanage
 
-library solidpod;
+// ignore_for_file: use_build_context_synchronously
 
-export 'src/solid/login.dart'
-    show
-        SolidLogin,
-        LoginButtonStyle,
-        ContinueButtonStyle,
-        RegisterButtonStyle,
-        InfoButtonStyle;
-export 'src/solid/popup_login.dart' show SolidPopupLogin;
+library;
 
-// TODO 20240417 gjw Can we please list or at least document what and why the
-// following are exported, PLEASE.
+import 'dart:core';
 
-export 'src/solid/common_func.dart';
-export 'src/solid/utils/app_info.dart' show AppInfo;
-export 'src/solid/utils/key_management.dart' show KeyManager;
-export 'src/solid/utils/misc.dart';
-export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
-export 'src/solid/read_pod.dart' show readPod;
-export 'src/solid/write_pod.dart' show writePod;
-export 'src/widgets/logout_dialog.dart' show logoutPopup;
-export 'src/solid/grant_permission.dart' show grantPermission;
-export 'src/solid/read_permission.dart' show readPermission;
+import 'package:flutter/material.dart' hide Key;
+
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/utils/misc.dart';
+
+/// Read permission given for the [fileName].
+/// Parameters:
+///   [fileName] is the name of the file reading permission from
+
+Future<Map<dynamic, dynamic>> readPermission(
+    String fileName, BuildContext context, Widget child) async {
+  await loginIfRequired(context);
+
+  await getKeyFromUserIfRequired(context, child);
+
+  // Get the file path
+  final filePath = [await getDataDirPath(), fileName].join('/');
+
+  // Get the url of the file
+  final resourceUrl = await getFileUrl(filePath);
+
+  // Read ACL file content
+  final aclContentMap = await readAcl(resourceUrl);
+
+  // Extract permission details to a map
+  final permMap = extractAclPerm(aclContentMap);
+
+  return permMap;
+}
