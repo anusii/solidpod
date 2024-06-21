@@ -26,6 +26,10 @@
 ///
 /// Authors: Anushka Vidanage
 
+library;
+
+import 'package:solidpod/src/solid/constants.dart';
+
 // /// Predicates schema.
 
 // const String yarrabahPredicates = 'http://yarrabah.net/predicates#';
@@ -136,19 +140,19 @@
 
 /// Xmlns schema.
 
-const String httpFoaf = 'http://xmlns.com/foaf/0.1/';
+String httpFoaf = foaf.ns.ns;
 
 /// Terms schema.
 
-const String httpDcTerms = 'http://purl.org/dc/terms/';
+String httpDcTerms = terms.ns.ns;
 
 /// Title schema.
 
-const String httpTitle = '${httpDcTerms}title';
+String httpTitle = '${httpDcTerms}title';
 
 /// Auth Acl schema.
 
-const String httpAuthAcl = 'http://www.w3.org/ns/auth/acl#';
+String httpAuthAcl = acl.ns.ns;
 
 /// File predicate
 

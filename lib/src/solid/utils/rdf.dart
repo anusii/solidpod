@@ -43,14 +43,13 @@ String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
   assert(tripleMap.isNotEmpty);
   final g = Graph();
   final nsTerms = Namespace(ns: appsTerms);
-  final nsTitle = Namespace(ns: terms);
 
   for (final sub in tripleMap.keys) {
     assert(tripleMap[sub] != null && tripleMap[sub]!.isNotEmpty);
     final f = URIRef(sub);
     for (final pre in tripleMap[sub]!.keys) {
       final obj = tripleMap[sub]![pre] as String;
-      final ns = (pre == titlePred) ? nsTitle : nsTerms;
+      final ns = (pre == titlePred) ? terms.ns : nsTerms;
       g.addTripleToGroups(f, ns.withAttr(pre), obj);
     }
   }
@@ -121,9 +120,6 @@ Future<String> genAclTTLStr(String resourceUrl,
   final g = Graph();
   final f = URIRef(resourceUrl);
   final nsSub = Namespace(ns: '$resourceUrl.acl#');
-  final nsAcl = Namespace(ns: acl);
-  final nsFoaf = Namespace(ns: foaf);
-  final nsSyntax = Namespace(ns: rdfSyntax);
 
   // URIRef(RESOURCE_URL.acl#owner):
   // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
@@ -133,11 +129,11 @@ Future<String> genAclTTLStr(String resourceUrl,
 
   final ownerSub = nsSub.withAttr('owner');
   g.addTripleToGroups(
-      ownerSub, nsSyntax.withAttr(typePred), nsAcl.withAttr(aclAuth));
-  g.addTripleToGroups(ownerSub, nsAcl.withAttr(accessToPred), f);
-  g.addTripleToGroups(ownerSub, nsAcl.withAttr(agentPred), URIRef(webId!));
+      ownerSub, rdf.ns.withAttr(typePred), acl.ns.withAttr(aclAuth));
+  g.addTripleToGroups(ownerSub, acl.ns.withAttr(accessToPred), f);
+  g.addTripleToGroups(ownerSub, acl.ns.withAttr(agentPred), URIRef(webId!));
   g.addTripleToGroups(
-      ownerSub, nsAcl.withAttr(modePred), nsAcl.withAttr(ownerAccess.value));
+      ownerSub, acl.ns.withAttr(modePred), acl.ns.withAttr(ownerAccess.value));
 
   // URIRef(RESOURCE_URL.acl#public'):
   //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
@@ -147,18 +143,18 @@ Future<String> genAclTTLStr(String resourceUrl,
 
   final publicSub = nsSub.withAttr('public');
   g.addTripleToGroups(
-      publicSub, nsSyntax.withAttr(typePred), nsAcl.withAttr(aclAuth));
-  g.addTripleToGroups(publicSub, nsAcl.withAttr(accessToPred), f);
+      publicSub, rdf.ns.withAttr(typePred), acl.ns.withAttr(aclAuth));
+  g.addTripleToGroups(publicSub, acl.ns.withAttr(accessToPred), f);
   g.addTripleToGroups(
-      publicSub, nsAcl.withAttr(agentClassPred), nsFoaf.withAttr(aclAgent));
-  g.addTripleToGroups(
-      publicSub, nsAcl.withAttr(modePred), nsAcl.withAttr(publicAccess.value));
+      publicSub, acl.ns.withAttr(agentClassPred), foaf.ns.withAttr(aclAgent));
+  g.addTripleToGroups(publicSub, acl.ns.withAttr(modePred),
+      acl.ns.withAttr(publicAccess.value));
 
   // Bind the long namespace to shorter string for better readability
 
-  g.bind('acl', nsAcl);
+  g.bind(acl.prefix, acl.ns);
   // g.bind('foaf', nsFoaf); // causes "Exception: foaf: already exists in prefixed namespaces!"
-  g.bind('syntax', nsSyntax);
+  g.bind(rdf.prefix, rdf.ns);
 
   // Serialise to TTL string
 
@@ -171,23 +167,20 @@ Future<String> genAclTTLStr(String resourceUrl,
 Future<String> genPermLogTTLStr(String resourceUrl) async {
   final g = Graph();
   final f = URIRef(resourceUrl);
-  final nsTerm = Namespace(ns: terms);
-  final nsFoaf = Namespace(ns: foaf);
-  final nsSyntax = Namespace(ns: rdfSyntax);
 
   // URIRef(RESOURCE_URL):
   //     URIRef('http://purl.org/dc/terms/title'): Literal('Permissions Log'),
   //     URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://xmlns.com/foaf/0.1/PersonalProfileDocument')
 
-  g.addTripleToGroups(f, nsTerm.withAttr(titlePred), logFileTitle);
+  g.addTripleToGroups(f, terms.ns.withAttr(titlePred), logFileTitle);
   g.addTripleToGroups(
-      f, nsSyntax.withAttr(typePred), nsFoaf.withAttr(profileDoc));
+      f, rdf.ns.withAttr(typePred), foaf.ns.withAttr(profileDoc));
 
 // Bind the long namespace to shorter string for better readability
 
-  g.bind('terms', nsTerm);
+  g.bind(terms.prefix, terms.ns);
   // g.bind('foaf', nsFoaf);
-  g.bind('syntax', nsSyntax);
+  g.bind(rdf.prefix, rdf.ns);
 
   // Serialise to TTL string
 

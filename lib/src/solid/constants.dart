@@ -33,6 +33,7 @@
 library;
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:rdflib/rdflib.dart';
 
 /// Length limit for long strings for a screen.
 
@@ -85,16 +86,44 @@ const String aclAppend = 'Append';
 const String aclControl = 'Control';
 const String aclAgent = 'Agent';
 const String aclAuthAgent = 'AuthenticatedAgent';
+const String aclDefault = 'default';
 const String profileDoc = 'PersonalProfileDocument';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
 
-const String terms = 'http://purl.org/dc/terms/';
-const String acl = 'http://www.w3.org/ns/auth/acl#';
-const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+// const String terms = 'http://purl.org/dc/terms/';
+// const String acl = 'http://www.w3.org/ns/auth/acl#';
+// const String foaf = 'http://xmlns.com/foaf/0.1/';
+// const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
+
+/// Namespaces and their prefixes used in TTL file
+
+typedef NS = ({String prefix, Namespace ns});
+
+final NS acl =
+    (prefix: 'acl', ns: Namespace(ns: 'http://www.w3.org/ns/auth/acl#'));
+final NS foaf =
+    (prefix: 'foaf', ns: Namespace(ns: 'http://xmlns.com/foaf/0.1/'));
+final NS ldp = (prefix: 'ldp', ns: Namespace(ns: 'http://www.w3.org/ns/ldp#'));
+final NS rdf = (
+  prefix: 'rdf',
+  ns: Namespace(ns: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
+);
+final NS rdfs = (
+  prefix: 'rdfs',
+  ns: Namespace(ns: 'http://www.w3.org/2000/01/rdf-schema#')
+);
+final NS terms =
+    (prefix: 'terms', ns: Namespace(ns: 'http://purl.org/dc/terms/'));
+final NS vcard =
+    (prefix: 'vcard', ns: Namespace(ns: 'http://www.w3.org/2006/vcard/ns#'));
+final NS xsd =
+    (prefix: 'xsd', ns: Namespace(ns: 'http://www.w3.org/2001/XMLSchema#'));
+
+final thisFile = Namespace(ns: '#'); // The file itself
+final thisDir = URIRef('./'); // The directory itself
 
 /// String terms used as prfixes in turtle and acl files
 const String foafPrefix = 'foaf:';
@@ -106,9 +135,8 @@ const String dataPrefix = 'data:';
 
 /// String variables for creating files and directories on solid server
 
-const String fileTypeLink = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
-const String dirTypeLink =
-    '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+String fileTypeLink = '<${ldp.ns.ns}Resource>; rel="type"';
+String dirTypeLink = '<${ldp.ns.ns}BasicContainer>; rel="type"';
 
 /// String variables for encryption key files
 
