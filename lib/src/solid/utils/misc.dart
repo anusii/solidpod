@@ -94,6 +94,50 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
   }
 }
 
+/// Generates a public key block from a given key content.
+String genPubKeyStr(String pubKeyContent) =>
+    '''-----BEGIN RSA PUBLIC KEY-----\n$pubKeyContent\n-----END RSA PUBLIC KEY-----''';
+
+/// Get unique bit of the webId
+String getUniqueStrWebId(String webId) {
+  var uniqueStr = webId.replaceAll('https://', '');
+  uniqueStr = uniqueStr.replaceAll('http://', '');
+  uniqueStr = uniqueStr.replaceAll('/$profCard', '');
+  uniqueStr = uniqueStr.replaceAll('/', '-');
+
+  return uniqueStr;
+}
+
+/// Create a directory
+// Future<bool> createDir(String dirName, String dirParentPath) async {
+//   try {
+//     // await createItem(dirName,
+//     //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
+//     await createItem(false, dirName, '', fileLoc: dirParentPath);
+//     return true;
+//   } on Exception catch (e) {
+//     print('Exception: $e');
+//   }
+//   return false;
+// }
+
+/// Create new TTL file with content
+// Future<bool> createFile(String filePath, String fileContent) async {
+//   try {
+//     final fileName = path.basename(filePath);
+//     final folderPath = path.dirname(filePath);
+
+//     // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
+//     await createItem(true, fileName, fileContent,
+//         fileType: 'text/turtle', fileLoc: folderPath);
+
+//     return true;
+//   } on Exception catch (e) {
+//     print('Exception: $e');
+//   }
+//   return false;
+// }
+
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
 /// returns the full resource URL
@@ -146,6 +190,18 @@ Future<String> getPubKeyPath() async =>
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
+
+/// Returns the path of the shared directory
+Future<String> getSharedDirPath() async =>
+    [await AppInfo.canonicalName, sharedDir].join('/');
+
+/// Returns the path of the shared directory
+Future<String> getSharedKeyFilePath(String senderName) async => [
+      await AppInfo.canonicalName,
+      sharedDir,
+      senderName,
+      sharedKeyFile
+    ].join('/');
 
 /// Returns the path of the encryption directory
 Future<String> getEncDirPath() async =>
@@ -239,10 +295,42 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   return files;
 }
 
+/// Get resource acl file path
+String getResAclFile(String resourceUrl, [bool fileFlag = true]) {
+  final resourceAclUrl = resourceUrl.endsWith('.acl')
+      ? resourceUrl
+      : fileFlag
+          ? '$resourceUrl.acl'
+          : '$resourceUrl/.acl';
+
+  return resourceAclUrl;
+}
+
+/// Extract permission details of a file into a map.
+/// Returns a map where keys are permission receiver webIds and
+/// values are the list of permissions
+Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
+  final filePermMap = <dynamic, dynamic>{};
+  for (final accessStr in aclFileContentMap.keys) {
+    final permList = aclFileContentMap[accessStr]['mode'];
+    final receiverList = aclFileContentMap[accessStr]['agent'];
+
+    for (final receiverWebId in receiverList as List) {
+      filePermMap[receiverWebId] = permList;
+    }
+  }
+
+  return filePermMap;
+}
+
+/// Get resource name from URL
+String getResNameFromUrl(String resourceUrl) {
+  return resourceUrl.split('/').last;
+}
+
 /// Get tokens necessary to fetch a resource from a POD
 ///
 /// returns the access token and DPoP token
-
 Future<({String accessToken, String dPopToken})> getTokensForResource(
     String resourceUrl, String httpMethod) async {
   final authData = await AuthDataManager.loadAuthData();
