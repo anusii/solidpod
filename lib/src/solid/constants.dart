@@ -44,6 +44,7 @@ const String encKeyFile = 'enc-keys.ttl';
 const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
+const String sharedKeyFile = 'shared-keys.ttl';
 
 const dataDir = 'data';
 const sharingDir = 'sharing';
@@ -60,6 +61,8 @@ const String prvKeyPred = 'prvKey';
 const String pubKeyPred = 'pubKey';
 const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
+const String accessListPred = 'accessList';
+const String sharedKeyPred = 'sharedKey';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';
 const String typePred = 'type';
@@ -85,14 +88,19 @@ const String profileDoc = 'PersonalProfileDocument';
 /// String link variables used in files generation process for defining ttl
 /// file content.
 
-const String appsTerms = 'https://solidcommunity.au/predicates/terms#';
 const String terms = 'http://purl.org/dc/terms/';
 const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String appsFile = 'https://solidcommunity.au/predicates/file#';
-const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
+
+/// String terms used as prfixes in turtle and acl files
+const String foafPrefix = 'foaf:';
+const String aclPrefix = 'acl:';
+const String selfPrefix = ':';
+const String termsPrefix = 'terms:';
+const String filePrefix = 'file:';
+const String dataPrefix = 'data:';
 
 /// String variables for creating files and directories on solid server
 
