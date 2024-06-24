@@ -38,6 +38,7 @@ export 'src/solid/login.dart'
         RegisterButtonStyle,
         InfoButtonStyle;
 export 'src/solid/popup_login.dart' show SolidPopupLogin;
+export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
 
 // TODO 20240417 gjw Can we please list or at least document what and why the
 // following are exported, PLEASE.

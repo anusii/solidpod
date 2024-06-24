@@ -36,6 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -49,6 +50,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 
 Future<void> grantPermission(
     String fileName,
+    bool fileFlag,
     List<dynamic> permissionList,
     String recipientWebId,
     bool isFileEncrypted,
@@ -64,40 +66,45 @@ Future<void> grantPermission(
   // Get the url of the file
   final resourceUrl = await getFileUrl(filePath);
 
-  // Get user webID
-  final userWebId = await AuthDataManager.getWebId() as String;
+  // Check if file exists
+  final resStatus = await checkResourceStatus(resourceUrl, fileFlag);
 
-  // Add the permission line to the relevant ACL file
-  await setPermissionAcl(
-      resourceUrl, userWebId, recipientWebId, permissionList);
+  if (resStatus == ResourceStatus.exist) {
+    // Get user webID
+    final userWebId = await AuthDataManager.getWebId() as String;
 
-  // Check if the file is encrypted
-  final fileIsEncrypted = await checkFileEnc(resourceUrl);
+    // Add the permission line to the relevant ACL file
+    await setPermissionAcl(
+        resourceUrl, userWebId, recipientWebId, permissionList);
 
-  // If the file is encrypted then share the individual encryption key
-  // with the receiver
-  if (fileIsEncrypted) {
-    // Get the individual security key for the file
-    final indKey = await KeyManager.getIndividualKey(resourceUrl);
+    // Check if the file is encrypted
+    final fileIsEncrypted = await checkFileEnc(resourceUrl);
 
-    // Setup recipient's public key
-    final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
+    // If the file is encrypted then share the individual encryption key
+    // with the receiver
+    if (fileIsEncrypted) {
+      // Get the individual security key for the file
+      final indKey = await KeyManager.getIndividualKey(resourceUrl);
 
-    // Encrypt individual key
-    final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
+      // Setup recipient's public key
+      final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
 
-    // Encrypt resource URL
-    final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
+      // Encrypt individual key
+      final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
 
-    // Encrypt the list of permissions
-    permissionList.sort();
-    final sharedAccessList =
-        await recipientPubKey.encryptData(permissionList.join(','));
+      // Encrypt resource URL
+      final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
 
-    // Copy shared content to recipient's POD
-    final senderUniqueName = getUniqueStrWebId(await getWebId() as String);
-    final resourceName = resourceUrl.split('/').last;
-    await copySharedKey(recipientWebId, senderUniqueName, resourceName,
-        sharedIndKey, sharedResPath, sharedAccessList);
+      // Encrypt the list of permissions
+      permissionList.sort();
+      final sharedAccessList =
+          await recipientPubKey.encryptData(permissionList.join(','));
+
+      // Copy shared content to recipient's POD
+      final senderUniqueName = getUniqueStrWebId(await getWebId() as String);
+      final resourceName = resourceUrl.split('/').last;
+      await copySharedKey(recipientWebId, senderUniqueName, resourceName,
+          sharedIndKey, sharedResPath, sharedAccessList);
+    }
   }
 }
