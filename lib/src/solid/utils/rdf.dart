@@ -34,20 +34,31 @@ import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
+/// Create and return a namespace
+Namespace getNamespace(String ns) => Namespace(ns: ns);
+
+/// Create and return a URIRef
+URIRef getURIRef(String url) => URIRef(url);
+
+/// Create and return a URIRef with given namespace and attribute
+URIRef getURIRefFromNS(Namespace ns, String attr) => ns.withAttr(attr);
+
 /// Generate Turtle string from triples stored in a map:
 /// {subject: {predicate: {object}}}
-/// - subject: URIRef
-/// - predicate: URIRef
+/// - subject: URIRef String
+/// - predicate: URIRef String
 /// - object: {dynamic}
-String tripleMapToTurtle(Map<URIRef, Map<URIRef, Set<dynamic>>> triples,
+String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
     {Map<String, Namespace>? bindNamespaces}) {
   final g = Graph();
 
   for (final sub in triples.keys) {
     final predMap = triples[sub];
     for (final pre in predMap!.keys) {
-      final objSet = predMap[pre];
-      for (final obj in objSet!) {
+      final objs = predMap[pre];
+      final objSet = objs is Iterable ? Set.from(objs) : {objs};
+
+      for (final obj in objSet) {
         g.addTripleToGroups(sub, pre, obj);
       }
     }
@@ -162,7 +173,7 @@ Future<String> genAclTTLStr(String resourceUrl,
   g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(accessToPred), f);
   g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(agentPred), URIRef(webId!));
   g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(modePred),
-      aclNS.ns.withAttr(ownerAccess.value));
+      aclNS.ns.withAttr(ownerAccess.mode));
 
   // URIRef(RESOURCE_URL.acl#public'):
   //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
@@ -177,7 +188,7 @@ Future<String> genAclTTLStr(String resourceUrl,
   g.addTripleToGroups(publicSub, aclNS.ns.withAttr(agentClassPred),
       foafNS.ns.withAttr(aclAgent));
   g.addTripleToGroups(publicSub, aclNS.ns.withAttr(modePred),
-      aclNS.ns.withAttr(publicAccess.value));
+      aclNS.ns.withAttr(publicAccess.mode));
 
   // Bind the long namespace to shorter string for better readability
 

@@ -30,8 +30,9 @@
 library;
 
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
-import 'package:solidpod/src/solid/constants/common.dart' show acl, foaf;
-import 'package:solidpod/src/solid/constants/schema.dart' show NS;
+import 'package:solidpod/src/solid/constants/common.dart' show acl, foaf, rdf;
+import 'package:solidpod/src/solid/constants/schema.dart'
+    show NS, aclNS, foafNS, rdfNS;
 
 /// Namespace of the file itself
 final NS thisFile = (prefix: '', ns: Namespace(ns: '#'));
@@ -39,11 +40,22 @@ final NS thisFile = (prefix: '', ns: Namespace(ns: '#'));
 /// URI of the directory itself
 final thisDir = URIRef('./');
 
+/// Namespaces to bind
+final bindAclNamespaces = {
+  thisFile.prefix: thisFile.ns,
+  aclNS.prefix: aclNS.ns,
+  foafNS.prefix: foafNS.ns,
+  rdfNS.prefix: rdfNS.ns
+};
+
 /// Predicates for web access control
 
 enum Predicate {
+  /// Predicate of acl:Authorization
+  aclRdfType('${rdf}type'),
+
   /// Operations the agents can perform on a resource
-  mode('${acl}mode'),
+  aclMode('${acl}mode'),
 
   /// The resource to which access is being granted
   accessTo('${acl}accessTo'),
@@ -62,49 +74,58 @@ enum Predicate {
   agentGroup('${acl}agentGroup'),
 
   /// Origin of an HTTP request being given access permission
-  origin('${acl}origin');
+  origin('${acl}origin'),
+
+  /// The owner of a resource
+  owner('${acl}owner');
 
   /// Generative enum constructor
-  const Predicate(this.value);
+  const Predicate(this._value);
 
   /// String value of access predicate
-  final String value;
+  final String _value;
+
+  /// Return the URIRef of predicate
+  URIRef get uriRef => URIRef(_value);
 }
 
 /// Mode of access to a resource
 
 enum AccessMode {
   /// Read access
-  read('${acl}Read'),
+  read('Read'),
 
   /// Write access
-  write('${acl}Write'),
+  write('Write'),
 
   /// Control access: read and write access to the ACL file
-  control('${acl}Control'),
+  control('Control'),
 
   /// Append data (a type of write)
-  append('${acl}Append');
+  append('Append');
 
   /// Constructor
-  const AccessMode(this.value);
+  const AccessMode(this._value);
 
   /// String value of the access type
-  final String value;
+  final String _value;
+
+  /// Return the URIRef
+  URIRef get uriRef => URIRef('$acl$_value');
+
+  /// Return the mode
+  String get mode => _value;
 }
 
-/// Two objects/values of predicate acl:agentClass
+/// Two objects/values for predicate acl:agentClass
 /// foaf:Agent for public access
 /// acl:AutenticatedAgent for allowing access by authenticated agents
 
 /// Allows access to any agent, i.e., the public
-const publicAgent = '${foaf}Agent';
+final publicAgent = URIRef('${foaf}Agent');
 
 /// Allows access to any authenticated agent
-const authenticatedAgent = '${acl}AuthenticatedAgent';
-
-/// Object of rdf:type
-const aclAuthorization = '${acl}Authorization';
+final authenticatedAgent = URIRef('${acl}AuthenticatedAgent');
 
 // Object representing a group of persons or entities,
 // members of a group are usually specified by the hasMember property.
@@ -119,3 +140,6 @@ const aclAuthorization = '${acl}Authorization';
 // - At least one acl:mode property value (Access Modes).
 // - At least one acl:agent, acl:agentGroup, acl:agentClass or acl:origin
 //   property value (Access Subjects).
+
+/// Object of rdf:type
+final aclAuthorization = URIRef('${acl}Authorization');
