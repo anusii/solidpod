@@ -36,7 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants.dart' show ResourceStatus;
+import 'package:solidpod/src/solid/constants/common.dart' show ResourceStatus;
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 

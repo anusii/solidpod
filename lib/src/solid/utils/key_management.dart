@@ -46,7 +46,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTTLStr;

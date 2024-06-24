@@ -36,7 +36,7 @@ import 'package:solid_auth/solid_auth.dart' show genDpopToken;
 import 'package:solid_auth/src/openid/openid_client.dart'
     show Credential, TokenResponse;
 
-import 'package:solidpod/src/solid/constants.dart' show secureStorage;
+import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;
 import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
 
 /// [AuthDataManager] is a class to manage auth data returned by

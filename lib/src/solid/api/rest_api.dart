@@ -38,7 +38,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
