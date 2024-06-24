@@ -29,26 +29,25 @@
 library;
 
 import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 /// Generate Turtle string from triples stored in a map:
 /// {subject: {predicate: {object}}}
 /// - subject: URIRef
 /// - predicate: URIRef
-/// - object: dynamic
+/// - object: {dynamic}
 String tripleMapToTurtle(Map<URIRef, Map<URIRef, Set<dynamic>>> triples,
     {Map<String, Namespace>? bindNamespaces}) {
   final g = Graph();
-  // triples.forEach((sub, preobj) => preobj.forEach((pre, objset) =>
-  //    objset.forEach((obj) => g.addTripleToGroups(sub, pre, obj))));
-  for (final entry in triples.entries) {
-    final sub = entry.key;
-    final preobj = entry.value;
-    for (final pre in preobj.keys) {
-      final objset = preobj[pre];
-      for (final obj in objset!) {
+
+  for (final sub in triples.keys) {
+    final predMap = triples[sub];
+    for (final pre in predMap!.keys) {
+      final objSet = predMap[pre];
+      for (final obj in objSet!) {
         g.addTripleToGroups(sub, pre, obj);
       }
     }
@@ -79,7 +78,7 @@ String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
     final f = URIRef(sub);
     for (final pre in tripleMap[sub]!.keys) {
       final obj = tripleMap[sub]![pre] as String;
-      final ns = (pre == titlePred) ? terms.ns : nsTerms;
+      final ns = (pre == titlePred) ? termsNS.ns : nsTerms;
       g.addTripleToGroups(f, ns.withAttr(pre), obj);
     }
   }
@@ -159,11 +158,11 @@ Future<String> genAclTTLStr(String resourceUrl,
 
   final ownerSub = nsSub.withAttr('owner');
   g.addTripleToGroups(
-      ownerSub, rdf.ns.withAttr(typePred), acl.ns.withAttr(aclAuth));
-  g.addTripleToGroups(ownerSub, acl.ns.withAttr(accessToPred), f);
-  g.addTripleToGroups(ownerSub, acl.ns.withAttr(agentPred), URIRef(webId!));
-  g.addTripleToGroups(
-      ownerSub, acl.ns.withAttr(modePred), acl.ns.withAttr(ownerAccess.value));
+      ownerSub, rdfNS.ns.withAttr(typePred), aclNS.ns.withAttr(aclAuth));
+  g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(accessToPred), f);
+  g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(agentPred), URIRef(webId!));
+  g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(modePred),
+      aclNS.ns.withAttr(ownerAccess.value));
 
   // URIRef(RESOURCE_URL.acl#public'):
   //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
@@ -173,18 +172,18 @@ Future<String> genAclTTLStr(String resourceUrl,
 
   final publicSub = nsSub.withAttr('public');
   g.addTripleToGroups(
-      publicSub, rdf.ns.withAttr(typePred), acl.ns.withAttr(aclAuth));
-  g.addTripleToGroups(publicSub, acl.ns.withAttr(accessToPred), f);
-  g.addTripleToGroups(
-      publicSub, acl.ns.withAttr(agentClassPred), foaf.ns.withAttr(aclAgent));
-  g.addTripleToGroups(publicSub, acl.ns.withAttr(modePred),
-      acl.ns.withAttr(publicAccess.value));
+      publicSub, rdfNS.ns.withAttr(typePred), aclNS.ns.withAttr(aclAuth));
+  g.addTripleToGroups(publicSub, aclNS.ns.withAttr(accessToPred), f);
+  g.addTripleToGroups(publicSub, aclNS.ns.withAttr(agentClassPred),
+      foafNS.ns.withAttr(aclAgent));
+  g.addTripleToGroups(publicSub, aclNS.ns.withAttr(modePred),
+      aclNS.ns.withAttr(publicAccess.value));
 
   // Bind the long namespace to shorter string for better readability
 
-  g.bind(acl.prefix, acl.ns);
+  g.bind(aclNS.prefix, aclNS.ns);
   // g.bind('foaf', nsFoaf); // causes "Exception: foaf: already exists in prefixed namespaces!"
-  g.bind(rdf.prefix, rdf.ns);
+  g.bind(rdfNS.prefix, rdfNS.ns);
 
   // Serialise to TTL string
 
@@ -202,15 +201,15 @@ Future<String> genPermLogTTLStr(String resourceUrl) async {
   //     URIRef('http://purl.org/dc/terms/title'): Literal('Permissions Log'),
   //     URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://xmlns.com/foaf/0.1/PersonalProfileDocument')
 
-  g.addTripleToGroups(f, terms.ns.withAttr(titlePred), logFileTitle);
+  g.addTripleToGroups(f, termsNS.ns.withAttr(titlePred), logFileTitle);
   g.addTripleToGroups(
-      f, rdf.ns.withAttr(typePred), foaf.ns.withAttr(profileDoc));
+      f, rdfNS.ns.withAttr(typePred), foafNS.ns.withAttr(profileDoc));
 
 // Bind the long namespace to shorter string for better readability
 
-  g.bind(terms.prefix, terms.ns);
+  g.bind(termsNS.prefix, termsNS.ns);
   // g.bind('foaf', nsFoaf);
-  g.bind(rdf.prefix, rdf.ns);
+  g.bind(rdfNS.prefix, rdfNS.ns);
 
   // Serialise to TTL string
 
