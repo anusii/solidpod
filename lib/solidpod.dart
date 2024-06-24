@@ -53,3 +53,4 @@ export 'src/solid/write_pod.dart' show writePod;
 export 'src/widgets/logout_dialog.dart' show logoutPopup;
 export 'src/solid/grant_permission.dart' show grantPermission;
 export 'src/solid/read_permission.dart' show readPermission;
+export 'src/solid/revoke_permission.dart' show revokePermission;
