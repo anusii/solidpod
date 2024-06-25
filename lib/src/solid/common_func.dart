@@ -144,7 +144,7 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
 
   final filePath = [await getDataDirPath(), fileName].join('/');
   final fileUrl = await getFileUrl(filePath);
-  final status = await checkResourceStatus(fileUrl, true);
+  final status = await checkResourceStatus(fileUrl);
 
   const smallGapH = SizedBox(width: 10);
   String msg;
