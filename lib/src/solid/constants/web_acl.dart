@@ -31,8 +31,7 @@ library;
 
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
 import 'package:solidpod/src/solid/constants/common.dart' show acl, foaf, rdf;
-import 'package:solidpod/src/solid/constants/schema.dart'
-    show NS, aclNS, foafNS, rdfNS;
+import 'package:solidpod/src/solid/constants/schema.dart' show NS, aclNS;
 
 /// Namespace of the file itself
 final NS thisFile = (prefix: '', ns: Namespace(ns: '#'));
@@ -41,11 +40,12 @@ final NS thisFile = (prefix: '', ns: Namespace(ns: '#'));
 final thisDir = URIRef('./');
 
 /// Namespaces to bind
+
 final bindAclNamespaces = {
   thisFile.prefix: thisFile.ns,
   aclNS.prefix: aclNS.ns,
-  // foafNS.prefix: foafNS.ns, // done in the rdflib package?
-  // rdfNS.prefix: rdfNS.ns // done in the rdflib package?
+  // foafNS.prefix: foafNS.ns, // already binded in the rdflib
+  // rdfNS.prefix: rdfNS.ns // already binded done in the rdflib
 };
 
 /// Predicates for web access control
