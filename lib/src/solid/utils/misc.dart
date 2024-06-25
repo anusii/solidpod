@@ -318,7 +318,12 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
     final receiverList = aclFileContentMap[accessStr]['agent'];
 
     for (final receiverWebId in receiverList as List) {
-      filePermMap[receiverWebId] = permList;
+      // filePermMap[receiverWebId] = permList;
+      if (filePermMap.containsKey(receiverWebId)) {
+        filePermMap[receiverWebId] += permList;
+      } else {
+        filePermMap[receiverWebId] = permList;
+      }
     }
   }
 
@@ -482,7 +487,7 @@ Future<void> initPod(String securityKey,
 /// Delete the ACL file for a resource
 Future<void> deleteAclForResource(String resourceUrl) async {
   final aclUrl = '$resourceUrl.acl';
-  final status = await checkResourceStatus(aclUrl, true);
+  final status = await checkResourceStatus(aclUrl);
 
   switch (status) {
     case ResourceStatus.exist:
