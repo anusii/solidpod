@@ -30,7 +30,7 @@ import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
 
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
 
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTurtle(
@@ -40,17 +40,8 @@ Future<String> genAclTurtle(
   Set<AccessMode>? publicAccess,
   Map<String, Set<AccessMode>>? thirdPartyAccess,
 }) async {
-  // URIRef(RESOURCE_URL.acl#owner):
-  // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
-  //         URIRef('http://www.w3.org/ns/auth/acl#agent'): URIRef(WEB_ID),
-  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Control')},
-  //
-  // URIRef(RESOURCE_URL.acl#public'):
-  //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //    URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
-  //    URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
-  //    URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Read')
+  // The resource should not be an ACL file
+  assert(!resourceUrl.endsWith('.acl'));
 
   // The resource to be accessed
   final r = fileFlag ? URIRef(resourceUrl.split('/').last) : thisDir;
@@ -62,15 +53,14 @@ Future<String> genAclTurtle(
     AccessMode.control,
   };
 
-  final webId = await AuthDataManager.getWebId();
-  assert(webId != null);
+  final ownerWebId = await AuthDataManager.getWebId();
+  assert(ownerWebId != null);
   if (thirdPartyAccess != null) {
-    assert(!thirdPartyAccess.containsKey(webId));
+    assert(!thirdPartyAccess.containsKey(ownerWebId));
   }
 
   final accessMap = getAccessMap({
-    URIRef(webId!): ownerAccess,
-    // if (publicAccess != null) publicAgent: publicAccess,
+    URIRef(ownerWebId!): ownerAccess,
     if (thirdPartyAccess != null) ...{
       for (final entry in thirdPartyAccess.entries)
         URIRef(entry.key): entry.value
@@ -79,14 +69,15 @@ Future<String> genAclTurtle(
 
   final triples = {
     for (final entry in accessMap.entries)
-      thisFile.ns.withAttr(entry.key.mode): {
-        Predicate.aclRdfType.uriRef: aclAuthorization,
-        Predicate.accessTo.uriRef: r,
-        Predicate.agent.uriRef: entry.value,
-        if (publicAccess != null && publicAccess.contains(entry.key))
-          Predicate.agentClass.uriRef: publicAgent,
-        Predicate.aclMode.uriRef: entry.key.uriRef,
-      },
+      if (entry.value.isNotEmpty)
+        thisFile.ns.withAttr(entry.key.mode): {
+          Predicate.aclRdfType.uriRef: aclAuthorization,
+          Predicate.accessTo.uriRef: r,
+          Predicate.agent.uriRef: entry.value,
+          if (publicAccess != null && publicAccess.contains(entry.key))
+            Predicate.agentClass.uriRef: publicAgent,
+          Predicate.aclMode.uriRef: entry.key.uriRef,
+        },
   };
 
   // Bind namespaces
@@ -94,13 +85,14 @@ Future<String> genAclTurtle(
   const prefix = 'c';
   final bindNS = {
     ...bindAclNamespaces,
-    '${prefix}0': Namespace(ns: webId),
+    '${prefix}0': Namespace(ns: '${Uri.parse(ownerWebId).removeFragment()}#'),
   };
 
   if (thirdPartyAccess != null) {
     var k = 1;
-    for (final _webId in thirdPartyAccess.keys) {
-      bindNS['$prefix$k'] = Namespace(ns: _webId);
+    for (final webId in thirdPartyAccess.keys) {
+      bindNS['$prefix$k'] =
+          Namespace(ns: '${Uri.parse(webId).removeFragment()}#');
       k++;
     }
   }
