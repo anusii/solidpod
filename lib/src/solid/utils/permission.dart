@@ -26,19 +26,18 @@
 
 library;
 
-import 'package:rdflib/rdflib.dart' show URIRef;
+import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
 
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTurtle(
   String resourceUrl, {
   bool fileFlag = true,
-  Set<AccessMode>? ownerAccessModes,
-  Set<AccessMode>? publicAccessModes,
+  Set<AccessMode>? ownerAccess,
+  Set<AccessMode>? publicAccess,
   Map<String, Set<AccessMode>>? thirdPartyAccess,
 }) async {
   // URIRef(RESOURCE_URL.acl#owner):
@@ -57,62 +56,80 @@ Future<String> genAclTurtle(
   final r = fileFlag ? URIRef(resourceUrl.split('/').last) : thisDir;
 
   // Full access for owner
-  ownerAccessModes ??= {
+  ownerAccess ??= {
     AccessMode.read,
     AccessMode.write,
     AccessMode.control,
   };
 
-  final accessMap = {
-    AccessMode.read: <String>{},
-    AccessMode.write: <String>{},
-    AccessMode.control: <String>{},
-    AccessMode.append: <String>{},
-  };
-  final agents = <String>{};
-
-  final c0 = await AuthDataManager.getWebId() as String;
-  agents.add(c0);
-  ownerAccessModes.forEach((mode) => accessMap[mode]!.add(c0));
-
-  if (publicAccessModes != null) {
-    agents.add(publicAgent.value);
-    publicAccessModes
-        .forEach((mode) => accessMap[mode]!.add(publicAgent.value));
+  final webId = await AuthDataManager.getWebId();
+  assert(webId != null);
+  if (thirdPartyAccess != null) {
+    assert(!thirdPartyAccess.containsKey(webId));
   }
 
+  final accessMap = getAccessMap({
+    URIRef(webId!): ownerAccess,
+    // if (publicAccess != null) publicAgent: publicAccess,
+    if (thirdPartyAccess != null) ...{
+      for (final entry in thirdPartyAccess.entries)
+        URIRef(entry.key): entry.value
+    },
+  });
+
+  final triples = {
+    for (final entry in accessMap.entries)
+      thisFile.ns.withAttr(entry.key.mode): {
+        Predicate.aclRdfType.uriRef: aclAuthorization,
+        Predicate.accessTo.uriRef: r,
+        Predicate.agent.uriRef: entry.value,
+        if (publicAccess != null && publicAccess.contains(entry.key))
+          Predicate.agentClass.uriRef: publicAgent,
+        Predicate.aclMode.uriRef: entry.key.uriRef,
+      },
+  };
+
+  // Bind namespaces
+
+  const prefix = 'c';
+  final bindNS = {
+    ...bindAclNamespaces,
+    '${prefix}0': Namespace(ns: webId),
+  };
+
   if (thirdPartyAccess != null) {
-    for (final webId in thirdPartyAccess.keys) {
-      agents.add(webId);
-      thirdPartyAccess[webId]!.forEach((mode) => accessMap[mode]!.add(webId));
+    var k = 1;
+    for (final _webId in thirdPartyAccess.keys) {
+      bindNS['$prefix$k'] = Namespace(ns: _webId);
+      k++;
     }
   }
 
-  // Returns map {predicate: object | {objects}}
-  Map<URIRef, dynamic> getPredicateMap(
-    Predicate accessSubjectPred,
-    URIRef accessSubjectVal,
-    Set<AccessMode> accessModes,
-  ) =>
-      {
-        Predicate.aclRdfType.uriRef: aclAuthorization,
-        Predicate.accessTo.uriRef: r,
-        accessSubjectPred.uriRef: accessSubjectVal,
-        Predicate.aclMode.uriRef: {for (final m in accessModes) m.uriRef},
-      };
+  return tripleMapToTurtle(triples, bindNamespaces: bindNS);
+}
 
-  final triples = {
-    thisFile.ns.withAttr('owner'): getPredicateMap(Predicate.agent,
-        URIRef(await AuthDataManager.getWebId() as String), ownerAccessModes),
-    if (publicAccessModes != null)
-      thisFile.ns.withAttr('public'):
-          getPredicateMap(Predicate.agentClass, publicAgent, publicAccessModes),
+/// Convert permissions structure from
+/// {webId/agent | publicAgent: {AccessMode}}
+/// to
+/// {AccessMode: {webId/agent | publicAgent}}
+Map<AccessMode, Set<URIRef>> getAccessMap(
+    Map<URIRef, Set<AccessMode>> permissions) {
+  final accessMap = {
+    for (final mode in [
+      AccessMode.read,
+      AccessMode.write,
+      AccessMode.control,
+      AccessMode.append,
+    ])
+      mode: <URIRef>{}
   };
 
-  if (thirdPartyAccess != null) {
-    thirdPartyAccess.forEach((webId, accessModes) => triples[URIRef(webId)] =
-        getPredicateMap(Predicate.agent, URIRef(webId), accessModes));
+  for (final uriRef in permissions.keys) {
+    final modes = permissions[uriRef];
+    for (final mode in modes!) {
+      accessMap[mode]!.add(uriRef);
+    }
   }
 
-  return tripleMapToTurtle(triples, bindNamespaces: bindAclNamespaces);
+  return accessMap;
 }

@@ -34,14 +34,14 @@ import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
-/// Create and return a namespace
-Namespace getNamespace(String ns) => Namespace(ns: ns);
+// /// Create and return a namespace
+// Namespace getNamespace(String ns) => Namespace(ns: ns);
 
-/// Create and return a URIRef
-URIRef getURIRef(String url) => URIRef(url);
+// /// Create and return a URIRef
+// URIRef getURIRef(String url) => URIRef(url);
 
-/// Create and return a URIRef with given namespace and attribute
-URIRef getURIRefFromNS(Namespace ns, String attr) => ns.withAttr(attr);
+// /// Create and return a URIRef with given namespace and attribute
+// URIRef getURIRefFromNS(Namespace ns, String attr) => ns.withAttr(attr);
 
 /// Generate Turtle string from triples stored in a map:
 /// {subject: {predicate: {object}}}
@@ -66,6 +66,7 @@ String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
 
   if (bindNamespaces != null) {
     bindNamespaces.forEach(g.bind);
+    print('To bind: ${[for (final ns in bindNamespaces.values) ns.ns]}');
   }
 
   g.serialize(abbr: 'short');
@@ -150,58 +151,58 @@ Map<String, dynamic> parseACL(String aclContent) {
   return dataMap;
 }
 
-/// Generate TTL string for ACL file of a given resource
-Future<String> genAclTTLStr(String resourceUrl,
-    {AccessMode ownerAccess = AccessMode.control,
-    AccessMode publicAccess = AccessMode.read}) async {
-  final webId = await AuthDataManager.getWebId();
-  assert(webId != null);
+// /// Generate TTL string for ACL file of a given resource
+// Future<String> genAclTTLStr(String resourceUrl,
+//     {AccessMode ownerAccess = AccessMode.control,
+//     AccessMode publicAccess = AccessMode.read}) async {
+//   final webId = await AuthDataManager.getWebId();
+//   assert(webId != null);
 
-  final g = Graph();
-  final f = URIRef(resourceUrl);
-  final nsSub = Namespace(ns: '$resourceUrl.acl#');
+//   final g = Graph();
+//   final f = URIRef(resourceUrl);
+//   final nsSub = Namespace(ns: '$resourceUrl.acl#');
 
-  // URIRef(RESOURCE_URL.acl#owner):
-  // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
-  //         URIRef('http://www.w3.org/ns/auth/acl#agent'): URIRef(WEB_ID),
-  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Control')},
+//   // URIRef(RESOURCE_URL.acl#owner):
+//   // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
+//   //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
+//   //         URIRef('http://www.w3.org/ns/auth/acl#agent'): URIRef(WEB_ID),
+//   //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Control')},
 
-  final ownerSub = nsSub.withAttr('owner');
-  g.addTripleToGroups(
-      ownerSub, rdfNS.ns.withAttr(typePred), aclNS.ns.withAttr(aclAuth));
-  g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(accessToPred), f);
-  g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(agentPred), URIRef(webId!));
-  g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(modePred),
-      aclNS.ns.withAttr(ownerAccess.mode));
+//   final ownerSub = nsSub.withAttr('owner');
+//   g.addTripleToGroups(
+//       ownerSub, rdfNS.ns.withAttr(typePred), aclNS.ns.withAttr(aclAuth));
+//   g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(accessToPred), f);
+//   g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(agentPred), URIRef(webId!));
+//   g.addTripleToGroups(ownerSub, aclNS.ns.withAttr(modePred),
+//       aclNS.ns.withAttr(ownerAccess.mode));
 
-  // URIRef(RESOURCE_URL.acl#public'):
-  //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //    URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
-  //    URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
-  //    URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Read')
+//   // URIRef(RESOURCE_URL.acl#public'):
+//   //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
+//   //    URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
+//   //    URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
+//   //    URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Read')
 
-  final publicSub = nsSub.withAttr('public');
-  g.addTripleToGroups(
-      publicSub, rdfNS.ns.withAttr(typePred), aclNS.ns.withAttr(aclAuth));
-  g.addTripleToGroups(publicSub, aclNS.ns.withAttr(accessToPred), f);
-  g.addTripleToGroups(publicSub, aclNS.ns.withAttr(agentClassPred),
-      foafNS.ns.withAttr(aclAgent));
-  g.addTripleToGroups(publicSub, aclNS.ns.withAttr(modePred),
-      aclNS.ns.withAttr(publicAccess.mode));
+//   final publicSub = nsSub.withAttr('public');
+//   g.addTripleToGroups(
+//       publicSub, rdfNS.ns.withAttr(typePred), aclNS.ns.withAttr(aclAuth));
+//   g.addTripleToGroups(publicSub, aclNS.ns.withAttr(accessToPred), f);
+//   g.addTripleToGroups(publicSub, aclNS.ns.withAttr(agentClassPred),
+//       foafNS.ns.withAttr(aclAgent));
+//   g.addTripleToGroups(publicSub, aclNS.ns.withAttr(modePred),
+//       aclNS.ns.withAttr(publicAccess.mode));
 
-  // Bind the long namespace to shorter string for better readability
+//   // Bind the long namespace to shorter string for better readability
 
-  g.bind(aclNS.prefix, aclNS.ns);
-  // g.bind('foaf', nsFoaf); // causes "Exception: foaf: already exists in prefixed namespaces!"
-  g.bind(rdfNS.prefix, rdfNS.ns);
+//   g.bind(aclNS.prefix, aclNS.ns);
+//   // g.bind('foaf', nsFoaf); // causes "Exception: foaf: already exists in prefixed namespaces!"
+//   g.bind(rdfNS.prefix, rdfNS.ns);
 
-  // Serialise to TTL string
+//   // Serialise to TTL string
 
-  g.serialize(abbr: 'short');
+//   g.serialize(abbr: 'short');
 
-  return g.serializedString;
-}
+//   return g.serializedString;
+// }
 
 /// Generate permission log file content
 Future<String> genPermLogTTLStr(String resourceUrl) async {

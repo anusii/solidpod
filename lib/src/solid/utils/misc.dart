@@ -44,6 +44,7 @@ import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
@@ -444,10 +445,28 @@ Future<void> initPod(String securityKey,
     if (f.split('.').last == 'acl') {
       final items = f.split('.');
       final resourceUrl = items.getRange(0, items.length - 1).join('.');
-      fileContent = await genAclTTLStr(resourceUrl,
-          publicAccess: fileName == '$permLogFile.acl'
-              ? AccessMode.append
-              : AccessMode.read);
+      late Set<AccessMode> publicAccess;
+      var fileFlag = true;
+      switch (fileName) {
+        case '$pubKeyFile.acl':
+          publicAccess = {AccessMode.read};
+        case '$permLogFile.acl':
+          publicAccess = {AccessMode.append};
+        default:
+          debugPrint(fileName);
+          assert(fileName == '.acl');
+          publicAccess = {AccessMode.read, AccessMode.write};
+          fileFlag = false;
+      }
+
+      fileContent = await genAclTurtle(resourceUrl,
+          fileFlag: fileFlag,
+          ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+          publicAccess: publicAccess);
+      // genAclTTLStr(resourceUrl,
+      //     publicAccess: fileName == '$permLogFile.acl'
+      //         ? AccessMode.append
+      //         : AccessMode.read);
       aclFlag = true;
     } else {
       debugPrint(fileName);
