@@ -468,15 +468,12 @@ Future<void> initPod(String securityKey,
           fileFlag: fileFlag,
           ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
           publicAccess: publicAccess);
-      // genAclTTLStr(resourceUrl,
-      //     publicAccess: fileName == '$permLogFile.acl'
-      //         ? AccessMode.append
-      //         : AccessMode.read);
+
       aclFlag = true;
     } else {
       debugPrint(fileName);
       assert(fileName == permLogFile);
-      fileContent = await genPermLogTTLStr(f);
+      fileContent = genPermLogTTLStr(f);
       aclFlag = false;
     }
 
