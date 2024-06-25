@@ -39,11 +39,11 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart' show ResourceStatus;
 import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
 /// Write file [fileName] and content [fileContent] to PODs
 /// The content will be encrypted if [encrypted] is true.
 
-// TODO (dc): optionally create the ACL file for the data file
 Future<void> writePod(
     String fileName, String fileContent, BuildContext context, Widget child,
     {bool encrypted = true}) async {
@@ -58,7 +58,7 @@ Future<void> writePod(
   final fileUrl = await getFileUrl(filePath);
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
-  switch (await checkResourceStatus(fileUrl, true)) {
+  switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
 
       // Ask user to confirm when the encryption status of the file is changed
@@ -141,4 +141,12 @@ Future<void> writePod(
 
   // Create file on server
   await createResource(fileUrl, content: content, replaceIfExist: true);
+
+  // Create the ACL file for the data file if necessary
+
+  final aclFileUrl = '$fileUrl.acl';
+  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
+    await createResource(aclFileUrl,
+        content: await genAclTurtle(fileUrl), replaceIfExist: true);
+  }
 }
