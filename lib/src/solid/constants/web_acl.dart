@@ -44,8 +44,8 @@ final thisDir = URIRef('./');
 final bindAclNamespaces = {
   thisFile.prefix: thisFile.ns,
   aclNS.prefix: aclNS.ns,
-  // foafNS.prefix: foafNS.ns, // already binded in the rdflib
-  // rdfNS.prefix: rdfNS.ns // already binded done in the rdflib
+  // foafNS.prefix: foafNS.ns, // already binded in rdflib
+  // rdfNS.prefix: rdfNS.ns // already binded in rdflib
 };
 
 /// Predicates for web access control
