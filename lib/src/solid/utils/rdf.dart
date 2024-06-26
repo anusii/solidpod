@@ -29,17 +29,9 @@
 library;
 
 import 'package:rdflib/rdflib.dart';
+
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
-
-// /// Create and return a namespace
-// Namespace getNamespace(String ns) => Namespace(ns: ns);
-
-// /// Create and return a URIRef
-// URIRef getURIRef(String url) => URIRef(url);
-
-// /// Create and return a URIRef with given namespace and attribute
-// URIRef getURIRefFromNS(Namespace ns, String attr) => ns.withAttr(attr);
 
 /// Generate Turtle string from triples stored in a map:
 /// {subject: {predicate: {object}}}
@@ -71,6 +63,7 @@ String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
   return g.serializedString;
 }
 
+// TODO (dc): Deprecate tripleMapToTTLStr()
 /// Generate TTL string from triples stored in a map:
 /// {subject: {predicate: object}}
 /// where
@@ -97,6 +90,7 @@ String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
   return g.serializedString;
 }
 
+// TODO (dc): Unify parseTTL() and parseACL()
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
   final g = Graph();
