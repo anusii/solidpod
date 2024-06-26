@@ -1,3 +1,9 @@
+generated*
+Generated*
+pubspec.lock
+*~
+ignore
+
 # Miscellaneous
 *.class
 *.log
