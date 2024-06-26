@@ -27,9 +27,9 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/solidpod.dart' show getFileContent;
+import 'package:demopod/utils/rdf.dart' show getEncKeyContent;
 
-import 'package:keypod/utils/constants.dart';
+import 'package:demopod/constants/app.dart';
 
 /// A widget to show the user all the encryption keys stored in their Solid Pod.
 
@@ -75,7 +75,7 @@ class _ViewKeysState extends State<ViewKeys> {
   }
 
   Widget loadedScreen(String keyData) {
-    final encFileData = getFileContent(keyData);
+    final encFileData = getEncKeyContent(keyData);
 
     //TODO av-20240319: Need to get the encryption key
     // to decrypt the private key value

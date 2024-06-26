@@ -29,12 +29,13 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart';
 
-import 'package:keypod/dialogs/about.dart';
-import 'package:keypod/dialogs/alert.dart';
-import 'package:keypod/main.dart';
-import 'package:keypod/screens/demo.dart';
-import 'package:keypod/utils/constants.dart';
-import 'package:keypod/utils/rdf.dart';
+import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/main.dart';
+import 'package:demopod/screens/demo.dart';
+import 'package:demopod/screens/sharing.dart';
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/utils/rdf.dart';
 
 class KeyValueTable extends StatefulWidget {
   const KeyValueTable({
@@ -289,6 +290,17 @@ class _KeyValueTableState extends State<KeyValueTable> {
           ),
           IconButton(
             icon: const Icon(
+              Icons.share,
+              color: Colors.blue,
+            ),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SharingScreen()),
+            ),
+            tooltip: 'Test the file sharing functionality.',
+          ),
+          IconButton(
+            icon: const Icon(
               Icons.info,
               color: Colors.purple,
             ),
@@ -300,7 +312,7 @@ class _KeyValueTableState extends State<KeyValueTable> {
               Icons.logout_sharp,
               color: Colors.black,
             ),
-            onPressed: () async => logoutPopup(context, const KeyPod()),
+            onPressed: () async => logoutPopup(context, const DemoPod()),
             tooltip: 'Logout of your solid pod.',
           ),
           smallGapH,

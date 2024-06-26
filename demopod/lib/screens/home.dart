@@ -34,10 +34,10 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:keypod/screens/data_table.dart';
-import 'package:keypod/screens/demo.dart';
-import 'package:keypod/utils/constants.dart';
-import 'package:keypod/utils/rdf.dart';
+import 'package:demopod/screens/data_table.dart';
+import 'package:demopod/screens/demo.dart';
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/utils/rdf.dart';
 
 class HomeScreen extends StatefulWidget {
   /// Constructor for the home screen.

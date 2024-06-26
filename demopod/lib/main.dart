@@ -1,6 +1,6 @@
 /// A template app to begin a Solid Pod project.
 ///
-// Time-stamp: <Saturday 2024-05-25 18:48:24 +1000 Graham Williams>
+// Time-stamp: <Thursday 2024-06-27 09:43:38 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -30,8 +30,8 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'package:keypod/screens/home.dart';
-import 'package:keypod/utils/is_desktop.dart';
+import 'package:demopod/home.dart';
+import 'package:demopod/utils/is_desktop.dart';
 
 void main() async {
   // Suport window size and top placement for desktop apps.
@@ -50,7 +50,7 @@ void main() async {
 
       // The [title] is used for the window manager's window title.
 
-      title: 'KeyPod - Private Solid Pod for Storing Key-Value Pairs',
+      title: 'DemoPod - Demonstrate Private Solid Pod',
     );
 
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -62,11 +62,11 @@ void main() async {
 
   // Ready to run the app.
 
-  runApp(const KeyPod());
+  runApp(const DemoPod());
 }
 
-class KeyPod extends StatelessWidget {
-  const KeyPod({super.key});
+class DemoPod extends StatelessWidget {
+  const DemoPod({super.key});
 
   // This widget is the root of our application.
 
@@ -78,18 +78,18 @@ class KeyPod extends StatelessWidget {
         // Images generated using Bing Image Creator from Designer, powered by
         // DALL-E3.
 
-        title: 'SOLID KEY/VALUE POD',
-        image: AssetImage('assets/images/keypod_image.jpg'),
-        logo: AssetImage('assets/images/keypod_logo.png'),
-        link: 'https://github.com/anusii/keypod/blob/main/README.md',
+        title: 'SOLID POD DEMONSTRATOR',
+        image: AssetImage('assets/images/demopod_image.png'),
+        logo: AssetImage('assets/images/demopod_logo.png'),
+        link: 'https://github.com/anusii/solidpod/blob/main/demopod/README.md',
         required: false,
         infoButtonStyle: InfoButtonStyle(
-          tooltip: 'Visit the KeyPod documentation.',
+          tooltip: 'Visit the DemoPod documentation.',
         ),
         loginButtonStyle: LoginButtonStyle(
           background: Colors.lightGreenAccent,
         ),
-        child: HomeScreen(),
+        child: Home(),
       ),
     );
   }

@@ -82,3 +82,30 @@ Future<List<({String key, dynamic value})>> parseTTLStr(String ttlStr) async {
   }
   return pairs;
 }
+
+/// Parses enc-key file information and extracts content into a map.
+///
+/// This function processes the provided file information, which is expected to be
+/// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
+/// to parse the Turtle data and extract key attributes and their values.
+
+Map<dynamic, dynamic> getEncKeyContent(String fileInfo) {
+  final g = Graph();
+  g.parseTurtle(fileInfo);
+  final fileContentMap = {};
+  final fileContentList = [];
+  for (final t in g.triples) {
+    final predicate = t.pre.value as String;
+    if (predicate.contains('#')) {
+      final subject = t.sub.value;
+      final attributeName = predicate.split('#')[1];
+      final attrVal = t.obj.value.toString();
+      if (attributeName != 'type') {
+        fileContentList.add([subject, attributeName, attrVal]);
+      }
+      fileContentMap[attributeName] = [subject, attrVal];
+    }
+  }
+
+  return fileContentMap;
+}

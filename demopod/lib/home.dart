@@ -1,6 +1,6 @@
 /// A screen to demonstrate various capabilities of solidlogin.
 ///
-// Time-stamp: <Sunday 2024-05-26 11:04:50 +1000 Graham Williams>
+// Time-stamp: <Thursday 2024-06-27 09:15:47 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -33,20 +33,21 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
-import 'package:keypod/dialogs/about.dart';
-import 'package:keypod/main.dart';
-import 'package:keypod/screens/edit_keyvalue.dart';
-import 'package:keypod/screens/view_keys.dart';
-import 'package:keypod/utils/constants.dart';
-import 'package:keypod/utils/rdf.dart';
+import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/main.dart';
+import 'package:demopod/screens/edit_keyvalue.dart';
+import 'package:demopod/screens/view_keys.dart';
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/utils/rdf.dart';
 
 import 'package:solidpod/solidpod.dart'
     show
+        AppInfo,
         deleteDataFile,
         deleteLogIn,
-        getAppNameVersion,
         getEncKeyPath,
         getDataDirPath,
+        getWebId,
         logoutPopup,
         KeyManager,
         readPod,
@@ -57,17 +58,16 @@ import 'package:solidpod/solidpod.dart'
 
 /// A widget for the demonstration screen of the application.
 
-class DemoScreen extends StatefulWidget {
+class Home extends StatefulWidget {
   /// Initialise widget variables.
 
-  const DemoScreen({super.key});
+  const Home({super.key});
 
   @override
-  DemoScreenState createState() => DemoScreenState();
+  HomeState createState() => HomeState();
 }
 
-class DemoScreenState extends State<DemoScreen>
-    with SingleTickerProviderStateMixin {
+class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   String sampleText = '';
   // Step 1: Loading state variable.
 
@@ -76,9 +76,18 @@ class DemoScreenState extends State<DemoScreen>
   // Indicator for write encrypted/plaintext data
   bool _writeEncrypted = true;
 
+  // The current webID
+  String? _webId;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  void _resetWebId() {
+    setState(() {
+      _webId = null;
+    });
   }
 
   Future<void> _showPrivateData(String title) async {
@@ -95,7 +104,7 @@ class DemoScreenState extends State<DemoScreen>
       final fileContent = await readPod(
         filePath,
         context,
-        const DemoScreen(),
+        const Home(),
       );
 
       //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
@@ -138,7 +147,7 @@ class DemoScreenState extends State<DemoScreen>
       final dataDirPath = await getDataDirPath();
       final filePath = [dataDirPath, fileName].join('/');
 
-      final fileContent = await readPod(filePath, context, const DemoScreen());
+      final fileContent = await readPod(filePath, context, const Home());
       final pairs = fileContent == null ? null : await parseTTLStr(fileContent);
 
       await Navigator.push(
@@ -149,7 +158,7 @@ class DemoScreenState extends State<DemoScreen>
                   fileName: fileName,
                   keyValuePairs: pairs,
                   encrypted: _writeEncrypted,
-                  child: const DemoScreen())));
+                  child: const Home())));
     } on Exception catch (e) {
       debugPrint('Exception: $e');
     } finally {
@@ -205,12 +214,13 @@ class DemoScreenState extends State<DemoScreen>
       ],
     );
 
-    const webid = Row(
+    final webid = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'WebID: TO BE IMPLEMENTED',
+          _webId == null ? 'WebID: Not Logged In' : 'WebID: $_webId',
           style: TextStyle(
+            color: _webId == null ? Colors.red : Colors.green,
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
@@ -325,6 +335,7 @@ class DemoScreenState extends State<DemoScreen>
                             try {
                               await KeyManager.forgetSecurityKey();
                               msg = 'Successfully forgot local security key.';
+                              _resetWebId();
                             } on Exception catch (e) {
                               msg = 'Failed to forget local security key: $e';
                             }
@@ -393,6 +404,8 @@ class DemoScreenState extends State<DemoScreen>
                                 ],
                               ),
                             );
+
+                            _resetWebId();
                           },
                         ),
                         smallGapV,
@@ -416,7 +429,7 @@ class DemoScreenState extends State<DemoScreen>
                         //
                         ElevatedButton(
                             onPressed: () async {
-                              await logoutPopup(context, const KeyPod());
+                              await logoutPopup(context, const DemoPod());
                             },
                             child:
                                 const Text('Logout From Remote Solid Server')),
@@ -429,15 +442,19 @@ class DemoScreenState extends State<DemoScreen>
     );
   }
 
+  Future<({String name, String? webId})> _getInfo() async =>
+      (name: await AppInfo.name, webId: await getWebId());
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<({String name, String version})>(
-      future: getAppNameVersion(),
+    return FutureBuilder<({String name, String? webId})>(
+      future: _getInfo(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final appName = snapshot.data?.name;
           final title = 'Demonstrating solidpod functionality using '
               '${appName!.isNotEmpty ? appName[0].toUpperCase() + appName.substring(1) : ""}';
+          _webId = snapshot.data?.webId;
           return _build(context, title);
         } else {
           return const CircularProgressIndicator();

@@ -28,9 +28,9 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:editable/editable.dart';
-import 'package:keypod/dialogs/alert.dart';
-import 'package:keypod/utils/constants.dart';
-import 'package:keypod/utils/rdf.dart';
+import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/utils/rdf.dart';
 
 import 'package:solidpod/solidpod.dart' show writePod;
 
