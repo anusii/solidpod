@@ -36,7 +36,11 @@ import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
 Future<String> genAclTurtle(
   String resourceUrl, {
   bool fileFlag = true,
-  Set<AccessMode>? ownerAccess,
+  Set<AccessMode> ownerAccess = const {
+    AccessMode.read,
+    AccessMode.write,
+    AccessMode.control,
+  },
   Set<AccessMode>? publicAccess,
   Map<String, Set<AccessMode>>? thirdPartyAccess,
 }) async {
@@ -45,13 +49,6 @@ Future<String> genAclTurtle(
 
   // The resource to be accessed
   final r = fileFlag ? URIRef(resourceUrl.split('/').last) : thisDir;
-
-  // Full access for owner
-  ownerAccess ??= {
-    AccessMode.read,
-    AccessMode.write,
-    AccessMode.control,
-  };
 
   final ownerWebId = await AuthDataManager.getWebId();
   assert(ownerWebId != null);
