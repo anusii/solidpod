@@ -31,6 +31,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
 /// A widget for the demonstration screen of the application.
@@ -81,15 +82,19 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Permission data map of a file
   Map<dynamic, dynamic> permDataMap = {};
 
+  /// File name of the current permission data map
+  String permDataFile = '';
+
   @override
   void initState() {
     super.initState();
   }
 
   // ignore: strict_raw_type
-  void _updatePermMap(Map newPermMap) {
+  void _updatePermMap(Map newPermMap, String fileName) {
     setState(() {
       permDataMap = newPermMap;
+      permDataFile = fileName;
     });
   }
 
@@ -159,12 +164,34 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                       builder: (ctx) {
                         return AlertDialog(
                           title: const Text('Please Confirm'),
-                          content: const Text(
-                              'Are you sure you want to remove this permission?'),
+                          content: Text(
+                              'Are you sure you want to remove the [${(permDataMap[index] as List).join(', ')}] permission/s from $index?'),
                           actions: [
                             // The "Yes" button
                             TextButton(
-                                onPressed: () async {},
+                                onPressed: () async {
+                                  await revokePermission(
+                                      permDataFile,
+                                      true,
+                                      index,
+                                      context,
+                                      GrantPermissionUi(
+                                        title: widget.title,
+                                        backgroundColor: widget.backgroundColor,
+                                        child: widget.child,
+                                      ));
+
+                                  await Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => GrantPermissionUi(
+                                        title: widget.title,
+                                        backgroundColor: widget.backgroundColor,
+                                        child: widget.child,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 child: const Text('Yes')),
                             TextButton(
                                 onPressed: () {
@@ -269,7 +296,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 await _alert(
                                     'We could not find a resource by the name $fileName');
                               } else {
-                                _updatePermMap(permissionMap);
+                                _updatePermMap(permissionMap, fileName);
                               }
                             }
                           },
@@ -445,6 +472,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         context,
                                         GrantPermissionUi(
                                           title: widget.title,
+                                          backgroundColor:
+                                              widget.backgroundColor,
                                           child: widget.child,
                                         ));
 
@@ -499,6 +528,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   @override
   Widget build(BuildContext context) {
+    // Build as a separate widget with the possibility of adding a FutureBuilder
+    // in the Future
     return _build(context);
   }
 }

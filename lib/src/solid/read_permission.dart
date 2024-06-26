@@ -1,4 +1,4 @@
-/// Function to grant permission to a private file in a POD.
+/// Function to read permissions for a given private file in a POD.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -42,6 +42,8 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// Read permission given for the [fileName].
 /// Parameters:
 ///   [fileName] is the name of the file reading permission from
+///   [fileFlag] is the flag to identify if the resources is a file or not
+///   [child] is the child widget to return to
 
 Future<Map<dynamic, dynamic>> readPermission(
     String fileName, bool fileFlag, BuildContext context, Widget child) async {
