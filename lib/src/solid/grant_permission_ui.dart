@@ -164,8 +164,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                       builder: (ctx) {
                         return AlertDialog(
                           title: const Text('Please Confirm'),
-                          content: const Text(
-                              'Are you sure you want to remove this permission?'),
+                          content: Text(
+                              'Are you sure you want to remove the [${(permDataMap[index] as List).join(', ')}] permission/s from $index?'),
                           actions: [
                             // The "Yes" button
                             TextButton(
@@ -528,6 +528,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   @override
   Widget build(BuildContext context) {
+    // Build as a separate widget with the possibility of adding a FutureBuilder
+    // in the Future
     return _build(context);
   }
 }

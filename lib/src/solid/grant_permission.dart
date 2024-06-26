@@ -44,9 +44,11 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// Grant permission to [fileName] for a given [recipientWebId].
 /// Parameters:
 ///   [fileName] is the name of the file providing permission to
+///   [fileFlag] is the flag to identify if the resources is a file or not
 ///   [permissionList] is the list of permission to be granted
 ///   [recipientWebId] is the webId of the permission receiver
 ///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
+///   [child] is the child widget to return to
 
 Future<void> grantPermission(
     String fileName,

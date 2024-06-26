@@ -570,6 +570,43 @@ Future<bool> checkFileEnc(String fileUrl) async {
   return encryptedFlag;
 }
 
+/// Update ACL file of a resource by http put request
+///
+/// The request will replace the content in ACL file
+/// Returns a string 'ok' upon successful content update
+Future<String> updateAclFileContent(
+    String resourceUrl, String aclFileContent) async {
+  // Get acl file url
+  final resourceAclUrl = getResAclFile(resourceUrl);
+
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceAclUrl, 'PUT');
+
+  // http request to update the acl file on the server
+  final editResponse = await http.put(
+    Uri.parse(resourceAclUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'text/turtle',
+      'Content-Length': aclFileContent.length.toString(),
+      'DPoP': dPopToken,
+    },
+    body: aclFileContent,
+  );
+
+  if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return 'ok';
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to write profile data! Try again in a while.');
+  }
+}
+
 /// Sets the permission for a specific resource.
 ///
 /// This method sends a request to the REST API to
@@ -627,35 +664,9 @@ Future<String> setPermissionAcl(String resourceUrl, String userWebId,
 
   final aclFullContentStr = createAclConectStr(newAclContentMap);
 
-  // Get acl file url
-  final resourceAclUrl = getResAclFile(resourceUrl);
+  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
 
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceAclUrl, 'PUT');
-
-  // http request to update the acl file on the server
-  final editResponse = await http.put(
-    Uri.parse(resourceAclUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': 'text/turtle',
-      'Content-Length': aclFullContentStr.length.toString(),
-      'DPoP': dPopToken,
-    },
-    body: aclFullContentStr,
-  );
-
-  if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return 'ok';
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to write profile data! Try again in a while.');
-  }
+  return updateRes;
 }
 
 /// Create a shared file on recepient's POD.
@@ -776,35 +787,9 @@ Future<String> removePermissionAcl(
 
   final aclFullContentStr = createAclConectStr(updatedAclContentMap);
 
-  // Get acl file url
-  final resourceAclUrl = getResAclFile(resourceUrl);
+  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
 
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceAclUrl, 'PUT');
-
-  // http request to update the acl file on the server
-  final editResponse = await http.put(
-    Uri.parse(resourceAclUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': 'text/turtle',
-      'Content-Length': aclFullContentStr.length.toString(),
-      'DPoP': dPopToken,
-    },
-    body: aclFullContentStr,
-  );
-
-  if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return 'ok';
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to write profile data! Try again in a while.');
-  }
+  return updateRes;
 }
 
 /// Delete shared key on recepient's POD.
@@ -872,6 +857,8 @@ Future<Map> readAcl(String resourceUrl, [bool fileFlag = true]) async {
 }
 
 /// From a given ACL content map create the ACL body string
+///
+/// Returns the acl body content as a single string value
 String createAclConectStr(Map<dynamic, dynamic> aclContentMap) {
   // Generate ACL file content string from the permissions
 

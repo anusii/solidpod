@@ -1,4 +1,4 @@
-/// Function to grant permission to a private file in a POD.
+/// Function to revoke permission from a private file in a POD.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -42,7 +42,9 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// Revoke permissions from [fileName] for a given [removerWebId].
 /// Parameters:
 ///   [fileName] is the name of the file revoking permission from
-///   [removerWebId] is the webId of the permission receiver/remover
+///   [fileFlag] is the flag to identify if the resources is a file or not
+///   [removerWebId] is the webId of the permission remover
+///   [child] is the child widget to return to
 
 Future<void> revokePermission(String fileName, bool fileFlag,
     String removerWebId, BuildContext context, Widget child) async {
