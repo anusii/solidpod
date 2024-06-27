@@ -36,7 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Revoke permissions from [fileName] for a given [removerWebId].
@@ -59,7 +59,7 @@ Future<void> revokePermission(String fileName, bool fileFlag,
   final resourceUrl = await getFileUrl(filePath);
 
   // Check if file exists
-  final resStatus = await checkResourceStatus(resourceUrl, fileFlag);
+  final resStatus = await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
   if (resStatus == ResourceStatus.exist) {
     final resourceName = resourceUrl.split('/').last;

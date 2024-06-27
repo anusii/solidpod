@@ -804,14 +804,15 @@ Future<void> removeSharedKey(
       removerWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
 
   /// Check if the directory exists
-  if (await checkResourceStatus(senderDirUrl, false) == ResourceStatus.exist) {
+  if (await checkResourceStatus(senderDirUrl, fileFlag: false) ==
+      ResourceStatus.exist) {
     /// Get shared key file url.
     final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
     final receiverSharedKeyFileUrl =
         removerWebId.replaceAll(profCard, sharedKeyFilePath);
 
     /// Check if the shared key file exists
-    if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
+    if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
         ResourceStatus.exist) {
       /// Update the file
 
