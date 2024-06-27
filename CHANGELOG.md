@@ -8,6 +8,9 @@ numbers.
 
 ## 0.6 Future Release
 
++ Create ACL file in writePod() if not exist. [0.5.37]
++ Catch any non-null objects thrown in exception handling. [0.5.36] 
++ Add read and grant permissions backend and UI. [0.5.35]
 + Deprecate APIs: `updateIndKeyFile` and `getFileContent`. [0.5.34]
 + Check and grant access permissions to data file. [0.5.33]
 + Validate input security keys when changing security key. [0.5.32]

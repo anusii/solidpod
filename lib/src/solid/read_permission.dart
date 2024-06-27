@@ -1,4 +1,4 @@
-/// Function to grant permission to a private file in a POD.
+/// Function to read permissions for a given private file in a POD.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -36,14 +36,17 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Read permission given for the [fileName].
 /// Parameters:
 ///   [fileName] is the name of the file reading permission from
+///   [fileFlag] is the flag to identify if the resources is a file or not
+///   [child] is the child widget to return to
 
 Future<Map<dynamic, dynamic>> readPermission(
-    String fileName, BuildContext context, Widget child) async {
+    String fileName, bool fileFlag, BuildContext context, Widget child) async {
   await loginIfRequired(context);
 
   await getKeyFromUserIfRequired(context, child);
@@ -54,11 +57,18 @@ Future<Map<dynamic, dynamic>> readPermission(
   // Get the url of the file
   final resourceUrl = await getFileUrl(filePath);
 
-  // Read ACL file content
-  final aclContentMap = await readAcl(resourceUrl);
+  // Check if file exists
+  final resStatus = await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
-  // Extract permission details to a map
-  final permMap = extractAclPerm(aclContentMap);
+  if (resStatus == ResourceStatus.exist) {
+    // Read ACL file content
+    final aclContentMap = await readAcl(resourceUrl);
 
-  return permMap;
+    // Extract permission details to a map
+    final permMap = extractAclPerm(aclContentMap);
+
+    return permMap;
+  } else {
+    return {};
+  }
 }

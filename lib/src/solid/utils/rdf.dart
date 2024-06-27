@@ -29,10 +29,41 @@
 library;
 
 import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/constants/schema.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
+import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
+
+/// Generate Turtle string from triples stored in a map:
+/// {subject: {predicate: {object}}}
+/// - subject: URIRef String
+/// - predicate: URIRef String
+/// - object: {dynamic}
+String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
+    {Map<String, Namespace>? bindNamespaces}) {
+  final g = Graph();
+
+  for (final sub in triples.keys) {
+    final predMap = triples[sub];
+    for (final pre in predMap!.keys) {
+      final objs = predMap[pre];
+      final objSet = objs is Iterable ? Set.from(objs) : {objs};
+
+      for (final obj in objSet) {
+        g.addTripleToGroups(sub, pre, obj);
+      }
+    }
+  }
+
+  if (bindNamespaces != null) {
+    bindNamespaces.forEach(g.bind);
+  }
+
+  g.serialize(abbr: 'short');
+
+  return g.serializedString;
+}
+
+// TODO (dc): Deprecate tripleMapToTTLStr()
 /// Generate TTL string from triples stored in a map:
 /// {subject: {predicate: object}}
 /// where
@@ -43,14 +74,13 @@ String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
   assert(tripleMap.isNotEmpty);
   final g = Graph();
   final nsTerms = Namespace(ns: appsTerms);
-  final nsTitle = Namespace(ns: terms);
 
   for (final sub in tripleMap.keys) {
     assert(tripleMap[sub] != null && tripleMap[sub]!.isNotEmpty);
     final f = URIRef(sub);
     for (final pre in tripleMap[sub]!.keys) {
       final obj = tripleMap[sub]![pre] as String;
-      final ns = (pre == titlePred) ? nsTitle : nsTerms;
+      final ns = (pre == titlePred) ? termsNS.ns : nsTerms;
       g.addTripleToGroups(f, ns.withAttr(pre), obj);
     }
   }
@@ -60,6 +90,7 @@ String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
   return g.serializedString;
 }
 
+// TODO (dc): Unify parseTTL() and parseACL()
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
   final g = Graph();
@@ -111,87 +142,12 @@ Map<String, dynamic> parseACL(String aclContent) {
   return dataMap;
 }
 
-/// Generate TTL string for ACL file of a given resource
-Future<String> genAclTTLStr(String resourceUrl,
-    {AccessType ownerAccess = AccessType.control,
-    AccessType publicAccess = AccessType.read}) async {
-  final webId = await AuthDataManager.getWebId();
-  assert(webId != null);
-
-  final g = Graph();
-  final f = URIRef(resourceUrl);
-  final nsSub = Namespace(ns: '$resourceUrl.acl#');
-  final nsAcl = Namespace(ns: acl);
-  final nsFoaf = Namespace(ns: foaf);
-  final nsSyntax = Namespace(ns: rdfSyntax);
-
-  // URIRef(RESOURCE_URL.acl#owner):
-  // 	       URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //         URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
-  //         URIRef('http://www.w3.org/ns/auth/acl#agent'): URIRef(WEB_ID),
-  //         URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Control')},
-
-  final ownerSub = nsSub.withAttr('owner');
-  g.addTripleToGroups(
-      ownerSub, nsSyntax.withAttr(typePred), nsAcl.withAttr(aclAuth));
-  g.addTripleToGroups(ownerSub, nsAcl.withAttr(accessToPred), f);
-  g.addTripleToGroups(ownerSub, nsAcl.withAttr(agentPred), URIRef(webId!));
-  g.addTripleToGroups(
-      ownerSub, nsAcl.withAttr(modePred), nsAcl.withAttr(ownerAccess.value));
-
-  // URIRef(RESOURCE_URL.acl#public'):
-  //    URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://www.w3.org/ns/auth/acl#Authorization'),
-  //    URIRef('http://www.w3.org/ns/auth/acl#accessTo'): URIRef(RESOURCE_URL),
-  //    URIRef('http://www.w3.org/ns/auth/acl#agentClass'): URIRef('http://xmlns.com/foaf/0.1/Agent'),
-  //    URIRef('http://www.w3.org/ns/auth/acl#mode'): URIRef('http://www.w3.org/ns/auth/acl#Read')
-
-  final publicSub = nsSub.withAttr('public');
-  g.addTripleToGroups(
-      publicSub, nsSyntax.withAttr(typePred), nsAcl.withAttr(aclAuth));
-  g.addTripleToGroups(publicSub, nsAcl.withAttr(accessToPred), f);
-  g.addTripleToGroups(
-      publicSub, nsAcl.withAttr(agentClassPred), nsFoaf.withAttr(aclAgent));
-  g.addTripleToGroups(
-      publicSub, nsAcl.withAttr(modePred), nsAcl.withAttr(publicAccess.value));
-
-  // Bind the long namespace to shorter string for better readability
-
-  g.bind('acl', nsAcl);
-  // g.bind('foaf', nsFoaf); // causes "Exception: foaf: already exists in prefixed namespaces!"
-  g.bind('syntax', nsSyntax);
-
-  // Serialise to TTL string
-
-  g.serialize(abbr: 'short');
-
-  return g.serializedString;
-}
-
 /// Generate permission log file content
-Future<String> genPermLogTTLStr(String resourceUrl) async {
-  final g = Graph();
-  final f = URIRef(resourceUrl);
-  final nsTerm = Namespace(ns: terms);
-  final nsFoaf = Namespace(ns: foaf);
-  final nsSyntax = Namespace(ns: rdfSyntax);
-
-  // URIRef(RESOURCE_URL):
-  //     URIRef('http://purl.org/dc/terms/title'): Literal('Permissions Log'),
-  //     URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): URIRef('http://xmlns.com/foaf/0.1/PersonalProfileDocument')
-
-  g.addTripleToGroups(f, nsTerm.withAttr(titlePred), logFileTitle);
-  g.addTripleToGroups(
-      f, nsSyntax.withAttr(typePred), nsFoaf.withAttr(profileDoc));
-
-// Bind the long namespace to shorter string for better readability
-
-  g.bind('terms', nsTerm);
-  // g.bind('foaf', nsFoaf);
-  g.bind('syntax', nsSyntax);
-
-  // Serialise to TTL string
-
-  g.serialize(abbr: 'short');
-
-  return g.serializedString;
-}
+String genPermLogTTLStr(String resourceUrl) => tripleMapToTurtle({
+      URIRef(resourceUrl): {
+        termsNS.ns.withAttr(titlePred): logFileTitle,
+        rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
+      }
+    }, bindNamespaces: {
+      termsNS.prefix: termsNS.ns
+    });

@@ -38,7 +38,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
@@ -158,7 +158,7 @@ Future<List<dynamic>> initialStructureTest(
   for (final containerName in folders) {
     // NB: the trailing separator in path is essential for this check
     final resourceUrl = await getDirUrl(containerName);
-    if (await checkResourceStatus(resourceUrl, false) ==
+    if (await checkResourceStatus(resourceUrl, fileFlag: false) ==
         ResourceStatus.notExist) {
       allExists = false;
 
@@ -172,7 +172,7 @@ Future<List<dynamic>> initialStructureTest(
     for (final fileName in fileNameList) {
       final resourceUrl =
           await getFileUrl([containerName as String, fileName].join('/'));
-      if (await checkResourceStatus(resourceUrl, false) ==
+      if (await checkResourceStatus(resourceUrl, fileFlag: false) ==
           ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
@@ -277,7 +277,8 @@ Future<void> deleteResource(
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
 
-Future<ResourceStatus> checkResourceStatus(String resUrl, bool fileFlag) async {
+Future<ResourceStatus> checkResourceStatus(String resUrl,
+    {bool fileFlag = true}) async {
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
@@ -570,6 +571,43 @@ Future<bool> checkFileEnc(String fileUrl) async {
   return encryptedFlag;
 }
 
+/// Update ACL file of a resource by http put request
+///
+/// The request will replace the content in ACL file
+/// Returns a string 'ok' upon successful content update
+Future<String> updateAclFileContent(
+    String resourceUrl, String aclFileContent) async {
+  // Get acl file url
+  final resourceAclUrl = getResAclFile(resourceUrl);
+
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceAclUrl, 'PUT');
+
+  // http request to update the acl file on the server
+  final editResponse = await http.put(
+    Uri.parse(resourceAclUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'text/turtle',
+      'Content-Length': aclFileContent.length.toString(),
+      'DPoP': dPopToken,
+    },
+    body: aclFileContent,
+  );
+
+  if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return 'ok';
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to write profile data! Try again in a while.');
+  }
+}
+
 /// Sets the permission for a specific resource.
 ///
 /// This method sends a request to the REST API to
@@ -625,78 +663,15 @@ Future<String> setPermissionAcl(String resourceUrl, String userWebId,
     };
   }
 
-  // Generate ACL file content string from the permissions
+  final aclFullContentStr = createAclConectStr(newAclContentMap);
 
-  var aclPrefixStr =
-      '''@prefix $selfPrefix <#>.\n@prefix $aclPrefix <$acl>.\n@prefix $foafPrefix <$foaf>.\n''';
-  var aclBodyStr = '';
+  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
 
-  // increment variable for webId prefixes
-  var i = 0;
-
-  // Go through the new acl content and create relevant prefix Strings and body entry Strings
-  for (final accessStr in newAclContentMap.keys) {
-    final webIdList = newAclContentMap[accessStr][agentPred] as List;
-    final resourceName = newAclContentMap[accessStr][accessToPred].first;
-    final accessList = newAclContentMap[accessStr][modePred] as List;
-
-    final agentList = [];
-    final accessModeList = [];
-
-    for (final webId in webIdList) {
-      final webIdPrefix = '@prefix c$i: <${webId.replaceAll('me', '')}>.';
-      agentList.add('c$i:me');
-
-      aclPrefixStr += '$webIdPrefix\n';
-      i += 1;
-    }
-
-    for (final accessMode in accessList) {
-      accessModeList.add('$aclPrefix$accessMode');
-    }
-
-    final agentStr = agentList.join(', ');
-    final accessModeStr = accessModeList.join(', ');
-
-    aclBodyStr +=
-        ':$accessStr\n    a $aclPrefix$aclAuth;\n    $aclPrefix$accessToPred <$resourceName>;\n    $aclPrefix$agentPred $agentStr;\n    $aclPrefix$modePred $accessModeStr.\n';
-  }
-
-  // Combine prefixes and body entries into a single String
-  final aclFullContentStr = '$aclPrefixStr\n$aclBodyStr';
-
-  // Get acl file url
-  final resourceAclUrl = getResAclFile(resourceUrl);
-
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceAclUrl, 'PUT');
-
-  // http request to update the acl file on the server
-  final editResponse = await http.put(
-    Uri.parse(resourceAclUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'Content-Type': 'text/turtle',
-      'Content-Length': aclFullContentStr.length.toString(),
-      'DPoP': dPopToken,
-    },
-    body: aclFullContentStr,
-  );
-
-  if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    return 'ok';
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to write profile data! Try again in a while.');
-  }
+  return updateRes;
 }
 
 /// Create a shared file on recepient's POD.
+/// Copy encrypted shared key, shared file path, and acess list to this file
 Future<void> copySharedKey(
     String receiverWebId,
     String senderDirName,
@@ -712,7 +687,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
 
   /// Create a directory if not exists
-  if (await checkResourceStatus(senderDirUrl, false) ==
+  if (await checkResourceStatus(senderDirUrl, fileFlag: false) ==
       ResourceStatus.notExist) {
     await createResource(
       senderDirUrl,
@@ -727,7 +702,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
   /// Create file if not exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
       ResourceStatus.notExist) {
     final keyFileBody =
         '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $filePrefix <$appsFile>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$filePrefix$resName\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
@@ -788,6 +763,90 @@ Future<void> copySharedKey(
   }
 }
 
+/// Remove permission from ALC file by running a Sparql DELETE query
+Future<String> removePermissionAcl(
+    String resourceName, String resourceUrl, String removerWebId) async {
+  // Read acl content
+  final aclContent = await readAcl(resourceUrl);
+
+  // A map to store new acl content
+  final updatedAclContentMap = {};
+
+  // Go through the current acl content remove the [removerWebId]
+  // from the content
+  for (final accessStr in aclContent.keys) {
+    final webIdList = aclContent[accessStr][agentPred] as List;
+
+    if (webIdList.contains(removerWebId)) {
+      webIdList.remove(removerWebId);
+    }
+
+    if (webIdList.isNotEmpty) {
+      updatedAclContentMap[accessStr] = aclContent[accessStr];
+    }
+  }
+
+  final aclFullContentStr = createAclConectStr(updatedAclContentMap);
+
+  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
+
+  return updateRes;
+}
+
+/// Delete shared key on recepient's POD.
+Future<void> removeSharedKey(
+    String removerWebId, String senderDirName, String resName) async {
+  /// Get shared directory path
+  final sharedDirPath = await getSharedDirPath();
+
+  /// Get name of the directory inside the shared directory
+  final senderDirUrl =
+      removerWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
+
+  /// Check if the directory exists
+  if (await checkResourceStatus(senderDirUrl, fileFlag: false) ==
+      ResourceStatus.exist) {
+    /// Get shared key file url.
+    final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
+    final receiverSharedKeyFileUrl =
+        removerWebId.replaceAll(profCard, sharedKeyFilePath);
+
+    /// Check if the shared key file exists
+    if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
+        ResourceStatus.exist) {
+      /// Update the file
+
+      /// Check if the file contains the shared key values for the given resource
+      final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
+      final keyFileDataMap = getEncFileContent(keyFileContent);
+
+      if (keyFileDataMap.containsKey(resName)) {
+        /// Define query parameters
+        const prefix1 = '$filePrefix <$appsFile>';
+        const prefix2 = '$dataPrefix <$appsData>';
+        final subject = '$filePrefix$resName';
+
+        /// Get existing values
+        final existKey = keyFileDataMap[resName][sharedKeyPred];
+        final existPath = keyFileDataMap[resName][pathPred];
+        final existAcc = keyFileDataMap[resName][accessListPred];
+
+        // Define predicates and objects
+        final predObjPath = '$dataPrefix$pathPred "$existPath";';
+        final predObjAcc = '$dataPrefix$accessListPred "$existAcc";';
+        final predObjKey = '$dataPrefix$sharedKeyPred "$existKey".';
+
+        // Generate delete sparql query
+        final deleteQuery =
+            'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+
+        // Update the file using the update query
+        await updateFileByQuery(receiverSharedKeyFileUrl, deleteQuery);
+      }
+    }
+  }
+}
+
 /// Retrieves the permission details of a file from the respective ACL file.
 ///
 /// Returns a Future that completes with a Map containing the permission data.
@@ -797,4 +856,51 @@ Future<Map> readAcl(String resourceUrl, [bool fileFlag = true]) async {
 
   final aclContent = await fetchPrvFile(resourceAclUrl);
   return parseACL(aclContent);
+}
+
+/// From a given ACL content map create the ACL body string
+///
+/// Returns the acl body content as a single string value
+String createAclConectStr(Map<dynamic, dynamic> aclContentMap) {
+  // Generate ACL file content string from the permissions
+
+  var aclPrefixStr =
+      '''@prefix $selfPrefix <#>.\n@prefix $aclPrefix <$acl>.\n@prefix $foafPrefix <$foaf>.\n''';
+  var aclBodyStr = '';
+
+  // increment variable for webId prefixes
+  var i = 0;
+
+  // Go through the new acl content and create relevant prefix Strings and body entry Strings
+  for (final accessStr in aclContentMap.keys) {
+    final webIdList = aclContentMap[accessStr][agentPred] as List;
+    final resourceName = aclContentMap[accessStr][accessToPred].first;
+    final accessList = aclContentMap[accessStr][modePred] as List;
+
+    final agentList = [];
+    final accessModeList = [];
+
+    for (final webId in webIdList) {
+      final webIdPrefix = '@prefix c$i: <${webId.replaceAll('me', '')}>.';
+      agentList.add('c$i:me');
+
+      aclPrefixStr += '$webIdPrefix\n';
+      i += 1;
+    }
+
+    for (final accessMode in accessList) {
+      accessModeList.add('$aclPrefix$accessMode');
+    }
+
+    final agentStr = agentList.join(', ');
+    final accessModeStr = accessModeList.join(', ');
+
+    aclBodyStr +=
+        ':$accessStr\n    a $aclPrefix$aclAuth;\n    $aclPrefix$accessToPred <$resourceName>;\n    $aclPrefix$agentPred $agentStr;\n    $aclPrefix$modePred $accessModeStr.\n';
+  }
+
+  // Combine prefixes and body entries into a single String
+  final aclFullContentStr = '$aclPrefixStr\n$aclBodyStr';
+
+  return aclFullContentStr;
 }

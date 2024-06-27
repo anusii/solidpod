@@ -25,6 +25,8 @@
 /// Authors: Anushka Vidanage
 library;
 
+// TODO (dc): Is the class AclResource being used anywhere?
+//            read_permission.dart seems to have provided similar functionalities.
 /// Represents an ACL resource.
 class AclResource {
   /// Constructs a new instance of [AclResource] with the given [aclResStr].

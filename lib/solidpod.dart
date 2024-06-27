@@ -38,6 +38,7 @@ export 'src/solid/login.dart'
         RegisterButtonStyle,
         InfoButtonStyle;
 export 'src/solid/popup_login.dart' show SolidPopupLogin;
+export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
 
 // TODO 20240417 gjw Can we please list or at least document what and why the
 // following are exported, PLEASE.
@@ -52,3 +53,4 @@ export 'src/solid/write_pod.dart' show writePod;
 export 'src/widgets/logout_dialog.dart' show logoutPopup;
 export 'src/solid/grant_permission.dart' show grantPermission;
 export 'src/solid/read_permission.dart' show readPermission;
+export 'src/solid/revoke_permission.dart' show revokePermission;

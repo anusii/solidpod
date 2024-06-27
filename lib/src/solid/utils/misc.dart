@@ -38,11 +38,13 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 // solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
@@ -107,36 +109,6 @@ String getUniqueStrWebId(String webId) {
 
   return uniqueStr;
 }
-
-/// Create a directory
-// Future<bool> createDir(String dirName, String dirParentPath) async {
-//   try {
-//     // await createItem(dirName,
-//     //     itemLoc: dirParentPath, contentType: dirContentType, fileFlag: false);
-//     await createItem(false, dirName, '', fileLoc: dirParentPath);
-//     return true;
-//   } on Exception catch (e) {
-//     print('Exception: $e');
-//   }
-//   return false;
-// }
-
-/// Create new TTL file with content
-// Future<bool> createFile(String filePath, String fileContent) async {
-//   try {
-//     final fileName = path.basename(filePath);
-//     final folderPath = path.dirname(filePath);
-
-//     // await createItem(fileName, itemLoc: folderPath, itemBody: fileContent);
-//     await createItem(true, fileName, fileContent,
-//         fileType: 'text/turtle', fileLoc: folderPath);
-
-//     return true;
-//   } on Exception catch (e) {
-//     print('Exception: $e');
-//   }
-//   return false;
-// }
 
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
@@ -316,7 +288,12 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
     final receiverList = aclFileContentMap[accessStr]['agent'];
 
     for (final receiverWebId in receiverList as List) {
-      filePermMap[receiverWebId] = permList;
+      // filePermMap[receiverWebId] = permList;
+      if (filePermMap.containsKey(receiverWebId)) {
+        filePermMap[receiverWebId] += permList;
+      } else {
+        filePermMap[receiverWebId] = permList;
+      }
     }
   }
 
@@ -441,15 +418,32 @@ Future<void> initPod(String securityKey,
     late bool aclFlag;
 
     if (f.split('.').last == 'acl') {
-      fileContent = await genAclTTLStr(f,
-          publicAccess: fileName == '$permLogFile.acl'
-              ? AccessType.append
-              : AccessType.read);
+      final items = f.split('.');
+      final resourceUrl = items.getRange(0, items.length - 1).join('.');
+      late Set<AccessMode> publicAccess;
+      var fileFlag = true;
+      switch (fileName) {
+        case '$pubKeyFile.acl':
+          publicAccess = {AccessMode.read};
+        case '$permLogFile.acl':
+          publicAccess = {AccessMode.append};
+        default:
+          debugPrint(fileName);
+          assert(fileName == '.acl');
+          publicAccess = {AccessMode.read, AccessMode.write};
+          fileFlag = false;
+      }
+
+      fileContent = await genAclTurtle(resourceUrl,
+          fileFlag: fileFlag,
+          ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+          publicAccess: publicAccess);
+
       aclFlag = true;
     } else {
       debugPrint(fileName);
       assert(fileName == permLogFile);
-      fileContent = await genPermLogTTLStr(f);
+      fileContent = genPermLogTTLStr(f);
       aclFlag = false;
     }
 
@@ -460,7 +454,7 @@ Future<void> initPod(String securityKey,
 /// Delete the ACL file for a resource
 Future<void> deleteAclForResource(String resourceUrl) async {
   final aclUrl = '$resourceUrl.acl';
-  final status = await checkResourceStatus(aclUrl, true);
+  final status = await checkResourceStatus(aclUrl);
 
   switch (status) {
     case ResourceStatus.exist:

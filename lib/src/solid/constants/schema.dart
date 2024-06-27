@@ -24,8 +24,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Dawei Chen
+
 library;
+
+import 'package:rdflib/rdflib.dart';
+
+import 'package:solidpod/src/solid/constants/common.dart'
+    show acl, foaf, ldp, rdf, rdfs, terms, vcard, xsd;
 
 // /// Predicates schema.
 
@@ -135,21 +141,34 @@ library;
 // const WAIST_HEIGHT_RATIO_REFERENCE_URL =
 //     "https://www.health.gov.au/topics/overweight-and-obesity/bmi-and-waist";
 
+/// Namespaces and their prefixes used in TTL file
+
+typedef NS = ({String prefix, Namespace ns});
+
+final NS aclNS = (prefix: 'acl', ns: Namespace(ns: acl));
+final NS foafNS = (prefix: 'foaf', ns: Namespace(ns: foaf));
+final NS ldpNS = (prefix: 'ldp', ns: Namespace(ns: ldp));
+final NS rdfNS = (prefix: 'rdf', ns: Namespace(ns: rdf));
+final NS rdfsNS = (prefix: 'rdfs', ns: Namespace(ns: rdfs));
+final NS termsNS = (prefix: 'terms', ns: Namespace(ns: terms));
+final NS vcardNS = (prefix: 'vcard', ns: Namespace(ns: vcard));
+final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
+
 /// Xmlns schema.
 
-const String httpFoaf = 'http://xmlns.com/foaf/0.1/';
+String httpFoaf = foaf;
 
 /// Terms schema.
 
-const String httpDcTerms = 'http://purl.org/dc/terms/';
+String httpDcTerms = terms;
 
 /// Title schema.
 
-const String httpTitle = '${httpDcTerms}title';
+String httpTitle = '${httpDcTerms}title';
 
 /// Auth Acl schema.
 
-const String httpAuthAcl = 'http://www.w3.org/ns/auth/acl#';
+String httpAuthAcl = acl;
 
 /// File predicate
 

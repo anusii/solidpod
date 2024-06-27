@@ -30,7 +30,7 @@
 
 library;
 
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 
 /// Removes header and footer from a PEM-formatted public key string.
