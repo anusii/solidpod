@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  intl: ^0.18.0
   solidpod:
     path: ..
   universal_io: ^2.2.2

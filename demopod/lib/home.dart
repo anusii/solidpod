@@ -1,6 +1,6 @@
 /// A screen to demonstrate various capabilities of solidlogin.
 ///
-// Time-stamp: <Thursday 2024-06-27 09:15:47 +1000 Graham Williams>
+// Time-stamp: <Thursday 2024-06-27 13:13:12 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -33,10 +33,11 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
+
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/main.dart';
-import 'package:demopod/screens/edit_keyvalue.dart';
-import 'package:demopod/screens/view_keys.dart';
+import 'package:demopod/features/edit_keyvalue.dart';
+import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/utils/rdf.dart';
 
@@ -232,7 +233,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Welcome to your new app!',
+          'Pod Data File',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -269,25 +270,22 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         largeGapV,
                         welcomeHeading,
                         smallGapV,
-                        // TODO 20240524 gjw CONTINUE HERE
                         ElevatedButton(
-                          child: const Text('Show Secret Key'),
+                          child: const Text('Show Pod Data File'),
                           onPressed: () async {
-                            await _showPrivateData(title);
-                          },
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                            onPressed: () async =>
-                                deleteDataFile(dataFile, context),
-                            child: const Text('Delete Data File')),
-                        smallGapV,
-                        ElevatedButton(
-                          child: const Text('Key Value Table Demo'),
-                          onPressed: () async {
+                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
+                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
+                            // FUNCTION TO WIRE PRIVATE DATA?
                             await _writePrivateData();
                           },
                         ),
+                        smallGapV,
+                        // SolidPod API: deleteDataFile()
+                        ElevatedButton(
+                            onPressed: () async =>
+                                deleteDataFile(dataFile, context),
+                            child: const Text('Delete Pod Data File')),
+                        smallGapV,
                         Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -308,7 +306,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 },
                               )
                             ]),
-
                         largeGapV,
                         const Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,14 +319,22 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             ),
                           ],
                         ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text('Show Security Key (Encrypted)'),
+                          onPressed: () async {
+                            await _showPrivateData(title);
+                          },
+                        ),
+                        smallGapV,
                         ElevatedButton(
                             onPressed: () {
                               changeKeyPopup(context, widget);
                             },
-                            child: const Text('Change Security Key')),
+                            child: const Text('Change Security Key on Pod')),
                         smallGapV,
                         ElevatedButton(
-                          child: const Text('Forget Local Security Key'),
+                          child: const Text('Forget Security Key Locally'),
                           onPressed: () async {
                             late String msg;
                             try {
@@ -375,8 +380,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         // start up the app you will need to login to your solid
                         // server hosting your pod.
                         ElevatedButton(
-                          child: const Text(
-                              'Forget Remote Solid Server Login Info'),
+                          child: const Text('Forget Remote Solid Server Login'),
                           onPressed: () async {
                             final deleteRes = await deleteLogIn();
 
