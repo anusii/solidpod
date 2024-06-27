@@ -40,11 +40,14 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart' hide RSA;
-import 'package:fast_rsa/fast_rsa.dart' show RSA;
+import 'package:pointycastle/asymmetric/api.dart';
+//import 'package:encrypt/encrypt.dart' hide RSA;
+import 'package:encrypt/encrypt.dart';
+import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTTLStr;
 
@@ -68,7 +71,7 @@ IV genRandIV() => IV.fromLength(16);
 
 /// Create a random public-private key pair
 Future<({String publicKey, String privateKey})> genRandRSAKeyPair() async {
-  final pair = await RSA.generate(2048);
+  final pair = await fast_rsa.RSA.generate(2048);
   return (publicKey: pair.publicKey, privateKey: pair.privateKey);
 }
 
@@ -652,4 +655,70 @@ class _PrvKeyRecord {
 
   /// The corresponding decrypted private key
   String? key;
+}
+
+/// [RecipientPubKey] is a class to store public keys of another POD.
+/// This public key is used to share encrypted data to this POD
+
+class RecipientPubKey {
+  /// Constructor
+  RecipientPubKey({required this.recipientWebId});
+
+  /// The webId of the recipient
+  String recipientWebId;
+
+  /// The content of the public key
+  String? _recipientPubKeyContent;
+
+  /// The public key with prefix and suffix
+  RSAPublicKey? _recipientPubKey;
+
+  /// Get the public key
+  Future<RSAPublicKey> getPubKey() async {
+    if (_recipientPubKey == null) {
+      await _setPubKey();
+    }
+
+    return _recipientPubKey!;
+  }
+
+  /// Get the public key content
+  Future<String> getPubKeyContent() async {
+    if (_recipientPubKeyContent == null) {
+      await _setPubKey();
+    }
+
+    return _recipientPubKeyContent!;
+  }
+
+  /// Set the public key
+  Future<void> _setPubKey() async {
+    /// Get recipient's public key
+    final recipientPubKeyUrl =
+        recipientWebId.replaceAll(profCard, await getPubKeyPath());
+
+    // Get and parse the pubKeyFile
+    final map = await loadPrvTTL(recipientPubKeyUrl);
+
+    if (!map.containsKey(recipientPubKeyUrl)) {
+      throw Exception('Invalid content in file: "$recipientPubKeyUrl"');
+    }
+
+    _recipientPubKeyContent = map[recipientPubKeyUrl][pubKeyPred] as String;
+
+    final recipientPubKeyStr = genPubKeyStr(_recipientPubKeyContent as String);
+
+    final parser = RSAKeyParser();
+    _recipientPubKey = parser.parse(recipientPubKeyStr) as RSAPublicKey;
+  }
+
+  /// Encrypt a given value using public key
+  Future<String> encryptData(String dataVal) async {
+    if (_recipientPubKey == null) {
+      await _setPubKey();
+    }
+
+    final encrypter = Encrypter(RSA(publicKey: _recipientPubKey));
+    return encrypter.encrypt(dataVal).base64;
+  }
 }

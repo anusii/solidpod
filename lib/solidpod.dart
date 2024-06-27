@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williamss
+/// Authors: Graham Williams
 
 library solidpod;
 
@@ -38,16 +38,19 @@ export 'src/solid/login.dart'
         RegisterButtonStyle,
         InfoButtonStyle;
 export 'src/solid/popup_login.dart' show SolidPopupLogin;
+export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
 
 // TODO 20240417 gjw Can we please list or at least document what and why the
-// following are exported, PLEASE. ReadPod() I understand, but what from
-// rest_api?
+// following are exported, PLEASE.
 
-export 'src/solid/api/rest_api.dart' show getFileContent;
 export 'src/solid/common_func.dart';
-export 'src/solid/utils/misc.dart';
+export 'src/solid/utils/app_info.dart' show AppInfo;
 export 'src/solid/utils/key_management.dart' show KeyManager;
+export 'src/solid/utils/misc.dart';
 export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
 export 'src/solid/read_pod.dart' show readPod;
 export 'src/solid/write_pod.dart' show writePod;
 export 'src/widgets/logout_dialog.dart' show logoutPopup;
+export 'src/solid/grant_permission.dart' show grantPermission;
+export 'src/solid/read_permission.dart' show readPermission;
+export 'src/solid/revoke_permission.dart' show revokePermission;

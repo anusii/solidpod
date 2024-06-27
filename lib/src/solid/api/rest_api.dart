@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen, Zheyuan Xu
+/// Authors: Dawei Chen, Zheyuan Xu, Anushka Vidanage
 
 // ignore_for_file: comment_references
 
@@ -39,6 +39,8 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
@@ -47,7 +49,9 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// This function processes the provided file information, which is expected to be
 /// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
 /// to parse the Turtle data and extract key attributes and their values.
-
+@Deprecated('''This function has been deprecated.
+Use `Map<String, dynamic> parseTTL(String ttlContent)` as an alternative.
+''')
 Map<dynamic, dynamic> getFileContent(String fileInfo) {
   final g = Graph();
   g.parseTurtle(fileInfo);
@@ -63,6 +67,42 @@ Map<dynamic, dynamic> getFileContent(String fileInfo) {
         fileContentList.add([subject, attributeName, attrVal]);
       }
       fileContentMap[attributeName] = [subject, attrVal];
+    }
+  }
+
+  return fileContentMap;
+}
+
+/// Parse encrypted file content and extract into a map.
+///
+/// This function returns a map of encrypted file content
+/// where keys are subject values and values are
+/// predicate and object values.
+
+Map<dynamic, dynamic> getEncFileContent(String fileInfo) {
+  final g = Graph();
+  g.parseTurtle(fileInfo);
+  final fileContentMap = {};
+  for (final t in g.triples) {
+    /**
+     * Use
+     *  - t.sub -> Subject
+     *  - t.pre -> Predicate
+     *  - t.obj -> Object
+     */
+    final predicate = t.pre.value as String;
+    if (predicate.contains('#')) {
+      final subject = t.sub.value;
+      final fileName = subject.split('#')[1];
+      final attributeName = predicate.split('#')[1];
+      final attrVal = t.obj.value;
+      if (attributeName != 'type') {
+        if (fileContentMap.containsKey(fileName)) {
+          fileContentMap[fileName][attributeName] = attrVal;
+        } else {
+          fileContentMap[fileName] = {attributeName: attrVal};
+        }
+      }
     }
   }
 
@@ -95,7 +135,7 @@ Future<String> fetchPrvFile(String prvFileUrl) async {
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
-    print(profResponse.body);
+    //print(profResponse.body);
     throw Exception('Failed to load profile data! Try again in a while.');
   }
 }
@@ -301,7 +341,9 @@ Future<void> updateFileByQuery(
 /// at a user's Solid POD (Personal Online Datastore) with new encrypted session
 /// key data. The function performs various checks and updates the file only if
 /// necessary to avoid redundant operations.
-
+@Deprecated('''This function has been deprecated.
+Use `KeyManager` as an alternative.
+''')
 Future<void> updateIndKeyFile(
   String webId,
   Map<dynamic, dynamic> authData,
@@ -512,4 +554,351 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     }
   }
   return (subDirs: containers, files: files);
+}
+
+/// Check if a file is encrypted
+Future<bool> checkFileEnc(String fileUrl) async {
+  final fileContent = await fetchPrvFile(fileUrl);
+
+  var encryptedFlag = false;
+  final prvDataMap = getFileContent(fileContent);
+
+  if (prvDataMap.containsKey('encData')) {
+    encryptedFlag = true;
+  }
+
+  return encryptedFlag;
+}
+
+/// Update ACL file of a resource by http put request
+///
+/// The request will replace the content in ACL file
+/// Returns a string 'ok' upon successful content update
+Future<String> updateAclFileContent(
+    String resourceUrl, String aclFileContent) async {
+  // Get acl file url
+  final resourceAclUrl = getResAclFile(resourceUrl);
+
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceAclUrl, 'PUT');
+
+  // http request to update the acl file on the server
+  final editResponse = await http.put(
+    Uri.parse(resourceAclUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'text/turtle',
+      'Content-Length': aclFileContent.length.toString(),
+      'DPoP': dPopToken,
+    },
+    body: aclFileContent,
+  );
+
+  if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return 'ok';
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to write profile data! Try again in a while.');
+  }
+}
+
+/// Sets the permission for a specific resource.
+///
+/// This method sends a request to the REST API to
+/// set the permission for a resource.
+/// It returns a Future that resolves to a String
+/// representing the result of the operation.
+Future<String> setPermissionAcl(String resourceUrl, String userWebId,
+    String receiverWebId, List permissionList) async {
+  // Read acl content
+  final aclContent = await readAcl(resourceUrl);
+
+  // A map to store new acl content
+  final newAclContentMap = {};
+
+  permissionList.sort();
+  final newAccessStr = permissionList.join();
+  var newEntryAdded = false;
+  var resourceName = '';
+
+  // Go through the current acl content and do the following
+  // - Get the name of the resource user is granting permission to
+  // - If the receiver webId is already in the acl content remove it
+  // - Add receiver webId and the respective access modes as a new entry
+  // - only if the access mode combination is already in the acl content
+  for (final accessStr in aclContent.keys) {
+    final webIdList = aclContent[accessStr][agentPred] as List;
+    if (resourceName.isEmpty) {
+      resourceName =
+          (aclContent[accessStr][accessToPred] as List).first as String;
+    }
+
+    if (webIdList.contains(receiverWebId)) {
+      webIdList.remove(receiverWebId);
+    }
+
+    if (newAccessStr == accessStr) {
+      webIdList.add(receiverWebId);
+      newEntryAdded = true;
+    }
+
+    if (webIdList.isNotEmpty) {
+      newAclContentMap[accessStr] = aclContent[accessStr];
+    }
+  }
+
+  // If the new entry is not added to the acl content add that here
+  if (!newEntryAdded) {
+    newAclContentMap[newAccessStr] = {
+      typePred: [aclAuth],
+      accessToPred: [resourceName],
+      agentPred: [receiverWebId],
+      modePred: permissionList
+    };
+  }
+
+  final aclFullContentStr = createAclConectStr(newAclContentMap);
+
+  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
+
+  return updateRes;
+}
+
+/// Create a shared file on recepient's POD.
+/// Copy encrypted shared key, shared file path, and acess list to this file
+Future<void> copySharedKey(
+    String receiverWebId,
+    String senderDirName,
+    String resName,
+    String encSharedKey,
+    String encSharedPath,
+    String encSharedAccess) async {
+  /// Get shared directory path
+  final sharedDirPath = await getSharedDirPath();
+
+  /// Get name of the directory inside the shared directory
+  final senderDirUrl =
+      receiverWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
+
+  /// Create a directory if not exists
+  if (await checkResourceStatus(senderDirUrl, false) ==
+      ResourceStatus.notExist) {
+    await createResource(
+      senderDirUrl,
+      fileFlag: false,
+      contentType: ResourceContentType.directory,
+    );
+  }
+
+  /// Get shared key file url.
+  final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
+  final receiverSharedKeyFileUrl =
+      receiverWebId.replaceAll(profCard, sharedKeyFilePath);
+
+  /// Create file if not exists
+  if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
+      ResourceStatus.notExist) {
+    final keyFileBody =
+        '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $filePrefix <$appsFile>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$filePrefix$resName\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
+
+    /// Update the ttl file with the shared info
+    await createResource(
+      receiverSharedKeyFileUrl,
+      content: keyFileBody,
+    );
+  } else {
+    /// Update the file
+
+    /// First check if the file already contain the same value
+    final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
+    final keyFileDataMap = getEncFileContent(keyFileContent);
+
+    /// Define query parameters
+    const prefix1 = '$filePrefix <$appsFile>';
+    const prefix2 = '$dataPrefix <$appsData>';
+
+    final subject = '$filePrefix$resName';
+    final predObjPath = '$dataPrefix$pathPred "$encSharedPath";';
+    final predObjAcc = '$dataPrefix$accessListPred "$encSharedAccess";';
+    final predObjKey = '$dataPrefix$sharedKeyPred "$encSharedKey".';
+
+    /// Check if the resource is previously added or not
+    if (keyFileDataMap.containsKey(resName)) {
+      final existKey = keyFileDataMap[resName][sharedKeyPred];
+      final existPath = keyFileDataMap[resName][pathPred];
+      final existAcc = keyFileDataMap[resName][accessListPred];
+
+      /// If file does not contain the same encrypted value then delete and update
+      /// the file
+      /// NOTE: Public key encryption generates different hashes different time for same plaintext value
+      /// Therefore this always ends up deleting the previous and adding a new hash
+      if (existKey != encSharedKey ||
+          existPath != encSharedPath ||
+          existAcc != encSharedAccess) {
+        final predObjPathPrev = '$dataPrefix$pathPred "$existPath";';
+        final predObjAccPrev = '$dataPrefix$accessListPred "$existAcc";';
+        final predObjKeyPrev = '$dataPrefix$sharedKeyPred "$existKey".';
+
+        // Generate update sparql query
+        final updateQuery =
+            'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPathPrev $predObjAccPrev $predObjKeyPrev}; INSERT DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+
+        // Update the file using the update query
+        await updateFileByQuery(receiverSharedKeyFileUrl, updateQuery);
+      }
+    } else {
+      /// Generate insert only sparql query
+      final insertQuery =
+          'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+
+      // Update the file using the insert query
+      await updateFileByQuery(receiverSharedKeyFileUrl, insertQuery);
+    }
+  }
+}
+
+/// Remove permission from ALC file by running a Sparql DELETE query
+Future<String> removePermissionAcl(
+    String resourceName, String resourceUrl, String removerWebId) async {
+  // Read acl content
+  final aclContent = await readAcl(resourceUrl);
+
+  // A map to store new acl content
+  final updatedAclContentMap = {};
+
+  // Go through the current acl content remove the [removerWebId]
+  // from the content
+  for (final accessStr in aclContent.keys) {
+    final webIdList = aclContent[accessStr][agentPred] as List;
+
+    if (webIdList.contains(removerWebId)) {
+      webIdList.remove(removerWebId);
+    }
+
+    if (webIdList.isNotEmpty) {
+      updatedAclContentMap[accessStr] = aclContent[accessStr];
+    }
+  }
+
+  final aclFullContentStr = createAclConectStr(updatedAclContentMap);
+
+  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
+
+  return updateRes;
+}
+
+/// Delete shared key on recepient's POD.
+Future<void> removeSharedKey(
+    String removerWebId, String senderDirName, String resName) async {
+  /// Get shared directory path
+  final sharedDirPath = await getSharedDirPath();
+
+  /// Get name of the directory inside the shared directory
+  final senderDirUrl =
+      removerWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
+
+  /// Check if the directory exists
+  if (await checkResourceStatus(senderDirUrl, false) == ResourceStatus.exist) {
+    /// Get shared key file url.
+    final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
+    final receiverSharedKeyFileUrl =
+        removerWebId.replaceAll(profCard, sharedKeyFilePath);
+
+    /// Check if the shared key file exists
+    if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
+        ResourceStatus.exist) {
+      /// Update the file
+
+      /// Check if the file contains the shared key values for the given resource
+      final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
+      final keyFileDataMap = getEncFileContent(keyFileContent);
+
+      if (keyFileDataMap.containsKey(resName)) {
+        /// Define query parameters
+        const prefix1 = '$filePrefix <$appsFile>';
+        const prefix2 = '$dataPrefix <$appsData>';
+        final subject = '$filePrefix$resName';
+
+        /// Get existing values
+        final existKey = keyFileDataMap[resName][sharedKeyPred];
+        final existPath = keyFileDataMap[resName][pathPred];
+        final existAcc = keyFileDataMap[resName][accessListPred];
+
+        // Define predicates and objects
+        final predObjPath = '$dataPrefix$pathPred "$existPath";';
+        final predObjAcc = '$dataPrefix$accessListPred "$existAcc";';
+        final predObjKey = '$dataPrefix$sharedKeyPred "$existKey".';
+
+        // Generate delete sparql query
+        final deleteQuery =
+            'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+
+        // Update the file using the update query
+        await updateFileByQuery(receiverSharedKeyFileUrl, deleteQuery);
+      }
+    }
+  }
+}
+
+/// Retrieves the permission details of a file from the respective ACL file.
+///
+/// Returns a Future that completes with a Map containing the permission data.
+/// The Map structure is defined by the REST API response.
+Future<Map> readAcl(String resourceUrl, [bool fileFlag = true]) async {
+  final resourceAclUrl = getResAclFile(resourceUrl, fileFlag);
+
+  final aclContent = await fetchPrvFile(resourceAclUrl);
+  return parseACL(aclContent);
+}
+
+/// From a given ACL content map create the ACL body string
+///
+/// Returns the acl body content as a single string value
+String createAclConectStr(Map<dynamic, dynamic> aclContentMap) {
+  // Generate ACL file content string from the permissions
+
+  var aclPrefixStr =
+      '''@prefix $selfPrefix <#>.\n@prefix $aclPrefix <$acl>.\n@prefix $foafPrefix <$foaf>.\n''';
+  var aclBodyStr = '';
+
+  // increment variable for webId prefixes
+  var i = 0;
+
+  // Go through the new acl content and create relevant prefix Strings and body entry Strings
+  for (final accessStr in aclContentMap.keys) {
+    final webIdList = aclContentMap[accessStr][agentPred] as List;
+    final resourceName = aclContentMap[accessStr][accessToPred].first;
+    final accessList = aclContentMap[accessStr][modePred] as List;
+
+    final agentList = [];
+    final accessModeList = [];
+
+    for (final webId in webIdList) {
+      final webIdPrefix = '@prefix c$i: <${webId.replaceAll('me', '')}>.';
+      agentList.add('c$i:me');
+
+      aclPrefixStr += '$webIdPrefix\n';
+      i += 1;
+    }
+
+    for (final accessMode in accessList) {
+      accessModeList.add('$aclPrefix$accessMode');
+    }
+
+    final agentStr = agentList.join(', ');
+    final accessModeStr = accessModeList.join(', ');
+
+    aclBodyStr +=
+        ':$accessStr\n    a $aclPrefix$aclAuth;\n    $aclPrefix$accessToPred <$resourceName>;\n    $aclPrefix$agentPred $agentStr;\n    $aclPrefix$modePred $accessModeStr.\n';
+  }
+
+  // Combine prefixes and body entries into a single String
+  final aclFullContentStr = '$aclPrefixStr\n$aclBodyStr';
+
+  return aclFullContentStr;
 }
