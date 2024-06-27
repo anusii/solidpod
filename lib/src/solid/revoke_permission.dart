@@ -1,4 +1,4 @@
-/// Function to grant permission to a private file in a POD.
+/// Function to revoke permission from a private file in a POD.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -37,27 +37,17 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
-/// Grant permission to [fileName] for a given [recipientWebId].
+/// Revoke permissions from [fileName] for a given [removerWebId].
 /// Parameters:
-///   [fileName] is the name of the file providing permission to
+///   [fileName] is the name of the file revoking permission from
 ///   [fileFlag] is the flag to identify if the resources is a file or not
-///   [permissionList] is the list of permission to be granted
-///   [recipientWebId] is the webId of the permission receiver
-///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
+///   [removerWebId] is the webId of the permission remover
 ///   [child] is the child widget to return to
 
-Future<void> grantPermission(
-    String fileName,
-    bool fileFlag,
-    List<dynamic> permissionList,
-    String recipientWebId,
-    bool isFileEncrypted,
-    BuildContext context,
-    Widget child) async {
+Future<void> revokePermission(String fileName, bool fileFlag,
+    String removerWebId, BuildContext context, Widget child) async {
   await loginIfRequired(context);
 
   await getKeyFromUserIfRequired(context, child);
@@ -72,12 +62,10 @@ Future<void> grantPermission(
   final resStatus = await checkResourceStatus(resourceUrl, fileFlag);
 
   if (resStatus == ResourceStatus.exist) {
-    // Get user webID
-    final userWebId = await AuthDataManager.getWebId() as String;
+    final resourceName = resourceUrl.split('/').last;
 
-    // Add the permission line to the relevant ACL file
-    await setPermissionAcl(
-        resourceUrl, userWebId, recipientWebId, permissionList);
+    // Remove the permission line from the relevant ACL file
+    await removePermissionAcl(resourceName, resourceUrl, removerWebId);
 
     // Check if the file is encrypted
     final fileIsEncrypted = await checkFileEnc(resourceUrl);
@@ -85,28 +73,9 @@ Future<void> grantPermission(
     // If the file is encrypted then share the individual encryption key
     // with the receiver
     if (fileIsEncrypted) {
-      // Get the individual security key for the file
-      final indKey = await KeyManager.getIndividualKey(resourceUrl);
-
-      // Setup recipient's public key
-      final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
-
-      // Encrypt individual key
-      final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
-
-      // Encrypt resource URL
-      final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
-
-      // Encrypt the list of permissions
-      permissionList.sort();
-      final sharedAccessList =
-          await recipientPubKey.encryptData(permissionList.join(','));
-
-      // Copy shared content to recipient's POD
+      // Delete shared key content from recipient's POD
       final senderUniqueName = getUniqueStrWebId(await getWebId() as String);
-      final resourceName = resourceUrl.split('/').last;
-      await copySharedKey(recipientWebId, senderUniqueName, resourceName,
-          sharedIndKey, sharedResPath, sharedAccessList);
+      await removeSharedKey(removerWebId, senderUniqueName, resourceName);
     }
   }
 }

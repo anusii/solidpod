@@ -79,7 +79,7 @@ Future<String?> readPod(
       } else {
         return fileContent;
       }
-    } on Exception catch (e) {
+    } on Object catch (e) {
       debugPrint(e.toString());
     }
   }
