@@ -1,6 +1,6 @@
 name: solidpod
 description: Support easy access to data stored on Solid Pod servers.
-version: 0.5.36
+version: 0.5.37
 homepage: https://github.com/anusii/solidpod
 
 environment:
