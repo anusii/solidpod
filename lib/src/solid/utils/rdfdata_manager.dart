@@ -23,6 +23,7 @@
 // SOFTWARE.
 ///
 /// Authors: Anushka Vidanage
+library;
 
 /// Represents an ACL resource.
 class AclResource {

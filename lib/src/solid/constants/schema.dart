@@ -25,6 +25,7 @@
 // SOFTWARE.
 ///
 /// Authors: Anushka Vidanage
+library;
 
 // /// Predicates schema.
 

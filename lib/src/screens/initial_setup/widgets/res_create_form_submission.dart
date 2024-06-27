@@ -70,7 +70,7 @@ ElevatedButton resCreateFormSubmission(
 
   // The (updated) original version of POD initialisation function
   // Keep it here as a backup
-  Future<void> _initPodOriginalFunc(String securityKey) async {
+  Future<void> initPodOriginalFunc(String securityKey) async {
     final webId = await AuthDataManager.getWebId();
     assert(webId != null);
 
