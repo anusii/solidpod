@@ -27,8 +27,9 @@
 library;
 
 import 'package:flutter/material.dart';
+
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -449,7 +450,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   // Check if webId is a true link
                                   if (Uri.parse(webId.replaceAll('#me', ''))
                                           .isAbsolute &&
-                                      await checkResourceStatus(webId, true) ==
+                                      await checkResourceStatus(webId) ==
                                           ResourceStatus.exist) {
                                     final permList = [];
                                     if (readChecked) {
