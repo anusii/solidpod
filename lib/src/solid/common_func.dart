@@ -35,7 +35,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_management.dart'
@@ -144,7 +144,7 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
 
   final filePath = [await getDataDirPath(), fileName].join('/');
   final fileUrl = await getFileUrl(filePath);
-  final status = await checkResourceStatus(fileUrl, true);
+  final status = await checkResourceStatus(fileUrl);
 
   const smallGapH = SizedBox(width: 10);
   String msg;

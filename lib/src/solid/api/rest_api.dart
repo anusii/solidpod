@@ -38,7 +38,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
-import 'package:solidpod/src/solid/constants.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
@@ -158,7 +158,7 @@ Future<List<dynamic>> initialStructureTest(
   for (final containerName in folders) {
     // NB: the trailing separator in path is essential for this check
     final resourceUrl = await getDirUrl(containerName);
-    if (await checkResourceStatus(resourceUrl, false) ==
+    if (await checkResourceStatus(resourceUrl, fileFlag: false) ==
         ResourceStatus.notExist) {
       allExists = false;
 
@@ -172,7 +172,7 @@ Future<List<dynamic>> initialStructureTest(
     for (final fileName in fileNameList) {
       final resourceUrl =
           await getFileUrl([containerName as String, fileName].join('/'));
-      if (await checkResourceStatus(resourceUrl, false) ==
+      if (await checkResourceStatus(resourceUrl, fileFlag: false) ==
           ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
@@ -277,7 +277,8 @@ Future<void> deleteResource(
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
 
-Future<ResourceStatus> checkResourceStatus(String resUrl, bool fileFlag) async {
+Future<ResourceStatus> checkResourceStatus(String resUrl,
+    {bool fileFlag = true}) async {
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
@@ -686,7 +687,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
 
   /// Create a directory if not exists
-  if (await checkResourceStatus(senderDirUrl, false) ==
+  if (await checkResourceStatus(senderDirUrl, fileFlag: false) ==
       ResourceStatus.notExist) {
     await createResource(
       senderDirUrl,
@@ -701,7 +702,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
   /// Create file if not exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
       ResourceStatus.notExist) {
     final keyFileBody =
         '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $filePrefix <$appsFile>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$filePrefix$resName\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';

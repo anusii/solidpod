@@ -81,17 +81,24 @@ const String agentClassPred = 'agentClass';
 const String aclAuth = 'Authorization';
 const String aclRead = 'Read';
 const String aclWrite = 'Write';
+const String aclAppend = 'Append';
 const String aclControl = 'Control';
 const String aclAgent = 'Agent';
+const String aclAuthAgent = 'AuthenticatedAgent';
+const String aclDefault = 'default';
 const String profileDoc = 'PersonalProfileDocument';
 
 /// String link variables used in files generation process for defining ttl
 /// file content.
 
-const String terms = 'http://purl.org/dc/terms/';
 const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String rdfSyntax = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+const String ldp = 'http://www.w3.org/ns/ldp#';
+const String rdf = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
+const String rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
+const String terms = 'http://purl.org/dc/terms/';
+const String vcard = 'http://www.w3.org/2006/vcard/ns#';
+const String xsd = 'http://www.w3.org/2001/XMLSchema#';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String terms used as prfixes in turtle and acl files
@@ -104,9 +111,8 @@ const String dataPrefix = 'data:';
 
 /// String variables for creating files and directories on solid server
 
-const String fileTypeLink = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
-const String dirTypeLink =
-    '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
+String fileTypeLink = '<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+String dirTypeLink = '<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"';
 
 /// String variables for encryption key files
 
@@ -155,28 +161,6 @@ enum ResourceContentType {
 
   /// Constructor
   const ResourceContentType(this.value);
-
-  /// String value of the access type
-  final String value;
-}
-
-/// Types of access to a resource
-
-enum AccessType {
-  /// Read access
-  read('Read'),
-
-  /// Write access
-  write('Write'),
-
-  /// Control access
-  control('Control'),
-
-  /// Append data (a type of write)
-  append('Append');
-
-  /// Constructor
-  const AccessType(this.value);
 
   /// String value of the access type
   final String value;
