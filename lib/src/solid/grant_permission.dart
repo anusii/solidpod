@@ -102,11 +102,12 @@ Future<void> grantPermission(
       final sharedAccessList =
           await recipientPubKey.encryptData(permissionList.join(','));
 
+      // Generate unique ID for the resource being shared
+      final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
+
       // Copy shared content to recipient's POD
-      final senderUniqueName = getUniqueStrWebId(await getWebId() as String);
-      final resourceName = resourceUrl.split('/').last;
-      await copySharedKey(recipientWebId, senderUniqueName, resourceName,
-          sharedIndKey, sharedResPath, sharedAccessList);
+      await copySharedKey(recipientWebId, resUniqueId, sharedIndKey,
+          sharedResPath, sharedAccessList);
     }
   }
 }

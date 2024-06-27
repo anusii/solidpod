@@ -174,6 +174,10 @@ String httpAuthAcl = acl;
 
 const String appsFile = 'https://solidcommunity.au/predicates/file#';
 
+/// Resource ID predicate
+
+const String appsResId = 'https://solidcommunity.au/predicates/resourceid#';
+
 /// Terms predicate
 
 const String appsTerms = 'https://solidcommunity.au/predicates/terms#';

@@ -30,12 +30,15 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
+import 'package:crypto/crypto.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -110,6 +113,14 @@ String getUniqueStrWebId(String webId) {
   return uniqueStr;
 }
 
+/// Generate unique ID for the resource URL
+/// In order for the ID to be unique across all webIDs and no one can
+/// reverse engineer the resource being shared we also use receiver webId
+/// in the ID generation process
+String getUniqueIdResUrl(String resourceUrl, String receiverWebId) {
+  return sha256.convert(utf8.encode(resourceUrl + receiverWebId)).toString();
+}
+
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
 /// returns the full resource URL
@@ -168,12 +179,8 @@ Future<String> getSharedDirPath() async =>
     [await AppInfo.canonicalName, sharedDir].join('/');
 
 /// Returns the path of the shared directory
-Future<String> getSharedKeyFilePath(String senderName) async => [
-      await AppInfo.canonicalName,
-      sharedDir,
-      senderName,
-      sharedKeyFile
-    ].join('/');
+Future<String> getSharedKeyFilePath() async =>
+    [await AppInfo.canonicalName, sharedDir, sharedKeyFile].join('/');
 
 /// Returns the path of the encryption directory
 Future<String> getEncDirPath() async =>
