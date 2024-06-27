@@ -133,7 +133,8 @@ class AuthDataManager {
         'expiresIn': tokenResponse.expiresIn,
         'logoutUrl': _logoutUrl,
       };
-    } on Exception catch (e) {
+    } on Object catch (e) {
+      // Catch any object thrown (Dart programs can throw any non-null object)
       debugPrint('AuthDataManager => loadAuthData() failed: $e');
     }
     return null;
@@ -151,8 +152,8 @@ class AuthDataManager {
       }
 
       return true;
-    } on Exception {
-      debugPrint('AuthDataManager => removeAuthData() failed');
+    } on Object catch (e) {
+      debugPrint('AuthDataManager => removeAuthData() failed: $e');
     }
     return false;
   }
@@ -195,7 +196,7 @@ class AuthDataManager {
             .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
       }
       return tokenResponse;
-    } on Exception catch (e) {
+    } on Object catch (e) {
       debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
     }
     return null;
@@ -250,8 +251,8 @@ class AuthDataManager {
             Credential.fromJson((dataMap['auth_response'] as Map).cast());
 
         return true;
-      } on Exception catch (e) {
-        debugPrint('AuthDataManager => _loadData() failed! $e');
+      } on Object catch (e) {
+        debugPrint('AuthDataManager => _loadData() failed: $e');
         return false;
       }
     }
