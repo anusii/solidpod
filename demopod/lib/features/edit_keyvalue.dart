@@ -1,6 +1,6 @@
 /// A widget to edit key/value pairs and save them in a POD.
 ///
-// Time-stamp: <Sunday 2023-12-31 16:40:28 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-06-28 13:35:54 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -201,13 +201,6 @@ class _KeyValueEditState extends State<KeyValueEdit> {
                     label: const Text('Add',
                         style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                  ElevatedButton(
-                      onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => widget.child)),
-                      child: const Text('Go back',
-                          style: TextStyle(fontWeight: FontWeight.bold))),
                   const SizedBox(width: 10),
                   ElevatedButton(
                       onPressed: () async {
