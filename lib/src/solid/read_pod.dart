@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
@@ -46,8 +48,8 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// First check if the user is logged in and then
 /// read and parse the file content
 
-Future<String?> readPod(
-    String filePath, BuildContext context, Widget child) async {
+Future<dynamic> readPod(String filePath, BuildContext context, Widget child,
+    {FileOpenMode mode = FileOpenMode.text}) async {
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);

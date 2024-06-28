@@ -131,6 +131,7 @@ Future<String> fetchPrvFile(String prvFileUrl) async {
   if (profResponse.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
+    // return profResponse.bodyBytes;
     return profResponse.body;
   } else {
     // If the server did not return a 200 OK response,
