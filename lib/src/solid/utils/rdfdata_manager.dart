@@ -23,6 +23,7 @@
 // SOFTWARE.
 ///
 /// Authors: Anushka Vidanage
+library;
 
 // TODO (dc): Is the class AclResource being used anywhere?
 //            read_permission.dart seems to have provided similar functionalities.

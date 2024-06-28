@@ -541,7 +541,7 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
   final re = RegExp('^<[^>]+>'); // starts with <, ends with >, no > in between
 
   final lines = responseBody.split('\n');
-  for (var l in lines) {
+  for (final l in lines) {
     if (l.startsWith('<') && !l.startsWith('<>')) {
       if (l.contains('ldp:Resource')) {
         final name = re.firstMatch(l)?.group(0);

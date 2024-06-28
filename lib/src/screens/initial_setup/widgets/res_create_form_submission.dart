@@ -1,6 +1,6 @@
 /// Initial loaded screen set up page.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Thursday 2024-06-27 20:08:52 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -34,15 +34,9 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'package:solidpod/src/screens/initial_setup/gen_file_body.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_constants.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
-import 'package:solidpod/src/solid/utils/key_management.dart';
-import 'package:solidpod/src/solid/utils/misc.dart' show initPod, trimPubKeyStr;
-import 'package:solidpod/src/widgets/error_dialog.dart';
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show initPod; // , trimPubKeyStr;
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
 /// A button to submit form widget
@@ -69,101 +63,102 @@ ElevatedButton resCreateFormSubmission(
       screenWidth < 360; // A threshold for small devices, can be adjusted.
 
   // The (updated) original version of POD initialisation function
-  // Keep it here as a backup
-  Future<void> _initPodOriginalFunc(String securityKey) async {
-    final webId = await AuthDataManager.getWebId();
-    assert(webId != null);
+  // Keep it here as a backup.
 
-    // Variable to see whether we need to update the key files. Because if
-    // one file is missing we need to create asymmetric key pairs again.
+  // Future<void> initPodOriginalFunc(String securityKey) async {
+  //   final webId = await AuthDataManager.getWebId();
+  //   assert(webId != null);
 
-    var keyVerifyFlag = true;
-    String? encMasterKeyVerify;
+  //   // Variable to see whether we need to update the key files. Because if
+  //   // one file is missing we need to create asymmetric key pairs again.
 
-    // Asymmetric key pair
+  //   var keyVerifyFlag = true;
+  //   String? encMasterKeyVerify;
 
-    String? pubKeyStr;
-    String? prvKeyHash;
-    String? prvKeyIvz;
+  //   // Asymmetric key pair
 
-    // Create files and directories flag
+  //   String? pubKeyStr;
+  //   String? prvKeyHash;
+  //   String? prvKeyIvz;
 
-    if (resFileNames.contains(encKeyFile) ||
-        resFileNames.contains(pubKeyFile)) {
-      // Generate master key
+  //   // Create files and directories flag
 
-      final masterKey = genMasterKey(securityKey);
-      encMasterKeyVerify = genVerificationKey(securityKey);
-      debugPrint('Security key: $securityKey');
-      debugPrint('Verification key: $encMasterKeyVerify');
+  //   if (resFileNames.contains(encKeyFile) ||
+  //       resFileNames.contains(pubKeyFile)) {
+  //     // Generate master key
 
-      // Generate asymmetric key pair
-      final (:publicKey, :privateKey) = await genRandRSAKeyPair();
+  //     final masterKey = genMasterKey(securityKey);
+  //     encMasterKeyVerify = genVerificationKey(securityKey);
+  //     debugPrint('Security key: $securityKey');
+  //     debugPrint('Verification key: $encMasterKeyVerify');
 
-      // Encrypt private key
+  //     // Generate asymmetric key pair
+  //     final (:publicKey, :privateKey) = await genRandRSAKeyPair();
 
-      final iv = genRandIV();
-      prvKeyHash = encryptPrivateKey(privateKey, masterKey, iv);
-      prvKeyIvz = iv.base64;
+  //     // Encrypt private key
 
-      // Get public key without start and end bit
+  //     final iv = genRandIV();
+  //     prvKeyHash = encryptPrivateKey(privateKey, masterKey, iv);
+  //     prvKeyIvz = iv.base64;
 
-      pubKeyStr = trimPubKeyStr(publicKey);
+  //     // Get public key without start and end bit
 
-      if (!resFileNames.contains(encKeyFile)) {
-        keyVerifyFlag = verifySecurityKey(
-            securityKey, await KeyManager.getVerificationKey());
-      }
-    }
+  //     pubKeyStr = trimPubKeyStr(publicKey);
 
-    if (!keyVerifyFlag) {
-      // ignore: use_build_context_synchronously
-      await showErrDialog(context, 'Wrong encode key. Please try again!');
-    } else {
-      try {
-        for (final resLink in resFoldersLink) {
-          await createResource(resLink,
-              fileFlag: false, contentType: ResourceContentType.directory);
-        }
+  //     if (!resFileNames.contains(encKeyFile)) {
+  //       keyVerifyFlag = verifySecurityKey(
+  //           securityKey, await KeyManager.getVerificationKey());
+  //     }
+  //   }
 
-        // Create files
-        for (final resLink in resFilesLink) {
-          final resName = resLink.split('/').last;
-          late String fileBody;
+  //   if (!keyVerifyFlag) {
+  //     // ignore: use_build_context_synchronously
+  //     await showErrDialog(context, 'Wrong encode key. Please try again!');
+  //   } else {
+  //     try {
+  //       for (final resLink in resFoldersLink) {
+  //         await createResource(resLink,
+  //             fileFlag: false, contentType: ResourceContentType.directory);
+  //       }
 
-          switch (resName) {
-            case encKeyFile:
-              fileBody = genEncKeyBody(
-                  encMasterKeyVerify!, prvKeyHash!, prvKeyIvz!, resLink);
-            case '$permLogFile.acl':
-              fileBody = genLogAclBody(webId!, resName.replaceAll('.acl', ''));
-            case '$pubKeyFile.acl':
-              fileBody = genPubFileAclBody(resName);
-            case '.acl':
-              fileBody = genPubDirAclBody();
-            case indKeyFile:
-              fileBody = genIndKeyFileBody();
-            case pubKeyFile:
-              fileBody = genPubKeyFileBody(resLink, pubKeyStr!);
-            case permLogFile:
-              fileBody = genLogFileBody();
-            default:
-              throw Exception('Unknown file $resName');
-          }
+  //       // Create files
+  //       for (final resLink in resFilesLink) {
+  //         final resName = resLink.split('/').last;
+  //         late String fileBody;
 
-          final aclFlag = resName.split('.').last == 'acl' ? true : false;
+  //         switch (resName) {
+  //           case encKeyFile:
+  //             fileBody = genEncKeyBody(
+  //                 encMasterKeyVerify!, prvKeyHash!, prvKeyIvz!, resLink);
+  //           case '$permLogFile.acl':
+  //             fileBody = genLogAclBody(webId!, resName.replaceAll('.acl', ''));
+  //           case '$pubKeyFile.acl':
+  //             fileBody = genPubFileAclBody(resName);
+  //           case '.acl':
+  //             fileBody = genPubDirAclBody();
+  //           case indKeyFile:
+  //             fileBody = genIndKeyFileBody();
+  //           case pubKeyFile:
+  //             fileBody = genPubKeyFileBody(resLink, pubKeyStr!);
+  //           case permLogFile:
+  //             fileBody = genLogFileBody();
+  //           default:
+  //             throw Exception('Unknown file $resName');
+  //         }
 
-          await createResource(resLink,
-              content: fileBody, replaceIfExist: aclFlag);
-        }
-      } on Exception catch (e) {
-        debugPrint('$e');
-      }
+  //         final aclFlag = resName.split('.').last == 'acl' ? true : false;
 
-      // Add encryption key to the local secure storage.
-      await KeyManager.setSecurityKey(securityKey);
-    }
-  }
+  //         await createResource(resLink,
+  //             content: fileBody, replaceIfExist: aclFlag);
+  //       }
+  //     } on Exception catch (e) {
+  //       debugPrint('$e');
+  //     }
+
+  //     // Add encryption key to the local secure storage.
+  //     await KeyManager.setSecurityKey(securityKey);
+  //   }
+  // }
 
   return ElevatedButton(
     onPressed: () async {
@@ -187,7 +182,7 @@ ElevatedButton resCreateFormSubmission(
           context,
           MaterialPageRoute(builder: (context) => child),
         );
-        Navigator.pop(context);
+        if (context.mounted) Navigator.pop(context);
       }
     },
     style: ElevatedButton.styleFrom(

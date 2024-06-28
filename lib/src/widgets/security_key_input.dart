@@ -194,7 +194,7 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
       final formData = formKey.currentState?.value as Map;
       await KeyManager.setSecurityKey(formData[inputKey].toString());
       debugPrint('Security key saved');
-      Navigator.pop(context);
+      if (context.mounted) Navigator.pop(context);
     } else {
       await showDialog(
         context: context,
