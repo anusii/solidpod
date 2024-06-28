@@ -145,13 +145,36 @@ import 'package:solidpod/src/solid/constants/common.dart'
 
 typedef NS = ({String prefix, Namespace ns});
 
+///
+
 final NS aclNS = (prefix: 'acl', ns: Namespace(ns: acl));
+
+///
+
 final NS foafNS = (prefix: 'foaf', ns: Namespace(ns: foaf));
+
+///
+
 final NS ldpNS = (prefix: 'ldp', ns: Namespace(ns: ldp));
+
+///
+
 final NS rdfNS = (prefix: 'rdf', ns: Namespace(ns: rdf));
+
+///
+
 final NS rdfsNS = (prefix: 'rdfs', ns: Namespace(ns: rdfs));
+
+///
+
 final NS termsNS = (prefix: 'terms', ns: Namespace(ns: terms));
+
+///
+
 final NS vcardNS = (prefix: 'vcard', ns: Namespace(ns: vcard));
+
+///
+
 final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
 
 /// Xmlns schema.

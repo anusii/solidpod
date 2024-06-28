@@ -53,23 +53,27 @@ class _LogoutDialogState extends State<LogoutDialog> {
             child: const Text('OK'),
             onPressed: () async {
               if (await logoutPod()) {
-                await Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => widget.child));
+                if (context.mounted) {
+                  await Navigator.pushReplacement(context,
+                      MaterialPageRoute(builder: (context) => widget.child));
+                }
               } else {
-                Navigator.pop(context);
-                await showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                            title: const Text('Logging out failed'),
-                            content: Text(
-                                'Unable to logging out the $title, please try again later'),
-                            actions: [
-                              ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Dismiss'))
-                            ]));
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                              title: const Text('Logging out failed'),
+                              content: Text(
+                                  'Unable to logging out the $title, please try again later'),
+                              actions: [
+                                ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: const Text('Dismiss'))
+                              ]));
+                }
               }
             }),
         ElevatedButton(
