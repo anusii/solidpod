@@ -93,8 +93,10 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
       bgColor = Colors.red;
       duration = const Duration(seconds: 7);
     } finally {
-      Navigator.pop(context);
-      _showSnackBar(context, msg, bgColor, duration: duration);
+      if (context.mounted) {
+        Navigator.pop(context);
+        _showSnackBar(context, msg, bgColor, duration: duration);
+      }
     }
   }
 
@@ -127,26 +129,29 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
 
   // Use MediaQuery to get the size of the current screen.
 
-  final size = MediaQuery.of(context).size;
+  if (context.mounted) {
+    final size = MediaQuery.of(context).size;
 
-  // Calculate the desired width and height.
+    // Calculate the desired width and height.
 
-  final width = size.width * 0.5;
-  final height = size.height * 0.5;
+    final width = size.width * 0.5;
+    final height = size.height * 0.5;
 
-  await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-            content: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: width,
-                  minHeight: height,
-                ),
-                child: changeKeyForm),
-          ));
+    await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              content: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: width,
+                    minHeight: height,
+                  ),
+                  child: changeKeyForm),
+            ));
+  }
 }
 
 // Show a message
+
 void _showSnackBar(BuildContext context, String msg, Color bgColor,
     {Duration duration = const Duration(seconds: 4)}) {
   ScaffoldMessenger.of(context).showSnackBar(
