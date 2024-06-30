@@ -672,32 +672,10 @@ Future<String> setPermissionAcl(String resourceUrl, String userWebId,
 
 /// Create a shared file on recepient's POD.
 /// Copy encrypted shared key, shared file path, and acess list to this file
-Future<void> copySharedKey(
-    String receiverWebId,
-    String senderDirName,
-    String resName,
-    String encSharedKey,
-    String encSharedPath,
-    String encSharedAccess) async {
-  /// Get shared directory path
-  final sharedDirPath = await getSharedDirPath();
-
-  /// Get name of the directory inside the shared directory
-  final senderDirUrl =
-      receiverWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
-
-  /// Create a directory if not exists
-  if (await checkResourceStatus(senderDirUrl, fileFlag: false) ==
-      ResourceStatus.notExist) {
-    await createResource(
-      senderDirUrl,
-      fileFlag: false,
-      contentType: ResourceContentType.directory,
-    );
-  }
-
+Future<void> copySharedKey(String receiverWebId, String resUniqueId,
+    String encSharedKey, String encSharedPath, String encSharedAccess) async {
   /// Get shared key file url.
-  final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
+  final sharedKeyFilePath = await getSharedKeyFilePath();
   final receiverSharedKeyFileUrl =
       receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
@@ -705,7 +683,7 @@ Future<void> copySharedKey(
   if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
       ResourceStatus.notExist) {
     final keyFileBody =
-        '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $filePrefix <$appsFile>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$filePrefix$resName\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
+        '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $resIdPrefix <$appsResId>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$resIdPrefix$resUniqueId\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
 
     /// Update the ttl file with the shared info
     await createResource(
@@ -720,19 +698,19 @@ Future<void> copySharedKey(
     final keyFileDataMap = getEncFileContent(keyFileContent);
 
     /// Define query parameters
-    const prefix1 = '$filePrefix <$appsFile>';
+    const prefix1 = '$resIdPrefix <$appsResId>';
     const prefix2 = '$dataPrefix <$appsData>';
 
-    final subject = '$filePrefix$resName';
+    final subject = '$resIdPrefix$resUniqueId';
     final predObjPath = '$dataPrefix$pathPred "$encSharedPath";';
     final predObjAcc = '$dataPrefix$accessListPred "$encSharedAccess";';
     final predObjKey = '$dataPrefix$sharedKeyPred "$encSharedKey".';
 
     /// Check if the resource is previously added or not
-    if (keyFileDataMap.containsKey(resName)) {
-      final existKey = keyFileDataMap[resName][sharedKeyPred];
-      final existPath = keyFileDataMap[resName][pathPred];
-      final existAcc = keyFileDataMap[resName][accessListPred];
+    if (keyFileDataMap.containsKey(resUniqueId)) {
+      final existKey = keyFileDataMap[resUniqueId][sharedKeyPred];
+      final existPath = keyFileDataMap[resUniqueId][pathPred];
+      final existAcc = keyFileDataMap[resUniqueId][accessListPred];
 
       /// If file does not contain the same encrypted value then delete and update
       /// the file
@@ -794,55 +772,43 @@ Future<String> removePermissionAcl(
 }
 
 /// Delete shared key on recepient's POD.
-Future<void> removeSharedKey(
-    String removerWebId, String senderDirName, String resName) async {
-  /// Get shared directory path
-  final sharedDirPath = await getSharedDirPath();
+Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
+  // Get shared key file url.
+  final sharedKeyFilePath = await getSharedKeyFilePath();
+  final receiverSharedKeyFileUrl =
+      removerWebId.replaceAll(profCard, sharedKeyFilePath);
 
-  /// Get name of the directory inside the shared directory
-  final senderDirUrl =
-      removerWebId.replaceAll(profCard, '$sharedDirPath/$senderDirName/');
-
-  /// Check if the directory exists
-  if (await checkResourceStatus(senderDirUrl, fileFlag: false) ==
+  // Check if the shared key file exists
+  if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
       ResourceStatus.exist) {
-    /// Get shared key file url.
-    final sharedKeyFilePath = await getSharedKeyFilePath(senderDirName);
-    final receiverSharedKeyFileUrl =
-        removerWebId.replaceAll(profCard, sharedKeyFilePath);
+    // Update the file
 
-    /// Check if the shared key file exists
-    if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
-        ResourceStatus.exist) {
-      /// Update the file
+    // Check if the file contains the shared key values for the given resource
+    final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
+    final keyFileDataMap = getEncFileContent(keyFileContent);
 
-      /// Check if the file contains the shared key values for the given resource
-      final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
-      final keyFileDataMap = getEncFileContent(keyFileContent);
+    if (keyFileDataMap.containsKey(resUniqueId)) {
+      // Define query parameters
+      const prefix1 = '$resIdPrefix <$appsResId>';
+      const prefix2 = '$dataPrefix <$appsData>';
+      final subject = '$resIdPrefix$resUniqueId';
 
-      if (keyFileDataMap.containsKey(resName)) {
-        /// Define query parameters
-        const prefix1 = '$filePrefix <$appsFile>';
-        const prefix2 = '$dataPrefix <$appsData>';
-        final subject = '$filePrefix$resName';
+      // Get existing values
+      final existKey = keyFileDataMap[resUniqueId][sharedKeyPred];
+      final existPath = keyFileDataMap[resUniqueId][pathPred];
+      final existAcc = keyFileDataMap[resUniqueId][accessListPred];
 
-        /// Get existing values
-        final existKey = keyFileDataMap[resName][sharedKeyPred];
-        final existPath = keyFileDataMap[resName][pathPred];
-        final existAcc = keyFileDataMap[resName][accessListPred];
+      // Define predicates and objects
+      final predObjPath = '$dataPrefix$pathPred "$existPath";';
+      final predObjAcc = '$dataPrefix$accessListPred "$existAcc";';
+      final predObjKey = '$dataPrefix$sharedKeyPred "$existKey".';
 
-        // Define predicates and objects
-        final predObjPath = '$dataPrefix$pathPred "$existPath";';
-        final predObjAcc = '$dataPrefix$accessListPred "$existAcc";';
-        final predObjKey = '$dataPrefix$sharedKeyPred "$existKey".';
+      // Generate delete sparql query
+      final deleteQuery =
+          'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
 
-        // Generate delete sparql query
-        final deleteQuery =
-            'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
-
-        // Update the file using the update query
-        await updateFileByQuery(receiverSharedKeyFileUrl, deleteQuery);
-      }
+      // Update the file using the update query
+      await updateFileByQuery(receiverSharedKeyFileUrl, deleteQuery);
     }
   }
 }

@@ -108,6 +108,7 @@ const String selfPrefix = ':';
 const String termsPrefix = 'terms:';
 const String filePrefix = 'file:';
 const String dataPrefix = 'data:';
+const String resIdPrefix = 'resourceId:';
 
 /// String variables for creating files and directories on solid server
 
