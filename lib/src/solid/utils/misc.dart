@@ -291,20 +291,54 @@ String getResAclFile(String resourceUrl, [bool fileFlag = true]) {
 Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
   final filePermMap = <dynamic, dynamic>{};
   for (final accessStr in aclFileContentMap.keys) {
-    final permList = aclFileContentMap[accessStr]['mode'];
-    final receiverList = aclFileContentMap[accessStr]['agent'];
+    final permList = aclFileContentMap[accessStr][modePred];
+    //final receiverList = aclFileContentMap[accessStr]['agent'];
+    var receiverList = [];
+    var agentType = '';
 
-    for (final receiverWebId in receiverList as List) {
-      // filePermMap[receiverWebId] = permList;
+    if ((aclFileContentMap[accessStr] as Map).containsKey(agentPred)) {
+      receiverList = aclFileContentMap[accessStr][agentPred] as List;
+      agentType = agentPred;
+    } else if ((aclFileContentMap[accessStr] as Map)
+        .containsKey(agentClassPred)) {
+      receiverList = aclFileContentMap[accessStr][agentClassPred] as List;
+      agentType = agentClassPred;
+    } else if ((aclFileContentMap[accessStr] as Map)
+        .containsKey(agentGroupPred)) {
+      receiverList = aclFileContentMap[accessStr][agentGroupPred] as List;
+      agentType = agentGroupPred;
+    }
+
+    for (final receiverWebId in receiverList) {
       if (filePermMap.containsKey(receiverWebId)) {
-        filePermMap[receiverWebId] += permList;
+        filePermMap[receiverWebId][permStr] += permList;
+        filePermMap[receiverWebId][agentStr] = agentType;
       } else {
-        filePermMap[receiverWebId] = permList;
+        filePermMap[receiverWebId] = {permStr: permList, agentStr: agentType};
       }
     }
   }
 
   return filePermMap;
+}
+
+/// Get agent types as a human readable string
+String getAgentType(String agentType, String receiverUri) {
+  var agentTypeStr = '';
+
+  if (agentType == agentPred) {
+    agentTypeStr = 'Individual';
+  } else if (agentType == agentGroupPred) {
+    agentTypeStr = 'Group of users';
+  } else if (agentType == agentClassPred) {
+    if (receiverUri == pubAgent) {
+      agentTypeStr = 'Public';
+    } else if (receiverUri == authAgent) {
+      agentTypeStr = 'authenticated users';
+    }
+  }
+
+  return agentTypeStr;
 }
 
 /// Get resource name from URL

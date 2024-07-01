@@ -34,6 +34,7 @@ import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -109,11 +110,20 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             label: Expanded(
               child: Center(
                 child: Text(
-                  'Receiver WebID',
+                  'Receiver',
                 ),
               ),
             ),
             tooltip: 'WebID of the POD receiving permissions'),
+        DataColumn(
+            label: Expanded(
+              child: Center(
+                child: Text(
+                  'Receiver type',
+                ),
+              ),
+            ),
+            tooltip: 'Type of the receiver'),
         DataColumn(
             label: Expanded(
               child: Center(
@@ -149,7 +159,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           )),
           DataCell(
             Text(
-              (permDataMap[index] as List).join(', '),
+              getAgentType(permDataMap[index][agentStr] as String, index),
+            ),
+          ),
+          DataCell(
+            Text(
+              (permDataMap[index][permStr] as List).join(', '),
             ),
           ),
           DataCell(

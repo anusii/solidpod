@@ -68,6 +68,7 @@ const String encDataPred = 'encData';
 const String typePred = 'type';
 const String accessToPred = 'accessTo';
 const String agentPred = 'agent';
+const String agentGroupPred = 'agentGroup';
 const String modePred = 'mode';
 const String agentClassPred = 'agentClass';
 // const String createdDateTimePred = 'createdDateTime';
@@ -75,6 +76,10 @@ const String agentClassPred = 'agentClass';
 // const String noteTitlePred = 'noteTitle';
 // const String encNoteContentPred = 'encNoteContent';
 // const String noteFileNamePrefix = 'note-';
+
+/// ACL file map strings
+const String permStr = 'permissions';
+const String agentStr = 'agentType';
 
 /// String terms used as values in ttl files.
 
@@ -99,6 +104,8 @@ const String rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
 const String terms = 'http://purl.org/dc/terms/';
 const String vcard = 'http://www.w3.org/2006/vcard/ns#';
 const String xsd = 'http://www.w3.org/2001/XMLSchema#';
+const String pubAgent = 'http://xmlns.com/foaf/0.1/Agent';
+const String authAgent = 'http://xmlns.com/foaf/0.1/AuthenticatedAgent';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String terms used as prfixes in turtle and acl files
