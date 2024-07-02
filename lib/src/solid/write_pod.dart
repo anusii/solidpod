@@ -30,13 +30,16 @@
 
 library;
 
-import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/material.dart' hide Key;
+
+import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart' show ResourceStatus;
+import 'package:solidpod/src/solid/utils/api_client.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -140,13 +143,36 @@ Future<void> writePod(
   }
 
   // Create file on server
-  await createResource(fileUrl, content: content, replaceIfExist: true);
+  await createResource(fileUrl, content: content);
 
   // Create the ACL file for the data file if necessary
 
   final aclFileUrl = '$fileUrl.acl';
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
-    await createResource(aclFileUrl,
-        content: await genAclTurtle(fileUrl), replaceIfExist: true);
+    await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
+}
+
+Future<void> uploadFile(File file) async {
+  final fileUrl = await getFileUrl(
+      [await getDataDirPath(), path.basename(file.path)].join('/'));
+
+  if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
+    throw Exception('$fileUrl already exists');
+  }
+
+  // Create a placeholder that will be overwritten
+
+  // await createResource(fileUrl, contentType: ResourceContentType.binary);
+  await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
+
+  // final stream = file.openRead();
+  await CssApiClient.pushBinaryData(fileUrl,
+      stream: file.openRead(), contentLength: await file.length());
+
+  // await createResource(fileUrl,
+  //     content: await file.readAsBytes(),
+  //     contentType: ResourceContentType.binary);
+
+  // await streamRequestStream(fileUrl, file.openRead());
 }

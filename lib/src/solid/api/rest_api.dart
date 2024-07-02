@@ -165,7 +165,7 @@ Future<List<dynamic>> initialStructureTest(
 Future<void> createResource(String resourceUrl,
     {String content = '',
     bool fileFlag = true,
-    bool replaceIfExist = false,
+    bool replaceIfExist = true,
     ResourceContentType contentType = ResourceContentType.turtleText}) async {
   // Sanity check
   if (fileFlag) {

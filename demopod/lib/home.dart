@@ -30,8 +30,11 @@
 
 library;
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'package:demopod/dialogs/about.dart';
@@ -52,6 +55,7 @@ import 'package:solidpod/solidpod.dart'
         logoutPopup,
         KeyManager,
         readPod,
+        uploadFile,
         changeKeyPopup;
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
@@ -280,6 +284,33 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           },
                         ),
                         smallGapV,
+                        ElevatedButton(
+                            child: const Text('Upload File'),
+                            onPressed: () async {
+                              final result =
+                                  await FilePicker.platform.pickFiles();
+
+                              if (result != null) {
+                                final file = File(result.files.single.path!);
+                                await uploadFile(file);
+                              } else {
+                                // User canceled the picker
+                                print('No file selected');
+                              }
+                            }),
+                        smallGapV,
+                        // ElevatedButton(
+                        //     child: const Text('Get File Header'),
+                        //     onPressed: () async {
+                        //       final fileUrl = await getFileUrl([
+                        //         await getDataDirPath(),
+                        //         'binary_data.bin'
+                        //       ].join('/'));
+                        //       final header = await getResourceHeader(fileUrl);
+                        //       print(header);
+                        //     }),
+                        // smallGapV,
+
                         // SolidPod API: deleteDataFile()
                         ElevatedButton(
                             onPressed: () async =>
