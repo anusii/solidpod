@@ -73,9 +73,11 @@ Future<void> revokePermission(String fileName, bool fileFlag,
     // If the file is encrypted then share the individual encryption key
     // with the receiver
     if (fileIsEncrypted) {
+      // Generate unique ID for the resource being shared
+      final resUniqueId = getUniqueIdResUrl(resourceUrl, removerWebId);
+
       // Delete shared key content from recipient's POD
-      final senderUniqueName = getUniqueStrWebId(await getWebId() as String);
-      await removeSharedKey(removerWebId, senderUniqueName, resourceName);
+      await removeSharedKey(removerWebId, resUniqueId);
     }
   }
 }

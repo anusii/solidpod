@@ -50,7 +50,7 @@ class _SolidPopupLoginState extends State<SolidPopupLogin> {
   // Login and initialise PODs if required
   Future<void> _loginAndInitPods(String webId, BuildContext context) async {
     await solidAuthenticate(webId, context);
-    await initPodsIfRequired(context);
+    if (context.mounted) await initPodsIfRequired(context);
   }
 
   @override

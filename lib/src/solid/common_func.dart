@@ -47,7 +47,7 @@ import 'package:solidpod/src/widgets/secret_input_form.dart';
 
 Future<void> loginIfRequired(BuildContext context) async {
   final loggedIn = await checkLoggedIn();
-  if (!loggedIn) {
+  if (!loggedIn && context.mounted) {
     await Navigator.push(
         context,
         MaterialPageRoute(
@@ -65,7 +65,7 @@ Future<void> initPodsIfRequired(BuildContext context) async {
   final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
   final allExists = resCheckList.first as bool;
 
-  if (!allExists) {
+  if (!allExists && context.mounted) {
     await Navigator.push(
       context,
       MaterialPageRoute(
@@ -118,12 +118,14 @@ Future<void> getKeyFromUserIfRequired(
         submitFunc: (formDataMap) async {
           await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
           debugPrint('Security key saved');
-          Navigator.pop(context);
+          if (context.mounted) Navigator.pop(context);
         },
         child: child);
 
-    await Navigator.push(
-        context, MaterialPageRoute(builder: (context) => securityKeyInput));
+    if (context.mounted) {
+      await Navigator.push(
+          context, MaterialPageRoute(builder: (context) => securityKeyInput));
+    }
 
     // await Navigator.push(
     //     context,
@@ -151,36 +153,40 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
 
   switch (status) {
     case ResourceStatus.exist:
-      await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-                title: const Text('Notice'),
-                content: Text('Delete data file "$fileName"?'),
-                actions: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      await deleteFile(filePath, contentType: contentType);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'Successfully deleted data file "$fileName".'),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
-                    },
-                    style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child: const Text('Delete',
-                        style: TextStyle(color: Colors.white)),
-                  ),
-                  smallGapH,
-                  ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel')),
-                ],
-              ));
+      if (context.mounted) {
+        await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+                  title: const Text('Notice'),
+                  content: Text('Delete data file "$fileName"?'),
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        await deleteFile(filePath, contentType: contentType);
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Successfully deleted data file "$fileName".'),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
+                      },
+                      style:
+                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      child: const Text('Delete',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    smallGapH,
+                    ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel')),
+                  ],
+                ));
+      }
       return;
 
     case ResourceStatus.notExist:
@@ -190,7 +196,7 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
       msg = 'Error occurred when checking the status of data file "$fileName".';
   }
 
-  await alert(context, msg);
+  if (context.mounted) await alert(context, msg);
 
   // await showDialog(
   //     context: context,

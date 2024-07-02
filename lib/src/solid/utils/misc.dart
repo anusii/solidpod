@@ -30,12 +30,15 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
+import 'package:crypto/crypto.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -110,6 +113,14 @@ String getUniqueStrWebId(String webId) {
   return uniqueStr;
 }
 
+/// Generate unique ID for the resource URL
+/// In order for the ID to be unique across all webIDs and no one can
+/// reverse engineer the resource being shared we also use receiver webId
+/// in the ID generation process
+String getUniqueIdResUrl(String resourceUrl, String receiverWebId) {
+  return sha256.convert(utf8.encode(resourceUrl + receiverWebId)).toString();
+}
+
 /// From a given resource path [resourcePath] create its URL
 /// [isContainer] should be true if the resource is a directory, otherwise false
 /// returns the full resource URL
@@ -168,12 +179,8 @@ Future<String> getSharedDirPath() async =>
     [await AppInfo.canonicalName, sharedDir].join('/');
 
 /// Returns the path of the shared directory
-Future<String> getSharedKeyFilePath(String senderName) async => [
-      await AppInfo.canonicalName,
-      sharedDir,
-      senderName,
-      sharedKeyFile
-    ].join('/');
+Future<String> getSharedKeyFilePath() async =>
+    [await AppInfo.canonicalName, sharedDir, sharedKeyFile].join('/');
 
 /// Returns the path of the encryption directory
 Future<String> getEncDirPath() async =>
@@ -284,20 +291,54 @@ String getResAclFile(String resourceUrl, [bool fileFlag = true]) {
 Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
   final filePermMap = <dynamic, dynamic>{};
   for (final accessStr in aclFileContentMap.keys) {
-    final permList = aclFileContentMap[accessStr]['mode'];
-    final receiverList = aclFileContentMap[accessStr]['agent'];
+    final permList = aclFileContentMap[accessStr][modePred];
+    //final receiverList = aclFileContentMap[accessStr]['agent'];
+    var receiverList = [];
+    var agentType = '';
 
-    for (final receiverWebId in receiverList as List) {
-      // filePermMap[receiverWebId] = permList;
+    if ((aclFileContentMap[accessStr] as Map).containsKey(agentPred)) {
+      receiverList = aclFileContentMap[accessStr][agentPred] as List;
+      agentType = agentPred;
+    } else if ((aclFileContentMap[accessStr] as Map)
+        .containsKey(agentClassPred)) {
+      receiverList = aclFileContentMap[accessStr][agentClassPred] as List;
+      agentType = agentClassPred;
+    } else if ((aclFileContentMap[accessStr] as Map)
+        .containsKey(agentGroupPred)) {
+      receiverList = aclFileContentMap[accessStr][agentGroupPred] as List;
+      agentType = agentGroupPred;
+    }
+
+    for (final receiverWebId in receiverList) {
       if (filePermMap.containsKey(receiverWebId)) {
-        filePermMap[receiverWebId] += permList;
+        filePermMap[receiverWebId][permStr] += permList;
+        filePermMap[receiverWebId][agentStr] = agentType;
       } else {
-        filePermMap[receiverWebId] = permList;
+        filePermMap[receiverWebId] = {permStr: permList, agentStr: agentType};
       }
     }
   }
 
   return filePermMap;
+}
+
+/// Get agent types as a human readable string
+String getAgentType(String agentType, String receiverUri) {
+  var agentTypeStr = '';
+
+  if (agentType == agentPred) {
+    agentTypeStr = 'Individual';
+  } else if (agentType == agentGroupPred) {
+    agentTypeStr = 'Group of users';
+  } else if (agentType == agentClassPred) {
+    if (receiverUri == pubAgent) {
+      agentTypeStr = 'Public';
+    } else if (receiverUri == authAgent) {
+      agentTypeStr = 'authenticated users';
+    }
+  }
+
+  return agentTypeStr;
 }
 
 /// Get resource name from URL
