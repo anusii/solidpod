@@ -46,7 +46,7 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 

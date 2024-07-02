@@ -38,7 +38,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Grant permission to [fileName] for a given [recipientWebId].

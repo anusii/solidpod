@@ -30,7 +30,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 
 /// Change key dialog widget
 @Deprecated('''

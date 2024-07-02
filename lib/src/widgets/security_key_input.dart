@@ -34,7 +34,7 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
-import 'package:solidpod/src/solid/utils/key_management.dart' show KeyManager;
+import 'package:solidpod/src/solid/utils/key_helper.dart' show KeyManager;
 
 /// A [StatefulWidget] for user to enter the security key for data
 /// encryption. It is verified and saved to local secure storage
