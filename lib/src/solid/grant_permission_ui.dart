@@ -72,6 +72,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// control permission checked flag
   bool controlChecked = false;
 
+  /// append permission checked flag
+  bool appendChecked = false;
+
   /// Form controller
   final formKey = GlobalKey<FormState>();
 
@@ -450,6 +453,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           controlAffinity: ListTileControlAffinity
                               .leading, //  <-- leading Checkbox
                         ),
+                        CheckboxListTile(
+                          title: const Text('Append'),
+                          value: appendChecked,
+                          onChanged: (newValue) {
+                            setState(() {
+                              appendChecked = newValue!;
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity
+                              .leading, //  <-- leading Checkbox
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: ElevatedButton(
@@ -458,7 +472,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               if (formKey.currentState!.validate()) {
                                 if (readChecked ||
                                     writeChecked ||
-                                    controlChecked) {
+                                    controlChecked ||
+                                    appendChecked) {
                                   final webId = formControllerWebId.text;
                                   final dataFile = formControllerFileName.text;
 
@@ -476,6 +491,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     }
                                     if (controlChecked) {
                                       permList.add('Control');
+                                    }
+                                    if (appendChecked) {
+                                      permList.add('Append');
                                     }
                                     assert(permList.isNotEmpty);
 
