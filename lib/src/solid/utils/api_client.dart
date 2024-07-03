@@ -26,6 +26,7 @@
 
 library;
 
+import 'dart:io';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -59,13 +60,14 @@ class CssApiClient {
     print('contentLength: $contentLength');
 
     // stream.listen(request.sink.add);
-    stream.listen((chunk) async {
+    stream.listen((chunk) {
       debugPrint('chunk size: ${chunk.length}');
       request.sink.add(chunk);
       sentSize += chunk.length;
       final percent = sentSize * 100.0 / contentLength;
       print('Progress: $percent%');
-      await Future.delayed(const Duration(seconds: 1));
+      // await Future.delayed(const Duration(seconds: 1));
+      sleep(Duration(seconds: 1));
       if (progressFunc != null) {
         progressFunc(sentSize * 1.0 / contentLength);
       }
@@ -100,6 +102,31 @@ class CssApiClient {
 
     final response = await _client.send(request);
     return response.stream.cast<List<int>>();
+  }
+
+  static Future<Map<String, String>> getResourceHeaders(String fileUrl) async {
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(fileUrl, 'HEAD');
+
+    final request = http.Request('HEAD', Uri.parse(fileUrl))
+      ..headers.addAll(
+        {
+          'Accept': '*/*',
+          'Authorization': 'DPoP $accessToken',
+          'Connection': 'keep-alive',
+          'DPoP': dPopToken,
+        },
+      );
+
+    final streamedResponse = await _client.send(request);
+    final response = await http.Response.fromStream(streamedResponse);
+
+    print(response.statusCode);
+    // print(response.headers);
+    // print(response.contentLength); // this is 0
+    print(response.headers['content-length']); // file size in bytes
+
+    return response.headers;
   }
 
   // void downloadByHttp(Uri url, File file) async {
