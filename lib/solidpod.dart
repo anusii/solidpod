@@ -48,7 +48,7 @@ export 'src/solid/utils/app_info.dart' show AppInfo;
 export 'src/solid/utils/key_helper.dart' show KeyManager;
 export 'src/solid/utils/misc.dart';
 export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
-export 'src/solid/read_pod.dart' show readPod;
+export 'src/solid/read_pod.dart' show readPod, downloadFile, getFileSize;
 export 'src/solid/write_pod.dart' show writePod, uploadFile;
 export 'src/widgets/logout_dialog.dart' show logoutPopup;
 export 'src/solid/grant_permission.dart' show grantPermission;
