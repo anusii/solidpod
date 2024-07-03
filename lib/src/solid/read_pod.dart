@@ -31,6 +31,7 @@
 library;
 
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart' hide Key;
 
@@ -39,6 +40,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/api_client.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -89,3 +91,34 @@ Future<dynamic> readPod(String filePath, BuildContext context, Widget child,
   debugPrint('Resource "$filePath" does not exist.');
   return null;
 }
+
+Future<void> downloadFile(String remoteFileName, File file) async {
+  final fileUrl =
+      await getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
+
+  if (await checkResourceStatus(fileUrl) == ResourceStatus.notExist) {
+    throw Exception('$fileUrl does not exist');
+  }
+
+  final sink = file.openWrite();
+  final stream = await CssApiClient.pullBinaryData(fileUrl);
+  final fileSize = await getFileSize(fileUrl);
+  var receivedSize = 0;
+
+  stream.listen((chunk) {
+    receivedSize += chunk.length;
+    sink.add(chunk);
+    debugPrint('${chunk.length}: ${receivedSize * 100.0 / fileSize}%');
+  }, onDone: () => unawaited(sink.close()));
+
+  debugPrint('File written to ${file.absolute}');
+
+  // await createResource(fileUrl,
+  //     content: await file.readAsBytes(),
+  //     contentType: ResourceContentType.binary);
+
+  // await streamRequestStream(fileUrl, file.openRead());
+}
+
+Future<int> getFileSize(String fileUrl) async => int.parse(
+    (await CssApiClient.getResourceHeaders(fileUrl))['content-length']!);
