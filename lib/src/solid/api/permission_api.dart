@@ -341,7 +341,7 @@ Future<void> addPermLogLine(
   const prefix1 = '$logIdPrefix <$appsLogId>';
   const prefix2 = '$dataPrefix <$appsData>';
   final insertQuery =
-      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {<$logIdPrefix$logEntryId> <${dataPrefix}log> "<$logEntryStr>"};';
+      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix$logEntryId ${dataPrefix}log "<$logEntryStr>"};';
 
   // Update the file using the insert query
   await updateFileByQuery(logFileUrl, insertQuery);
