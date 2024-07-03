@@ -56,6 +56,8 @@ import 'package:solidpod/solidpod.dart'
         KeyManager,
         readPod,
         uploadFile,
+        downloadFile,
+        getFileSize,
         changeKeyPopup;
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
@@ -246,6 +248,38 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ],
     );
 
+    final uploadButton = ElevatedButton(
+        child: const Text('Upload File'),
+        onPressed: () async {
+          final result = await FilePicker.platform.pickFiles();
+
+          if (result != null) {
+            final file = File(result.files.single.path!);
+            await uploadFile(file);
+          } else {
+            // User canceled the picker
+            print('No file selected');
+          }
+        });
+
+    final downloadButton = ElevatedButton(
+        child: const Text('Download Binary Data'),
+        onPressed: () async {
+          final localFile = 'binary_data.bin';
+          String? outputFile = await FilePicker.platform.saveFile(
+            dialogTitle: 'Please select an output file:',
+            fileName: localFile,
+          );
+
+          if (outputFile == null) {
+            // User canceled the picker
+            debugPrint('Cancelled');
+          } else {
+            final remoteFileName = localFile;
+            await downloadFile(remoteFileName, File(outputFile));
+          }
+        });
+
     // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
     // HERE.
 
@@ -284,20 +318,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           },
                         ),
                         smallGapV,
-                        ElevatedButton(
-                            child: const Text('Upload File'),
-                            onPressed: () async {
-                              final result =
-                                  await FilePicker.platform.pickFiles();
-
-                              if (result != null) {
-                                final file = File(result.files.single.path!);
-                                await uploadFile(file);
-                              } else {
-                                // User canceled the picker
-                                print('No file selected');
-                              }
-                            }),
+                        uploadButton,
+                        smallGapV,
+                        downloadButton,
                         smallGapV,
                         // ElevatedButton(
                         //     child: const Text('Get File Header'),
