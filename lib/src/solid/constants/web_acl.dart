@@ -93,28 +93,37 @@ enum Predicate {
 
 enum AccessMode {
   /// Read access
-  read('Read'),
+  read('Read', 'permission to read the content of the shared file'),
 
   /// Write access
-  write('Write'),
+  write('Write',
+      'permission to add/delete/modify content to/from the shared file'),
 
   /// Control access: read and write access to the ACL file
-  control('Control'),
+  control('Control',
+      'permission to alter the access permission to the shared file'),
 
   /// Append data (a type of write)
-  append('Append');
+  append('Append',
+      'permission to add content but not remove or modify content from the shared file');
 
   /// Constructor
-  const AccessMode(this._value);
+  const AccessMode(this._value, this._description);
 
   /// String value of the access type
   final String _value;
+
+  /// String value of the access type
+  final String _description;
 
   /// Return the URIRef
   URIRef get uriRef => URIRef('$acl$_value');
 
   /// Return the mode
   String get mode => _value;
+
+  /// Return the description of access mode
+  String get description => _description;
 }
 
 /// Two objects/values for predicate acl:agentClass
