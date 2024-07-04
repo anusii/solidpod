@@ -249,7 +249,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
 
     final uploadButton = ElevatedButton(
-        child: const Text('Upload File'),
+        child: const Text('Upload Binary Data'),
         onPressed: () async {
           final result = await FilePicker.platform.pickFiles();
 

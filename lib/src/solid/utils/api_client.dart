@@ -67,7 +67,7 @@ class CssApiClient {
       final percent = sentSize * 100.0 / contentLength;
       print('Progress: $percent%');
       // await Future.delayed(const Duration(seconds: 1));
-      sleep(Duration(seconds: 1));
+      sleep(const Duration(milliseconds: 10));
       if (progressFunc != null) {
         progressFunc(sentSize * 1.0 / contentLength);
       }
