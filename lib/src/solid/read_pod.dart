@@ -32,6 +32,7 @@ library;
 
 import 'dart:io';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart' hide Key;
 
@@ -93,6 +94,8 @@ Future<dynamic> readPod(String filePath, BuildContext context, Widget child,
 }
 
 Future<void> downloadFile(String remoteFileName, File file) async {
+  final t0 = DateTime.now();
+
   final fileUrl =
       await getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
 
@@ -101,17 +104,49 @@ Future<void> downloadFile(String remoteFileName, File file) async {
   }
 
   final sink = file.openWrite();
-  final stream = await CssApiClient.pullBinaryData(fileUrl);
+  // final stream = await CssApiClient.pullBinaryData(fileUrl);
   final fileSize = await getFileSize(fileUrl);
-  var receivedSize = 0;
+  // var receivedSize = 0;
 
-  stream.listen((chunk) {
-    receivedSize += chunk.length;
-    sink.add(chunk);
-    debugPrint('${chunk.length}: ${receivedSize * 100.0 / fileSize}%');
-  }, onDone: () => unawaited(sink.close()));
+  // stream.listen((chunk) {
+  //   receivedSize += chunk.length;
+  //   sink.add(chunk);
+  //   debugPrint('${chunk.length}: ${receivedSize * 100.0 / fileSize}%');
+  // }, onDone: () => unawaited(sink.close()));
+
+  debugPrint(
+      'Prepare downloading in ${DateTime.now().difference(t0).inSeconds} seconds.');
+
+  var start = 0;
+  var step = fileSize ~/ 100;
+  var end = step - 1;
+  while (end < fileSize) {
+    try {
+      final chunk = await CssApiClient.getDataChunk(fileUrl,
+          byteStart: start, byteEnd: end);
+      sink.add(chunk);
+      // await sink.flush();
+      print('${(end + 1) * 100 ~/ fileSize}%, $start -- $end');
+      start += step;
+      end += step;
+      end = end > fileSize - 1 ? fileSize - 1 : end;
+      if (start >= fileSize - 1) {
+        break;
+      }
+    } on Object catch (e) {
+      debugPrint('Failed to download file.\n'
+          'URL: $fileUrl\n'
+          'ERR: $e');
+      await sink.flush();
+      await sink.close();
+    }
+  }
+  await sink.flush();
+  await sink.close();
 
   debugPrint('File written to ${file.absolute}');
+  debugPrint(
+      'File downloaded in ${DateTime.now().difference(t0).inSeconds} seconds.');
 
   // await createResource(fileUrl,
   //     content: await file.readAsBytes(),
