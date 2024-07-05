@@ -41,7 +41,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/utils/api_client.dart';
+import 'package:solidpod/src/solid/utils/css_client.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -99,6 +99,49 @@ Future<void> downloadFile(String remoteFileName, File file) async {
   final fileUrl =
       await getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
 
+  final t1 = DateTime.now();
+  print('getFileUrl: ${t1.difference(t0).inSeconds} seconds');
+
+  // if (await checkResourceStatus(fileUrl) == ResourceStatus.notExist) {
+  //   throw Exception('$fileUrl does not exist');
+  // }
+
+  // final t2 = DateTime.now();
+  // print('Check resource status: ${t2.difference(t1).inSeconds} seconds');
+
+  final sink = file.openWrite();
+
+  // final t3 = DateTime.now();
+  // print('file.openWrite: ${t3.difference(t2).inSeconds} seconds');
+
+  // final stream = await CSSClient.streamDown(fileUrl);
+  final stream = await CSSClient.pullBinaryData(fileUrl);
+
+  // final t4 = DateTime.now();
+  // print('Call download stream: ${t4.difference(t3).inSeconds} seconds');
+
+  stream.listen(sink.add, onDone: () async {
+    print('in onDone()');
+    //   await sink.flush();
+    unawaited(sink.close());
+    print('Streaming: ${DateTime.now().difference(t0).inSeconds} seconds');
+  });
+
+  // print('before cancel');
+  // await subscription.cancel();
+  // print('after cancel');
+  // await sink.flush();
+  // print('after flush');
+  // await sink.close();
+  // print('after close');
+}
+
+Future<void> downloadFile0(String remoteFileName, File file) async {
+  final t0 = DateTime.now();
+
+  final fileUrl =
+      await getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
+
   if (await checkResourceStatus(fileUrl) == ResourceStatus.notExist) {
     throw Exception('$fileUrl does not exist');
   }
@@ -122,8 +165,8 @@ Future<void> downloadFile(String remoteFileName, File file) async {
   var end = step - 1;
   while (end < fileSize) {
     try {
-      final chunk = await CssApiClient.getDataChunk(fileUrl,
-          byteStart: start, byteEnd: end);
+      final chunk =
+          await CSSClient.getDataChunk(fileUrl, byteStart: start, byteEnd: end);
       sink.add(chunk);
       // await sink.flush();
       print('${(end + 1) * 100 ~/ fileSize}%, $start -- $end');
@@ -155,5 +198,5 @@ Future<void> downloadFile(String remoteFileName, File file) async {
   // await streamRequestStream(fileUrl, file.openRead());
 }
 
-Future<int> getFileSize(String fileUrl) async => int.parse(
-    (await CssApiClient.getResourceHeaders(fileUrl))['content-length']!);
+Future<int> getFileSize(String fileUrl) async =>
+    int.parse((await CSSClient.getResourceHeaders(fileUrl))['content-length']!);

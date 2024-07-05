@@ -39,7 +39,7 @@ import 'package:path/path.dart' as path;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart' show ResourceStatus;
-import 'package:solidpod/src/solid/utils/api_client.dart';
+import 'package:solidpod/src/solid/utils/css_client.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -166,9 +166,11 @@ Future<void> uploadFile(File file) async {
   // await createResource(fileUrl, contentType: ResourceContentType.binary);
   await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
 
+  await CSSClient.streamUp(fileUrl, file);
+
   // final stream = file.openRead();
-  await CssApiClient.pushBinaryData(fileUrl,
-      stream: file.openRead(), contentLength: await file.length());
+  // await CssApiClient.pushBinaryData(fileUrl,
+  //     stream: file.openRead(), contentLength: await file.length());
 
   // await createResource(fileUrl,
   //     content: await file.readAsBytes(),

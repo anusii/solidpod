@@ -31,14 +31,66 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:dio/dio.dart';
 
 import 'package:http/http.dart' as http;
 
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 
-class CssApiClient {
-  static final _client = http.Client();
+class CSSClient {
+  static http.Client? _client;
+  static Dio? _dio;
+
+  static Future<void> streamUp(String fileUrl, File file) async {
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(fileUrl, 'PUT');
+    _dio ??= Dio();
+    final response = await _dio!.put(
+      fileUrl,
+      data: file.openRead(),
+      options: Options(headers: {
+        'Accept': '*/*',
+        'Authorization': 'DPoP $accessToken',
+        'Connection': 'keep-alive',
+        'Content-Type': ResourceContentType.binary.value,
+        'Content-Length': '${await file.length()}',
+        'DPoP': dPopToken,
+      }),
+      onSendProgress: (int sent, int total) {
+        debugPrint('Sent: $sent / $total (${sent * 100 ~/ total}%)');
+      },
+    );
+
+    debugPrint('Response status: ${response.statusCode}');
+  }
+
+  static Future<Stream<Uint8List>> streamDown(String fileUrl) async {
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(fileUrl, 'GET');
+    _dio ??= Dio();
+    var q = 0;
+    final response = await _dio!.get(fileUrl,
+        options: Options(responseType: ResponseType.stream, headers: {
+          'Accept': '*/*',
+          'Authorization': 'DPoP $accessToken',
+          'Connection': 'keep-alive',
+          'Content-Type': ResourceContentType.binary.value,
+          'DPoP': dPopToken,
+        }), onReceiveProgress: (int count, int total) {
+      final percent = count * 100 ~/ total;
+      if (percent / 10 == q) {
+        q += 1;
+        debugPrint('Received: $count / $total ($percent %)');
+      }
+    });
+
+    final stream = response.data.stream;
+    print(stream.runtimeType);
+    _dio!.close();
+
+    return stream as Stream<Uint8List>;
+  }
 
   static Future<void> pushBinaryData(String fileUrl,
       {required Stream<List<int>> stream,
@@ -78,7 +130,7 @@ class CssApiClient {
 
     // final response = await request.send().then(http.Response.fromStream);
     // final response = await _client.send(request).then(http.Response.fromStream);
-    final response = await _client.send(request);
+    final response = await _client!.send(request);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('Failed to send data!'
@@ -127,7 +179,7 @@ class CssApiClient {
         'DPoP': dPopToken,
       });
 
-    final response = await _client.send(request);
+    final response = await _client!.send(request);
     return response.stream.cast<List<int>>();
   }
 
@@ -145,7 +197,7 @@ class CssApiClient {
         },
       );
 
-    final streamedResponse = await _client.send(request);
+    final streamedResponse = await _client!.send(request);
     final response = await http.Response.fromStream(streamedResponse);
 
     print(response.statusCode);
