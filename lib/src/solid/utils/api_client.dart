@@ -28,6 +28,7 @@ library;
 
 import 'dart:io';
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 
@@ -83,6 +84,32 @@ class CssApiClient {
       throw Exception('Failed to send data!'
           '\nURL: $fileUrl'
           '\nERROR: ${response.headers}');
+    }
+  }
+
+  static Future<Uint8List> getDataChunk(String fileUrl,
+      {int byteStart = 0, int? byteEnd}) async {
+    const httpMethod = 'GET';
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(fileUrl, httpMethod);
+
+    final response = await http.get(Uri.parse(fileUrl), headers: {
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': ResourceContentType.binary.value,
+      'Range': 'bytes=$byteStart-${byteEnd ?? ""}',
+      'DPoP': dPopToken,
+    });
+
+    // final response = await _client.send(request);
+    // return response.stream.cast<List<int>>();
+    // print(response.statusCode);
+    if ([200, 206].contains(response.statusCode)) {
+      return response.bodyBytes;
+    } else {
+      throw Exception(
+          'Failed to get data chunk (bytes: $byteStart-${byteEnd ?? 'END'})');
     }
   }
 
