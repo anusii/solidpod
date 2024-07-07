@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -695,7 +696,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         smallGapV,
                         subHeading('Select the list of permissions'),
                         CheckboxListTile(
-                          title: const Text('Read'),
+                          title: Text(
+                              '${AccessMode.read.mode} (${AccessMode.read.description})'),
                           value: readChecked,
                           onChanged: (newValue) {
                             setState(() {
@@ -706,7 +708,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               .leading, //  <-- leading Checkbox
                         ),
                         CheckboxListTile(
-                          title: const Text('Write'),
+                          title: Text(
+                              '${AccessMode.write.mode} (${AccessMode.write.description})'),
                           value: writeChecked,
                           onChanged: (newValue) {
                             setState(() {
@@ -717,7 +720,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               .leading, //  <-- leading Checkbox
                         ),
                         CheckboxListTile(
-                          title: const Text('Control'),
+                          title: Text(
+                              '${AccessMode.control.mode} (${AccessMode.control.description})'),
                           value: controlChecked,
                           onChanged: (newValue) {
                             setState(() {
@@ -728,7 +732,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               .leading, //  <-- leading Checkbox
                         ),
                         CheckboxListTile(
-                          title: const Text('Append'),
+                          title: Text(
+                              '${AccessMode.append.mode} (${AccessMode.append.description})'),
                           value: appendChecked,
                           onChanged: (newValue) {
                             setState(() {
