@@ -184,7 +184,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         return AlertDialog(
                           title: const Text('Please Confirm'),
                           content: Text(
-                              'Are you sure you want to remove the [${(permDataMap[index] as List).join(', ')}] permission/s from $index?'),
+                              'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from $index?'),
                           actions: [
                             // The "Yes" button
                             TextButton(
@@ -192,6 +192,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   await revokePermission(
                                       permDataFile,
                                       true,
+                                      permDataMap[index][permStr] as List,
                                       index,
                                       context,
                                       GrantPermissionUi(
