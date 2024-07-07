@@ -42,12 +42,13 @@ import 'package:solidpod/src/solid/utils/key_management.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/api/permission_api.dart';
 
-/// Grant permission to [fileName] for a given [recipientWebId].
+/// Grant permission to [fileName] for a given [recipientWebIdList].
 /// Parameters:
 ///   [fileName] is the name of the file providing permission to
 ///   [fileFlag] is the flag to identify if the resources is a file or not
 ///   [permissionList] is the list of permission to be granted
-///   [recipientWebId] is the webId of the permission receiver
+///   [recipientType] is the type of the recipient
+///   [recipientWebIdList] is the list of webIds of the permission receivers
 ///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
 ///   [child] is the child widget to return to
 
@@ -55,7 +56,8 @@ Future<void> grantPermission(
     String fileName,
     bool fileFlag,
     List<dynamic> permissionList,
-    String recipientWebId,
+    String recipientType,
+    List<dynamic> recipientWebIdList,
     bool isFileEncrypted,
     BuildContext context,
     Widget child) async {
