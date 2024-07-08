@@ -115,7 +115,7 @@ Future<void> downloadFile(String remoteFileName, File file) async {
   // print('file.openWrite: ${t3.difference(t2).inSeconds} seconds');
 
   // final stream = await CSSClient.streamDown(fileUrl);
-  final stream = await CSSClient.pullBinaryData(fileUrl);
+  final stream = await CSSClient.streamDown(fileUrl);
 
   // final t4 = DateTime.now();
   // print('Call download stream: ${t4.difference(t3).inSeconds} seconds');
