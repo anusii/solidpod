@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -71,6 +72,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// control permission checked flag
   bool controlChecked = false;
+
+  /// append permission checked flag
+  bool appendChecked = false;
 
   /// Form controller
   final formKey = GlobalKey<FormState>();
@@ -181,7 +185,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         return AlertDialog(
                           title: const Text('Please Confirm'),
                           content: Text(
-                              'Are you sure you want to remove the [${(permDataMap[index] as List).join(', ')}] permission/s from $index?'),
+                              'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from $index?'),
                           actions: [
                             // The "Yes" button
                             TextButton(
@@ -189,6 +193,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   await revokePermission(
                                       permDataFile,
                                       true,
+                                      permDataMap[index][permStr] as List,
                                       index,
                                       context,
                                       GrantPermissionUi(
@@ -418,7 +423,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         // ),
                         smallGapH,
                         CheckboxListTile(
-                          title: const Text('Read'),
+                          title: Text(
+                              '${AccessMode.read.mode} (${AccessMode.read.description})'),
                           value: readChecked,
                           onChanged: (newValue) {
                             setState(() {
@@ -429,7 +435,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               .leading, //  <-- leading Checkbox
                         ),
                         CheckboxListTile(
-                          title: const Text('Write'),
+                          title: Text(
+                              '${AccessMode.write.mode} (${AccessMode.write.description})'),
                           value: writeChecked,
                           onChanged: (newValue) {
                             setState(() {
@@ -440,11 +447,24 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               .leading, //  <-- leading Checkbox
                         ),
                         CheckboxListTile(
-                          title: const Text('Control'),
+                          title: Text(
+                              '${AccessMode.control.mode} (${AccessMode.control.description})'),
                           value: controlChecked,
                           onChanged: (newValue) {
                             setState(() {
                               controlChecked = newValue!;
+                            });
+                          },
+                          controlAffinity: ListTileControlAffinity
+                              .leading, //  <-- leading Checkbox
+                        ),
+                        CheckboxListTile(
+                          title: Text(
+                              '${AccessMode.append.mode} (${AccessMode.append.description})'),
+                          value: appendChecked,
+                          onChanged: (newValue) {
+                            setState(() {
+                              appendChecked = newValue!;
                             });
                           },
                           controlAffinity: ListTileControlAffinity
@@ -458,7 +478,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               if (formKey.currentState!.validate()) {
                                 if (readChecked ||
                                     writeChecked ||
-                                    controlChecked) {
+                                    controlChecked ||
+                                    appendChecked) {
                                   final webId = formControllerWebId.text;
                                   final dataFile = formControllerFileName.text;
 
@@ -476,6 +497,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     }
                                     if (controlChecked) {
                                       permList.add('Control');
+                                    }
+                                    if (appendChecked) {
+                                      permList.add('Append');
                                     }
                                     assert(permList.isNotEmpty);
 

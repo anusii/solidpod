@@ -125,8 +125,15 @@ String getUniqueIdResUrl(String resourceUrl, String receiverWebId) {
 /// [isContainer] should be true if the resource is a directory, otherwise false
 /// returns the full resource URL
 
-Future<String> _getResourceUrl(String resourcePath, bool isContainer) async {
-  final webId = await AuthDataManager.getWebId();
+Future<String> _getResourceUrl(String resourcePath, bool isContainer,
+    [String? extWebId]) async {
+  String? webId = '';
+  // Check if resource url is needed for an external webId
+  if (extWebId != null) {
+    webId = extWebId;
+  } else {
+    webId = await AuthDataManager.getWebId();
+  }
   assert(webId != null);
   assert(webId!.contains(profCard));
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
@@ -138,12 +145,16 @@ Future<String> _getResourceUrl(String resourcePath, bool isContainer) async {
 }
 
 /// Create the URL for a file
-Future<String> getFileUrl(String filePath) async =>
-    _getResourceUrl(filePath, false);
+Future<String> getFileUrl(String filePath, [String? extWebId]) async =>
+    (extWebId == null)
+        ? await _getResourceUrl(filePath, false)
+        : await _getResourceUrl(filePath, false, extWebId);
 
 /// Create the URL for a directory (container)
-Future<String> getDirUrl(String dirPath) async =>
-    _getResourceUrl(dirPath, true);
+Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
+    (extWebId == null)
+        ? await _getResourceUrl(dirPath, true)
+        : await _getResourceUrl(dirPath, true, extWebId);
 
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
@@ -185,6 +196,10 @@ Future<String> getSharedKeyFilePath() async =>
 /// Returns the path of the encryption directory
 Future<String> getEncDirPath() async =>
     [await AppInfo.canonicalName, encDir].join('/');
+
+/// Returns the path of the encryption directory
+Future<String> getPermLogFilePath() async =>
+    [await AppInfo.canonicalName, logsDir, permLogFile].join('/');
 
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)

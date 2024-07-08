@@ -37,7 +37,9 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/api/permission_api.dart';
 
 /// Revoke permissions from [fileName] for a given [removerWebId].
 /// Parameters:
@@ -46,8 +48,13 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 ///   [removerWebId] is the webId of the permission remover
 ///   [child] is the child widget to return to
 
-Future<void> revokePermission(String fileName, bool fileFlag,
-    String removerWebId, BuildContext context, Widget child) async {
+Future<void> revokePermission(
+    String fileName,
+    bool fileFlag,
+    List<dynamic> permissionList,
+    String removerWebId,
+    BuildContext context,
+    Widget child) async {
   await loginIfRequired(context);
 
   await getKeyFromUserIfRequired(context, child);
@@ -79,5 +86,28 @@ Future<void> revokePermission(String fileName, bool fileFlag,
       // Delete shared key content from recipient's POD
       await removeSharedKey(removerWebId, resUniqueId);
     }
+
+    // Add log entry to owner, granter, and receiver permission log files
+    // av20240703: At this instance the owner and the granter are the same
+    //             At some point we might need to change this function so that
+    //             it can be used in the instances where owner is different from
+    //             the granter
+
+    // Get user webID
+    final userWebId = await AuthDataManager.getWebId() as String;
+
+    final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
+        userWebId, 'revoke', userWebId, removerWebId);
+
+    // Log file urls of the owner, granter, and receiver
+    final logFilePath = await getPermLogFilePath();
+    final ownerLogFileUrl = await getFileUrl(logFilePath);
+    final receiverLogFileUrl = await getFileUrl(logFilePath, removerWebId);
+
+    // Run log entry insert queries
+    await addPermLogLine(
+        ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+    await addPermLogLine(
+        receiverLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
   }
 }

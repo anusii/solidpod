@@ -2,13 +2,13 @@
 
 Recorded here are the high level changes for the SolidPod package.
 
-Instructions: Add the updates beyond, for example, 0.5.0 under the 0.6
-heading, adding to the top of the list, and recording minor version
-numbers.
+Guide: Each version update is recorded here with a short user-oriented
+description of the update. Updates in the 0.5.n series are heading
+toward a 0.6 release.
 
 ## 0.6 Future Release
 
-+ Deploy an example /demo app [0.5.38]
++ Deploy an example/demo app [0.5.38 20240630]
 + Create ACL file in writePod() if not exist. [0.5.37]
 + Catch any non-null objects thrown in exception handling. [0.5.36] 
 + Add read and grant permissions backend and UI. [0.5.35]

@@ -47,18 +47,19 @@ import 'package:demopod/utils/rdf.dart';
 import 'package:solidpod/solidpod.dart'
     show
         AppInfo,
+        GrantPermissionUi,
+        KeyManager,
+        changeKeyPopup,
         deleteDataFile,
         deleteLogIn,
-        getEncKeyPath,
         getDataDirPath,
+        getEncKeyPath,
         getWebId,
         logoutPopup,
-        KeyManager,
-        readPod,
         uploadFile,
         downloadFile,
         getFileSize,
-        changeKeyPopup;
+        readPod;
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -491,6 +492,33 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             },
                             child:
                                 const Text('Logout From Remote Solid Server')),
+                        largeGapV,
+                        const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Resource Permission Management',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          child: const Text(
+                              'Add/Delete Permissions from Resources'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const GrantPermissionUi(
+                                backgroundColor: titleBackgroundColor,
+                                child: Home(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        smallGapV,
                       ],
                     ),
                   ),

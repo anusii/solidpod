@@ -192,7 +192,7 @@ String genPubKeyFileBody(String resUrl, String pubKeyStr) {
 
 String genLogFileBody() {
   const logFileBody =
-      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix terms: <$terms>.\n@prefix logid: <$appsLogId>.\n@prefix appsTerms: <$appsTerms>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Permissions Log".';
+      '@prefix : <#>.\n@prefix foaf: <$foaf>.\n@prefix terms: <$terms>.\n@prefix logId: <$appsLogId>.\n@prefix data: <$appsData>.\n@prefix appsTerms: <$appsTerms>.\n:me\n    a foaf:PersonalProfileDocument;\n    terms:title "Permissions Log".';
 
   return logFileBody;
 }

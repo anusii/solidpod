@@ -40,6 +40,7 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/api/permission_api.dart';
 
 /// Grant permission to [fileName] for a given [recipientWebId].
 /// Parameters:
@@ -109,5 +110,24 @@ Future<void> grantPermission(
       await copySharedKey(recipientWebId, resUniqueId, sharedIndKey,
           sharedResPath, sharedAccessList);
     }
+
+    // Add log entry to owner, granter, and receiver permission log files
+    // av20240703: At this instance the owner and the granter are the same
+    //             At some point we might need to change this function so that
+    //             it can be used in the instances where owner is different from
+    //             the granter
+    final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
+        userWebId, 'grant', userWebId, recipientWebId);
+
+    // Log file urls of the owner, granter, and receiver
+    final logFilePath = await getPermLogFilePath();
+    final ownerLogFileUrl = await getFileUrl(logFilePath);
+    final receiverLogFileUrl = await getFileUrl(logFilePath, recipientWebId);
+
+    // Run log entry insert queries
+    await addPermLogLine(
+        ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+    await addPermLogLine(
+        receiverLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
   }
 }
