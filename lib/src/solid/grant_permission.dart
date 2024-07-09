@@ -75,61 +75,64 @@ Future<void> grantPermission(
   final resStatus = await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
   if (resStatus == ResourceStatus.exist) {
-    // Get user webID
-    final userWebId = await AuthDataManager.getWebId() as String;
+    String recipientWebId = '';
 
     // Add the permission line to the relevant ACL file
     await setPermissionAcl(
-        resourceUrl, userWebId, recipientWebId, permissionList);
+        resourceUrl, recipientType, recipientWebIdList, permissionList);
 
-    // Check if the file is encrypted
-    final fileIsEncrypted = await checkFileEnc(resourceUrl);
+    // // Check if the file is encrypted
+    // final fileIsEncrypted = await checkFileEnc(resourceUrl);
 
-    // If the file is encrypted then share the individual encryption key
-    // with the receiver
-    if (fileIsEncrypted) {
-      // Get the individual security key for the file
-      final indKey = await KeyManager.getIndividualKey(resourceUrl);
+    // // If the file is encrypted then share the individual encryption key
+    // // with the receiver
+    // if (fileIsEncrypted) {
+    //   // Get the individual security key for the file
+    //   final indKey = await KeyManager.getIndividualKey(resourceUrl);
 
-      // Setup recipient's public key
-      final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
+    //   // Setup recipient's public key
+    //   final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
 
-      // Encrypt individual key
-      final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
+    //   // Encrypt individual key
+    //   final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
 
-      // Encrypt resource URL
-      final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
+    //   // Encrypt resource URL
+    //   final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
 
-      // Encrypt the list of permissions
-      permissionList.sort();
-      final sharedAccessList =
-          await recipientPubKey.encryptData(permissionList.join(','));
+    //   // Encrypt the list of permissions
+    //   permissionList.sort();
+    //   final sharedAccessList =
+    //       await recipientPubKey.encryptData(permissionList.join(','));
 
-      // Generate unique ID for the resource being shared
-      final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
+    //   // Generate unique ID for the resource being shared
+    //   final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
 
-      // Copy shared content to recipient's POD
-      await copySharedKey(recipientWebId, resUniqueId, sharedIndKey,
-          sharedResPath, sharedAccessList);
-    }
+    //   // Copy shared content to recipient's POD
+    //   await copySharedKey(recipientWebId, resUniqueId, sharedIndKey,
+    //       sharedResPath, sharedAccessList);
+    // }
 
-    // Add log entry to owner, granter, and receiver permission log files
-    // av20240703: At this instance the owner and the granter are the same
-    //             At some point we might need to change this function so that
-    //             it can be used in the instances where owner is different from
-    //             the granter
-    final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
-        userWebId, 'grant', userWebId, recipientWebId);
+    // // Add log entry to owner, granter, and receiver permission log files
+    // // av20240703: At this instance the owner and the granter are the same
+    // //             At some point we might need to change this function so that
+    // //             it can be used in the instances where owner is different from
+    // //             the granter
 
-    // Log file urls of the owner, granter, and receiver
-    final logFilePath = await getPermLogFilePath();
-    final ownerLogFileUrl = await getFileUrl(logFilePath);
-    final receiverLogFileUrl = await getFileUrl(logFilePath, recipientWebId);
+    // // Get user webID
+    // final userWebId = await AuthDataManager.getWebId() as String;
 
-    // Run log entry insert queries
-    await addPermLogLine(
-        ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
-    await addPermLogLine(
-        receiverLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+    // final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
+    //     userWebId, 'grant', userWebId, recipientWebId);
+
+    // // Log file urls of the owner, granter, and receiver
+    // final logFilePath = await getPermLogFilePath();
+    // final ownerLogFileUrl = await getFileUrl(logFilePath);
+    // final receiverLogFileUrl = await getFileUrl(logFilePath, recipientWebId);
+
+    // // Run log entry insert queries
+    // await addPermLogLine(
+    //     ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+    // await addPermLogLine(
+    //     receiverLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
   }
 }

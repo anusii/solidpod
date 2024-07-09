@@ -307,29 +307,36 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
   final filePermMap = <dynamic, dynamic>{};
   for (final accessStr in aclFileContentMap.keys) {
     final permList = aclFileContentMap[accessStr][modePred];
-    //final receiverList = aclFileContentMap[accessStr]['agent'];
-    var receiverList = [];
-    var agentType = '';
+    final receiverMap = {};
 
     if ((aclFileContentMap[accessStr] as Map).containsKey(agentPred)) {
-      receiverList = aclFileContentMap[accessStr][agentPred] as List;
-      agentType = agentPred;
-    } else if ((aclFileContentMap[accessStr] as Map)
-        .containsKey(agentClassPred)) {
-      receiverList = aclFileContentMap[accessStr][agentClassPred] as List;
-      agentType = agentClassPred;
-    } else if ((aclFileContentMap[accessStr] as Map)
-        .containsKey(agentGroupPred)) {
-      receiverList = aclFileContentMap[accessStr][agentGroupPred] as List;
-      agentType = agentGroupPred;
+      for (final receiverId
+          in aclFileContentMap[accessStr][agentPred] as List) {
+        receiverMap[receiverId] = agentPred;
+      }
+    }
+    if ((aclFileContentMap[accessStr] as Map).containsKey(agentClassPred)) {
+      for (final receiverId
+          in aclFileContentMap[accessStr][agentClassPred] as List) {
+        receiverMap[receiverId] = agentClassPred;
+      }
+    }
+    if ((aclFileContentMap[accessStr] as Map).containsKey(agentGroupPred)) {
+      for (final receiverId
+          in aclFileContentMap[accessStr][agentGroupPred] as List) {
+        receiverMap[receiverId] = agentGroupPred;
+      }
     }
 
-    for (final receiverWebId in receiverList) {
-      if (filePermMap.containsKey(receiverWebId)) {
-        filePermMap[receiverWebId][permStr] += permList;
-        filePermMap[receiverWebId][agentStr] = agentType;
+    for (final receiverId in receiverMap.keys) {
+      if (filePermMap.containsKey(receiverId)) {
+        filePermMap[receiverId][permStr] += permList;
+        filePermMap[receiverId][agentStr] = receiverMap[receiverId];
       } else {
-        filePermMap[receiverWebId] = {permStr: permList, agentStr: agentType};
+        filePermMap[receiverId] = {
+          permStr: permList,
+          agentStr: receiverMap[receiverId]
+        };
       }
     }
   }

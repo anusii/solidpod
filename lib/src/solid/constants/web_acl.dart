@@ -126,6 +126,45 @@ enum AccessMode {
   String get description => _description;
 }
 
+/// Return access mode based on a given String value
+AccessMode setAccessMode(String mode) {
+  switch (mode.toLowerCase()) {
+    case 'read':
+      return AccessMode.read;
+    case 'write':
+      return AccessMode.write;
+    case 'control':
+      return AccessMode.control;
+    default:
+      return AccessMode.append;
+  }
+}
+
+/// Type of access recipient to a resource
+
+enum RecipientType {
+  /// Public
+  public('Public'),
+
+  /// Authenticated users
+  authUser('Authenticated Users'),
+
+  /// Individual WebID
+  individual('Individual'),
+
+  /// Group of WebIDs
+  group('Group');
+
+  /// Constructor
+  const RecipientType(this._value);
+
+  /// String value of the recipient type
+  final String _value;
+
+  /// Return type
+  String get type => _value;
+}
+
 /// Two objects/values for predicate acl:agentClass
 /// foaf:Agent for public access
 /// acl:AutenticatedAgent for allowing access by authenticated agents

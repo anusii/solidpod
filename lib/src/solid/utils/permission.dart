@@ -27,10 +27,13 @@
 library;
 
 import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
+import 'package:solidpod/src/solid/api/rest_api.dart';
 
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
+import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart'
+    show parseACL, tripleMapToTurtle;
 
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTurtle(
@@ -42,6 +45,7 @@ Future<String> genAclTurtle(
     AccessMode.control,
   },
   Set<AccessMode>? publicAccess,
+  Set<AccessMode>? authUserAccess,
   Map<String, Set<AccessMode>>? thirdPartyAccess,
 }) async {
   // The resource should not be an ACL file
@@ -62,20 +66,46 @@ Future<String> genAclTurtle(
       for (final entry in thirdPartyAccess.entries)
         URIRef(entry.key): entry.value
     },
+    if (publicAccess != null && publicAccess.isNotEmpty) ...{
+      publicAgent: publicAccess,
+    },
+    if (authUserAccess != null && authUserAccess.isNotEmpty) ...{
+      authenticatedAgent: authUserAccess,
+    },
   });
 
-  final triples = {
-    for (final entry in accessMap.entries)
-      if (entry.value.isNotEmpty)
-        thisFile.ns.withAttr(entry.key.mode): {
-          Predicate.aclRdfType.uriRef: aclAuthorization,
-          Predicate.accessTo.uriRef: r,
-          Predicate.agent.uriRef: entry.value,
-          if (publicAccess != null && publicAccess.contains(entry.key))
-            Predicate.agentClass.uriRef: publicAgent,
-          Predicate.aclMode.uriRef: entry.key.uriRef,
+  // Create acl triples
+  final triples = <URIRef, Map<URIRef, dynamic>>{};
+  for (final entry in accessMap.entries) {
+    if (entry.value.isNotEmpty) {
+      var agentClassAccess = false;
+      final agentClassSet = <URIRef>{};
+
+      if (entry.value.contains(publicAgent)) {
+        agentClassAccess = true;
+        agentClassSet.add(publicAgent);
+        entry.value.remove(publicAgent);
+      }
+
+      if (entry.value.contains(authenticatedAgent)) {
+        agentClassAccess = true;
+        agentClassSet.add(authenticatedAgent);
+        entry.value.remove(authenticatedAgent);
+      }
+
+      triples[thisFile.ns.withAttr(entry.key.mode)] = {
+        Predicate.aclRdfType.uriRef: aclAuthorization,
+        Predicate.accessTo.uriRef: r,
+        if (agentClassAccess) ...{
+          Predicate.agentClass.uriRef: agentClassSet,
         },
-  };
+        if (entry.value.isNotEmpty) ...{
+          Predicate.agent.uriRef: entry.value,
+        },
+        Predicate.aclMode.uriRef: entry.key.uriRef,
+      };
+    }
+  }
 
   // Bind namespaces
 
@@ -121,4 +151,16 @@ Map<AccessMode, Set<URIRef>> getAccessMap(
   }
 
   return accessMap;
+}
+
+/// Retrieves the permission details of a file from the respective ACL file.
+///
+/// Returns a Future that completes with a Map containing the permission data.
+/// The Map structure is defined by the REST API response.
+Future<Map<dynamic, dynamic>> readAcl(String resourceUrl,
+    [bool fileFlag = true]) async {
+  final resourceAclUrl = getResAclFile(resourceUrl, fileFlag);
+
+  final aclContent = await fetchPrvFile(resourceAclUrl);
+  return parseACL(aclContent);
 }

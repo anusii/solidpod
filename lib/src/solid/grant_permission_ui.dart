@@ -35,6 +35,7 @@ import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// A widget for the demonstration screen of the application.
@@ -175,7 +176,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     await checkResourceStatus(receiverWebId) ==
                         ResourceStatus.exist) {
                   setState(() {
-                    selectedRecipient = 'individual';
+                    selectedRecipient = RecipientType.individual.type;
                     selectedRecipientDetails = receiverWebId;
                     finalWebIdList = [receiverWebId];
                   });
@@ -247,7 +248,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                   if (trueWebIdsFlag) {
                     setState(() {
-                      selectedRecipient = 'group';
+                      selectedRecipient = RecipientType.group.type;
                       selectedRecipientDetails =
                           '$groupName with WebIDs $groupWebIds';
                       finalWebIdList = webIdList;
@@ -415,20 +416,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     const smallGapH = SizedBox(width: 10.0);
 
-    final welcomeHeading = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          widget.fileName != null
-              ? 'Share ${widget.fileName} file with other PODs'
-              : 'Share your data files with other PODs',
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
+    final welcomeHeadingStr = widget.fileName != null
+        ? 'Share ${widget.fileName} file with other PODs'
+        : 'Share your data files with other PODs';
 
     return Scaffold(
       appBar: AppBar(
@@ -452,7 +442,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
                   children: [
-                    welcomeHeading,
+                    buildHeading(welcomeHeadingStr, 22),
                     smallGapV,
                     Column(
                       mainAxisSize: MainAxisSize.min,
@@ -499,20 +489,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                         ],
                         largeGapV,
-                        subHeading('Select the permission recipient'),
-                        // CheckboxListTile(
-                        //   title: const Text('Public'),
-                        //   value: publicChecked,
-                        //   onChanged: (newValue) {
-                        //     setState(() {
-                        //       publicChecked = newValue!;
-                        //       webIdTextFieldEnabled = !newValue;
-                        //       formControllerWebId.text = '';
-                        //     });
-                        //   },
-                        //   controlAffinity: ListTileControlAffinity
-                        //       .leading, //  <-- leading Checkbox
-                        // ),
+                        buildHeading('Select the permission recipient', 17.0,
+                            Colors.blueGrey, 8),
                         Container(
                           padding: EdgeInsets.all(8.0),
                           child: Row(
@@ -539,7 +517,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(8.0),
                           height: 100,
                           child: Row(
                             children: [
@@ -550,20 +528,31 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     autofocus: publicBtnFocusFlag,
                                     onPressed: () {
                                       setState(() {
-                                        selectedRecipient = 'public';
+                                        selectedRecipient =
+                                            RecipientType.public.type;
                                         selectedRecipientDetails = '';
-                                        // if (publicBtnFocusFlag) {
-                                        //   selectedRecipient = '';
-                                        //   publicBtnFocusFlag = false;
-                                        // } else {
-                                        //   selectedRecipient = 'public';
-                                        //   publicBtnFocusFlag = true;
-                                        // }
-                                        //publicBtnFocusFlag =
-                                        //   !publicBtnFocusFlag;
+                                        finalWebIdList = [publicAgent];
                                       });
                                     },
-                                    child: const Text('Public'),
+                                    child: Text(RecipientType.public.type),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    autofocus: publicBtnFocusFlag,
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedRecipient =
+                                            RecipientType.authUser.type;
+                                        selectedRecipientDetails = '';
+                                        finalWebIdList = [authenticatedAgent];
+                                      });
+                                    },
+                                    child: Text(RecipientType.authUser.type),
                                   ),
                                 ),
                               ),
@@ -574,18 +563,18 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   child: ElevatedButton(
                                     autofocus: individualBtnFocusFlag,
                                     onPressed: indWebIdDialog,
-                                    child: const Text('Individual'),
+                                    child: Text(RecipientType.individual.type),
                                   ),
                                 ),
                               ),
                               Expanded(
                                 child: Container(
-                                  padding: EdgeInsets.only(left: 8.0),
+                                  padding: const EdgeInsets.only(left: 8.0),
                                   height: 50,
                                   child: ElevatedButton(
                                     autofocus: groupBtnFocusFlag,
                                     onPressed: groupWebIdDialog,
-                                    child: const Text('Group'),
+                                    child: Text(RecipientType.group.type),
                                   ),
                                 ),
                               )
@@ -694,7 +683,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         //   },
                         // ),
                         smallGapV,
-                        subHeading('Select the list of permissions'),
+                        buildHeading('Select the list of permissions', 17.0,
+                            Colors.blueGrey, 8),
                         CheckboxListTile(
                           title: Text(
                               '${AccessMode.read.mode} (${AccessMode.read.description})'),
@@ -759,16 +749,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                                     final permList = [];
                                     if (readChecked) {
-                                      permList.add('Read');
+                                      permList.add(AccessMode.read.mode);
                                     }
                                     if (writeChecked) {
-                                      permList.add('Write');
+                                      permList.add(AccessMode.write.mode);
                                     }
                                     if (controlChecked) {
-                                      permList.add('Control');
+                                      permList.add(AccessMode.control.mode);
                                     }
                                     if (appendChecked) {
-                                      permList.add('Append');
+                                      permList.add(AccessMode.append.mode);
                                     }
                                     assert(permList.isNotEmpty);
 
@@ -812,7 +802,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                         ),
                         largeGapV,
-                        subHeading('Granted permissions'),
+                        buildHeading(
+                            'Granted permissions', 17.0, Colors.blueGrey, 8),
                         _buildPermDataTable(),
                       ],
                     ),
@@ -823,25 +814,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ],
         ),
       ),
-    );
-  }
-
-  /// Sub heading build function
-  Row subHeading(String headingStr) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: Text(
-            headingStr,
-            style: const TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w600,
-                color: Colors.blueGrey),
-          ),
-        ),
-      ],
     );
   }
 
