@@ -30,16 +30,11 @@
 
 library;
 
-import 'dart:io';
-
 import 'package:flutter/material.dart' hide Key;
-
-import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/utils/css_client.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -151,53 +146,4 @@ Future<void> writePod(
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
-}
-
-Future<void> uploadFile(File file) async {
-  final fileUrl = await getFileUrl(
-      [await getDataDirPath(), path.basename(file.path)].join('/'));
-
-  if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
-    throw Exception('$fileUrl already exists');
-  }
-
-  // Create a placeholder that will be overwritten
-
-  // await createResource(fileUrl, contentType: ResourceContentType.binary);
-  await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
-
-  // final fileSize = await file.length();
-
-  // var start = 0;
-  // // var step = fileSize ~/ 100;
-  // // var end = step - 1;
-  // var end = 0;
-
-  // var stream = file.openRead().asyncMap((chunk) {
-  //   // debugPrint('chunk size: ${chunk.length}');
-
-  //   end += chunk.length - 1;
-  //   CSSClient.sendDataChunk(fileUrl,
-  //       byteStart: start, byteEnd: end, chunk: chunk);
-
-  //   debugPrint('Sent: $start-$end (${(end - 1) * 100 ~/ fileSize})');
-  //   start += chunk.length;
-  // });
-
-  // stream.listen((chunk) => debugPrint('Sent bytes'));
-
-  // onDone: () => debugPrint('Reading file completed'),
-  // onError: (e) => debugPrint('Error occurred: $e'));
-
-  await CSSClient.streamUp(fileUrl, file);
-
-  // final stream = file.openRead();
-  // await CSSClient.pushBinaryData(fileUrl,
-  //     stream: file.openRead(), contentLength: await file.length());
-
-  // await createResource(fileUrl,
-  //     content: await file.readAsBytes(),
-  //     contentType: ResourceContentType.binary);
-
-  // await streamRequestStream(fileUrl, file.openRead());
 }

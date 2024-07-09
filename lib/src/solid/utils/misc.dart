@@ -491,9 +491,7 @@ Future<void> initPod(String securityKey,
       }
 
       fileContent = await genAclTurtle(resourceUrl,
-          fileFlag: fileFlag,
-          ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
-          publicAccess: publicAccess);
+          fileFlag: fileFlag, publicAccess: publicAccess);
 
       aclFlag = true;
     } else {

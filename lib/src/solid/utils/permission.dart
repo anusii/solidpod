@@ -68,12 +68,12 @@ Future<String> genAclTurtle(
     for (final entry in accessMap.entries)
       if (entry.value.isNotEmpty)
         thisFile.ns.withAttr(entry.key.mode): {
-          Predicate.aclRdfType.uriRef: aclAuthorization,
-          Predicate.accessTo.uriRef: r,
-          Predicate.agent.uriRef: entry.value,
+          AclPredicate.aclRdfType.uriRef: aclAuthorization,
+          AclPredicate.accessTo.uriRef: r,
+          AclPredicate.agent.uriRef: entry.value,
           if (publicAccess != null && publicAccess.contains(entry.key))
-            Predicate.agentClass.uriRef: publicAgent,
-          Predicate.aclMode.uriRef: entry.key.uriRef,
+            AclPredicate.agentClass.uriRef: publicAgent,
+          AclPredicate.aclMode.uriRef: entry.key.uriRef,
         },
   };
 

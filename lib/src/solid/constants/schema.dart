@@ -212,3 +212,45 @@ const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 /// Data predicate
 
 const String appsData = 'https://solidcommunity.au/predicates/data#';
+
+/// Placeholder of namespace for SII customised predicates
+const String sii = 'https://solidproject.au/sii/';
+
+/// SII namespace
+final NS siiNS = (prefix: 'sii', ns: Namespace(ns: sii));
+
+/// SII customised predicates
+enum SIIPredicate {
+  /// Initialization vector in AES en-/de-cryption
+  iv('iv'),
+
+  /// AES encrypted data
+  encryptedData('encData'),
+
+  /// Resource path
+  path('path'),
+
+  /// AES encrypted individual key for en-/de-crypt individual file
+  individualKey('sessionKey'),
+
+  /// AES encrypted RSA private key
+  privateKey('prvKey'),
+
+  /// Verification key of the security key
+  verificationKey('encKey'),
+
+  /// Trimed RSA public key
+  publicKey('pubKey'),
+
+  /// Data chunk
+  dataChunk('chunk');
+
+  /// Generative enum constructor
+  const SIIPredicate(this._value);
+
+  /// String value of access predicate
+  final String _value;
+
+  /// Return the URIRef of predicate
+  URIRef get uriRef => URIRef('$sii$_value');
+}

@@ -50,7 +50,7 @@ final bindAclNamespaces = {
 
 /// Predicates for web access control
 
-enum Predicate {
+enum AclPredicate {
   /// Predicate of acl:Authorization
   aclRdfType('${rdf}type'),
 
@@ -80,7 +80,7 @@ enum Predicate {
   owner('${acl}owner');
 
   /// Generative enum constructor
-  const Predicate(this._value);
+  const AclPredicate(this._value);
 
   /// String value of access predicate
   final String _value;

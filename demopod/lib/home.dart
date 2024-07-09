@@ -36,6 +36,7 @@ import 'package:flutter/material.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/main.dart';
@@ -54,12 +55,11 @@ import 'package:solidpod/solidpod.dart'
         deleteLogIn,
         getDataDirPath,
         getEncKeyPath,
+        getFileUrl,
         getWebId,
         logoutPopup,
-        uploadFile,
-        downloadFile,
-        getFileSize,
-        readPod;
+        readPod,
+        sendLargeFile;
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -255,8 +255,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           final result = await FilePicker.platform.pickFiles();
 
           if (result != null) {
-            final file = File(result.files.single.path!);
-            await uploadFile(file);
+            // final file = File(result.files.single.path!);
+            // await uploadFile(file);
+            final localPath = result.files.single.path;
+            final remoteFileUrl = await getFileUrl(
+                [await getDataDirPath(), path.basename(localPath!)].join('/'));
+            await sendLargeFile(localPath, remoteFileUrl);
           } else {
             // User canceled the picker
             print('No file selected');
@@ -277,7 +281,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             debugPrint('Cancelled');
           } else {
             final remoteFileName = localFile;
-            await downloadFile(remoteFileName, File(outputFile));
+            // await downloadFile(remoteFileName, File(outputFile));
+            print('Not implemented');
           }
         });
 

@@ -161,7 +161,7 @@ Future<List<dynamic>> initialStructureTest(
 /// - POST request: create a resource (e.g. a TTL file or a directory)
 
 Future<void> createResource(String resourceUrl,
-    {String content = '',
+    {dynamic content = '',
     bool fileFlag = true,
     bool replaceIfExist = true,
     ResourceContentType contentType = ResourceContentType.turtleText}) async {

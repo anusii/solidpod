@@ -30,10 +30,6 @@
 
 library;
 
-import 'dart:io';
-import 'dart:async';
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
@@ -41,7 +37,6 @@ import 'package:encrypt/encrypt.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/utils/css_client.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -92,111 +87,3 @@ Future<dynamic> readPod(String filePath, BuildContext context, Widget child,
   debugPrint('Resource "$filePath" does not exist.');
   return null;
 }
-
-Future<void> downloadFile(String remoteFileName, File file) async {
-  final t0 = DateTime.now();
-
-  final fileUrl =
-      await getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
-
-  final t1 = DateTime.now();
-  print('getFileUrl: ${t1.difference(t0).inSeconds} seconds');
-
-  // if (await checkResourceStatus(fileUrl) == ResourceStatus.notExist) {
-  //   throw Exception('$fileUrl does not exist');
-  // }
-
-  // final t2 = DateTime.now();
-  // print('Check resource status: ${t2.difference(t1).inSeconds} seconds');
-
-  final sink = file.openWrite();
-
-  // final t3 = DateTime.now();
-  // print('file.openWrite: ${t3.difference(t2).inSeconds} seconds');
-
-  // final stream = await CSSClient.streamDown(fileUrl);
-  final stream = await CSSClient.streamDown(fileUrl);
-
-  // final t4 = DateTime.now();
-  // print('Call download stream: ${t4.difference(t3).inSeconds} seconds');
-
-  stream.listen(sink.add, onDone: () async {
-    print('in onDone()');
-    //   await sink.flush();
-    unawaited(sink.close());
-    print('Streaming: ${DateTime.now().difference(t0).inSeconds} seconds');
-  });
-
-  // print('before cancel');
-  // await subscription.cancel();
-  // print('after cancel');
-  // await sink.flush();
-  // print('after flush');
-  // await sink.close();
-  // print('after close');
-}
-
-Future<void> downloadFile0(String remoteFileName, File file) async {
-  final t0 = DateTime.now();
-
-  final fileUrl =
-      await getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
-
-  if (await checkResourceStatus(fileUrl) == ResourceStatus.notExist) {
-    throw Exception('$fileUrl does not exist');
-  }
-
-  final sink = file.openWrite();
-  // final stream = await CssApiClient.pullBinaryData(fileUrl);
-  final fileSize = await getFileSize(fileUrl);
-  // var receivedSize = 0;
-
-  // stream.listen((chunk) {
-  //   receivedSize += chunk.length;
-  //   sink.add(chunk);
-  //   debugPrint('${chunk.length}: ${receivedSize * 100.0 / fileSize}%');
-  // }, onDone: () => unawaited(sink.close()));
-
-  debugPrint(
-      'Prepare downloading in ${DateTime.now().difference(t0).inSeconds} seconds.');
-
-  var start = 0;
-  var step = fileSize ~/ 100;
-  var end = step - 1;
-  while (end < fileSize) {
-    try {
-      final chunk =
-          await CSSClient.getDataChunk(fileUrl, byteStart: start, byteEnd: end);
-      sink.add(chunk);
-      // await sink.flush();
-      print('${(end + 1) * 100 ~/ fileSize}%, $start -- $end');
-      start += step;
-      end += step;
-      end = end > fileSize - 1 ? fileSize - 1 : end;
-      if (start >= fileSize - 1) {
-        break;
-      }
-    } on Object catch (e) {
-      debugPrint('Failed to download file.\n'
-          'URL: $fileUrl\n'
-          'ERR: $e');
-      await sink.flush();
-      await sink.close();
-    }
-  }
-  await sink.flush();
-  await sink.close();
-
-  debugPrint('File written to ${file.absolute}');
-  debugPrint(
-      'File downloaded in ${DateTime.now().difference(t0).inSeconds} seconds.');
-
-  // await createResource(fileUrl,
-  //     content: await file.readAsBytes(),
-  //     contentType: ResourceContentType.binary);
-
-  // await streamRequestStream(fileUrl, file.openRead());
-}
-
-Future<int> getFileSize(String fileUrl) async =>
-    int.parse((await CSSClient.getResourceHeaders(fileUrl))['content-length']!);
