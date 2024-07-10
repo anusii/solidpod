@@ -268,6 +268,9 @@ Future<ResourceStatus> checkResourceStatus(String resUrl,
   } else if (response.statusCode == 404) {
     return ResourceStatus.notExist;
   } else {
+    debugPrint('Failed to check resource status.\n'
+        'URL: $resUrl\n'
+        'ERR: ${response.body}');
     return ResourceStatus.unknown;
   }
 }

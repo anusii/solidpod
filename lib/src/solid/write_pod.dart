@@ -47,6 +47,7 @@ Future<void> writePod(
     {bool encrypted = true}) async {
   // Write data to file in the data directory
   final filePath = [await getDataDirPath(), fileName].join('/');
+  // [await getDataDirPath(), '.binary_data.bin.chunks', fileName].join('/');
 
   await loginIfRequired(context);
 

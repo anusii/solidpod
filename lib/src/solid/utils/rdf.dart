@@ -33,6 +33,34 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 
+/// Parse the Turtle string into triples stored in a map:
+/// {subject: {predicate: {object}}}
+/// - subject: URIRef String
+/// - predicate: URIRef String
+/// - object: {dynamic}
+Map<String, Map<String, List<dynamic>>> turtleToTripleMap(String turtleString) {
+  final g = Graph();
+  g.parseTurtle(turtleString);
+  final triples = <String, Map<String, List<dynamic>>>{};
+  for (final t in g.triples) {
+    final sub = t.sub.value as String;
+    final pre = t.pre.value as String;
+    final obj = t.obj.value as String;
+    if (triples.containsKey(sub)) {
+      if (triples[sub]!.containsKey(pre)) {
+        triples[sub]![pre]!.add(obj);
+      } else {
+        triples[sub]![pre] = [obj];
+      }
+    } else {
+      triples[sub] = {
+        pre: [obj]
+      };
+    }
+  }
+  return triples;
+}
+
 /// Generate Turtle string from triples stored in a map:
 /// {subject: {predicate: {object}}}
 /// - subject: URIRef String

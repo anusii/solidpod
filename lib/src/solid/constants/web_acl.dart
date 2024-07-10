@@ -61,7 +61,8 @@ enum AclPredicate {
   accessTo('${acl}accessTo'),
 
   /// The container resource whose Authorization can be applied to
-  /// a resource lower in the collection hierarchy
+  /// a resource lower in the collection hierarchy,
+  /// i.e., inheriting the authorizations
   defaultAccess('${acl}default'),
 
   /// An agent being given access permission

@@ -69,8 +69,12 @@ Future<String> genAclTurtle(
       if (entry.value.isNotEmpty)
         thisFile.ns.withAttr(entry.key.mode): {
           AclPredicate.aclRdfType.uriRef: aclAuthorization,
-          AclPredicate.accessTo.uriRef: r,
           AclPredicate.agent.uriRef: entry.value,
+          AclPredicate.accessTo.uriRef: r,
+
+          // This seems necessary for accessing resources in a container
+          if (!fileFlag) AclPredicate.defaultAccess.uriRef: r,
+
           if (publicAccess != null && publicAccess.contains(entry.key))
             AclPredicate.agentClass.uriRef: publicAgent,
           AclPredicate.aclMode.uriRef: entry.key.uriRef,
