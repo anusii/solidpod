@@ -79,9 +79,9 @@ Future<dynamic> groupWebIdInputDialog(
                 // Check if all the webIds are true links
                 var trueWebIdsFlag = true;
                 for (final webId in webIdList) {
-                  if (!(await checkResourceStatus(webId) ==
-                          ResourceStatus.exist) ||
-                      !Uri.parse(webId.replaceAll('#me', '')).isAbsolute) {
+                  if (!Uri.parse(webId.replaceAll('#me', '')).isAbsolute ||
+                      !(await checkResourceStatus(webId) ==
+                          ResourceStatus.exist)) {
                     trueWebIdsFlag = false;
                   }
                 }

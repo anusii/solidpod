@@ -408,9 +408,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         fileName: widget.fileName,
                                         child: widget.child,
                                       ),
-                                      //groupName,
-                                      selectedRecipient ==
-                                              RecipientType.group.type
+                                      selectedRecipient == RecipientType.group
                                           ? formControllerGroupName.text.trim()
                                           : null,
                                     );
