@@ -36,7 +36,6 @@ import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
-import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -110,7 +109,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   String permDataFile = '';
 
   /// Selected recipient
-  String selectedRecipient = '';
+  RecipientType selectedRecipient = RecipientType.none;
 
   /// Selected recipient details
   String selectedRecipientDetails = '';
@@ -176,7 +175,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     await checkResourceStatus(receiverWebId) ==
                         ResourceStatus.exist) {
                   setState(() {
-                    selectedRecipient = RecipientType.individual.type;
+                    selectedRecipient = RecipientType.individual;
                     selectedRecipientDetails = receiverWebId;
                     finalWebIdList = [receiverWebId];
                   });
@@ -248,7 +247,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                   if (trueWebIdsFlag) {
                     setState(() {
-                      selectedRecipient = RecipientType.group.type;
+                      selectedRecipient = RecipientType.group;
                       selectedRecipientDetails =
                           '$groupName with WebIDs $groupWebIds';
                       finalWebIdList = webIdList;
@@ -334,7 +333,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           )),
           DataCell(
             Text(
-              getAgentType(permDataMap[index][agentStr] as String, index),
+              getRecipientType(permDataMap[index][agentStr] as String, index),
             ),
           ),
           DataCell(
@@ -505,8 +504,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               Flexible(
                                 child: Text(
                                   selectedRecipientDetails.isNotEmpty
-                                      ? '$selectedRecipient ($selectedRecipientDetails)'
-                                      : selectedRecipient,
+                                      ? '${selectedRecipient.type} ($selectedRecipientDetails)'
+                                      : selectedRecipient.type,
                                   style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -529,9 +528,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     onPressed: () {
                                       setState(() {
                                         selectedRecipient =
-                                            RecipientType.public.type;
+                                            RecipientType.public;
                                         selectedRecipientDetails = '';
-                                        finalWebIdList = [publicAgent];
+                                        finalWebIdList = [publicAgent.value];
                                       });
                                     },
                                     child: Text(RecipientType.public.type),
@@ -547,9 +546,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     onPressed: () {
                                       setState(() {
                                         selectedRecipient =
-                                            RecipientType.authUser.type;
+                                            RecipientType.authUser;
                                         selectedRecipientDetails = '';
-                                        finalWebIdList = [authenticatedAgent];
+                                        finalWebIdList = [
+                                          authenticatedAgent.value
+                                        ];
                                       });
                                     },
                                     child: Text(RecipientType.authUser.type),
@@ -739,7 +740,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             child: const Text('Grant Permission'),
                             onPressed: () async {
                               if (formKey.currentState!.validate()) {
-                                if (selectedRecipient.isNotEmpty) {
+                                if (selectedRecipient.type.isNotEmpty) {
                                   if (readChecked ||
                                       writeChecked ||
                                       controlChecked ||
@@ -763,20 +764,25 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     assert(permList.isNotEmpty);
 
                                     await grantPermission(
-                                        dataFile,
-                                        true,
-                                        permList,
-                                        selectedRecipient,
-                                        finalWebIdList as List,
-                                        true,
-                                        context,
-                                        GrantPermissionUi(
-                                          title: widget.title,
-                                          backgroundColor:
-                                              widget.backgroundColor,
-                                          fileName: widget.fileName,
-                                          child: widget.child,
-                                        ));
+                                      dataFile,
+                                      true,
+                                      permList,
+                                      selectedRecipient,
+                                      finalWebIdList as List,
+                                      true,
+                                      context,
+                                      GrantPermissionUi(
+                                        title: widget.title,
+                                        backgroundColor: widget.backgroundColor,
+                                        fileName: widget.fileName,
+                                        child: widget.child,
+                                      ),
+                                      //groupName,
+                                      selectedRecipient ==
+                                              RecipientType.group.type
+                                          ? formControllerGroupName.text.trim()
+                                          : null,
+                                    );
 
                                     await Navigator.pushReplacement(
                                       context,

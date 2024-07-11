@@ -181,6 +181,15 @@ Future<String> getIndKeyPath() async =>
 Future<String> getPubKeyPath() async =>
     [await AppInfo.canonicalName, sharingDir, pubKeyFile].join('/');
 
+/// Returns the path of public file with individual keys
+Future<String> getPubIndKeyPath() async =>
+    [await AppInfo.canonicalName, sharingDir, pubIndKeyFile].join('/');
+
+/// Returns the path of file with individual keys accessed only
+/// by authenticated users
+Future<String> getAuthUserIndKeyPath() async =>
+    [await AppInfo.canonicalName, sharingDir, authUserIndKeyFile].join('/');
+
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
@@ -342,25 +351,6 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
   }
 
   return filePermMap;
-}
-
-/// Get agent types as a human readable string
-String getAgentType(String agentType, String receiverUri) {
-  var agentTypeStr = '';
-
-  if (agentType == agentPred) {
-    agentTypeStr = 'Individual';
-  } else if (agentType == agentGroupPred) {
-    agentTypeStr = 'Group of users';
-  } else if (agentType == agentClassPred) {
-    if (receiverUri == pubAgent) {
-      agentTypeStr = 'Public';
-    } else if (receiverUri == authAgent) {
-      agentTypeStr = 'authenticated users';
-    }
-  }
-
-  return agentTypeStr;
 }
 
 /// Get resource name from URL

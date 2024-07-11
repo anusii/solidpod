@@ -25,13 +25,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen
+/// Authors: Dawei Chen, Anushka Vidanage
 
 library;
 
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
-import 'package:solidpod/src/solid/constants/common.dart' show acl, foaf, rdf;
-import 'package:solidpod/src/solid/constants/schema.dart' show NS, aclNS;
+import 'package:solidpod/src/solid/constants/common.dart'
+    show
+        acl,
+        agentClassPred,
+        agentGroupPred,
+        agentPred,
+        foaf,
+        rdf,
+        terms,
+        vcard;
+import 'package:solidpod/src/solid/constants/schema.dart'
+    show NS, aclNS, appsTerms, solidTermsNS, termsNS, vcardNS;
+import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Namespace of the file itself
 final NS thisFile = (prefix: '', ns: Namespace(ns: '#'));
@@ -48,6 +59,9 @@ final bindAclNamespaces = {
   // rdfNS.prefix: rdfNS.ns // already binded in rdflib
 };
 
+/// TODO:av - Move the class Predicate to a common location and
+/// add all the other relavant predicates
+
 /// Predicates for web access control
 
 enum Predicate {
@@ -56,6 +70,18 @@ enum Predicate {
 
   /// Operations the agents can perform on a resource
   aclMode('${acl}mode'),
+
+  /// Vcard group predicate
+  vcardGroup('${vcard}Group'),
+
+  /// Vcard has member predicate
+  vcardHasMember('${vcard}hasMember'),
+
+  /// Personal profile document predicate
+  personalDocument('${foaf}PersonalProfileDocument'),
+
+  /// Title predicate
+  title('${terms}title'),
 
   /// The resource to which access is being granted
   accessTo('${acl}accessTo'),
@@ -153,7 +179,10 @@ enum RecipientType {
   individual('Individual'),
 
   /// Group of WebIDs
-  group('Group');
+  group('Group'),
+
+  /// No recipient
+  none('');
 
   /// Constructor
   const RecipientType(this._value);
@@ -163,6 +192,75 @@ enum RecipientType {
 
   /// Return type
   String get type => _value;
+}
+
+/// Get agent types as a human readable string
+String getRecipientType(String agentType, String receiverUri) {
+  var recipientTypeStr = '';
+
+  if (agentType == agentPred) {
+    recipientTypeStr = RecipientType.individual.type;
+  } else if (agentType == agentGroupPred) {
+    recipientTypeStr = RecipientType.group.type;
+  } else if (agentType == agentClassPred) {
+    if (URIRef(receiverUri) == publicAgent) {
+      recipientTypeStr = RecipientType.public.type;
+    } else if (URIRef(receiverUri) == authenticatedAgent) {
+      recipientTypeStr = RecipientType.authUser.type;
+    }
+  }
+  return recipientTypeStr;
+}
+
+/// Generate the content of encKeyFile
+Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
+  var triples = <URIRef, Map<URIRef, dynamic>>{};
+  triples = {
+    URIRef(thisFile.ns.ns): {
+      Predicate.aclRdfType.uriRef: Predicate.vcardGroup.uriRef,
+      Predicate.vcardHasMember.uriRef: {
+        for (final webId in groupWebIdList) ...{
+          URIRef(webId as String),
+        },
+      },
+    }
+  };
+
+  final bindNS = {
+    thisFile.prefix: thisFile.ns,
+    vcardNS.prefix: vcardNS.ns,
+  };
+
+  return tripleMapToTurtle(triples, bindNamespaces: bindNS);
+}
+
+/// Generate the content of pubKeyFile
+Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
+  if (initialDataList != null) {
+    assert(initialDataList.length == 2);
+  }
+  var triples = <URIRef, Map<URIRef, dynamic>>{};
+  triples = {
+    URIRef(thisFile.ns.ns): {
+      Predicate.aclRdfType.uriRef: {
+        Predicate.personalDocument.uriRef,
+        Predicate.title.uriRef
+      },
+    },
+    if (initialDataList != null) ...{
+      URIRef(initialDataList.first): {
+        URIRef('${appsTerms}sessionKey'): initialDataList.last,
+      }
+    }
+  };
+
+  final bindNS = {
+    thisFile.prefix: thisFile.ns,
+    solidTermsNS.prefix: solidTermsNS.ns,
+    termsNS.prefix: termsNS.ns,
+  };
+
+  return tripleMapToTurtle(triples, bindNamespaces: bindNS);
 }
 
 /// Two objects/values for predicate acl:agentClass

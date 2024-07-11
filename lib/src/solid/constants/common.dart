@@ -45,6 +45,8 @@ const String pubKeyFile = 'public-key.ttl';
 const String indKeyFile = 'ind-keys.ttl';
 const String permLogFile = 'permissions-log.ttl';
 const String sharedKeyFile = 'shared-keys.ttl';
+const String pubIndKeyFile = 'public-ind-keys.ttl';
+const String authUserIndKeyFile = 'auth-user-ind-keys.ttl';
 
 const dataDir = 'data';
 const sharingDir = 'sharing';
