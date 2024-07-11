@@ -28,17 +28,18 @@
 
 library;
 
-import 'dart:io';
-import 'dart:typed_data';
+import 'dart:convert' show utf8;
+import 'dart:io' show File;
+import 'dart:typed_data' show BytesBuilder, Uint8List;
+
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
-    show createResource, checkResourceStatus, fetchPrvFile;
+    show createResource, checkResourceStatus, getResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
     show siiNS, SIIPredicate;
-import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
@@ -62,59 +63,27 @@ String _getChunkName(int chunkId) => '$chunkId.bin';
 
 /// Transform the stream of file content into a stream of (larger) chunks.
 /// [contentStream] is typically set to [file.openRead()]
-Stream<Uint8List> _dataChunks(Stream<List<int>> contentStream,
+Stream<Uint8List> _getChunkStream(Stream<List<int>> contentStream,
     {int chunkSize = 2 * 1024 * 1024}) async* {
   // Dart reads file in blocks of size 64k, see
   // https://github.com/dart-lang/sdk/lib/io/file_impl.dart
   assert(chunkSize >= 64 * 1024);
-  final bytesBuilder = BytesBuilder(copy: false);
+
+  final bytesBuilder = BytesBuilder();
+
   await for (final block in contentStream) {
     if (bytesBuilder.length < chunkSize) {
       bytesBuilder.add(block);
     } else {
-      yield bytesBuilder.takeBytes();
+      final chunk = bytesBuilder.takeBytes();
+      bytesBuilder.add(block);
+      yield chunk;
     }
   }
 
   // Add final chunks to output stream
   if (bytesBuilder.isNotEmpty) {
     yield bytesBuilder.takeBytes();
-  }
-}
-
-/// Get a large file previously sent using [sendLargeFile] with URL
-/// [remoteFileUrl] and save it to a local file with path [localFilePath]
-Future<void> getLargeFile({
-  required String remoteFileUrl,
-  required String localFilePath,
-}) async {
-  // Get the turtle file with metadata of the (chunked) large file on server
-
-  final fileUrl = '$remoteFileUrl.ttl';
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
-
-  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist ||
-      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
-    throw Exception('Failed to get the requested file. \nURL: $remoteFileUrl');
-  }
-
-  // Parse the turtle string to get the URLs of data chunks
-
-  final triples = turtleToTripleMap(await fetchPrvFile(fileUrl));
-  assert(triples.length == 1);
-  assert(triples.containsKey(fileUrl));
-  final map = triples[fileUrl];
-  assert(map!.length == 1);
-  final predicate = SIIPredicate.dataChunk.uriRef.value;
-  assert(map!.containsKey(predicate));
-  final chunkUrls = map![predicate];
-
-  // Get the chunks and save them to file
-  // final sink = File(localFilePath).openWrite();
-  for (final url in chunkUrls!) {
-    print(url);
-    // final chunk = await getResource(url);
-    // sink.add();
   }
 }
 
@@ -127,6 +96,13 @@ Future<void> sendLargeFile({
   final file = File(localFilePath);
   final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
 
+  final fileUrl = '$remoteFileUrl.ttl';
+  if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
+      await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
+    throw Exception('Failed to send file $localFilePath.\n'
+        '$remoteFileUrl already exists.');
+  }
+
   // Create the directory for storing chunked data
   await createResource(chunkDirUrl,
       fileFlag: false, contentType: ResourceContentType.directory);
@@ -136,11 +112,12 @@ Future<void> sendLargeFile({
       content: await genAclTurtle(chunkDirUrl, fileFlag: false));
 
   var chunkId = 0;
-  // final chunkCount = 0;
   final chunkUrls = <String>[];
-  final chunks = _dataChunks(file.openRead());
+  // debugPrint('file size: ${await file.length()}');
+  // var size = 0;
+  final chunks = _getChunkStream(file.openRead());
   await for (final chunk in chunks) {
-    print('chunk: $chunkId');
+    // size += chunk.length;
 
     final chunkUrl = '$chunkDirUrl${_getChunkName(chunkId)}';
     chunkUrls.add(chunkUrl);
@@ -158,19 +135,59 @@ Future<void> sendLargeFile({
 
   // Create turtle file with metadata of the (chunked) large file on server
 
-  final fileUrl = '$remoteFileUrl.ttl';
   final triples = {
-    URIRef(fileUrl): {
+    URIRef(remoteFileUrl): {
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
     }
   };
+
   final bindNS = {
     siiNS.prefix: siiNS.ns,
     'c': Namespace(ns: chunkDirUrl),
   };
+
   await createResource(fileUrl,
       content: tripleMapToTurtle(triples, bindNamespaces: bindNS));
 
   // Create ACL of the Turtle file
   await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
+}
+
+/// Get a large file previously sent using [sendLargeFile] with URL
+/// [remoteFileUrl] and save it to a local file with path [localFilePath]
+Future<void> getLargeFile({
+  required String remoteFileUrl,
+  required String localFilePath,
+}) async {
+  // Check if the corresponding Turtle file and directory of chunks exist
+
+  final fileUrl = '$remoteFileUrl.ttl';
+  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
+
+  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist ||
+      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
+    throw Exception('Failed to get the requested file. \nURL: $remoteFileUrl');
+  }
+
+  // Parse the Turtle file with metadata of the (chunked) large file
+  // on server to get the URLs of individual chunks
+
+  final triples = turtleToTripleMap(utf8.decode(await getResource(fileUrl)));
+  assert(triples.length == 1);
+  assert(triples.containsKey(remoteFileUrl));
+
+  final map = triples[remoteFileUrl];
+  final predicate = SIIPredicate.dataChunk.uriRef.value;
+  assert(map!.length == 1);
+  assert(map!.containsKey(predicate));
+
+  // Get the individual chunks, combine them, and save combined to file
+
+  final chunkUrls = map![predicate];
+  final sink = File(localFilePath).openWrite();
+  for (final url in chunkUrls!) {
+    final chunk = await getResource(url as String);
+    sink.add(chunk);
+  }
+  await sink.close();
 }
