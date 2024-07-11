@@ -28,14 +28,15 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
-import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
+import 'package:solidpod/src/widgets/file_permission_data_table.dart';
+import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -117,14 +118,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// List of webIds for group permission
   List<dynamic>? finalWebIdList;
 
-  /// Public button pressed flag
-  bool publicBtnFocusFlag = false;
-
-  /// Individual button pressed flag
-  bool individualBtnFocusFlag = false;
-
-  /// Group button pressed flag
-  bool groupBtnFocusFlag = false;
+  /// Selected list of permissions
+  List<String> selectedPermList = [];
 
   /// Small vertical spacing for the widget.
   final smallGapV = const SizedBox(height: 10.0);
@@ -137,269 +132,57 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
   }
 
-  // ignore: strict_raw_type
-  void _updatePermMap(Map newPermMap, String fileName) {
+  // Update permission map with new data
+  void _updatePermMap(Map<dynamic, dynamic> newPermMap, String fileName) {
     setState(() {
       permDataMap = newPermMap;
       permDataFile = fileName;
     });
   }
 
+  // Update checkbox ticking data
+  void _updateCheckbox(bool newValue, AccessMode accessMode) {
+    setState(() {
+      if (accessMode == AccessMode.read) {
+        readChecked = newValue;
+      }
+      if (accessMode == AccessMode.write) {
+        writeChecked = newValue;
+      }
+      if (accessMode == AccessMode.control) {
+        controlChecked = newValue;
+      }
+      if (accessMode == AccessMode.append) {
+        appendChecked = newValue;
+      }
+      if (newValue) {
+        selectedPermList.add(accessMode.mode);
+      } else {
+        selectedPermList.remove(accessMode.mode);
+      }
+    });
+  }
+
+  // Update individual webid input data
+  void _updateIndWebIdInput(String receiverWebId) {
+    setState(() {
+      selectedRecipient = RecipientType.individual;
+      selectedRecipientDetails = receiverWebId;
+      finalWebIdList = [receiverWebId];
+    });
+  }
+
+  // Update group of webids input data
+  void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) {
+    setState(() {
+      selectedRecipient = RecipientType.group;
+      selectedRecipientDetails =
+          '$groupName with WebIDs ${webIdList.join(', ')}';
+      finalWebIdList = webIdList;
+    });
+  }
+
   Future<void> _alert(String msg) async => alert(context, msg);
-
-  /// A dialog for adding an individual webId
-  void indWebIdDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 50),
-          title: const Text('WebID of the recipient'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            // Web ID text field
-            TextFormField(
-              controller: formControllerWebId,
-              decoration: const InputDecoration(
-                  hintText:
-                      'Eg: https://pods.solidcommunity.au/john-doe/profile/card#me'),
-            ),
-          ]),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                final receiverWebId = formControllerWebId.text.trim();
-
-                // Check the web ID field is not empty and it is a true link
-                if (receiverWebId.isNotEmpty &&
-                    Uri.parse(receiverWebId.replaceAll('#me', '')).isAbsolute &&
-                    await checkResourceStatus(receiverWebId) ==
-                        ResourceStatus.exist) {
-                  setState(() {
-                    selectedRecipient = RecipientType.individual;
-                    selectedRecipientDetails = receiverWebId;
-                    finalWebIdList = [receiverWebId];
-                  });
-                  Navigator.of(context).pop();
-                } else {
-                  await _alert('Please enter a valid WebID');
-                }
-              },
-              child: const Text('Ok'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// A dialog for adding a group of Web IDs
-  void groupWebIdDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 50),
-          title: const Text('Group of WebIDs'),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            // Group name. Should be a single string
-            TextFormField(
-              controller: formControllerGroupName,
-              decoration: const InputDecoration(
-                  labelText: 'Group name',
-                  hintText:
-                      'Multiple words will be combined using the symbol -'),
-            ),
-            smallGapV,
-            // List of Web IDs divided by semicolon
-            TextFormField(
-              controller: formControllerGroupWebIds,
-              decoration: const InputDecoration(
-                  labelText: 'List of WebIDs',
-                  hintText: 'Divide multiple WebIDs using the semicolon (;)'),
-            ),
-          ]),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                // Check if all the input entries are correct
-                final groupName = formControllerGroupName.text.trim();
-                final groupWebIds = formControllerGroupWebIds.text.trim();
-
-                // Check if both fields are not empty
-                if (groupName.isNotEmpty && groupWebIds.isNotEmpty) {
-                  final webIdList = groupWebIds.split(';');
-
-                  // Check if all the webIds are true links
-                  var trueWebIdsFlag = true;
-                  for (final webId in webIdList) {
-                    if (!(await checkResourceStatus(webId) ==
-                            ResourceStatus.exist) ||
-                        !Uri.parse(webId.replaceAll('#me', '')).isAbsolute) {
-                      trueWebIdsFlag = false;
-                    }
-                  }
-
-                  if (trueWebIdsFlag) {
-                    setState(() {
-                      selectedRecipient = RecipientType.group;
-                      selectedRecipientDetails =
-                          '$groupName with WebIDs $groupWebIds';
-                      finalWebIdList = webIdList;
-                    });
-                    Navigator.of(context).pop();
-                  } else {
-                    await _alert(
-                        'At least one of the Web IDs you entered is not valid');
-                  }
-                } else {
-                  await _alert(
-                      'Please enter a group name and a list of Web IDs');
-                }
-              },
-              child: const Text('Ok'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  /// Build the permission table widget
-  Widget _buildPermDataTable() {
-    return DataTable(
-      columns: const [
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Receiver',
-                ),
-              ),
-            ),
-            tooltip: 'WebID of the POD receiving permissions'),
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Receiver type',
-                ),
-              ),
-            ),
-            tooltip: 'Type of the receiver'),
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Permissions',
-                ),
-              ),
-            ),
-            tooltip: 'List of permissions given'),
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Actions',
-                ),
-              ),
-            ),
-            tooltip: 'Delete permission'),
-      ],
-      rows: permDataMap.keys.map((index) {
-        return DataRow(cells: [
-          DataCell(Container(
-            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-            //width: cWidth,
-            child: Column(
-              children: <Widget>[
-                SelectableText(
-                  index as String,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                )
-              ],
-            ),
-          )),
-          DataCell(
-            Text(
-              getRecipientType(permDataMap[index][agentStr] as String, index),
-            ),
-          ),
-          DataCell(
-            Text(
-              (permDataMap[index][permStr] as List).join(', '),
-            ),
-          ),
-          DataCell(
-            IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  size: 24.0,
-                  color: Colors.red,
-                ),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (ctx) {
-                        return AlertDialog(
-                          title: const Text('Please Confirm'),
-                          content: Text(
-                              'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from $index?'),
-                          actions: [
-                            // The "Yes" button
-                            TextButton(
-                                onPressed: () async {
-                                  await revokePermission(
-                                      permDataFile,
-                                      true,
-                                      permDataMap[index][permStr] as List,
-                                      index,
-                                      context,
-                                      GrantPermissionUi(
-                                        title: widget.title,
-                                        backgroundColor: widget.backgroundColor,
-                                        child: widget.child,
-                                      ));
-
-                                  await Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => GrantPermissionUi(
-                                        title: widget.title,
-                                        backgroundColor: widget.backgroundColor,
-                                        fileName: widget.fileName,
-                                        child: widget.child,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: const Text('Yes')),
-                            TextButton(
-                                onPressed: () {
-                                  // Close the dialog
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('No'))
-                          ],
-                        );
-                      });
-                }),
-          )
-        ]);
-      }).toList(),
-    );
-  }
 
   /// Build the main widget
   Widget _buildPermPage(BuildContext context, [List<Object>? futureObjList]) {
@@ -491,7 +274,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         buildHeading('Select the permission recipient', 17.0,
                             Colors.blueGrey, 8),
                         Container(
-                          padding: EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: Row(
                             children: [
                               const Text(
@@ -521,10 +304,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           child: Row(
                             children: [
                               Expanded(
-                                child: Container(
+                                child: SizedBox(
                                   height: 50,
                                   child: ElevatedButton(
-                                    autofocus: publicBtnFocusFlag,
                                     onPressed: () {
                                       setState(() {
                                         selectedRecipient =
@@ -542,7 +324,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   padding: const EdgeInsets.only(left: 8.0),
                                   height: 50,
                                   child: ElevatedButton(
-                                    autofocus: publicBtnFocusFlag,
                                     onPressed: () {
                                       setState(() {
                                         selectedRecipient =
@@ -562,8 +343,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   padding: const EdgeInsets.only(left: 8.0),
                                   height: 50,
                                   child: ElevatedButton(
-                                    autofocus: individualBtnFocusFlag,
-                                    onPressed: indWebIdDialog,
+                                    onPressed: () async {
+                                      await indWebIdInputDialog(
+                                          context,
+                                          formControllerWebId,
+                                          _updateIndWebIdInput);
+                                    },
                                     child: Text(RecipientType.individual.type),
                                   ),
                                 ),
@@ -573,8 +358,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   padding: const EdgeInsets.only(left: 8.0),
                                   height: 50,
                                   child: ElevatedButton(
-                                    autofocus: groupBtnFocusFlag,
-                                    onPressed: groupWebIdDialog,
+                                    onPressed: () async {
+                                      await groupWebIdInputDialog(
+                                          context,
+                                          formControllerGroupName,
+                                          formControllerGroupWebIds,
+                                          _updateGroupWebIdInput);
+                                    },
                                     child: Text(RecipientType.group.type),
                                   ),
                                 ),
@@ -582,158 +372,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             ],
                           ),
                         ),
-
-                        // Padding(
-                        //   padding: const EdgeInsets.all(8),
-                        //   child: TextFormField(
-                        //     enabled: webIdTextFieldEnabled,
-                        //     controller: formControllerWebId,
-                        //     decoration: const InputDecoration(
-                        //         labelText: 'Individual',
-                        //         hintText:
-                        //             'Recipient\'s WebID (Eg: https://pods.solidcommunity.au/john-doe/profile/card#me)'),
-                        //     validator: (value) {
-                        //       if (value == null || value.isEmpty) {
-                        //         return 'Empty field';
-                        //       }
-                        //       return null;
-                        //     },
-                        //   ),
-                        // ),
-                        // av-2024062: do we need the following functionality in this page.
-                        // commeting out for now until further discussion
-                        // smallGapH,
-                        // ElevatedButton(
-                        //   child: const Text('Check Permission'),
-                        //   onPressed: () {
-                        //     final webId = formControllerWebId.text;
-
-                        //     Map permControllerMap = {
-                        //       'Read': readChecked,
-                        //       'Write': writeChecked,
-                        //       'Control': controlChecked,
-                        //     };
-
-                        // if (webId.isNotEmpty) {
-                        //   if (filePermMap.containsKey(webId)) {
-                        //     final permList = filePermMap[webId] as List;
-
-                        //     if (permList.contains('Read') ||
-                        //         permList.contains('read')) {
-                        //       setState(() {
-                        //         readChecked = true;
-                        //       });
-                        //     } else {
-                        //       setState(() {
-                        //         readChecked = false;
-                        //       });
-                        //     }
-                        //     if (permList.contains('Write') ||
-                        //         permList.contains('write')) {
-                        //       setState(() {
-                        //         writeChecked = true;
-                        //       });
-                        //     } else {
-                        //       setState(() {
-                        //         writeChecked = false;
-                        //       });
-                        //     }
-                        //     if (permList.contains('Control') ||
-                        //         permList.contains('control')) {
-                        //       setState(() {
-                        //         controlChecked = true;
-                        //       });
-                        //     } else {
-                        //       setState(() {
-                        //         controlChecked = false;
-                        //       });
-                        //     }
-                        //   } else {
-                        //     showDialog(
-                        //       context: context,
-                        //       builder: (context) => AlertDialog(
-                        //         title: const Text('INFO!'),
-                        //         content: const Text(
-                        //             'You have not provided any permissions for this webId.'),
-                        //         actions: [
-                        //           ElevatedButton(
-                        //               onPressed: () {
-                        //                 Navigator.pop(context);
-                        //               },
-                        //               child: const Text('OK'))
-                        //         ],
-                        //       ),
-                        //     );
-                        //   }
-                        // } else {
-                        //   showDialog(
-                        //     context: context,
-                        //     builder: (context) => AlertDialog(
-                        //       title: const Text('ERROR!'),
-                        //       content: const Text('Please enter a webID.'),
-                        //       actions: [
-                        //         ElevatedButton(
-                        //             onPressed: () {
-                        //               Navigator.pop(context);
-                        //             },
-                        //             child: const Text('OK'))
-                        //       ],
-                        //     ),
-                        //   );
-                        // }
-                        //   },
-                        // ),
                         smallGapV,
                         buildHeading('Select the list of permissions', 17.0,
                             Colors.blueGrey, 8),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.read.mode} (${AccessMode.read.description})'),
-                          value: readChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              readChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.write.mode} (${AccessMode.write.description})'),
-                          value: writeChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              writeChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.control.mode} (${AccessMode.control.description})'),
-                          value: controlChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              controlChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.append.mode} (${AccessMode.append.description})'),
-                          value: appendChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              appendChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
+                        permissionCheckbox(
+                            AccessMode.read, readChecked, _updateCheckbox),
+                        permissionCheckbox(
+                            AccessMode.write, writeChecked, _updateCheckbox),
+                        permissionCheckbox(AccessMode.control, controlChecked,
+                            _updateCheckbox),
+                        permissionCheckbox(
+                            AccessMode.append, appendChecked, _updateCheckbox),
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: ElevatedButton(
@@ -741,32 +390,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             onPressed: () async {
                               if (formKey.currentState!.validate()) {
                                 if (selectedRecipient.type.isNotEmpty) {
-                                  if (readChecked ||
-                                      writeChecked ||
-                                      controlChecked ||
-                                      appendChecked) {
+                                  if (selectedPermList.isNotEmpty) {
                                     final dataFile = widget.fileName ??
                                         formControllerFileName.text;
-
-                                    final permList = [];
-                                    if (readChecked) {
-                                      permList.add(AccessMode.read.mode);
-                                    }
-                                    if (writeChecked) {
-                                      permList.add(AccessMode.write.mode);
-                                    }
-                                    if (controlChecked) {
-                                      permList.add(AccessMode.control.mode);
-                                    }
-                                    if (appendChecked) {
-                                      permList.add(AccessMode.append.mode);
-                                    }
-                                    assert(permList.isNotEmpty);
 
                                     await grantPermission(
                                       dataFile,
                                       true,
-                                      permList,
+                                      selectedPermList,
                                       selectedRecipient,
                                       finalWebIdList as List,
                                       true,
@@ -784,6 +415,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           : null,
                                     );
 
+                                    if (!context.mounted) return;
                                     await Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
@@ -810,7 +442,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         largeGapV,
                         buildHeading(
                             'Granted permissions', 17.0, Colors.blueGrey, 8),
-                        _buildPermDataTable(),
+                        buildPermDataTable(
+                            context,
+                            permDataFile,
+                            permDataMap,
+                            GrantPermissionUi(
+                              title: widget.title,
+                              backgroundColor: widget.backgroundColor,
+                              fileName: widget.fileName,
+                              child: widget.child,
+                            )),
                       ],
                     ),
                   ],
