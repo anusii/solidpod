@@ -74,9 +74,15 @@ String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
     final predMap = triples[sub];
     for (final pre in predMap!.keys) {
       final objs = predMap[pre];
-      final objSet = objs is Iterable ? Set.from(objs) : {objs};
+      final objList = objs is Iterable ? List.from(objs) : [objs];
+      if (objList.length != Set.from(objList).length) {
+        throw Exception('Duplicated triples \n'
+            'subject: ${sub.value},\n'
+            'predicate: ${pre.value},\n'
+            'objects: ${[for (final o in objList) o.toString()]}.');
+      }
 
-      for (final obj in objSet) {
+      for (final obj in objList) {
         g.addTripleToGroups(sub, pre, obj);
       }
     }
@@ -97,7 +103,10 @@ String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
 /// where
 /// - subject: usually the URL of a file
 /// - predicate-object: the key-value pairs to be stores in the file
-
+@Deprecated('''
+[tripleMapToTTLStr] is deprecated.
+Use [tripleMapToTurtle(tripls, bindNamespaces)] instead.
+''')
 String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
   assert(tripleMap.isNotEmpty);
   final g = Graph();
