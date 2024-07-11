@@ -59,6 +59,7 @@ import 'package:solidpod/solidpod.dart'
         getWebId,
         logoutPopup,
         readPod,
+        getLargeFile,
         sendLargeFile;
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
@@ -260,7 +261,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             final localPath = result.files.single.path;
             final remoteFileUrl = await getFileUrl(
                 [await getDataDirPath(), path.basename(localPath!)].join('/'));
-            await sendLargeFile(localPath, remoteFileUrl);
+            await sendLargeFile(
+                localFilePath: localPath, remoteFileUrl: remoteFileUrl);
           } else {
             // User canceled the picker
             print('No file selected');
@@ -280,9 +282,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             // User canceled the picker
             debugPrint('Cancelled');
           } else {
-            final remoteFileName = localFile;
-            // await downloadFile(remoteFileName, File(outputFile));
-            print('Not implemented');
+            final remoteFileName =
+                await getFileUrl([await getDataDirPath(), localFile].join('/'));
+            await getLargeFile(
+                remoteFileUrl: remoteFileName, localFilePath: outputFile);
           }
         });
 
