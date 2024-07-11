@@ -26,16 +26,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen, Zheyuan Xu, Anushka Vidanage
+/// Authors: Zheyuan Xu, Anushka Vidanage, Dawei Chen
 
 // ignore_for_file: comment_references
 
 library;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -341,15 +342,41 @@ Future<void> initialProfileUpdate(String profBody) async {
   }
 }
 
+/// Get the resource with URL [resourceUrl] from server.
+/// The resource could be a text, turtle, binary file.
+/// If [resourceUrl] ends with '/', i.e., a container / directory,
+/// This function returns the bytes of a turtle string representing
+/// the list of resources in the container / directory.
+Future<Uint8List> getResource(String resourceUrl) async {
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, 'GET');
+
+  final response = await http.get(
+    Uri.parse(resourceUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    debugPrint('Response status: ${response.statusCode}');
+    // debugPrint('Response body: ${response.body}');
+    return response.bodyBytes;
+  } else {
+    throw Exception('Failed to get resource $resourceUrl');
+  }
+}
+
 /// Get the list of sub-containers and files in a container
 /// Adapted from getContainerList() in
 /// gurriny/indi/lib/models/common/rest_api.dart
 Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     String containerUrl) async {
   // The trailing "/" is essential for a directory
-  final url = containerUrl.endsWith(path.separator)
-      ? containerUrl
-      : containerUrl + path.separator;
+  final url = containerUrl.endsWith('/') ? containerUrl : '$containerUrl/';
 
   final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
 
