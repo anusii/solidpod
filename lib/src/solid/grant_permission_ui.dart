@@ -33,6 +33,7 @@ import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
+import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/file_permission_data_table.dart';
 import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
@@ -48,6 +49,7 @@ class GrantPermissionUi extends StatefulWidget {
       this.title = 'Demonstrating data sharing functionality',
       this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
       this.fileName,
+      this.appBar,
       super.key});
 
   /// The child widget to return to when back button is pressed.
@@ -62,6 +64,9 @@ class GrantPermissionUi extends StatefulWidget {
   /// The name of the file permission is being set to. This is a non required
   /// parameter. If not set there will be a text field to define the file name
   final String? fileName;
+
+  /// App specific app bar
+  final PreferredSizeWidget? appBar;
 
   @override
   GrantPermissionUiState createState() => GrantPermissionUiState();
@@ -203,17 +208,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         : 'Share your data files with other PODs';
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          ),
-        ),
-        backgroundColor: widget.backgroundColor,
-        title: Text(widget.title),
-      ),
+      appBar: (widget.appBar != null)
+          ? widget.appBar
+          : defaultAppBar(
+              context, widget.title, widget.backgroundColor, widget.child),
       body: SingleChildScrollView(
         child: Column(
           children: [
