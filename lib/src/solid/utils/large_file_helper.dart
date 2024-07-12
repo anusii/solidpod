@@ -92,6 +92,7 @@ Stream<Uint8List> _getChunkStream(Stream<List<int>> contentStream,
 Future<void> sendLargeFile({
   required String localFilePath,
   required String remoteFileUrl,
+  void Function(int, int)? onProgress,
 }) async {
   final file = File(localFilePath);
   final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
@@ -113,12 +114,10 @@ Future<void> sendLargeFile({
 
   var chunkId = 0;
   final chunkUrls = <String>[];
-  // debugPrint('file size: ${await file.length()}');
-  // var size = 0;
+  final totalBytes = await file.length();
+  var sentBytes = 0;
   final chunks = _getChunkStream(file.openRead());
   await for (final chunk in chunks) {
-    // size += chunk.length;
-
     final chunkUrl = '$chunkDirUrl${_getChunkName(chunkId)}';
     chunkUrls.add(chunkUrl);
 
@@ -129,6 +128,11 @@ Future<void> sendLargeFile({
     // Create ACL of the chunk file
     await createResource('$chunkUrl.acl',
         content: await genAclTurtle(chunkUrl));
+
+    sentBytes += chunk.length;
+    if (onProgress != null) {
+      onProgress(sentBytes, totalBytes);
+    }
 
     chunkId++;
   }
