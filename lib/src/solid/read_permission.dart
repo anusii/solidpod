@@ -38,7 +38,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/api/permission_api.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 
 /// Read permission given for the [fileName].
 /// Parameters:

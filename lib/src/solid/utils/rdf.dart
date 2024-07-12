@@ -121,7 +121,7 @@ Map<String, dynamic> parseACL(String aclContent) {
     final sub = extract(t.sub.value as String);
     final pre = extract(t.pre.value as String);
     var obj = '';
-    if (pre == 'agent') {
+    if (['agent', 'agentClass'].contains(pre)) {
       obj = t.obj.value as String;
     } else {
       obj = extract(t.obj.value as String);

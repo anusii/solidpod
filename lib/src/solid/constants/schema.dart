@@ -177,6 +177,9 @@ final NS vcardNS = (prefix: 'vcard', ns: Namespace(ns: vcard));
 
 final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
 
+///
+final NS solidTermsNS = (prefix: 'solidTerms', ns: Namespace(ns: appsTerms));
+
 /// Xmlns schema.
 
 String httpFoaf = foaf;

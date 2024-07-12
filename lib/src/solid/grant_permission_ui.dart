@@ -28,14 +28,16 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
-import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
-import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/heading.dart';
+import 'package:solidpod/src/widgets/app_bar.dart';
+import 'package:solidpod/src/widgets/file_permission_data_table.dart';
+import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -46,6 +48,8 @@ class GrantPermissionUi extends StatefulWidget {
       {required this.child,
       this.title = 'Demonstrating data sharing functionality',
       this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
+      this.fileName,
+      this.appBar,
       super.key});
 
   /// The child widget to return to when back button is pressed.
@@ -56,6 +60,13 @@ class GrantPermissionUi extends StatefulWidget {
 
   /// The text appearing in the app bar.
   final Color backgroundColor;
+
+  /// The name of the file permission is being set to. This is a non required
+  /// parameter. If not set there will be a text field to define the file name
+  final String? fileName;
+
+  /// App specific app bar
+  final PreferredSizeWidget? appBar;
 
   @override
   GrantPermissionUiState createState() => GrantPermissionUiState();
@@ -76,6 +87,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// append permission checked flag
   bool appendChecked = false;
 
+  /// Public permission check flag
+  bool publicChecked = false;
+
+  /// WebId textfield enable/disable flag
+  bool webIdTextFieldEnabled = true;
+
   /// Form controller
   final formKey = GlobalKey<FormState>();
 
@@ -85,189 +102,116 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Filename text controller
   final formControllerFileName = TextEditingController();
 
+  /// Group name text controller
+  final formControllerGroupName = TextEditingController();
+
+  /// Group of webIds text controller
+  final formControllerGroupWebIds = TextEditingController();
+
   /// Permission data map of a file
   Map<dynamic, dynamic> permDataMap = {};
 
   /// File name of the current permission data map
   String permDataFile = '';
 
+  /// Selected recipient
+  RecipientType selectedRecipient = RecipientType.none;
+
+  /// Selected recipient details
+  String selectedRecipientDetails = '';
+
+  /// List of webIds for group permission
+  List<dynamic>? finalWebIdList;
+
+  /// Selected list of permissions
+  List<String> selectedPermList = [];
+
+  /// Small vertical spacing for the widget.
+  final smallGapV = const SizedBox(height: 10.0);
+
+  /// Large vertical spacing for the widget.
+  final largeGapV = const SizedBox(height: 40.0);
+
   @override
   void initState() {
     super.initState();
   }
 
-  // ignore: strict_raw_type
-  void _updatePermMap(Map newPermMap, String fileName) {
+  // Update permission map with new data
+  void _updatePermMap(Map<dynamic, dynamic> newPermMap, String fileName) {
     setState(() {
       permDataMap = newPermMap;
       permDataFile = fileName;
     });
   }
 
-  Future<void> _alert(String msg) async => alert(context, msg);
-
-  /// Build the permission table widget
-  Widget _buildPermDataTable() {
-    return DataTable(
-      columns: const [
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Receiver',
-                ),
-              ),
-            ),
-            tooltip: 'WebID of the POD receiving permissions'),
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Receiver type',
-                ),
-              ),
-            ),
-            tooltip: 'Type of the receiver'),
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Permissions',
-                ),
-              ),
-            ),
-            tooltip: 'List of permissions given'),
-        DataColumn(
-            label: Expanded(
-              child: Center(
-                child: Text(
-                  'Actions',
-                ),
-              ),
-            ),
-            tooltip: 'Delete permission'),
-      ],
-      rows: permDataMap.keys.map((index) {
-        return DataRow(cells: [
-          DataCell(Container(
-            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-            //width: cWidth,
-            child: Column(
-              children: <Widget>[
-                SelectableText(
-                  index as String,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                )
-              ],
-            ),
-          )),
-          DataCell(
-            Text(
-              getAgentType(permDataMap[index][agentStr] as String, index),
-            ),
-          ),
-          DataCell(
-            Text(
-              (permDataMap[index][permStr] as List).join(', '),
-            ),
-          ),
-          DataCell(
-            IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  size: 24.0,
-                  color: Colors.red,
-                ),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (ctx) {
-                        return AlertDialog(
-                          title: const Text('Please Confirm'),
-                          content: Text(
-                              'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from $index?'),
-                          actions: [
-                            // The "Yes" button
-                            TextButton(
-                                onPressed: () async {
-                                  await revokePermission(
-                                      permDataFile,
-                                      true,
-                                      permDataMap[index][permStr] as List,
-                                      index,
-                                      context,
-                                      GrantPermissionUi(
-                                        title: widget.title,
-                                        backgroundColor: widget.backgroundColor,
-                                        child: widget.child,
-                                      ));
-
-                                  await Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => GrantPermissionUi(
-                                        title: widget.title,
-                                        backgroundColor: widget.backgroundColor,
-                                        child: widget.child,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: const Text('Yes')),
-                            TextButton(
-                                onPressed: () {
-                                  // Close the dialog
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text('No'))
-                          ],
-                        );
-                      });
-                }),
-          )
-        ]);
-      }).toList(),
-    );
+  // Update checkbox ticking data
+  void _updateCheckbox(bool newValue, AccessMode accessMode) {
+    setState(() {
+      if (accessMode == AccessMode.read) {
+        readChecked = newValue;
+      }
+      if (accessMode == AccessMode.write) {
+        writeChecked = newValue;
+      }
+      if (accessMode == AccessMode.control) {
+        controlChecked = newValue;
+      }
+      if (accessMode == AccessMode.append) {
+        appendChecked = newValue;
+      }
+      if (newValue) {
+        selectedPermList.add(accessMode.mode);
+      } else {
+        selectedPermList.remove(accessMode.mode);
+      }
+    });
   }
 
+  // Update individual webid input data
+  void _updateIndWebIdInput(String receiverWebId) {
+    setState(() {
+      selectedRecipient = RecipientType.individual;
+      selectedRecipientDetails = receiverWebId;
+      finalWebIdList = [receiverWebId];
+    });
+  }
+
+  // Update group of webids input data
+  void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) {
+    setState(() {
+      selectedRecipient = RecipientType.group;
+      selectedRecipientDetails =
+          '$groupName with WebIDs ${webIdList.join(', ')}';
+      finalWebIdList = webIdList;
+    });
+  }
+
+  Future<void> _alert(String msg) async => alert(context, msg);
+
   /// Build the main widget
-  Widget _build(BuildContext context) {
+  Widget _buildPermPage(BuildContext context, [List<Object>? futureObjList]) {
     // Build the widget.
 
-    // Some vertical spacing for the widget.
-
-    const smallGapV = SizedBox(height: 10.0);
-    const largeGapV = SizedBox(height: 40.0);
+    // Check if future is set or not. If set display the permission map
+    if (futureObjList != null) {
+      permDataMap = futureObjList.first as Map;
+      permDataFile = widget.fileName!;
+    }
 
     // A small horizontal spacing for the widget.
 
     const smallGapH = SizedBox(width: 10.0);
 
-    const welcomeHeading = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Share your data files with other PODs',
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
+    final welcomeHeadingStr = widget.fileName != null
+        ? 'Share ${widget.fileName} file with other PODs'
+        : 'Share your data files with other PODs';
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          ),
-        ),
-        backgroundColor: widget.backgroundColor,
-        title: Text(widget.title),
-      ),
+      appBar: (widget.appBar != null)
+          ? widget.appBar
+          : defaultAppBar(
+              context, widget.title, widget.backgroundColor, widget.child),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -278,245 +222,196 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
                   children: [
-                    welcomeHeading,
+                    buildHeading(welcomeHeadingStr, 22),
                     smallGapV,
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: TextFormField(
-                            controller: formControllerFileName,
-                            decoration: const InputDecoration(
-                                hintText:
-                                    'Data file path (inside your data folder Eg: personal/about.ttl)'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Empty field';
-                              }
-                              return null;
-                            },
+                        if (widget.fileName == null) ...[
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: TextFormField(
+                              controller: formControllerFileName,
+                              decoration: const InputDecoration(
+                                  hintText:
+                                      'Data file path (inside your data folder Eg: personal/about.ttl)'),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Empty field';
+                                }
+                                return null;
+                              },
+                            ),
                           ),
-                        ),
-                        smallGapH,
-                        ElevatedButton(
-                          child: const Text('Retreive permissions'),
-                          onPressed: () async {
-                            final fileName = formControllerFileName.text;
+                          smallGapH,
+                          ElevatedButton(
+                            child: const Text('Retreive permissions'),
+                            onPressed: () async {
+                              final fileName = formControllerFileName.text;
 
-                            if (fileName.isEmpty) {
-                              await _alert('Please enter a file name');
-                            } else {
-                              final permissionMap = await readPermission(
-                                  fileName,
-                                  true,
-                                  context,
-                                  GrantPermissionUi(child: widget.child));
-
-                              if (permissionMap.isEmpty) {
-                                await _alert(
-                                    'We could not find a resource by the name $fileName');
+                              if (fileName.isEmpty) {
+                                await _alert('Please enter a file name');
                               } else {
-                                _updatePermMap(permissionMap, fileName);
+                                final permissionMap = await readPermission(
+                                    fileName,
+                                    true,
+                                    context,
+                                    GrantPermissionUi(child: widget.child));
+
+                                if (permissionMap.isEmpty) {
+                                  await _alert(
+                                      'We could not find a resource by the name $fileName');
+                                } else {
+                                  _updatePermMap(permissionMap, fileName);
+                                }
                               }
-                            }
-                          },
-                        ),
-                        smallGapH,
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: TextFormField(
-                            controller: formControllerWebId,
-                            decoration: const InputDecoration(
-                                hintText:
-                                    'Recipient\'s WebID (Eg: https://pods.solidcommunity.au/john-doe/profile/card#me)'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Empty field';
-                              }
-                              return null;
                             },
                           ),
+                        ],
+                        largeGapV,
+                        buildHeading('Select the permission recipient', 17.0,
+                            Colors.blueGrey, 8),
+                        Container(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            children: [
+                              const Text(
+                                'Recipient/s: ',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Flexible(
+                                child: Text(
+                                  selectedRecipientDetails.isNotEmpty
+                                      ? '${selectedRecipient.type} ($selectedRecipientDetails)'
+                                      : selectedRecipient.type,
+                                  style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.deepOrangeAccent),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        // av-2024062: do we need the following functionality in this page.
-                        // commeting out for now until further discussion
-                        // smallGapH,
-                        // ElevatedButton(
-                        //   child: const Text('Check Permission'),
-                        //   onPressed: () {
-                        //     final webId = formControllerWebId.text;
-
-                        //     Map permControllerMap = {
-                        //       'Read': readChecked,
-                        //       'Write': writeChecked,
-                        //       'Control': controlChecked,
-                        //     };
-
-                        // if (webId.isNotEmpty) {
-                        //   if (filePermMap.containsKey(webId)) {
-                        //     final permList = filePermMap[webId] as List;
-
-                        //     if (permList.contains('Read') ||
-                        //         permList.contains('read')) {
-                        //       setState(() {
-                        //         readChecked = true;
-                        //       });
-                        //     } else {
-                        //       setState(() {
-                        //         readChecked = false;
-                        //       });
-                        //     }
-                        //     if (permList.contains('Write') ||
-                        //         permList.contains('write')) {
-                        //       setState(() {
-                        //         writeChecked = true;
-                        //       });
-                        //     } else {
-                        //       setState(() {
-                        //         writeChecked = false;
-                        //       });
-                        //     }
-                        //     if (permList.contains('Control') ||
-                        //         permList.contains('control')) {
-                        //       setState(() {
-                        //         controlChecked = true;
-                        //       });
-                        //     } else {
-                        //       setState(() {
-                        //         controlChecked = false;
-                        //       });
-                        //     }
-                        //   } else {
-                        //     showDialog(
-                        //       context: context,
-                        //       builder: (context) => AlertDialog(
-                        //         title: const Text('INFO!'),
-                        //         content: const Text(
-                        //             'You have not provided any permissions for this webId.'),
-                        //         actions: [
-                        //           ElevatedButton(
-                        //               onPressed: () {
-                        //                 Navigator.pop(context);
-                        //               },
-                        //               child: const Text('OK'))
-                        //         ],
-                        //       ),
-                        //     );
-                        //   }
-                        // } else {
-                        //   showDialog(
-                        //     context: context,
-                        //     builder: (context) => AlertDialog(
-                        //       title: const Text('ERROR!'),
-                        //       content: const Text('Please enter a webID.'),
-                        //       actions: [
-                        //         ElevatedButton(
-                        //             onPressed: () {
-                        //               Navigator.pop(context);
-                        //             },
-                        //             child: const Text('OK'))
-                        //       ],
-                        //     ),
-                        //   );
-                        // }
-                        //   },
-                        // ),
-                        smallGapH,
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.read.mode} (${AccessMode.read.description})'),
-                          value: readChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              readChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
+                        Container(
+                          padding: const EdgeInsets.all(8.0),
+                          height: 100,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedRecipient =
+                                            RecipientType.public;
+                                        selectedRecipientDetails = '';
+                                        finalWebIdList = [publicAgent.value];
+                                      });
+                                    },
+                                    child: Text(RecipientType.public.type),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedRecipient =
+                                            RecipientType.authUser;
+                                        selectedRecipientDetails = '';
+                                        finalWebIdList = [
+                                          authenticatedAgent.value
+                                        ];
+                                      });
+                                    },
+                                    child: Text(RecipientType.authUser.type),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      await indWebIdInputDialog(
+                                          context,
+                                          formControllerWebId,
+                                          _updateIndWebIdInput);
+                                    },
+                                    child: Text(RecipientType.individual.type),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  padding: const EdgeInsets.only(left: 8.0),
+                                  height: 50,
+                                  child: ElevatedButton(
+                                    onPressed: () async {
+                                      await groupWebIdInputDialog(
+                                          context,
+                                          formControllerGroupName,
+                                          formControllerGroupWebIds,
+                                          _updateGroupWebIdInput);
+                                    },
+                                    child: Text(RecipientType.group.type),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
                         ),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.write.mode} (${AccessMode.write.description})'),
-                          value: writeChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              writeChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.control.mode} (${AccessMode.control.description})'),
-                          value: controlChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              controlChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
-                        CheckboxListTile(
-                          title: Text(
-                              '${AccessMode.append.mode} (${AccessMode.append.description})'),
-                          value: appendChecked,
-                          onChanged: (newValue) {
-                            setState(() {
-                              appendChecked = newValue!;
-                            });
-                          },
-                          controlAffinity: ListTileControlAffinity
-                              .leading, //  <-- leading Checkbox
-                        ),
+                        smallGapV,
+                        buildHeading('Select the list of permissions', 17.0,
+                            Colors.blueGrey, 8),
+                        permissionCheckbox(
+                            AccessMode.read, readChecked, _updateCheckbox),
+                        permissionCheckbox(
+                            AccessMode.write, writeChecked, _updateCheckbox),
+                        permissionCheckbox(AccessMode.control, controlChecked,
+                            _updateCheckbox),
+                        permissionCheckbox(
+                            AccessMode.append, appendChecked, _updateCheckbox),
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: ElevatedButton(
                             child: const Text('Grant Permission'),
                             onPressed: () async {
                               if (formKey.currentState!.validate()) {
-                                if (readChecked ||
-                                    writeChecked ||
-                                    controlChecked ||
-                                    appendChecked) {
-                                  final webId = formControllerWebId.text;
-                                  final dataFile = formControllerFileName.text;
-
-                                  // Check if webId is a true link
-                                  if (Uri.parse(webId.replaceAll('#me', ''))
-                                          .isAbsolute &&
-                                      await checkResourceStatus(webId) ==
-                                          ResourceStatus.exist) {
-                                    final permList = [];
-                                    if (readChecked) {
-                                      permList.add('Read');
-                                    }
-                                    if (writeChecked) {
-                                      permList.add('Write');
-                                    }
-                                    if (controlChecked) {
-                                      permList.add('Control');
-                                    }
-                                    if (appendChecked) {
-                                      permList.add('Append');
-                                    }
-                                    assert(permList.isNotEmpty);
+                                if (selectedRecipient.type.isNotEmpty) {
+                                  if (selectedPermList.isNotEmpty) {
+                                    final dataFile = widget.fileName ??
+                                        formControllerFileName.text;
 
                                     await grantPermission(
-                                        dataFile,
-                                        true,
-                                        permList,
-                                        webId,
-                                        true,
-                                        context,
-                                        GrantPermissionUi(
-                                          title: widget.title,
-                                          backgroundColor:
-                                              widget.backgroundColor,
-                                          child: widget.child,
-                                        ));
+                                      dataFile,
+                                      true,
+                                      selectedPermList,
+                                      selectedRecipient,
+                                      finalWebIdList as List,
+                                      true,
+                                      context,
+                                      GrantPermissionUi(
+                                        title: widget.title,
+                                        backgroundColor: widget.backgroundColor,
+                                        fileName: widget.fileName,
+                                        child: widget.child,
+                                      ),
+                                      selectedRecipient == RecipientType.group
+                                          ? formControllerGroupName.text.trim()
+                                          : null,
+                                    );
 
+                                    if (!context.mounted) return;
                                     await Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
@@ -524,36 +419,35 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           title: widget.title,
                                           backgroundColor:
                                               widget.backgroundColor,
+                                          fileName: widget.fileName,
                                           child: widget.child,
                                         ),
                                       ),
                                     );
                                   } else {
                                     await _alert(
-                                        'The WebID you entered does not exist!');
+                                        'Please select one or more permissions');
                                   }
                                 } else {
-                                  await _alert(
-                                      'Please select one or more permissions');
+                                  await _alert('Please select a recipient');
                                 }
                               }
                             },
                           ),
                         ),
                         largeGapV,
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Granted permissions',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        _buildPermDataTable(),
+                        buildHeading(
+                            'Granted permissions', 17.0, Colors.blueGrey, 8),
+                        buildPermDataTable(
+                            context,
+                            permDataFile,
+                            permDataMap,
+                            GrantPermissionUi(
+                              title: widget.title,
+                              backgroundColor: widget.backgroundColor,
+                              fileName: widget.fileName,
+                              child: widget.child,
+                            )),
                       ],
                     ),
                   ],
@@ -570,6 +464,20 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget build(BuildContext context) {
     // Build as a separate widget with the possibility of adding a FutureBuilder
     // in the Future
-    return _build(context);
+    if (widget.fileName != null) {
+      return FutureBuilder(
+        future: Future.wait(
+            [readPermission(widget.fileName as String, true, context, widget)]),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return _buildPermPage(context, snapshot.data);
+          } else {
+            return const CircularProgressIndicator();
+          }
+        },
+      );
+    } else {
+      return _buildPermPage(context);
+    }
   }
 }
