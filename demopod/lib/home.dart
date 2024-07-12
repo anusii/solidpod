@@ -44,6 +44,7 @@ import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/utils/rdf.dart';
+import 'package:demopod/features/file_service.dart';
 
 import 'package:solidpod/solidpod.dart'
     show
@@ -249,6 +250,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
       ],
     );
+
+    final fileDemoButton = ElevatedButton(
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const FileService()));
+        },
+        child: const Text('Upload / Download File'));
 
     final uploadButton = ElevatedButton(
         child: const Text('Upload Binary Data'),
