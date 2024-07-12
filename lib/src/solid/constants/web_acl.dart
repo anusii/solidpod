@@ -153,7 +153,7 @@ enum AccessMode {
 }
 
 /// Return access mode based on a given String value
-AccessMode setAccessMode(String mode) {
+AccessMode getAccessMode(String mode) {
   switch (mode.toLowerCase()) {
     case 'read':
       return AccessMode.read;

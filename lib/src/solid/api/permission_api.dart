@@ -73,6 +73,8 @@ Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
   // Authenticated users permission set
   var authUserPermSet = <AccessMode>{};
 
+  // Go through the exisiting permissions and get those assigned to relevant
+  // permission maps
   for (final receiverId in permMap.keys) {
     // Do not change owner permissions. Owner of the file should always have
     // Read, Write, Control permissions to the file
@@ -86,16 +88,23 @@ Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
     if (agentType == agentClassPred) {
       if (URIRef(receiverId as String) == publicAgent) {
         for (final permStr in permList) {
-          publicPermSet.add(setAccessMode(permStr as String));
+          publicPermSet.add(getAccessMode(permStr as String));
+        }
+      } else if (URIRef(receiverId) == authenticatedAgent) {
+        for (final permStr in permList) {
+          authUserPermSet.add(getAccessMode(permStr as String));
         }
       }
-    } else if (agentType == agentGroupPred) {
     } else {
       final permSet = <AccessMode>{};
       for (final permStr in permList) {
-        permSet.add(setAccessMode(permStr as String));
+        permSet.add(getAccessMode(permStr as String));
       }
-      updatedIndPermMap[receiverId as String] = permSet;
+      if (agentType == agentGroupPred) {
+        updatedGroupPermMap[receiverId as String] = permSet;
+      } else {
+        updatedIndPermMap[receiverId as String] = permSet;
+      }
     }
   }
 
@@ -103,7 +112,7 @@ Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
   // create new permission set
   final newPermSet = <AccessMode>{};
   for (final permStr in permissionList) {
-    newPermSet.add(setAccessMode(permStr as String));
+    newPermSet.add(getAccessMode(permStr as String));
   }
 
   // if the permission recipient is public
