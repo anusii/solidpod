@@ -377,6 +377,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 },
                               )
                             ]),
+                        smallGapV,
+                        fileDemoButton,
                         largeGapV,
                         const Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

@@ -162,6 +162,7 @@ Future<void> sendLargeFile({
 Future<void> getLargeFile({
   required String remoteFileUrl,
   required String localFilePath,
+  void Function(int, int)? onProgress,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
 
@@ -192,6 +193,9 @@ Future<void> getLargeFile({
   for (final url in chunkUrls!) {
     final chunk = await getResource(url as String);
     sink.add(chunk);
+    // if (onProgress != null) {
+    //   onProgress(sentBytes, totalBytes);
+    // }
   }
   await sink.close();
 }
