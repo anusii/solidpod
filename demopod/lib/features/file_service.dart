@@ -1,7 +1,34 @@
+/// A widget to demonstrate the upload, download, and delete large files.
+///
+/// Copyright (C) 2024, Software Innovation Institute, ANU.
+///
+/// Licensed under the GNU General Public License, Version 3 (the "License").
+///
+/// License: https://www.gnu.org/licenses/gpl-3.0.en.html.
+//
+// This program is free software: you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation, either version 3 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+// details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program.  If not, see <https://www.gnu.org/licenses/>.
+///
+/// Authors: Dawei Chen
+
+library;
+
 import 'package:flutter/material.dart';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:solidpod/solidpod.dart';
-import 'package:path/path.dart' as path;
+
+import 'package:demopod/dialogs/alert.dart';
 
 class FileService extends StatefulWidget {
   const FileService({super.key});
@@ -11,50 +38,67 @@ class FileService extends StatefulWidget {
 }
 
 class _FileServiceState extends State<FileService> {
-  String? localFilePath;
-  String? remoteFileUrl;
-  double percent = 0.0;
-  bool done = false;
-  // bool inProgress = false;
+  String remoteFileName = 'large_file.bin';
+  String? uploadFile;
+  String? downloadFile;
 
-  Future<String?> getRemoteFileUrl() async {
-    if (localFilePath != null) {
-      return await getFileUrl(
-          [await getDataDirPath(), path.basename(localFilePath!)].join('/'));
-    }
-    return null;
+  double uploadPercent = 0.0;
+  double downloadPercent = 0.0;
+
+  bool uploadDone = false;
+  bool downloadDone = false;
+
+  bool uploadInProgress = false;
+  bool downloadInProgress = false;
+
+  final smallGapH = const SizedBox(width: 10);
+  final smallGapV = const SizedBox(height: 10);
+  final largeGapV = const SizedBox(height: 50);
+
+  Future<String> getRemoteFileUrl() async =>
+      getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
+
+  Widget getProgressBar(String message, bool isDone, double percent) {
+    const textStyle = TextStyle(
+      color: Colors.green,
+      fontWeight: FontWeight.bold,
+    );
+
+    final prefix = Text(message, style: textStyle);
+    final suffix = Text('${(percent * 100).toInt()}%', style: textStyle);
+    final progress = SizedBox(
+      width: 300,
+      height: 10,
+      child: LinearProgressIndicator(
+        value: percent,
+        minHeight: 2,
+        backgroundColor: Colors.black12,
+        color: Colors.greenAccent,
+      ),
+    );
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        prefix,
+        smallGapH,
+        progress,
+        smallGapH,
+        suffix,
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final progressBar = Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        LinearProgressIndicator(
-          value: percent,
-          color: Colors.green,
-        ),
-        Text(done ? 'Done' : '${(percent * 100).toInt()}%'),
-      ],
-    );
-
-    final snackBar = SnackBar(
-        content: progressBar,
-        action: SnackBarAction(
-          label: 'OK',
-          onPressed: () {},
-        ));
-
     final browseButton = ElevatedButton(
       onPressed: () async {
         final result = await FilePicker.platform.pickFiles();
         if (result != null) {
           setState(() {
-            localFilePath = result.files.single.path!;
-          });
-          final fileUrl = await getRemoteFileUrl();
-          setState(() {
-            remoteFileUrl = fileUrl;
+            uploadFile = result.files.single.path!;
+            uploadDone = false;
+            uploadPercent = 0.0;
           });
         }
       },
@@ -62,84 +106,173 @@ class _FileServiceState extends State<FileService> {
     );
 
     final uploadButton = ElevatedButton(
-      onPressed: localFilePath == null
+      onPressed: uploadFile == null
           ? null
           : () async {
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-              await sendLargeFile(
-                  localFilePath: localFilePath!,
-                  remoteFileUrl: remoteFileUrl!,
-                  onProgress: (sent, total) {
-                    setState(() {
-                      done = sent == total;
-                      percent = sent / total;
+              try {
+                setState(() {
+                  uploadInProgress = true;
+                });
+                await sendLargeFile(
+                    localFilePath: uploadFile!,
+                    remoteFileUrl: await getRemoteFileUrl(),
+                    onProgress: (sent, total) {
+                      setState(() {
+                        uploadDone = sent == total;
+                        uploadPercent = sent / total;
+                      });
                     });
+                if (uploadDone) {
+                  setState(() {
+                    uploadInProgress = false;
                   });
+                }
+              } on Object catch (e) {
+                if (context.mounted) alert(context, 'Failed to send file.');
+                debugPrint('$e');
+              }
             },
       child: const Text('Upload'),
     );
 
-    final uploadRow = Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        const Text('Upload: '),
-        Text(
-          localFilePath ?? 'Choose a file',
-          style: TextStyle(
-              color: localFilePath != null ? Colors.black : Colors.red),
-        ),
-        const SizedBox(width: 10),
-        browseButton,
-        const SizedBox(width: 10),
-        uploadButton,
-      ],
-    );
-
     final downloadButton = ElevatedButton(
-      onPressed: remoteFileUrl == null
-          ? null
-          : () async {
-              String? outputFile = await FilePicker.platform.saveFile(
-                dialogTitle: 'Please set the output file:',
-                // fileName: 'download.bin',
-              );
-              if (outputFile == null) {
-                // User canceled the picker
-                debugPrint('Download is cancelled');
-              } else {
-                await getLargeFile(
-                    remoteFileUrl: remoteFileUrl!, localFilePath: outputFile);
-              }
-            },
+      onPressed: () async {
+        String? outputFile = await FilePicker.platform.saveFile(
+          dialogTitle: 'Please set the output file:',
+          // fileName: 'download.bin',
+        );
+        if (outputFile == null) {
+          // User canceled the picker
+          debugPrint('Download is cancelled');
+        } else {
+          setState(() {
+            downloadFile = outputFile;
+          });
+          try {
+            setState(() {
+              downloadInProgress = true;
+            });
+            await getLargeFile(
+                remoteFileUrl: await getRemoteFileUrl(),
+                localFilePath: outputFile,
+                onProgress: (received, total) {
+                  setState(() {
+                    downloadDone = received == total;
+                    downloadPercent = received / total;
+                  });
+                });
+            if (downloadDone) {
+              setState(() {
+                downloadInProgress = false;
+              });
+            }
+          } on Object catch (e) {
+            if (context.mounted) alert(context, 'Failed to download file.');
+            debugPrint('$e');
+          }
+        }
+      },
       child: const Text('Download'),
-    );
-
-    final downloadRow = Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        const Text('Download: '),
-        Text(
-          remoteFileUrl ?? 'Please first upload a file',
-          style: TextStyle(
-              color: remoteFileUrl != null ? Colors.black : Colors.red),
-        ),
-        const SizedBox(width: 10),
-        downloadButton,
-      ],
     );
 
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            uploadRow,
-            const SizedBox(height: 10),
-            const Divider(color: Colors.grey),
-            const SizedBox(height: 10),
-            downloadRow,
-            // const SizedBox(height: 10),
-            // Text('Upload progress: ${(100 * percent).toInt()}%'),
+        child: Stack(
+          children: <Widget>[
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                largeGapV,
+                largeGapV,
+                Text(
+                  'Upload a large file and save it as "$remoteFileName" in POD',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                smallGapV,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    const Text('Upload file:'),
+                    smallGapH,
+                    Text(
+                      uploadFile ?? 'Click the Browse button to choose a file',
+                      style: TextStyle(
+                        color: uploadFile == null ? Colors.red : Colors.blue,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    smallGapH,
+                    if (uploadDone) const Icon(Icons.done, color: Colors.green),
+                  ],
+                ),
+                smallGapV,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    browseButton,
+                    smallGapH,
+                    uploadButton,
+                  ],
+                ),
+                largeGapV,
+                Text(
+                  'Download the "$remoteFileName" from POD',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                smallGapV,
+                if (downloadFile != null)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Text('Save file:'),
+                      smallGapH,
+                      Text(
+                        downloadFile!,
+                        style: const TextStyle(color: Colors.blue),
+                      ),
+                      smallGapH,
+                      if (downloadDone)
+                        const Icon(Icons.done, color: Colors.green),
+                    ],
+                  ),
+                smallGapV,
+                downloadButton,
+                largeGapV,
+                Text(
+                  'Delete the "$remoteFileName" from POD',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+
+            // Uploading progress bar
+            if (uploadInProgress)
+              Positioned(
+                top: 20,
+                left: 0,
+                right: 0,
+                child: getProgressBar('Uploading:', uploadDone, uploadPercent),
+              ),
+
+            // Downloading progress bar
+            if (downloadInProgress)
+              Positioned(
+                top: 30,
+                left: 0,
+                right: 0,
+                child: getProgressBar(
+                    'Downloading:', downloadDone, downloadPercent),
+              ),
           ],
         ),
       ),
