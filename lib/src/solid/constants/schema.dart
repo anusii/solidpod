@@ -221,29 +221,32 @@ final NS siiNS = (prefix: 'sii', ns: Namespace(ns: sii));
 
 /// SII customised predicates
 enum SIIPredicate {
-  /// Initialization vector in AES en-/de-cryption
-  iv('iv'),
+  /// Initialization vector (base64 encoded) for AES en-/de-cryption
+  ivB64('ivB64'),
 
   /// AES encrypted data
-  encryptedData('encData'),
+  ciphertext('ciphertext'),
 
   /// Resource path
-  path('path'),
+  filePath('filePath'),
 
   /// AES encrypted individual key for en-/de-crypt individual file
-  individualKey('sessionKey'),
+  encryptionKey('encryptionKey'),
 
   /// AES encrypted RSA private key
-  privateKey('prvKey'),
+  privateKey('privateKey'),
 
-  /// Verification key of the security key
-  verificationKey('encKey'),
+  /// Verification code of the security key
+  securityKeyCheck('securityKeyCheck'),
 
   /// Trimed RSA public key
-  publicKey('pubKey'),
+  publicKey('publicKey'),
 
   /// Data chunk
-  dataChunk('chunk');
+  dataChunk('dataChunk'),
+
+  /// Data size in bytes
+  dataSize('dataSize');
 
   /// Generative enum constructor
   const SIIPredicate(this._value);
