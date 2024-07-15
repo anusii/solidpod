@@ -1,4 +1,4 @@
-/// Helper functions to download and upload large files in PODs.
+/// Helper functions to upload, download, and delete large files in PODs.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -32,10 +32,13 @@ import 'dart:convert' show utf8;
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
+import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
-    show createResource, checkResourceStatus, getResource;
+    show createResource, checkResourceStatus, getResource, deleteResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
@@ -203,4 +206,57 @@ Future<void> getLargeFile({
     }
   }
   await sink.close();
+}
+
+/// Delete a large file previously sent using [sendLargeFile] with URL
+/// [remoteFileUrl] in POD
+Future<void> deleteLargeFile({
+  required String remoteFileUrl,
+  void Function(int, int)? onProgress,
+}) async {
+  // Check if the corresponding Turtle file and directory of chunks exist
+
+  final fileUrl = '$remoteFileUrl.ttl';
+  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
+
+  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist &&
+      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
+    debugPrint('The requested file does not exist.');
+    return;
+  }
+
+  // Parse the Turtle file with metadata of the (chunked) large file
+  // on server to get the URLs of individual chunks
+
+  final triples = turtleToTripleMap(utf8.decode(await getResource(fileUrl)));
+  assert(triples.length == 1);
+  assert(triples.containsKey(remoteFileUrl));
+
+  final map = triples[remoteFileUrl];
+  final chunkPred = SIIPredicate.dataChunk.uriRef.value;
+  assert(map!.containsKey(chunkPred));
+
+  // Get the individual chunks, combine them, and save combined to file
+
+  final chunkUrls = map![chunkPred];
+  final chunkCount = chunkUrls!.length;
+  var deleted = 0;
+
+  for (final url in chunkUrls!) {
+    final chunkUrl = url as String;
+    await deleteResource(chunkUrl, ResourceContentType.binary);
+    await deleteAclForResource(chunkUrl);
+
+    deleted += 1;
+
+    if (onProgress != null) {
+      onProgress(deleted, chunkCount);
+    }
+  }
+
+  await deleteAclForResource(chunkDirUrl);
+  await deleteResource(chunkDirUrl, ResourceContentType.directory);
+
+  await deleteResource(fileUrl, ResourceContentType.turtleText);
+  await deleteAclForResource(fileUrl);
 }
