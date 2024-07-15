@@ -44,12 +44,15 @@ class _FileServiceState extends State<FileService> {
 
   double uploadPercent = 0.0;
   double downloadPercent = 0.0;
+  double deletePercent = 0.0;
 
   bool uploadDone = false;
   bool downloadDone = false;
+  bool deleteDone = false;
 
   bool uploadInProgress = false;
   bool downloadInProgress = false;
+  bool deleteInProgress = false;
 
   final smallGapH = const SizedBox(width: 10);
   final smallGapV = const SizedBox(height: 10);
@@ -106,7 +109,10 @@ class _FileServiceState extends State<FileService> {
     );
 
     final uploadButton = ElevatedButton(
-      onPressed: uploadFile == null
+      onPressed: (uploadFile == null ||
+              uploadInProgress ||
+              downloadInProgress ||
+              deleteInProgress)
           ? null
           : () async {
               try {
@@ -136,43 +142,75 @@ class _FileServiceState extends State<FileService> {
     );
 
     final downloadButton = ElevatedButton(
-      onPressed: () async {
-        String? outputFile = await FilePicker.platform.saveFile(
-          dialogTitle: 'Please set the output file:',
-          // fileName: 'download.bin',
-        );
-        if (outputFile == null) {
-          // User canceled the picker
-          debugPrint('Download is cancelled');
-        } else {
-          setState(() {
-            downloadFile = outputFile;
-          });
-          try {
-            setState(() {
-              downloadInProgress = true;
-            });
-            await getLargeFile(
-                remoteFileUrl: await getRemoteFileUrl(),
-                localFilePath: outputFile,
-                onProgress: (received, total) {
-                  setState(() {
-                    downloadDone = received == total;
-                    downloadPercent = received / total;
-                  });
+      onPressed: (uploadInProgress || downloadInProgress || deleteInProgress)
+          ? null
+          : () async {
+              String? outputFile = await FilePicker.platform.saveFile(
+                dialogTitle: 'Please set the output file:',
+                // fileName: 'download.bin',
+              );
+              if (outputFile == null) {
+                // User canceled the picker
+                debugPrint('Download is cancelled');
+              } else {
+                setState(() {
+                  downloadFile = outputFile;
                 });
-            if (downloadDone) {
-              setState(() {
-                downloadInProgress = false;
-              });
-            }
-          } on Object catch (e) {
-            if (context.mounted) alert(context, 'Failed to download file.');
-            debugPrint('$e');
-          }
-        }
-      },
+                try {
+                  setState(() {
+                    downloadInProgress = true;
+                  });
+                  await getLargeFile(
+                      remoteFileUrl: await getRemoteFileUrl(),
+                      localFilePath: outputFile,
+                      onProgress: (received, total) {
+                        setState(() {
+                          downloadDone = received == total;
+                          downloadPercent = received / total;
+                        });
+                      });
+                  if (downloadDone) {
+                    setState(() {
+                      downloadInProgress = false;
+                    });
+                  }
+                } on Object catch (e) {
+                  if (context.mounted)
+                    alert(context, 'Failed to download file.');
+                  debugPrint('$e');
+                }
+              }
+            },
       child: const Text('Download'),
+    );
+
+    final deleteButton = ElevatedButton(
+      onPressed: (uploadInProgress || downloadInProgress || deleteInProgress)
+          ? null
+          : () async {
+              try {
+                setState(() {
+                  downloadInProgress = true;
+                });
+                await deleteLargeFile(
+                    remoteFileUrl: await getRemoteFileUrl(),
+                    onProgress: (deleted, total) {
+                      setState(() {
+                        deleteDone = deleted == total;
+                        deletePercent = deleted / total;
+                      });
+                    });
+                if (deleteDone) {
+                  setState(() {
+                    deleteInProgress = false;
+                  });
+                }
+              } on Object catch (e) {
+                if (context.mounted) alert(context, 'Failed to delete file.');
+                debugPrint('$e');
+              }
+            },
+      child: const Text('Delete'),
     );
 
     return Scaffold(
@@ -252,6 +290,8 @@ class _FileServiceState extends State<FileService> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                smallGapV,
+                deleteButton,
               ],
             ),
 
@@ -267,11 +307,20 @@ class _FileServiceState extends State<FileService> {
             // Downloading progress bar
             if (downloadInProgress)
               Positioned(
-                top: 30,
+                top: 20,
                 left: 0,
                 right: 0,
                 child: getProgressBar(
                     'Downloading:', downloadDone, downloadPercent),
+              ),
+
+            // Deleting progress bar
+            if (deleteInProgress)
+              Positioned(
+                top: 20,
+                left: 0,
+                right: 0,
+                child: getProgressBar('Deleting:', deleteDone, deletePercent),
               ),
           ],
         ),
