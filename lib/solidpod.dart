@@ -55,4 +55,4 @@ export 'src/solid/grant_permission.dart' show grantPermission;
 export 'src/solid/read_permission.dart' show readPermission;
 export 'src/solid/revoke_permission.dart' show revokePermission;
 export 'src/solid/utils/large_file_helper.dart'
-    show sendLargeFile, getLargeFile;
+    show sendLargeFile, getLargeFile, deleteLargeFile;
