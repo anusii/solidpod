@@ -256,46 +256,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const FileService()));
         },
-        child: const Text('Upload / Download File'));
-
-    final uploadButton = ElevatedButton(
-        child: const Text('Upload Binary Data'),
-        onPressed: () async {
-          final result = await FilePicker.platform.pickFiles();
-
-          if (result != null) {
-            // final file = File(result.files.single.path!);
-            // await uploadFile(file);
-            final localPath = result.files.single.path;
-            final remoteFileUrl = await getFileUrl(
-                [await getDataDirPath(), path.basename(localPath!)].join('/'));
-            await sendLargeFile(
-                localFilePath: localPath, remoteFileUrl: remoteFileUrl);
-          } else {
-            // User canceled the picker
-            print('No file selected');
-          }
-        });
-
-    final downloadButton = ElevatedButton(
-        child: const Text('Download Binary Data'),
-        onPressed: () async {
-          final localFile = 'binary_data.bin';
-          String? outputFile = await FilePicker.platform.saveFile(
-            dialogTitle: 'Please select an output file:',
-            fileName: localFile,
-          );
-
-          if (outputFile == null) {
-            // User canceled the picker
-            debugPrint('Cancelled');
-          } else {
-            final remoteFileName =
-                await getFileUrl([await getDataDirPath(), localFile].join('/'));
-            await getLargeFile(
-                remoteFileUrl: remoteFileName, localFilePath: outputFile);
-          }
-        });
+        child: const Text('Upload / Download Large File'));
 
     // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
     // HERE.
@@ -335,21 +296,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           },
                         ),
                         smallGapV,
-                        uploadButton,
+                        fileDemoButton,
                         smallGapV,
-                        downloadButton,
-                        smallGapV,
-                        // ElevatedButton(
-                        //     child: const Text('Get File Header'),
-                        //     onPressed: () async {
-                        //       final fileUrl = await getFileUrl([
-                        //         await getDataDirPath(),
-                        //         'binary_data.bin'
-                        //       ].join('/'));
-                        //       final header = await getResourceHeader(fileUrl);
-                        //       print(header);
-                        //     }),
-                        // smallGapV,
 
                         // SolidPod API: deleteDataFile()
                         ElevatedButton(
@@ -377,9 +325,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 },
                               )
                             ]),
-                        smallGapV,
-                        fileDemoButton,
+
                         largeGapV,
+
                         const Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
