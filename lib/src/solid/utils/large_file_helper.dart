@@ -129,7 +129,7 @@ Future<void> sendLargeFile({
     await createResource('$chunkUrl.acl',
         content: await genAclTurtle(chunkUrl));
 
-    sentBytes += chunk.length;
+    sentBytes += chunk.lengthInBytes;
     if (onProgress != null) {
       onProgress(sentBytes, totalBytes);
     }
@@ -141,6 +141,7 @@ Future<void> sendLargeFile({
 
   final triples = {
     URIRef(remoteFileUrl): {
+      SIIPredicate.dataSize.uriRef: URIRef(file.lengthSync().toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
     }
   };
@@ -182,20 +183,24 @@ Future<void> getLargeFile({
   assert(triples.containsKey(remoteFileUrl));
 
   final map = triples[remoteFileUrl];
-  final predicate = SIIPredicate.dataChunk.uriRef.value;
-  assert(map!.length == 1);
-  assert(map!.containsKey(predicate));
+  final chunkPred = SIIPredicate.dataChunk.uriRef.value;
+  final sizePred = SIIPredicate.dataSize.uriRef.value;
+  assert(map!.containsKey(chunkPred));
+  assert(map!.containsKey(sizePred));
 
   // Get the individual chunks, combine them, and save combined to file
 
-  final chunkUrls = map![predicate];
+  final totalBytes = int.parse(map![sizePred]!.first as String);
+  var receivedBytes = 0;
+  final chunkUrls = map[chunkPred];
   final sink = File(localFilePath).openWrite();
   for (final url in chunkUrls!) {
     final chunk = await getResource(url as String);
     sink.add(chunk);
-    // if (onProgress != null) {
-    //   onProgress(sentBytes, totalBytes);
-    // }
+    receivedBytes += chunk.lengthInBytes;
+    if (onProgress != null) {
+      onProgress(receivedBytes, totalBytes);
+    }
   }
   await sink.close();
 }
