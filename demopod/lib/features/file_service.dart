@@ -41,6 +41,7 @@ class _FileServiceState extends State<FileService> {
   String remoteFileName = 'large_file.bin';
   String? uploadFile;
   String? downloadFile;
+  String? remoteFileUrl;
 
   double uploadPercent = 0.0;
   double downloadPercent = 0.0;
@@ -82,6 +83,7 @@ class _FileServiceState extends State<FileService> {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
+      // crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         prefix,
         smallGapH,
@@ -116,12 +118,13 @@ class _FileServiceState extends State<FileService> {
           ? null
           : () async {
               try {
+                remoteFileUrl ??= await getRemoteFileUrl();
                 setState(() {
                   uploadInProgress = true;
                 });
                 await sendLargeFile(
                     localFilePath: uploadFile!,
-                    remoteFileUrl: await getRemoteFileUrl(),
+                    remoteFileUrl: remoteFileUrl!,
                     onProgress: (sent, total) {
                       setState(() {
                         uploadDone = sent == total;
@@ -157,11 +160,12 @@ class _FileServiceState extends State<FileService> {
                   downloadFile = outputFile;
                 });
                 try {
+                  remoteFileUrl ??= await getRemoteFileUrl();
                   setState(() {
                     downloadInProgress = true;
                   });
                   await getLargeFile(
-                      remoteFileUrl: await getRemoteFileUrl(),
+                      remoteFileUrl: remoteFileUrl!,
                       localFilePath: outputFile,
                       onProgress: (received, total) {
                         setState(() {
@@ -175,8 +179,9 @@ class _FileServiceState extends State<FileService> {
                     });
                   }
                 } on Object catch (e) {
-                  if (context.mounted)
+                  if (context.mounted) {
                     alert(context, 'Failed to download file.');
+                  }
                   debugPrint('$e');
                 }
               }
@@ -189,11 +194,12 @@ class _FileServiceState extends State<FileService> {
           ? null
           : () async {
               try {
+                remoteFileUrl ??= await getRemoteFileUrl();
                 setState(() {
-                  downloadInProgress = true;
+                  deleteInProgress = true;
                 });
                 await deleteLargeFile(
-                    remoteFileUrl: await getRemoteFileUrl(),
+                    remoteFileUrl: remoteFileUrl!,
                     onProgress: (deleted, total) {
                       setState(() {
                         deleteDone = deleted == total;
@@ -206,7 +212,9 @@ class _FileServiceState extends State<FileService> {
                   });
                 }
               } on Object catch (e) {
-                if (context.mounted) alert(context, 'Failed to delete file.');
+                if (context.mounted) {
+                  alert(context, 'Failed to delete file.');
+                }
                 debugPrint('$e');
               }
             },
@@ -223,6 +231,9 @@ class _FileServiceState extends State<FileService> {
               children: <Widget>[
                 largeGapV,
                 largeGapV,
+
+                // Upload
+
                 Text(
                   'Upload a large file and save it as "$remoteFileName" in POD',
                   style: const TextStyle(
@@ -234,13 +245,13 @@ class _FileServiceState extends State<FileService> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const Text('Upload file:'),
+                    const Text('Upload file'),
                     smallGapH,
                     Text(
                       uploadFile ?? 'Click the Browse button to choose a file',
                       style: TextStyle(
                         color: uploadFile == null ? Colors.red : Colors.blue,
-                        fontStyle: FontStyle.italic,
+                        // fontStyle: FontStyle.italic,
                       ),
                     ),
                     smallGapH,
@@ -256,7 +267,11 @@ class _FileServiceState extends State<FileService> {
                     uploadButton,
                   ],
                 ),
+
                 largeGapV,
+
+                // Download
+
                 Text(
                   'Download the "$remoteFileName" from POD',
                   style: const TextStyle(
@@ -269,7 +284,7 @@ class _FileServiceState extends State<FileService> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      const Text('Save file:'),
+                      const Text('Save file'),
                       smallGapH,
                       Text(
                         downloadFile!,
@@ -282,7 +297,11 @@ class _FileServiceState extends State<FileService> {
                   ),
                 smallGapV,
                 downloadButton,
+
                 largeGapV,
+
+                // Delete
+
                 Text(
                   'Delete the "$remoteFileName" from POD',
                   style: const TextStyle(
@@ -291,11 +310,28 @@ class _FileServiceState extends State<FileService> {
                   ),
                 ),
                 smallGapV,
+                if (deleteInProgress || deleteDone)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      const Text('Delete file'),
+                      smallGapH,
+                      Text(
+                        remoteFileUrl!,
+                        style: const TextStyle(color: Colors.blue),
+                      ),
+                      smallGapH,
+                      if (deleteDone)
+                        const Icon(Icons.done, color: Colors.green),
+                    ],
+                  ),
+                smallGapV,
                 deleteButton,
               ],
             ),
 
             // Uploading progress bar
+
             if (uploadInProgress)
               Positioned(
                 top: 20,
@@ -305,6 +341,7 @@ class _FileServiceState extends State<FileService> {
               ),
 
             // Downloading progress bar
+
             if (downloadInProgress)
               Positioned(
                 top: 20,
@@ -315,6 +352,7 @@ class _FileServiceState extends State<FileService> {
               ),
 
             // Deleting progress bar
+
             if (deleteInProgress)
               Positioned(
                 top: 20,
@@ -322,6 +360,16 @@ class _FileServiceState extends State<FileService> {
                 right: 0,
                 child: getProgressBar('Deleting:', deleteDone, deletePercent),
               ),
+
+            // Navigate back to demo page
+            Positioned(
+              top: 10,
+              left: 10,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Back to Demo'),
+              ),
+            ),
           ],
         ),
       ),
