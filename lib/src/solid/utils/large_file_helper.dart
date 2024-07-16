@@ -34,7 +34,7 @@ import 'dart:typed_data' show BytesBuilder, Uint8List;
 
 import 'package:flutter/foundation.dart' show debugPrint;
 
-import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
+import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
 import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
@@ -144,7 +144,7 @@ Future<void> sendLargeFile({
 
   final triples = {
     URIRef(remoteFileUrl): {
-      SIIPredicate.dataSize.uriRef: URIRef(file.lengthSync().toString()),
+      SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
     }
   };
@@ -236,16 +236,19 @@ Future<void> deleteLargeFile({
   final chunkPred = SIIPredicate.dataChunk.uriRef.value;
   assert(map!.containsKey(chunkPred));
 
-  // Get the individual chunks, combine them, and save combined to file
+  await deleteResource(fileUrl, ResourceContentType.turtleText);
+  // await deleteAclForResource(fileUrl);  // this may not be necessary
+
+  // Delete the individual chunks
 
   final chunkUrls = map![chunkPred];
   final chunkCount = chunkUrls!.length;
   var deleted = 0;
 
-  for (final url in chunkUrls!) {
+  for (final url in chunkUrls) {
     final chunkUrl = url as String;
     await deleteResource(chunkUrl, ResourceContentType.binary);
-    await deleteAclForResource(chunkUrl);
+    // await deleteAclForResource(chunkUrl);  // this may not be necessary
 
     deleted += 1;
 
@@ -257,6 +260,5 @@ Future<void> deleteLargeFile({
   await deleteAclForResource(chunkDirUrl);
   await deleteResource(chunkDirUrl, ResourceContentType.directory);
 
-  await deleteResource(fileUrl, ResourceContentType.turtleText);
-  await deleteAclForResource(fileUrl);
+  debugPrint('Deleted $remoteFileUrl');
 }
