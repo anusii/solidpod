@@ -30,21 +30,17 @@
 
 library;
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as path;
 
-import 'package:demopod/dialogs/about.dart';
-import 'package:demopod/main.dart';
-import 'package:demopod/features/edit_keyvalue.dart';
-import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/constants/app.dart';
-import 'package:demopod/utils/rdf.dart';
+import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
+import 'package:demopod/features/view_keys.dart';
+import 'package:demopod/main.dart';
+import 'package:demopod/utils/rdf.dart';
 
 import 'package:solidpod/solidpod.dart'
     show
@@ -56,12 +52,10 @@ import 'package:solidpod/solidpod.dart'
         deleteLogIn,
         getDataDirPath,
         getEncKeyPath,
-        getFileUrl,
         getWebId,
+        loginIfRequired,
         logoutPopup,
-        readPod,
-        getLargeFile,
-        sendLargeFile;
+        readPod;
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -252,7 +246,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
 
     final fileDemoButton = ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
+          await loginIfRequired(context);
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const FileService()));
         },
@@ -286,25 +281,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         largeGapV,
                         welcomeHeading,
                         smallGapV,
-                        ElevatedButton(
-                          child: const Text('Show Pod Data File'),
-                          onPressed: () async {
-                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
-                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
-                            // FUNCTION TO WIRE PRIVATE DATA?
-                            await _writePrivateData();
-                          },
-                        ),
-                        smallGapV,
-                        fileDemoButton,
-                        smallGapV,
-
-                        // SolidPod API: deleteDataFile()
-                        ElevatedButton(
-                            onPressed: () async =>
-                                deleteDataFile(dataFile, context),
-                            child: const Text('Delete Pod Data File')),
-                        smallGapV,
                         Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -325,6 +301,27 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 },
                               )
                             ]),
+                        smallGapV,
+
+                        ElevatedButton(
+                          child: const Text('Show Pod Data File'),
+                          onPressed: () async {
+                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
+                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
+                            // FUNCTION TO WIRE PRIVATE DATA?
+                            await _writePrivateData();
+                          },
+                        ),
+                        smallGapV,
+
+                        // SolidPod API: deleteDataFile()
+                        ElevatedButton(
+                            onPressed: () async =>
+                                deleteDataFile(dataFile, context),
+                            child: const Text('Delete Pod Data File')),
+                        smallGapV,
+
+                        fileDemoButton,
 
                         largeGapV,
 
