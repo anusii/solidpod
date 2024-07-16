@@ -181,6 +181,15 @@ Future<String> getIndKeyPath() async =>
 Future<String> getPubKeyPath() async =>
     [await AppInfo.canonicalName, sharingDir, pubKeyFile].join('/');
 
+/// Returns the path of public file with individual keys
+Future<String> getPubIndKeyPath() async =>
+    [await AppInfo.canonicalName, sharingDir, pubIndKeyFile].join('/');
+
+/// Returns the path of file with individual keys accessed only
+/// by authenticated users
+Future<String> getAuthUserIndKeyPath() async =>
+    [await AppInfo.canonicalName, sharingDir, authUserIndKeyFile].join('/');
+
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async =>
     [await AppInfo.canonicalName, dataDir].join('/');
@@ -307,53 +316,41 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
   final filePermMap = <dynamic, dynamic>{};
   for (final accessStr in aclFileContentMap.keys) {
     final permList = aclFileContentMap[accessStr][modePred];
-    //final receiverList = aclFileContentMap[accessStr]['agent'];
-    var receiverList = [];
-    var agentType = '';
+    final receiverMap = {};
 
     if ((aclFileContentMap[accessStr] as Map).containsKey(agentPred)) {
-      receiverList = aclFileContentMap[accessStr][agentPred] as List;
-      agentType = agentPred;
-    } else if ((aclFileContentMap[accessStr] as Map)
-        .containsKey(agentClassPred)) {
-      receiverList = aclFileContentMap[accessStr][agentClassPred] as List;
-      agentType = agentClassPred;
-    } else if ((aclFileContentMap[accessStr] as Map)
-        .containsKey(agentGroupPred)) {
-      receiverList = aclFileContentMap[accessStr][agentGroupPred] as List;
-      agentType = agentGroupPred;
+      for (final receiverId
+          in aclFileContentMap[accessStr][agentPred] as List) {
+        receiverMap[receiverId] = agentPred;
+      }
+    }
+    if ((aclFileContentMap[accessStr] as Map).containsKey(agentClassPred)) {
+      for (final receiverId
+          in aclFileContentMap[accessStr][agentClassPred] as List) {
+        receiverMap[receiverId] = agentClassPred;
+      }
+    }
+    if ((aclFileContentMap[accessStr] as Map).containsKey(agentGroupPred)) {
+      for (final receiverId
+          in aclFileContentMap[accessStr][agentGroupPred] as List) {
+        receiverMap[receiverId] = agentGroupPred;
+      }
     }
 
-    for (final receiverWebId in receiverList) {
-      if (filePermMap.containsKey(receiverWebId)) {
-        filePermMap[receiverWebId][permStr] += permList;
-        filePermMap[receiverWebId][agentStr] = agentType;
+    for (final receiverId in receiverMap.keys) {
+      if (filePermMap.containsKey(receiverId)) {
+        filePermMap[receiverId][permStr] += permList;
+        filePermMap[receiverId][agentStr] = receiverMap[receiverId];
       } else {
-        filePermMap[receiverWebId] = {permStr: permList, agentStr: agentType};
+        filePermMap[receiverId] = {
+          permStr: permList,
+          agentStr: receiverMap[receiverId]
+        };
       }
     }
   }
 
   return filePermMap;
-}
-
-/// Get agent types as a human readable string
-String getAgentType(String agentType, String receiverUri) {
-  var agentTypeStr = '';
-
-  if (agentType == agentPred) {
-    agentTypeStr = 'Individual';
-  } else if (agentType == agentGroupPred) {
-    agentTypeStr = 'Group of users';
-  } else if (agentType == agentClassPred) {
-    if (receiverUri == pubAgent) {
-      agentTypeStr = 'Public';
-    } else if (receiverUri == authAgent) {
-      agentTypeStr = 'authenticated users';
-    }
-  }
-
-  return agentTypeStr;
 }
 
 /// Get resource name from URL

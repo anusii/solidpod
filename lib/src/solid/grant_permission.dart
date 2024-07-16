@@ -37,17 +37,19 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/api/permission_api.dart';
 
-/// Grant permission to [fileName] for a given [recipientWebId].
+/// Grant permission to [fileName] for a given [recipientWebIdList].
 /// Parameters:
 ///   [fileName] is the name of the file providing permission to
 ///   [fileFlag] is the flag to identify if the resources is a file or not
 ///   [permissionList] is the list of permission to be granted
-///   [recipientWebId] is the webId of the permission receiver
+///   [recipientType] is the type of the recipient
+///   [recipientWebIdList] is the list of webIds of the permission receivers
 ///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
 ///   [child] is the child widget to return to
 
@@ -55,10 +57,12 @@ Future<void> grantPermission(
     String fileName,
     bool fileFlag,
     List<dynamic> permissionList,
-    String recipientWebId,
+    RecipientType recipientType,
+    List<dynamic> recipientWebIdList,
     bool isFileEncrypted,
     BuildContext context,
-    Widget child) async {
+    Widget child,
+    [String? groupName]) async {
   await loginIfRequired(context);
 
   await getKeyFromUserIfRequired(context, child);
@@ -73,12 +77,9 @@ Future<void> grantPermission(
   final resStatus = await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
   if (resStatus == ResourceStatus.exist) {
-    // Get user webID
-    final userWebId = await AuthDataManager.getWebId() as String;
-
     // Add the permission line to the relevant ACL file
-    await setPermissionAcl(
-        resourceUrl, userWebId, recipientWebId, permissionList);
+    await setPermissionAcl(resourceUrl, recipientType, recipientWebIdList,
+        permissionList, groupName);
 
     // Check if the file is encrypted
     final fileIsEncrypted = await checkFileEnc(resourceUrl);
@@ -86,29 +87,42 @@ Future<void> grantPermission(
     // If the file is encrypted then share the individual encryption key
     // with the receiver
     if (fileIsEncrypted) {
-      // Get the individual security key for the file
+      // Get the individual encryption key for the file
       final indKey = await KeyManager.getIndividualKey(resourceUrl);
 
-      // Setup recipient's public key
-      final recipientPubKey = RecipientPubKey(recipientWebId: recipientWebId);
+      if ([RecipientType.individual, RecipientType.group]
+          .contains(recipientType)) {
+        // For each recipient share the individual encryption key
 
-      // Encrypt individual key
-      final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
+        for (final recipientWebId in recipientWebIdList) {
+          // Setup recipient's public key
+          final recipientPubKey =
+              RecipientPubKey(recipientWebId: recipientWebId as String);
 
-      // Encrypt resource URL
-      final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
+          // Encrypt individual key
+          final sharedIndKey = await recipientPubKey.encryptData(indKey.base64);
 
-      // Encrypt the list of permissions
-      permissionList.sort();
-      final sharedAccessList =
-          await recipientPubKey.encryptData(permissionList.join(','));
+          // Encrypt resource URL
+          final sharedResPath = await recipientPubKey.encryptData(resourceUrl);
 
-      // Generate unique ID for the resource being shared
-      final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
+          // Encrypt the list of permissions
+          permissionList.sort();
+          final sharedAccessList =
+              await recipientPubKey.encryptData(permissionList.join(','));
 
-      // Copy shared content to recipient's POD
-      await copySharedKey(recipientWebId, resUniqueId, sharedIndKey,
-          sharedResPath, sharedAccessList);
+          // Generate unique ID for the resource being shared
+          final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
+
+          // Copy shared content to recipient's POD
+          await copySharedKey(recipientWebId, resUniqueId, sharedIndKey,
+              sharedResPath, sharedAccessList);
+        }
+      } else {
+        // if the recipient type is either public or authenticated agent
+        // Copy the key to a publicly available or authenticated user accessible file
+        await copySharedKeyUserClass(
+            indKey, resourceUrl, permissionList, recipientType);
+      }
     }
 
     // Add log entry to owner, granter, and receiver permission log files
@@ -116,18 +130,30 @@ Future<void> grantPermission(
     //             At some point we might need to change this function so that
     //             it can be used in the instances where owner is different from
     //             the granter
-    final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
-        userWebId, 'grant', userWebId, recipientWebId);
 
-    // Log file urls of the owner, granter, and receiver
-    final logFilePath = await getPermLogFilePath();
-    final ownerLogFileUrl = await getFileUrl(logFilePath);
-    final receiverLogFileUrl = await getFileUrl(logFilePath, recipientWebId);
+    // Get user webID
+    final userWebId = await AuthDataManager.getWebId() as String;
 
-    // Run log entry insert queries
-    await addPermLogLine(
-        ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
-    await addPermLogLine(
-        receiverLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+    for (final recipientWebId in recipientWebIdList) {
+      final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
+          userWebId, 'grant', userWebId, recipientWebId as String);
+
+      // Log file urls of the owner, granter, and receiver
+      final logFilePath = await getPermLogFilePath();
+      final ownerLogFileUrl = await getFileUrl(logFilePath);
+
+      // Run log entry insert query for the owner
+      await addPermLogLine(
+          ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+
+      // Add log entry if the recipient is either an individual or group of WebIDs
+      if ([RecipientType.individual, RecipientType.group]
+          .contains(recipientType)) {
+        final receiverLogFileUrl =
+            await getFileUrl(logFilePath, recipientWebId);
+        await addPermLogLine(receiverLogFileUrl, logEntryRes[0] as String,
+            logEntryRes[1] as String);
+      }
+    }
   }
 }

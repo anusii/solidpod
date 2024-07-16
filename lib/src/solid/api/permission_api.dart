@@ -32,12 +32,16 @@
 
 library;
 
+import 'package:encrypt/encrypt.dart';
 import 'package:intl/intl.dart';
+import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Sets the permission for a specific resource.
@@ -46,56 +50,116 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// set the permission for a resource.
 /// It returns a Future that resolves to a String
 /// representing the result of the operation.
-Future<String> setPermissionAcl(String resourceUrl, String userWebId,
-    String receiverWebId, List permissionList) async {
+Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
+    List<dynamic> recipientWebIdList, List<dynamic> permissionList,
+    [String? groupName, bool fileFlag = true]) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);
 
-  // A map to store new acl content
-  final newAclContentMap = {};
+  // Extract permission details to a map
+  final permMap = extractAclPerm(aclContent);
 
-  permissionList.sort();
-  final newAccessStr = permissionList.join();
-  var newEntryAdded = false;
-  var resourceName = '';
+  final ownerWebId = await AuthDataManager.getWebId();
 
-  // Go through the current acl content and do the following
-  // - Get the name of the resource user is granting permission to
-  // - If the receiver webId is already in the acl content remove it
-  // - Add receiver webId and the respective access modes as a new entry
-  // - only if the access mode combination is already in the acl content
-  for (final accessStr in aclContent.keys) {
-    final webIdList = aclContent[accessStr][agentPred] as List;
-    if (resourceName.isEmpty) {
-      resourceName =
-          (aclContent[accessStr][accessToPred] as List).first as String;
+  // Updated individual permission map
+  final updatedIndPermMap = <String, Set<AccessMode>>{};
+
+  // Updated group permission map
+  final updatedGroupPermMap = <String, Set<AccessMode>>{};
+
+  // Public permission set
+  var publicPermSet = <AccessMode>{};
+
+  // Authenticated users permission set
+  var authUserPermSet = <AccessMode>{};
+
+  // Go through the exisiting permissions and get those assigned to relevant
+  // permission maps
+  for (final receiverId in permMap.keys) {
+    // Do not change owner permissions. Owner of the file should always have
+    // Read, Write, Control permissions to the file
+    if (receiverId == ownerWebId || receiverId == 'card#me') {
+      continue;
     }
 
-    if (webIdList.contains(receiverWebId)) {
-      webIdList.remove(receiverWebId);
-    }
+    final agentType = permMap[receiverId][agentStr];
+    final permList = permMap[receiverId][permStr] as List;
 
-    if (newAccessStr == accessStr) {
-      webIdList.add(receiverWebId);
-      newEntryAdded = true;
-    }
-
-    if (webIdList.isNotEmpty) {
-      newAclContentMap[accessStr] = aclContent[accessStr];
+    if (agentType == agentClassPred) {
+      if (URIRef(receiverId as String) == publicAgent) {
+        for (final permStr in permList) {
+          publicPermSet.add(getAccessMode(permStr as String));
+        }
+      } else if (URIRef(receiverId) == authenticatedAgent) {
+        for (final permStr in permList) {
+          authUserPermSet.add(getAccessMode(permStr as String));
+        }
+      }
+    } else {
+      final permSet = <AccessMode>{};
+      for (final permStr in permList) {
+        permSet.add(getAccessMode(permStr as String));
+      }
+      if (agentType == agentGroupPred) {
+        updatedGroupPermMap[receiverId as String] = permSet;
+      } else {
+        updatedIndPermMap[receiverId as String] = permSet;
+      }
     }
   }
 
-  // If the new entry is not added to the acl content add that here
-  if (!newEntryAdded) {
-    newAclContentMap[newAccessStr] = {
-      typePred: [aclAuth],
-      accessToPred: [resourceName],
-      agentPred: [receiverWebId],
-      modePred: permissionList
-    };
+  // Add new permissions to the relevant group
+  // create new permission set
+  final newPermSet = <AccessMode>{};
+  for (final permStr in permissionList) {
+    newPermSet.add(getAccessMode(permStr as String));
   }
 
-  final aclFullContentStr = createAclConectStr(newAclContentMap);
+  // if the permission recipient is public
+  if (recipientType == RecipientType.public) {
+    publicPermSet = newPermSet;
+  }
+
+  // if the permission recipient is authenticated users
+  if (recipientType == RecipientType.authUser) {
+    authUserPermSet = newPermSet;
+  }
+
+  // if the permission recipient is a single WebID
+  if (recipientType == RecipientType.individual) {
+    updatedIndPermMap[recipientWebIdList.first as String] = newPermSet;
+  }
+
+  // if the permission recipient is a group of WebIDs
+  if (recipientType == RecipientType.group) {
+    final groupFileName = '${groupName!.replaceAll(' ', '-')}.ttl';
+    updatedGroupPermMap[groupFileName] = newPermSet;
+
+    // In the case of group of WebIDs, we also need to create a ttl file
+    // to store all the WebIDs in that group
+
+    // Get the file path
+    final groupFilePath = [await getDataDirPath(), groupFileName].join('/');
+
+    // Get the url of the file
+    final groupFileUrl = await getFileUrl(groupFilePath);
+
+    final groupFileContent = await genGroupWebIdTTLStr(recipientWebIdList);
+
+    await createResource(
+      groupFileUrl,
+      content: groupFileContent,
+      replaceIfExist: true,
+    );
+  }
+
+  final aclFullContentStr = await genAclTurtle(resourceUrl,
+      fileFlag: fileFlag,
+      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+      publicAccess: publicPermSet,
+      authUserAccess: authUserPermSet,
+      thirdPartyAccess: updatedIndPermMap,
+      groupAccess: updatedGroupPermMap);
 
   final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
 
@@ -173,6 +237,62 @@ Future<void> copySharedKey(String receiverWebId, String resUniqueId,
   }
 }
 
+/// Copy shared individual key, either publicly or for all authenticated users
+Future<void> copySharedKeyUserClass(Key indKey, String resourceUrl,
+    List<dynamic> permissionList, RecipientType recipientType) async {
+  // File contents variables
+  var userClassIndKeyFileUrl = '';
+  var aclContentStr = '';
+
+  if (recipientType == RecipientType.public) {
+    // Get the url of the file
+    userClassIndKeyFileUrl = await getFileUrl(await getPubIndKeyPath());
+
+    // Create ACL content for the file
+    aclContentStr = await genAclTurtle(userClassIndKeyFileUrl,
+        ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+        publicAccess: {AccessMode.read});
+  } else if (recipientType == RecipientType.authUser) {
+    // Get the url of the file
+    userClassIndKeyFileUrl = await getFileUrl(await getAuthUserIndKeyPath());
+
+    // Create ACL content for the file
+    aclContentStr = await genAclTurtle(userClassIndKeyFileUrl,
+        ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+        authUserAccess: {AccessMode.read});
+  }
+
+  // Check if individual key file exists. If not create a file
+  if (await checkResourceStatus(userClassIndKeyFileUrl, fileFlag: false) ==
+      ResourceStatus.notExist) {
+    // If file does not exist create a ttl file
+    final userClassIndKeyFileContent = await genUserClassIndKeyTTLStr([
+      resourceUrl,
+      indKey.base64,
+    ]);
+
+    await createResource(
+      userClassIndKeyFileUrl,
+      content: userClassIndKeyFileContent,
+    );
+
+    // Also create a corresponding acl file
+    await createResource(
+      '$userClassIndKeyFileUrl.acl',
+      content: aclContentStr,
+      replaceIfExist: true,
+    );
+  } else {
+    // Update the existing file using a sparql query
+    final prefix = '${solidTermsNS.prefix}: <$appsTerms>';
+    final insertQuery =
+        'PREFIX $prefix INSERT DATA {<$resourceUrl> ${solidTermsNS.prefix}:sessionKey "${indKey.base64}"};';
+
+    // Update the file using the insert query
+    await updateFileByQuery(userClassIndKeyFileUrl, insertQuery);
+  }
+}
+
 /// Remove permission from ALC file by running a Sparql DELETE query
 Future<String> removePermissionAcl(
     String resourceName, String resourceUrl, String removerWebId) async {
@@ -245,17 +365,6 @@ Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
   }
 }
 
-/// Retrieves the permission details of a file from the respective ACL file.
-///
-/// Returns a Future that completes with a Map containing the permission data.
-/// The Map structure is defined by the REST API response.
-Future<Map> readAcl(String resourceUrl, [bool fileFlag = true]) async {
-  final resourceAclUrl = getResAclFile(resourceUrl, fileFlag);
-
-  final aclContent = await fetchPrvFile(resourceAclUrl);
-  return parseACL(aclContent);
-}
-
 /// From a given ACL content map create the ACL body string
 ///
 /// Returns the acl body content as a single string value
@@ -315,7 +424,7 @@ String createAclConectStr(Map<dynamic, dynamic> aclContentMap) {
 ///
 /// Returns the log entry ID and the log entry string
 List<dynamic> createPermLogEntry(
-  List permissionList,
+  List<dynamic> permissionList,
   String resourceUrl,
   String ownerWebId,
   String permissionType,
