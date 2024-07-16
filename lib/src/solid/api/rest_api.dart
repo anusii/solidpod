@@ -362,7 +362,7 @@ Future<Uint8List> getResource(String resourceUrl) async {
   );
 
   if (response.statusCode == 200) {
-    debugPrint('Response status: ${response.statusCode}');
+    // debugPrint('Response status: ${response.statusCode}');
     // debugPrint('Response body: ${response.body}');
     return response.bodyBytes;
   } else {
