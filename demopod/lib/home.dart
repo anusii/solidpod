@@ -248,6 +248,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
           await loginIfRequired(context);
+          final webId = await getWebId();
+          setState(() {
+            _webId = webId;
+          });
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const FileService()));
         },
