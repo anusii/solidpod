@@ -32,6 +32,7 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/file_permission_data_table.dart';
@@ -111,6 +112,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Permission data map of a file
   Map<dynamic, dynamic> permDataMap = {};
 
+  /// Owner WebId
+  String ownerWebId = '';
+
   /// File name of the current permission data map
   String permDataFile = '';
 
@@ -138,10 +142,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   }
 
   // Update permission map with new data
-  void _updatePermMap(Map<dynamic, dynamic> newPermMap, String fileName) {
+  void _updatePermMap(
+      Map<dynamic, dynamic> newPermMap, String webId, String fileName) {
     setState(() {
       permDataMap = newPermMap;
       permDataFile = fileName;
+      ownerWebId = webId;
     });
   }
 
@@ -190,12 +196,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Future<void> _alert(String msg) async => alert(context, msg);
 
   /// Build the main widget
-  Widget _buildPermPage(BuildContext context, [List<Object>? futureObjList]) {
+  Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
     // Build the widget.
 
     // Check if future is set or not. If set display the permission map
     if (futureObjList != null) {
       permDataMap = futureObjList.first as Map;
+      ownerWebId = futureObjList[1] as String;
       permDataFile = widget.fileName!;
     }
 
@@ -257,12 +264,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     true,
                                     context,
                                     GrantPermissionUi(child: widget.child));
+                                final webId =
+                                    await AuthDataManager.getWebId() as String;
 
                                 if (permissionMap.isEmpty) {
                                   await _alert(
                                       'We could not find a resource by the name $fileName');
                                 } else {
-                                  _updatePermMap(permissionMap, fileName);
+                                  _updatePermMap(
+                                      permissionMap, webId, fileName);
                                 }
                               }
                             },
@@ -442,6 +452,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             context,
                             permDataFile,
                             permDataMap,
+                            ownerWebId,
                             GrantPermissionUi(
                               title: widget.title,
                               backgroundColor: widget.backgroundColor,
@@ -466,8 +477,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     // in the Future
     if (widget.fileName != null) {
       return FutureBuilder(
-        future: Future.wait(
-            [readPermission(widget.fileName as String, true, context, widget)]),
+        future: Future.wait([
+          readPermission(widget.fileName as String, true, context, widget),
+          AuthDataManager.getWebId()
+        ]),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return _buildPermPage(context, snapshot.data);

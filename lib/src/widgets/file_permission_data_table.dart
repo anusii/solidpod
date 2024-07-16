@@ -40,7 +40,7 @@ import 'package:solidpod/src/solid/revoke_permission.dart';
 /// permission
 ///
 Widget buildPermDataTable(BuildContext context, String permDataFile,
-    Map<dynamic, dynamic> permDataMap, Widget parentWidget) {
+    Map<dynamic, dynamic> permDataMap, String ownerWebId, Widget parentWidget) {
   DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
         label: Expanded(
@@ -68,7 +68,7 @@ Widget buildPermDataTable(BuildContext context, String permDataFile,
           child: Column(
             children: <Widget>[
               SelectableText(
-                index as String,
+                (index.replaceAll('.ttl', '')) as String,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               )
             ],
@@ -76,7 +76,9 @@ Widget buildPermDataTable(BuildContext context, String permDataFile,
         )),
         DataCell(
           Text(
-            getRecipientType(permDataMap[index][agentStr] as String, index),
+            getRecipientType(
+                    permDataMap[index][agentStr] as String, index as String)
+                .type,
           ),
         ),
         DataCell(
@@ -84,53 +86,63 @@ Widget buildPermDataTable(BuildContext context, String permDataFile,
             (permDataMap[index][permStr] as List).join(', '),
           ),
         ),
-        DataCell(
-          IconButton(
-              icon: const Icon(
-                Icons.delete,
-                size: 24.0,
-                color: Colors.red,
-              ),
-              onPressed: () {
-                showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        title: const Text('Please Confirm'),
-                        content: Text(
-                            'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from $index?'),
-                        actions: [
-                          // The "Yes" button
-                          TextButton(
-                              onPressed: () async {
-                                await revokePermission(
-                                    permDataFile,
-                                    true,
-                                    permDataMap[index][permStr] as List,
-                                    index,
-                                    context,
-                                    parentWidget);
+        if (ownerWebId != index) ...[
+          DataCell(
+            IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                  size: 24.0,
+                  color: Colors.red,
+                ),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (ctx) {
+                        return AlertDialog(
+                          title: const Text('Please Confirm'),
+                          content: Text(
+                              'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from ${index.replaceAll('.ttl', '')}?'),
+                          actions: [
+                            // The "Yes" button
+                            TextButton(
+                                onPressed: () async {
+                                  await revokePermission(
+                                      permDataFile,
+                                      true,
+                                      permDataMap[index][permStr] as List,
+                                      index,
+                                      getRecipientType(
+                                          permDataMap[index][agentStr]
+                                              as String,
+                                          index),
+                                      context,
+                                      parentWidget);
 
-                                if (!context.mounted) return;
-                                await Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => parentWidget,
-                                  ),
-                                );
-                              },
-                              child: const Text('Yes')),
-                          TextButton(
-                              onPressed: () {
-                                // Close the dialog
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text('No'))
-                        ],
-                      );
-                    });
-              }),
-        )
+                                  if (!context.mounted) return;
+                                  await Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => parentWidget,
+                                    ),
+                                  );
+                                },
+                                child: const Text('Yes')),
+                            TextButton(
+                                onPressed: () {
+                                  // Close the dialog
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('No'))
+                          ],
+                        );
+                      });
+                }),
+          )
+        ] else ...[
+          const DataCell(
+            Text(''),
+          ),
+        ],
       ]);
     }).toList(),
   );

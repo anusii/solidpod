@@ -1,4 +1,4 @@
-/// Permission related functions with  restful APIs.
+/// Granting Permission related functions with  restful APIs.
 ///
 // Time-stamp: <Friday 2024-07-03 14:41:20 +1100 Anushka Vidanage>
 ///
@@ -33,7 +33,6 @@
 library;
 
 import 'package:encrypt/encrypt.dart';
-import 'package:intl/intl.dart';
 import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 
@@ -286,172 +285,10 @@ Future<void> copySharedKeyUserClass(Key indKey, String resourceUrl,
     // Update the existing file using a sparql query
     final prefix = '${solidTermsNS.prefix}: <$appsTerms>';
     final insertQuery =
-        'PREFIX $prefix INSERT DATA {<$resourceUrl> ${solidTermsNS.prefix}:sessionKey "${indKey.base64}"};';
+        'PREFIX $prefix INSERT DATA {<$resourceUrl> ${solidTermsNS.prefix}:encryptionKey "${indKey.base64}"};';
 
     // Update the file using the insert query
     await updateFileByQuery(userClassIndKeyFileUrl, insertQuery);
   }
 }
 
-/// Remove permission from ALC file by running a Sparql DELETE query
-Future<String> removePermissionAcl(
-    String resourceName, String resourceUrl, String removerWebId) async {
-  // Read acl content
-  final aclContent = await readAcl(resourceUrl);
-
-  // A map to store new acl content
-  final updatedAclContentMap = {};
-
-  // Go through the current acl content remove the [removerWebId]
-  // from the content
-  for (final accessStr in aclContent.keys) {
-    final webIdList = aclContent[accessStr][agentPred] as List;
-
-    if (webIdList.contains(removerWebId)) {
-      webIdList.remove(removerWebId);
-    }
-
-    if (webIdList.isNotEmpty) {
-      updatedAclContentMap[accessStr] = aclContent[accessStr];
-    }
-  }
-
-  final aclFullContentStr = createAclConectStr(updatedAclContentMap);
-
-  final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
-
-  return updateRes;
-}
-
-/// Delete shared key on recepient's POD.
-Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
-  // Get shared key file url.
-  final sharedKeyFilePath = await getSharedKeyFilePath();
-  final receiverSharedKeyFileUrl =
-      removerWebId.replaceAll(profCard, sharedKeyFilePath);
-
-  // Check if the shared key file exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
-      ResourceStatus.exist) {
-    // Update the file
-
-    // Check if the file contains the shared key values for the given resource
-    final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
-    final keyFileDataMap = getEncFileContent(keyFileContent);
-
-    if (keyFileDataMap.containsKey(resUniqueId)) {
-      // Define query parameters
-      const prefix1 = '$resIdPrefix <$appsResId>';
-      const prefix2 = '$dataPrefix <$appsData>';
-      final subject = '$resIdPrefix$resUniqueId';
-
-      // Get existing values
-      final existKey = keyFileDataMap[resUniqueId][sharedKeyPred];
-      final existPath = keyFileDataMap[resUniqueId][pathPred];
-      final existAcc = keyFileDataMap[resUniqueId][accessListPred];
-
-      // Define predicates and objects
-      final predObjPath = '$dataPrefix$pathPred "$existPath";';
-      final predObjAcc = '$dataPrefix$accessListPred "$existAcc";';
-      final predObjKey = '$dataPrefix$sharedKeyPred "$existKey".';
-
-      // Generate delete sparql query
-      final deleteQuery =
-          'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
-
-      // Update the file using the update query
-      await updateFileByQuery(receiverSharedKeyFileUrl, deleteQuery);
-    }
-  }
-}
-
-/// From a given ACL content map create the ACL body string
-///
-/// Returns the acl body content as a single string value
-String createAclConectStr(Map<dynamic, dynamic> aclContentMap) {
-  // Generate ACL file content string from the permissions
-
-  var aclPrefixStr =
-      '''@prefix $selfPrefix <#>.\n@prefix $aclPrefix <$acl>.\n@prefix $foafPrefix <$foaf>.\n''';
-  var aclBodyStr = '';
-
-  // increment variable for webId prefixes
-  var i = 0;
-
-  // Go through the new acl content and create relevant prefix Strings and body entry Strings
-  for (final accessStr in aclContentMap.keys) {
-    final webIdList = aclContentMap[accessStr][agentPred] as List;
-    final resourceName = aclContentMap[accessStr][accessToPred].first;
-    final accessList = aclContentMap[accessStr][modePred] as List;
-
-    final agentList = [];
-    final accessModeList = [];
-
-    for (final webId in webIdList) {
-      final webIdPrefix = '@prefix c$i: <${webId.replaceAll('me', '')}>.';
-      agentList.add('c$i:me');
-
-      aclPrefixStr += '$webIdPrefix\n';
-      i += 1;
-    }
-
-    for (final accessMode in accessList) {
-      accessModeList.add('$aclPrefix$accessMode');
-    }
-
-    final agentStr = agentList.join(', ');
-    final accessModeStr = accessModeList.join(', ');
-
-    aclBodyStr +=
-        ':$accessStr\n    a $aclPrefix$aclAuth;\n    $aclPrefix$accessToPred <$resourceName>;\n    $aclPrefix$agentPred $agentStr;\n    $aclPrefix$modePred $accessModeStr.\n';
-  }
-
-  // Combine prefixes and body entries into a single String
-  final aclFullContentStr = '$aclPrefixStr\n$aclBodyStr';
-
-  return aclFullContentStr;
-}
-
-/// Create a log entry for permission
-/// A log entry consists of 7 values
-///   - dateTimeStr: Permission granted/revoked date and time
-///   - resourceUrl: URL of the resource that is being shared/un-shared
-///   - ownerWebId: WebID of the resource owner
-///   - permissionType: Type of permission (grant/revoke)
-///   - granterWebId: WebID of the person who is giving/revoking permission
-///   - recepientWebId: WebID of the person who is reveiving permission
-///   - permissionList: List of access types (Read, Write, Control, Append)
-///
-/// Returns the log entry ID and the log entry string
-List<dynamic> createPermLogEntry(
-  List<dynamic> permissionList,
-  String resourceUrl,
-  String ownerWebId,
-  String permissionType,
-  String granterWebId,
-  String recepientWebId,
-) {
-  final permissionListStr = permissionList.join(',');
-  final dateTimeStr = DateFormat('yyyyMMddTHHmmss').format(DateTime.now());
-  final logEntryId = DateFormat('yyyyMMddTHHmmssSSS').format(DateTime.now());
-  final logEntryStr =
-      '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recepientWebId;${permissionListStr.toLowerCase()}';
-
-  return [logEntryId, logEntryStr];
-}
-
-/// Add permission log line to the log file
-Future<void> addPermLogLine(
-  String logFileUrl,
-  String logEntryId,
-  String logEntryStr,
-) async {
-  // Generate insert sparql query for log entry
-  const prefix1 = '$logIdPrefix <$appsLogId>';
-  const prefix2 = '$dataPrefix <$appsData>';
-  final insertQuery =
-      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix$logEntryId ${dataPrefix}log "<$logEntryStr>"};';
-
-  // Update the file using the insert query
-  await updateFileByQuery(logFileUrl, insertQuery);
-}

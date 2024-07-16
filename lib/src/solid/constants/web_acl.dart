@@ -113,6 +113,9 @@ enum Predicate {
 
   /// Return the URIRef of predicate
   URIRef get uriRef => URIRef(_value);
+
+  /// Return the string of predicate
+  String get value => _value;
 }
 
 /// Mode of access to a resource
@@ -195,28 +198,28 @@ enum RecipientType {
 }
 
 /// Get agent types as a human readable string
-String getRecipientType(String agentType, String receiverUri) {
-  var recipientTypeStr = '';
+RecipientType getRecipientType(String agentType, String receiverUri) {
+  late RecipientType recipientType;
 
   if (agentType == agentPred) {
-    recipientTypeStr = RecipientType.individual.type;
+    recipientType = RecipientType.individual;
   } else if (agentType == agentGroupPred) {
-    recipientTypeStr = RecipientType.group.type;
+    recipientType = RecipientType.group;
   } else if (agentType == agentClassPred) {
     if (URIRef(receiverUri) == publicAgent) {
-      recipientTypeStr = RecipientType.public.type;
+      recipientType = RecipientType.public;
     } else if (URIRef(receiverUri) == authenticatedAgent) {
-      recipientTypeStr = RecipientType.authUser.type;
+      recipientType = RecipientType.authUser;
     }
   }
-  return recipientTypeStr;
+  return recipientType;
 }
 
 /// Generate the content of encKeyFile
 Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
-    URIRef(thisFile.ns.ns): {
+    URIRef('${thisFile.ns.ns}me'): {
       Predicate.aclRdfType.uriRef: Predicate.vcardGroup.uriRef,
       Predicate.vcardHasMember.uriRef: {
         for (final webId in groupWebIdList) ...{
@@ -241,10 +244,9 @@ Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
   }
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
-    URIRef(thisFile.ns.ns): {
+    URIRef('${thisFile.ns.ns}me'): {
       Predicate.aclRdfType.uriRef: {
         Predicate.personalDocument.uriRef,
-        Predicate.title.uriRef
       },
     },
     if (initialDataList != null) ...{

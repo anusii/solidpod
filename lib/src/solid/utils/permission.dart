@@ -33,7 +33,7 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart'
-    show parseACL, tripleMapToTurtle;
+    show parseACL, parseTTLMap, tripleMapToTurtle;
 
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTurtle(
@@ -156,4 +156,30 @@ Future<Map<dynamic, dynamic>> readAcl(String resourceUrl,
 
   final aclContent = await fetchPrvFile(resourceAclUrl);
   return parseACL(aclContent);
+}
+
+/// Retrieves the list of WebIDs defined in a ttl file as a vcard:Group
+///
+/// Returns a Future that completes with a List containing the list of WebIDs.
+Future<List<dynamic>> readGroupTtl(String groupFileUrl) async {
+  final groupContent = await fetchPrvFile(groupFileUrl);
+
+  final groupDataMap = parseTTLMap(groupContent);
+
+  return extractGroupMembers(groupDataMap);
+}
+
+/// Retrieves the list of WebIDs from a given triple map
+List<dynamic> extractGroupMembers(Map<dynamic, dynamic> groupDataMap) {
+  final groupMemberList = [];
+
+  for (final predMap in groupDataMap.values) {
+    if ((predMap as Map).containsKey(Predicate.vcardHasMember.value)) {
+      final subMemberList =
+          predMap[Predicate.vcardHasMember.value].toList() as List;
+      groupMemberList.addAll(subMemberList);
+    }
+  }
+
+  return groupMemberList;
 }
