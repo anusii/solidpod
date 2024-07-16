@@ -193,7 +193,7 @@ Future<void> getLargeFile({
 
   // Get the individual chunks, combine them, and save combined to file
 
-  final totalBytes = map![sizePred]!.first as int;
+  final totalBytes = int.parse(map![sizePred]!.first as String);
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
   final sink = File(localFilePath).openWrite();
