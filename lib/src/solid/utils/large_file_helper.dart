@@ -35,10 +35,10 @@ import 'dart:typed_data' show BytesBuilder, Uint8List;
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
-import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show createResource, checkResourceStatus, getResource, deleteResource;
+import 'package:solidpod/src/solid/utils/misc.dart' show deleteAclForResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
