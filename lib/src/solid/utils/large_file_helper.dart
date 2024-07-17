@@ -28,7 +28,7 @@
 
 library;
 
-import 'dart:convert' show utf8;
+import 'dart:convert' show utf8, base64;
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
@@ -37,7 +37,13 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
-    show createResource, checkResourceStatus, getResource, deleteResource;
+    show
+        createResource,
+        checkResourceStatus,
+        getResource,
+        deleteResource,
+        updateFileByQuery,
+        queryRDF;
 import 'package:solidpod/src/solid/utils/misc.dart' show deleteAclForResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
@@ -46,23 +52,6 @@ import 'package:solidpod/src/solid/constants/schema.dart'
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
-
-/// Return the URL of directory storing the chunked data
-/// A hidden directory (starts with .) to hide the clutter
-String _getChunkDirUrl(String fileUrl) {
-  final items = fileUrl.split('/');
-  final parentUrl = items.getRange(0, items.length - 1).join('/');
-  return '$parentUrl/.${items.last}.chunks/';
-}
-
-/// Return the name of a data chunk
-String _getChunkName(int chunkId) => '$chunkId.bin';
-// String _getChunkName(int chunkId, int chunkCount) {
-//   assert(chunkId >= 0);
-//   assert(chunkId < chunkCount);
-//   final prefix = chunkId.toString().padLeft(chunkCount.toString().length, '0');
-//   return '$prefix.bin';
-// }
 
 /// Transform the stream of file content into a stream of (larger) chunks.
 /// [contentStream] is typically set to [file.openRead()]
@@ -90,47 +79,57 @@ Stream<Uint8List> _getChunkStream(Stream<List<int>> contentStream,
   }
 }
 
-/// Send a large local file with path [localFilePath] to a remote server
-/// using URL [remoteFileUrl]
+/// Send data chunks through SPARQL query
 Future<void> sendLargeFile({
   required String localFilePath,
   required String remoteFileUrl,
   void Function(int, int)? onProgress,
 }) async {
   final file = File(localFilePath);
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
 
   final fileUrl = '$remoteFileUrl.ttl';
-  if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
-      await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
+  if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
     throw Exception('Failed to send file $localFilePath.\n'
         '$remoteFileUrl already exists.');
   }
 
-  // Create the directory for storing chunked data
-  await createResource(chunkDirUrl,
-      fileFlag: false, contentType: ResourceContentType.directory);
+  // Create turtle file with metadata of the (chunked) large file on server
 
-  // Create ACL of the directory
-  await createResource('$chunkDirUrl/.acl',
-      content: await genAclTurtle(chunkDirUrl, fileFlag: false));
+  final sub = URIRef(remoteFileUrl);
+
+  final triples = {
+    sub: {
+      SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
+    }
+  };
+
+  final bindNS = {
+    siiNS.prefix: siiNS.ns,
+  };
+
+  await createResource(fileUrl,
+      content: tripleMapToTurtle(triples, bindNamespaces: bindNS));
+
+  // Create ACL of the Turtle file
+  await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
 
   var chunkId = 0;
-  final chunkUrls = <String>[];
+  final preId = SIIPredicate.chunkId.uriRef.value;
+  final preData = SIIPredicate.dataChunk.uriRef.value;
+  final preCount = SIIPredicate.chunkCount.uriRef.value;
   final totalBytes = await file.length();
   var sentBytes = 0;
-  final chunks = _getChunkStream(file.openRead());
+
+  // Got error: {"name":"BadRequestHttpError","message":"Maximum call stack size exceeded","statusCode":400,"errorCode":"H400","details":{}}
+  // if using chunkSize: 2 * 1024 * 1024 or even 512 * 1024
+  // set chunkSize to 64 * 1024 or even 256 * 1024 seems to work, but it get slower overtime.
+  final chunks = _getChunkStream(file.openRead(), chunkSize: 256 * 1024);
   await for (final chunk in chunks) {
-    final chunkUrl = '$chunkDirUrl${_getChunkName(chunkId)}';
-    chunkUrls.add(chunkUrl);
+    print(chunkId);
+    final query = 'INSERT DATA {<$sub> <$preId> "$chunkId"; '
+        '<$preData> "${base64.encode(chunk)}".};';
 
-    // Create the chunk file
-    await createResource(chunkUrl,
-        content: chunk, contentType: ResourceContentType.binary);
-
-    // Create ACL of the chunk file
-    await createResource('$chunkUrl.acl',
-        content: await genAclTurtle(chunkUrl));
+    await updateFileByQuery(fileUrl, query);
 
     sentBytes += chunk.lengthInBytes;
     if (onProgress != null) {
@@ -140,29 +139,12 @@ Future<void> sendLargeFile({
     chunkId++;
   }
 
-  // Create turtle file with metadata of the (chunked) large file on server
+  final query = 'INSERT DATA {<$sub> <$preCount> "$chunkId".};';
 
-  final triples = {
-    URIRef(remoteFileUrl): {
-      SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
-      SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
-    }
-  };
-
-  final bindNS = {
-    siiNS.prefix: siiNS.ns,
-    'c': Namespace(ns: chunkDirUrl),
-  };
-
-  await createResource(fileUrl,
-      content: tripleMapToTurtle(triples, bindNamespaces: bindNS));
-
-  // Create ACL of the Turtle file
-  await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
+  await updateFileByQuery(fileUrl, query);
 }
 
-/// Get a large file previously sent using [sendLargeFile] with URL
-/// [remoteFileUrl] and save it to a local file with path [localFilePath]
+/// Get large file by querying the RDF
 Future<void> getLargeFile({
   required String remoteFileUrl,
   required String localFilePath,
@@ -171,45 +153,33 @@ Future<void> getLargeFile({
   // Check if the corresponding Turtle file and directory of chunks exist
 
   final fileUrl = '$remoteFileUrl.ttl';
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
 
-  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist ||
-      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
+  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist) {
     throw Exception('Failed to get the requested file. \nURL: $remoteFileUrl');
   }
 
-  // Parse the Turtle file with metadata of the (chunked) large file
-  // on server to get the URLs of individual chunks
-
-  final triples = turtleToTripleMap(utf8.decode(await getResource(fileUrl)));
-  assert(triples.length == 1);
-  assert(triples.containsKey(remoteFileUrl));
-
-  final map = triples[remoteFileUrl];
   final chunkPred = SIIPredicate.dataChunk.uriRef.value;
-  final sizePred = SIIPredicate.dataSize.uriRef.value;
-  assert(map!.containsKey(chunkPred));
-  assert(map!.containsKey(sizePred));
+  final idPred = SIIPredicate.chunkId.uriRef.value;
+  final countPred = SIIPredicate.chunkCount.uriRef.value;
+
+  final chunkCount = int.parse(await queryRDF(fileUrl, 'SELECT ?$countPred'));
+  print(chunkCount);
 
   // Get the individual chunks, combine them, and save combined to file
 
-  final totalBytes = int.parse(map![sizePred]!.first as String);
-  var receivedBytes = 0;
-  final chunkUrls = map[chunkPred];
   final sink = File(localFilePath).openWrite();
-  for (final url in chunkUrls!) {
-    final chunk = await getResource(url as String);
-    sink.add(chunk);
-    receivedBytes += chunk.lengthInBytes;
+  for (var chunkId = 0; chunkId < chunkCount; chunkId++) {
+    final query = 'SELECT ?$chunkPred WHERE ?$idPred "$chunkId";';
+    final chunk = await queryRDF(fileUrl, query);
+    sink.add(base64.decode(chunk));
     if (onProgress != null) {
-      onProgress(receivedBytes, totalBytes);
+      onProgress(chunkId + 1, chunkCount);
     }
   }
   await sink.close();
 }
 
-/// Delete a large file previously sent using [sendLargeFile] with URL
-/// [remoteFileUrl] in POD
+/// Delete large file
 Future<void> deleteLargeFile({
   required String remoteFileUrl,
   void Function(int, int)? onProgress,
@@ -217,48 +187,18 @@ Future<void> deleteLargeFile({
   // Check if the corresponding Turtle file and directory of chunks exist
 
   final fileUrl = '$remoteFileUrl.ttl';
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
 
-  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist &&
-      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
+  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist) {
     debugPrint('The requested file does not exist.');
     return;
   }
 
-  // Parse the Turtle file with metadata of the (chunked) large file
-  // on server to get the URLs of individual chunks
-
-  final triples = turtleToTripleMap(utf8.decode(await getResource(fileUrl)));
-  assert(triples.length == 1);
-  assert(triples.containsKey(remoteFileUrl));
-
-  final map = triples[remoteFileUrl];
-  final chunkPred = SIIPredicate.dataChunk.uriRef.value;
-  assert(map!.containsKey(chunkPred));
-
   await deleteResource(fileUrl, ResourceContentType.turtleText);
   // await deleteAclForResource(fileUrl);  // this may not be necessary
 
-  // Delete the individual chunks
-
-  final chunkUrls = map![chunkPred];
-  final chunkCount = chunkUrls!.length;
-  var deleted = 0;
-
-  for (final url in chunkUrls) {
-    final chunkUrl = url as String;
-    await deleteResource(chunkUrl, ResourceContentType.binary);
-    // await deleteAclForResource(chunkUrl);  // this may not be necessary
-
-    deleted += 1;
-
-    if (onProgress != null) {
-      onProgress(deleted, chunkCount);
-    }
+  if (onProgress != null) {
+    onProgress(1, 1);
   }
-
-  await deleteAclForResource(chunkDirUrl);
-  await deleteResource(chunkDirUrl, ResourceContentType.directory);
 
   debugPrint('Deleted $remoteFileUrl');
 }
