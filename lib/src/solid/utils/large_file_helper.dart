@@ -43,12 +43,13 @@ import 'package:solidpod/src/solid/api/rest_api.dart'
         getResource,
         deleteResource,
         updateFileByQuery,
+        updateFileByN3Patch,
         queryRDF;
 import 'package:solidpod/src/solid/utils/misc.dart' show deleteAclForResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
-    show siiNS, SIIPredicate;
+    show siiNS, SIIPredicate, sii;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
@@ -83,8 +84,10 @@ Stream<Uint8List> _getChunkStream(Stream<List<int>> contentStream,
 Future<void> sendLargeFile({
   required String localFilePath,
   required String remoteFileUrl,
+  String patchType = 'sparql',
   void Function(int, int)? onProgress,
 }) async {
+  assert({'sparql', 'n3'}.contains(patchType));
   final file = File(localFilePath);
 
   final fileUrl = '$remoteFileUrl.ttl';
@@ -126,10 +129,21 @@ Future<void> sendLargeFile({
   final chunks = _getChunkStream(file.openRead(), chunkSize: 256 * 1024);
   await for (final chunk in chunks) {
     print(chunkId);
-    final query = 'INSERT DATA {<$sub> <$preId> "$chunkId"; '
-        '<$preData> "${base64.encode(chunk)}".};';
 
-    await updateFileByQuery(fileUrl, query);
+    if (patchType == 'sparql') {
+      final query = 'INSERT DATA {<$sub> <$preId> "$chunkId"; '
+          '<$preData> "${base64.encode(chunk)}".};';
+      await updateFileByQuery(fileUrl, query);
+    } else {
+      assert(patchType == 'n3');
+
+      final n3Patch = '''
+@prefix solid: <http://www.w3.org/ns/solid/terms#>.
+<> a solid:InsertDeletePatch;
+ solid:inserts { <${sub.value}> <$preId> "$chunkId" ; <$preData> "${base64.encode(chunk)}".}.
+  ''';
+      await updateFileByN3Patch(fileUrl, n3Patch);
+    }
 
     sentBytes += chunk.lengthInBytes;
     if (onProgress != null) {
@@ -162,8 +176,12 @@ Future<void> getLargeFile({
   final idPred = SIIPredicate.chunkId.uriRef.value;
   final countPred = SIIPredicate.chunkCount.uriRef.value;
 
-  final chunkCount = int.parse(await queryRDF(fileUrl, 'SELECT ?$countPred'));
-  print(chunkCount);
+  // This returns the whole ttl string
+  final ttlResponse = await queryRDF(
+      fileUrl, 'SELECT ?object WHERE { ?predicate <$countPred> }');
+  print(ttlResponse);
+
+  int chunkCount = 0;
 
   // Get the individual chunks, combine them, and save combined to file
 
