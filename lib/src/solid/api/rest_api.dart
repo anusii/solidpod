@@ -304,8 +304,35 @@ Future<void> updateFileByQuery(
   );
 
   if (editResponse.statusCode != 200 && editResponse.statusCode != 205) {
-    throw Exception('Failed to write profile data! Try again in a while.');
+    debugPrint('${editResponse.statusCode}');
+    debugPrint(editResponse.body);
+    throw Exception('Failed to update file.');
   }
+}
+
+/// Get data by querying a RDF document
+Future<String> queryRDF(
+  String fileUrl,
+  String query,
+) async {
+  final (:accessToken, :dPopToken) = await getTokensForResource(fileUrl, 'GET');
+  final response = await http.get(
+    Uri.parse('$fileUrl?query=$query'),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'application/sparql-update',
+      'Content-Length': query.length.toString(),
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (response.statusCode != 200 && response.statusCode != 205) {
+    throw Exception('Failed to get data by query.');
+  }
+
+  return response.body;
 }
 
 // Updates the initial profile data on the server.
