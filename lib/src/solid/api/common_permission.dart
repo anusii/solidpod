@@ -36,53 +36,6 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 
-/// From a given ACL content map create the ACL body string
-///
-/// Returns the acl body content as a single string value
-String createAclConectStr(Map<dynamic, dynamic> aclContentMap) {
-  // Generate ACL file content string from the permissions
-
-  var aclPrefixStr =
-      '''@prefix $selfPrefix <#>.\n@prefix $aclPrefix <$acl>.\n@prefix $foafPrefix <$foaf>.\n''';
-  var aclBodyStr = '';
-
-  // increment variable for webId prefixes
-  var i = 0;
-
-  // Go through the new acl content and create relevant prefix Strings and body entry Strings
-  for (final accessStr in aclContentMap.keys) {
-    final webIdList = aclContentMap[accessStr][agentPred] as List;
-    final resourceName = aclContentMap[accessStr][accessToPred].first;
-    final accessList = aclContentMap[accessStr][modePred] as List;
-
-    final agentList = [];
-    final accessModeList = [];
-
-    for (final webId in webIdList) {
-      final webIdPrefix = '@prefix c$i: <${webId.replaceAll('me', '')}>.';
-      agentList.add('c$i:me');
-
-      aclPrefixStr += '$webIdPrefix\n';
-      i += 1;
-    }
-
-    for (final accessMode in accessList) {
-      accessModeList.add('$aclPrefix$accessMode');
-    }
-
-    final agentStr = agentList.join(', ');
-    final accessModeStr = accessModeList.join(', ');
-
-    aclBodyStr +=
-        ':$accessStr\n    a $aclPrefix$aclAuth;\n    $aclPrefix$accessToPred <$resourceName>;\n    $aclPrefix$agentPred $agentStr;\n    $aclPrefix$modePred $accessModeStr.\n';
-  }
-
-  // Combine prefixes and body entries into a single String
-  final aclFullContentStr = '$aclPrefixStr\n$aclBodyStr';
-
-  return aclFullContentStr;
-}
-
 /// Create a log entry for permission
 /// A log entry consists of 7 values
 ///   - dateTimeStr: Permission granted/revoked date and time
