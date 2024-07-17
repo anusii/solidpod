@@ -310,6 +310,33 @@ Future<void> updateFileByQuery(
   }
 }
 
+/// Update a file on server with the provided N3 patch
+Future<void> updateFileByN3Patch(
+  String fileUrl,
+  String n3Patch,
+) async {
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(fileUrl, 'PATCH');
+  final response = await http.patch(
+    Uri.parse(fileUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'Content-Type': 'text/n3',
+      'Content-Length': n3Patch.length.toString(),
+      'DPoP': dPopToken,
+    },
+    body: n3Patch,
+  );
+
+  if (response.statusCode != 200 && response.statusCode != 205) {
+    debugPrint('${response.statusCode}');
+    debugPrint(response.body);
+    throw Exception('Failed to patch file.');
+  }
+}
+
 /// Get data by querying a RDF document
 Future<String> queryRDF(
   String fileUrl,
@@ -322,8 +349,8 @@ Future<String> queryRDF(
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
-      'Content-Type': 'application/sparql-update',
-      'Content-Length': query.length.toString(),
+      'Content-Type': 'application/sparql-query',
+      //'Content-Length': query.length.toString(),
       'DPoP': dPopToken,
     },
   );
