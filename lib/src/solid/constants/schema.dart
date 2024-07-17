@@ -248,6 +248,12 @@ enum SIIPredicate {
   /// Data chunk
   dataChunk('dataChunk'),
 
+  /// Data chunk ID
+  chunkId('chunkId'),
+
+  /// The number of data chunks
+  chunkCount('chunkCount'),
+
   /// Data size in bytes
   dataSize('dataSize');
 
