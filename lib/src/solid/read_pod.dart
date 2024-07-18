@@ -37,7 +37,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
@@ -46,8 +46,8 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// First check if the user is logged in and then
 /// read and parse the file content
 
-Future<String?> readPod(
-    String filePath, BuildContext context, Widget child) async {
+Future<dynamic> readPod(String filePath, BuildContext context, Widget child,
+    {FileOpenMode mode = FileOpenMode.text}) async {
   // Login and initialise PODs if necessary
 
   await loginIfRequired(context);

@@ -45,7 +45,7 @@ export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
 
 export 'src/solid/common_func.dart';
 export 'src/solid/utils/app_info.dart' show AppInfo;
-export 'src/solid/utils/key_management.dart' show KeyManager;
+export 'src/solid/utils/key_helper.dart' show KeyManager;
 export 'src/solid/utils/misc.dart';
 export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
 export 'src/solid/read_pod.dart' show readPod;
@@ -54,3 +54,5 @@ export 'src/widgets/logout_dialog.dart' show logoutPopup;
 export 'src/solid/grant_permission.dart' show grantPermission;
 export 'src/solid/read_permission.dart' show readPermission;
 export 'src/solid/revoke_permission.dart' show revokePermission;
+export 'src/solid/utils/large_file_helper.dart'
+    show sendLargeFile, getLargeFile, deleteLargeFile;

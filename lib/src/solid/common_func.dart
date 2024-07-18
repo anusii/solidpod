@@ -38,7 +38,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
 import 'package:solidpod/src/solid/utils/alert.dart';
-import 'package:solidpod/src/solid/utils/key_management.dart'
+import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/widgets/secret_input_form.dart';

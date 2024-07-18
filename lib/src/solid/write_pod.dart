@@ -30,14 +30,12 @@
 
 library;
 
-import 'dart:core';
-
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants/common.dart' show ResourceStatus;
-import 'package:solidpod/src/solid/utils/key_management.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
@@ -49,6 +47,7 @@ Future<void> writePod(
     {bool encrypted = true}) async {
   // Write data to file in the data directory
   final filePath = [await getDataDirPath(), fileName].join('/');
+  // [await getDataDirPath(), '.binary_data.bin.chunks', fileName].join('/');
 
   await loginIfRequired(context);
 
@@ -140,13 +139,12 @@ Future<void> writePod(
   }
 
   // Create file on server
-  await createResource(fileUrl, content: content, replaceIfExist: true);
+  await createResource(fileUrl, content: content);
 
   // Create the ACL file for the data file if necessary
 
   final aclFileUrl = '$fileUrl.acl';
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
-    await createResource(aclFileUrl,
-        content: await genAclTurtle(fileUrl), replaceIfExist: true);
+    await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
 }
