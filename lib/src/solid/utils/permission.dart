@@ -62,20 +62,20 @@ Future<String> genAclTurtle(
   }
 
   final accessMap = getAccessMap({
-    URIRef(ownerWebId!): [Predicate.agent.uriRef, ownerAccess],
+    URIRef(ownerWebId!): [AclPredicate.agent.uriRef, ownerAccess],
     if (thirdPartyAccess != null && thirdPartyAccess.isNotEmpty) ...{
       for (final entry in thirdPartyAccess.entries)
-        URIRef(entry.key): [Predicate.agent.uriRef, entry.value]
+        URIRef(entry.key): [AclPredicate.agent.uriRef, entry.value]
     },
     if (groupAccess != null && groupAccess.isNotEmpty) ...{
       for (final entry in groupAccess.entries)
-        URIRef(entry.key): [Predicate.agentGroup.uriRef, entry.value]
+        URIRef(entry.key): [AclPredicate.agentGroup.uriRef, entry.value]
     },
     if (publicAccess != null && publicAccess.isNotEmpty) ...{
-      publicAgent: [Predicate.agentClass.uriRef, publicAccess],
+      publicAgent: [AclPredicate.agentClass.uriRef, publicAccess],
     },
     if (authUserAccess != null && authUserAccess.isNotEmpty) ...{
-      authenticatedAgent: [Predicate.agentClass.uriRef, authUserAccess],
+      authenticatedAgent: [AclPredicate.agentClass.uriRef, authUserAccess],
     },
   });
 
@@ -84,12 +84,16 @@ Future<String> genAclTurtle(
   for (final entry in accessMap.entries) {
     if (entry.value.isNotEmpty) {
       triples[thisFile.ns.withAttr(entry.key.mode)] = {
-        Predicate.aclRdfType.uriRef: aclAuthorization,
-        Predicate.accessTo.uriRef: r,
+        AclPredicate.aclRdfType.uriRef: aclAuthorization,
+        AclPredicate.accessTo.uriRef: r,
+
+        // This seems necessary for accessing resources in a container
+        if (!fileFlag) AclPredicate.defaultAccess.uriRef: r,
+
         for (final agentEntry in entry.value.entries) ...{
           agentEntry.key: agentEntry.value,
         },
-        Predicate.aclMode.uriRef: entry.key.uriRef,
+        AclPredicate.aclMode.uriRef: entry.key.uriRef,
       };
     }
   }

@@ -64,7 +64,7 @@ final bindAclNamespaces = {
 
 /// Predicates for web access control
 
-enum Predicate {
+enum AclPredicate {
   /// Predicate of acl:Authorization
   aclRdfType('${rdf}type'),
 
@@ -87,7 +87,8 @@ enum Predicate {
   accessTo('${acl}accessTo'),
 
   /// The container resource whose Authorization can be applied to
-  /// a resource lower in the collection hierarchy
+  /// a resource lower in the collection hierarchy,
+  /// i.e., inheriting the authorizations
   defaultAccess('${acl}default'),
 
   /// An agent being given access permission
@@ -106,7 +107,7 @@ enum Predicate {
   owner('${acl}owner');
 
   /// Generative enum constructor
-  const Predicate(this._value);
+  const AclPredicate(this._value);
 
   /// String value of access predicate
   final String _value;

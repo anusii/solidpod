@@ -26,50 +26,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen, Zheyuan Xu, Anushka Vidanage
+/// Authors: Zheyuan Xu, Anushka Vidanage, Dawei Chen
 
 // ignore_for_file: comment_references
 
 library;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-
-/// Parses file information and extracts content into a map.
-///
-/// This function processes the provided file information, which is expected to be
-/// in Turtle (Terse RDF Triple Language) format. It uses a graph-based approach
-/// to parse the Turtle data and extract key attributes and their values.
-@Deprecated('''This function has been deprecated.
-Use `Map<String, dynamic> parseTTL(String ttlContent)` as an alternative.
-''')
-Map<dynamic, dynamic> getFileContent(String fileInfo) {
-  final g = Graph();
-  g.parseTurtle(fileInfo);
-  final fileContentMap = {};
-  final fileContentList = [];
-  for (final t in g.triples) {
-    final predicate = t.pre.value as String;
-    if (predicate.contains('#')) {
-      final subject = t.sub.value;
-      final attributeName = predicate.split('#')[1];
-      final attrVal = t.obj.value.toString();
-      if (attributeName != 'type') {
-        fileContentList.add([subject, attributeName, attrVal]);
-      }
-      fileContentMap[attributeName] = [subject, attrVal];
-    }
-  }
-
-  return fileContentMap;
-}
 
 /// Parse encrypted file content and extract into a map.
 ///
@@ -129,6 +102,7 @@ Future<String> fetchPrvFile(String prvFileUrl) async {
   if (profResponse.statusCode == 200) {
     // If the server did return a 200 OK response,
     // then parse the JSON.
+    // return profResponse.bodyBytes;
     return profResponse.body;
   } else {
     // If the server did not return a 200 OK response,
@@ -188,9 +162,9 @@ Future<List<dynamic>> initialStructureTest(
 /// - POST request: create a resource (e.g. a TTL file or a directory)
 
 Future<void> createResource(String resourceUrl,
-    {String content = '',
+    {dynamic content = '',
     bool fileFlag = true,
-    bool replaceIfExist = false,
+    bool replaceIfExist = true,
     ResourceContentType contentType = ResourceContentType.turtleText}) async {
   // Sanity check
   if (fileFlag) {
@@ -295,6 +269,9 @@ Future<ResourceStatus> checkResourceStatus(String resUrl,
   } else if (response.statusCode == 404) {
     return ResourceStatus.notExist;
   } else {
+    debugPrint('Failed to check resource status.\n'
+        'URL: $resUrl\n'
+        'ERR: ${response.body}');
     return ResourceStatus.unknown;
   }
 }
@@ -331,125 +308,6 @@ Future<void> updateFileByQuery(
   }
 }
 
-/// TODO:
-/// The predicates looks specific to podnotes, this likely needs to be updated.
-///
-/// Updates an individual key file with encrypted session key information.
-///
-/// This asynchronous function is responsible for updating the key file located
-/// at a user's Solid POD (Personal Online Datastore) with new encrypted session
-/// key data. The function performs various checks and updates the file only if
-/// necessary to avoid redundant operations.
-@Deprecated('''This function has been deprecated.
-Use `KeyManager` as an alternative.
-''')
-Future<void> updateIndKeyFile(
-  String webId,
-  Map<dynamic, dynamic> authData,
-  String resName,
-  String encSessionKey,
-  String encNoteFilePath,
-  String encNoteIv,
-  String appName,
-) async {
-  // var createUpdateRes = '';
-
-  const encDir = 'encryption';
-
-  final encDirLoc = '$appName/$encDir';
-
-  // Get indi key file url.
-
-  final keyFileUrl = webId.contains(profCard)
-      ? webId.replaceAll(profCard, '$encDirLoc/$indKeyFile')
-      : '$webId/$encDirLoc/$indKeyFile';
-
-  // final rsaInfo = authData['rsaInfo'];
-  // final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  // final publicKeyJwk = rsaInfo['pubKeyJwk'];
-  // final accessToken = authData['accessToken'].toString();
-
-  final notesFile = '$webId/predicates/file#';
-  final notesTerms = '$webId/predicates/terms#';
-
-  // Update the file.
-  // First check if the file already contain the same value.
-
-  // final dPopTokenKeyFile =
-  //     genDpopToken(keyFileUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-  final keyFileContent = await fetchPrvFile(keyFileUrl);
-  final keyFileDataMap = getFileContent(keyFileContent);
-
-  // Define query parameters.
-
-  final prefix1 = 'file: <$notesFile>';
-  final prefix2 = 'notesTerms: <$notesTerms>';
-
-  final subject = 'file:$resName';
-  final predObjPath = 'notesTerms:$pathPred "$encNoteFilePath";';
-  final predObjIv = 'notesTerms:$ivPred "$encNoteIv";';
-  final predObjKey = 'notesTerms:$sessionKeyPred "$encSessionKey".';
-
-  // Check if the resource is previously added or not.
-
-  if (keyFileDataMap.containsKey(resName)) {
-    final existPath = keyFileDataMap[resName][pathPred].toString();
-    final existIv = keyFileDataMap[resName][ivPred].toString();
-    final existKey = keyFileDataMap[resName][sessionKeyPred].toString();
-
-    // If file does not contain the same encrypted value then delete and update
-    // the file.
-    // NOTE: Public key encryption generates different hashes different time for same plaintext value.
-    // Therefore this always ends up deleting the previous and adding a new hash.
-    if (existKey != encSessionKey ||
-        existPath != encNoteFilePath ||
-        existIv != encNoteIv) {
-      final predObjPathPrev = 'notesTerms:$pathPred "$existPath";';
-      final predObjIvPrev = 'notesTerms:$ivPred "$existIv";';
-      final predObjKeyPrev = 'notesTerms:$sessionKeyPred "$existKey".';
-
-      // Generate update sparql query.
-
-      final query =
-          'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPathPrev $predObjIvPrev $predObjKeyPrev}; INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
-
-      // Generate DPoP token.
-
-      // final dPopTokenKeyFilePatch =
-      //     genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
-
-      // Run the query.
-
-      // createUpdateRes =
-      await updateFileByQuery(keyFileUrl, query);
-    } else {
-      // If the file contain same values, then no need to run anything.
-      // createUpdateRes = 'ok';
-    }
-  } else {
-    // Generate insert only sparql query.
-
-    final query =
-        'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$subject $predObjPath $predObjIv $predObjKey};';
-
-    // Generate DPoP token.
-
-    // final dPopTokenKeyFilePatch =
-    //     genDpopToken(keyFileUrl, rsaKeyPair, publicKeyJwk, 'PATCH');
-
-    // Run the query.
-
-    // createUpdateRes =
-    await updateFileByQuery(keyFileUrl, query);
-  }
-
-  // if (createUpdateRes == 'ok') {
-  //   return createUpdateRes;
-  // } else {
-  //   throw Exception('Failed to create/update the shared file.');
-  // }
-}
-
 // Updates the initial profile data on the server.
 ///
 /// This function sends a PUT request to update the user's profile information. It constructs the profile URL from the provided `webId`, generates a DPoP token using the RSA key pair and public key in JWK format from `authData`, and then sends the request with the `profBody` as the payload.
@@ -484,15 +342,41 @@ Future<void> initialProfileUpdate(String profBody) async {
   }
 }
 
+/// Get the resource with URL [resourceUrl] from server.
+/// The resource could be a text, turtle, binary file.
+/// If [resourceUrl] ends with '/', i.e., a container / directory,
+/// This function returns the bytes of a turtle string representing
+/// the list of resources in the container / directory.
+Future<Uint8List> getResource(String resourceUrl) async {
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, 'GET');
+
+  final response = await http.get(
+    Uri.parse(resourceUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    // debugPrint('Response status: ${response.statusCode}');
+    // debugPrint('Response body: ${response.body}');
+    return response.bodyBytes;
+  } else {
+    throw Exception('Failed to get resource $resourceUrl');
+  }
+}
+
 /// Get the list of sub-containers and files in a container
 /// Adapted from getContainerList() in
 /// gurriny/indi/lib/models/common/rest_api.dart
 Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     String containerUrl) async {
   // The trailing "/" is essential for a directory
-  final url = containerUrl.endsWith(path.separator)
-      ? containerUrl
-      : containerUrl + path.separator;
+  final url = containerUrl.endsWith('/') ? containerUrl : '$containerUrl/';
 
   final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
 
@@ -556,18 +440,8 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 }
 
 /// Check if a file is encrypted
-Future<bool> checkFileEnc(String fileUrl) async {
-  final fileContent = await fetchPrvFile(fileUrl);
-
-  var encryptedFlag = false;
-  final prvDataMap = getFileContent(fileContent);
-
-  if (prvDataMap.containsKey('encData')) {
-    encryptedFlag = true;
-  }
-
-  return encryptedFlag;
-}
+Future<bool> checkFileEnc(String fileUrl) async =>
+    KeyManager.hasIndividualKey(fileUrl);
 
 /// Update ACL file of a resource by http put request
 ///

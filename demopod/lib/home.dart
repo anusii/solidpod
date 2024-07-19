@@ -34,11 +34,12 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 
-import 'package:demopod/dialogs/about.dart';
-import 'package:demopod/main.dart';
-import 'package:demopod/features/edit_keyvalue.dart';
-import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/constants/app.dart';
+import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/features/edit_keyvalue.dart';
+import 'package:demopod/features/file_service.dart';
+import 'package:demopod/features/view_keys.dart';
+import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
 
 import 'package:solidpod/solidpod.dart'
@@ -52,6 +53,7 @@ import 'package:solidpod/solidpod.dart'
         getDataDirPath,
         getEncKeyPath,
         getWebId,
+        loginIfRequired,
         logoutPopup,
         readPod;
 
@@ -243,6 +245,18 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ],
     );
 
+    final fileDemoButton = ElevatedButton(
+        onPressed: () async {
+          await loginIfRequired(context);
+          final webId = await getWebId();
+          setState(() {
+            _webId = webId;
+          });
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const FileService()));
+        },
+        child: const Text('Upload / Download Large File'));
+
     // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
     // HERE.
 
@@ -271,22 +285,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         largeGapV,
                         welcomeHeading,
                         smallGapV,
-                        ElevatedButton(
-                          child: const Text('Show Pod Data File'),
-                          onPressed: () async {
-                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
-                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
-                            // FUNCTION TO WIRE PRIVATE DATA?
-                            await _writePrivateData();
-                          },
-                        ),
-                        smallGapV,
-                        // SolidPod API: deleteDataFile()
-                        ElevatedButton(
-                            onPressed: () async =>
-                                deleteDataFile(dataFile, context),
-                            child: const Text('Delete Pod Data File')),
-                        smallGapV,
                         Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -307,7 +305,30 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 },
                               )
                             ]),
+                        smallGapV,
+
+                        ElevatedButton(
+                          child: const Text('Show Pod Data File'),
+                          onPressed: () async {
+                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
+                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
+                            // FUNCTION TO WIRE PRIVATE DATA?
+                            await _writePrivateData();
+                          },
+                        ),
+                        smallGapV,
+
+                        // SolidPod API: deleteDataFile()
+                        ElevatedButton(
+                            onPressed: () async =>
+                                deleteDataFile(dataFile, context),
+                            child: const Text('Delete Pod Data File')),
+                        smallGapV,
+
+                        fileDemoButton,
+
                         largeGapV,
+
                         const Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

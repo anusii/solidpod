@@ -176,3 +176,18 @@ enum ResourceContentType {
   /// String value of the access type
   final String value;
 }
+
+/// The mode in which a file is opened
+enum FileOpenMode {
+  /// Text mode
+  text('text'),
+
+  /// Binary mode
+  binary('binary');
+
+  /// Constructor
+  const FileOpenMode(this.value);
+
+  /// String value of the mode
+  final String value;
+}
