@@ -221,8 +221,8 @@ Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
     URIRef('${thisFile.ns.ns}me'): {
-      Predicate.aclRdfType.uriRef: Predicate.vcardGroup.uriRef,
-      Predicate.vcardHasMember.uriRef: {
+      AclPredicate.aclRdfType.uriRef: AclPredicate.vcardGroup.uriRef,
+      AclPredicate.vcardHasMember.uriRef: {
         for (final webId in groupWebIdList) ...{
           URIRef(webId as String),
         },
@@ -246,8 +246,8 @@ Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
     URIRef('${thisFile.ns.ns}me'): {
-      Predicate.aclRdfType.uriRef: {
-        Predicate.personalDocument.uriRef,
+      AclPredicate.aclRdfType.uriRef: {
+        AclPredicate.personalDocument.uriRef,
       },
     },
     if (initialDataList != null) ...{

@@ -178,9 +178,9 @@ List<dynamic> extractGroupMembers(Map<dynamic, dynamic> groupDataMap) {
   final groupMemberList = [];
 
   for (final predMap in groupDataMap.values) {
-    if ((predMap as Map).containsKey(Predicate.vcardHasMember.value)) {
+    if ((predMap as Map).containsKey(AclPredicate.vcardHasMember.value)) {
       final subMemberList =
-          predMap[Predicate.vcardHasMember.value].toList() as List;
+          predMap[AclPredicate.vcardHasMember.value].toList() as List;
       groupMemberList.addAll(subMemberList);
     }
   }
