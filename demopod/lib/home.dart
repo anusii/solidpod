@@ -474,13 +474,27 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ),
                         ElevatedButton(
                           child: const Text(
-                              'Add/Delete Permissions from Resources'),
+                              'Add/Delete Permissions from a Specific Resource'),
                           onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const GrantPermissionUi(
                                 backgroundColor: titleBackgroundColor,
                                 fileName: 'key-value.ttl',
+                                child: Home(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text(
+                              'Add/Delete Permissions from any Resource'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const GrantPermissionUi(
+                                backgroundColor: titleBackgroundColor,
                                 child: Home(),
                               ),
                             ),

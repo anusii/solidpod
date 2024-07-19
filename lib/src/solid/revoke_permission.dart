@@ -33,26 +33,31 @@ library;
 import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
+import 'package:solidpod/src/solid/api/common_permission.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/api/revoke_permission_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/api/permission_api.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 
-/// Revoke permissions from [fileName] for a given [removerWebId].
+/// Revoke permissions from [fileName] for a given [removerUrl].
 /// Parameters:
 ///   [fileName] is the name of the file revoking permission from
 ///   [fileFlag] is the flag to identify if the resources is a file or not
-///   [removerWebId] is the webId of the permission remover
+///   [removerUrl] is the URL of the permission remover
+///   [recipientType] is the type of the recipient
 ///   [child] is the child widget to return to
 
 Future<void> revokePermission(
     String fileName,
     bool fileFlag,
     List<dynamic> permissionList,
-    String removerWebId,
+    String removerUrl,
+    RecipientType recipientType,
     BuildContext context,
     Widget child) async {
   await loginIfRequired(context);
@@ -69,23 +74,56 @@ Future<void> revokePermission(
   final resStatus = await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
   if (resStatus == ResourceStatus.exist) {
-    final resourceName = resourceUrl.split('/').last;
+    // Common list of remover IDs to process further
+    final removerIdList = [];
 
-    // Remove the permission line from the relevant ACL file
-    await removePermissionAcl(resourceName, resourceUrl, removerWebId);
+    if (recipientType == RecipientType.group) {
+      // Read the file that stores group of webIds
+      // Get the file path
+      final groupFilePath = [await getDataDirPath(), removerUrl].join('/');
+
+      // Get the url of the file
+      final groupFileUrl = await getFileUrl(groupFilePath);
+
+      final groupWebIdList = await readGroupTtl(groupFileUrl);
+      removerIdList.addAll(groupWebIdList);
+    } else {
+      removerIdList.add(removerUrl);
+    }
 
     // Check if the file is encrypted
     final fileIsEncrypted = await checkFileEnc(resourceUrl);
 
-    // If the file is encrypted then share the individual encryption key
-    // with the receiver
+    // If the file is encrypted then remove the individual key from relavant
+    // users/ user classes
     if (fileIsEncrypted) {
-      // Generate unique ID for the resource being shared
-      final resUniqueId = getUniqueIdResUrl(resourceUrl, removerWebId);
+      if ([RecipientType.individual, RecipientType.group]
+          .contains(recipientType)) {
+        for (final removerId in removerIdList) {
+          // Generate unique ID for the resource being shared
+          final resUniqueId =
+              getUniqueIdResUrl(resourceUrl, removerId as String);
 
-      // Delete shared key content from recipient's POD
-      await removeSharedKey(removerWebId, resUniqueId);
+          // Delete shared key content from recipient's POD
+          await removeSharedKey(removerId, resUniqueId);
+        }
+      } else {
+        // if the recipient type is either public or authenticated agent
+        // Remove the key from the publicly available or authenticated user
+        // accessible file
+        await removeSharedKeyUserClass(resourceUrl, recipientType);
+      }
     }
+
+    final resourceName = resourceUrl.split('/').last;
+
+    // Remove the permission line from the relevant ACL file
+    await removePermissionAcl(
+      resourceName,
+      resourceUrl,
+      removerUrl,
+      recipientType,
+    );
 
     // Add log entry to owner, granter, and receiver permission log files
     // av20240703: At this instance the owner and the granter are the same
@@ -96,18 +134,25 @@ Future<void> revokePermission(
     // Get user webID
     final userWebId = await AuthDataManager.getWebId() as String;
 
-    final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
-        userWebId, 'revoke', userWebId, removerWebId);
+    for (final removerId in removerIdList) {
+      final logEntryRes = createPermLogEntry(permissionList, resourceUrl,
+          userWebId, 'revoke', userWebId, removerId as String);
 
-    // Log file urls of the owner, granter, and receiver
-    final logFilePath = await getPermLogFilePath();
-    final ownerLogFileUrl = await getFileUrl(logFilePath);
-    final receiverLogFileUrl = await getFileUrl(logFilePath, removerWebId);
+      // Log file urls of the owner, granter, and receiver
+      final logFilePath = await getPermLogFilePath();
+      final ownerLogFileUrl = await getFileUrl(logFilePath);
 
-    // Run log entry insert queries
-    await addPermLogLine(
-        ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
-    await addPermLogLine(
-        receiverLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+      // Run log entry insert queries
+      await addPermLogLine(
+          ownerLogFileUrl, logEntryRes[0] as String, logEntryRes[1] as String);
+
+      // Add log entry if the recipient is either an individual or group of WebIDs
+      if ([RecipientType.individual, RecipientType.group]
+          .contains(recipientType)) {
+        final receiverLogFileUrl = await getFileUrl(logFilePath, removerId);
+        await addPermLogLine(receiverLogFileUrl, logEntryRes[0] as String,
+            logEntryRes[1] as String);
+      }
+    }
   }
 }

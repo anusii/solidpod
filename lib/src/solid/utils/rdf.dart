@@ -148,6 +148,34 @@ Map<String, dynamic> parseTTL(String ttlContent) {
   return dataMap;
 }
 
+// TODO av: The function parseTTL needs to be converted to parseTTLMap in all
+// places where it has been used. A TTl can contain multiple objects with same
+// predicate. Also the function extract() can be removed when we have properly
+// defined our namespaces
+/// Parse TTL content into a map {subject: {predicate: {objects}}}
+Map<String, dynamic> parseTTLMap(String ttlContent) {
+  final g = Graph();
+  g.parseTurtle(ttlContent);
+  final dataMap = <String, dynamic>{};
+  for (final t in g.triples) {
+    final sub = t.sub.value as String;
+    final pre = t.pre.value as String;
+    final obj = t.obj.value as String;
+    if (dataMap.containsKey(sub)) {
+      if ((dataMap[sub] as Map).containsKey(pre)) {
+        dataMap[sub][pre].add(obj);
+      } else {
+        dataMap[sub][pre] = {obj};
+      }
+    } else {
+      dataMap[sub] = {
+        pre: {obj}
+      };
+    }
+  }
+  return dataMap;
+}
+
 /// Parse ACL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseACL(String aclContent) {
   final g = Graph();
