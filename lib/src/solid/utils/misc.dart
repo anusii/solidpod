@@ -464,7 +464,6 @@ Future<void> initPod(String securityKey,
   fileUrls.remove(await getFileUrl(await getEncKeyPath()));
   fileUrls.remove(await getFileUrl(await getIndKeyPath()));
   fileUrls.remove(await getFileUrl(await getPubKeyPath()));
-  debugPrint(fileUrls.toString());
 
   for (final f in fileUrls) {
     final fileName = f.split('/').last;

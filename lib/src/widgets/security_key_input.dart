@@ -190,7 +190,6 @@ class _SecurityKeyInputState extends State<SecurityKeyInput> {
       String inputKey,
       bool keyVerified) async {
     if (keyVerified) {
-      debugPrint('keyVerified: $keyVerified');
       final formData = formKey.currentState?.value as Map;
       await KeyManager.setSecurityKey(formData[inputKey].toString());
       debugPrint('Security key saved');

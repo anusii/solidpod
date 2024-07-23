@@ -467,7 +467,7 @@ class KeyManager {
 
   /// Returns true if there is an individual key for a given resource
   static Future<bool> hasSharedIndividualKey(String resourceUrl) async {
-    if (_sharedIndKeyMap == null) {
+    if (_sharedIndKeyMap == null || _sharedIndKeyMap!.isEmpty) {
       await _loadSharedIndKeyFile();
     }
     assert(_sharedIndKeyMap != null);

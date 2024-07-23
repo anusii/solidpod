@@ -61,7 +61,6 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
       key: widget.formKey,
       onChanged: () {
         widget.formKey.currentState!.save();
-        debugPrint(widget.formKey.currentState!.value.toString());
       },
       autovalidateMode: AutovalidateMode.disabled,
       child: Column(

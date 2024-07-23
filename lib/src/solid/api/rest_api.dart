@@ -107,7 +107,6 @@ Future<String> fetchPrvFile(String prvFileUrl) async {
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
-    //print(profResponse.body);
     throw Exception('Failed to load profile data! Try again in a while.');
   }
 }
@@ -362,8 +361,6 @@ Future<Uint8List> getResource(String resourceUrl) async {
   );
 
   if (response.statusCode == 200) {
-    // debugPrint('Response status: ${response.statusCode}');
-    // debugPrint('Response body: ${response.body}');
     return response.bodyBytes;
   } else {
     throw Exception('Failed to get resource $resourceUrl');
