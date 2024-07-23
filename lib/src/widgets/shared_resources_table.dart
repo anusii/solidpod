@@ -148,7 +148,7 @@ Widget buildSharedResourcesTable(BuildContext context,
                                       TextButton(
                                           onPressed: () {
                                             // Close the dialog
-                                            Navigator.of(context).pop();
+                                            Navigator.of(ctx).pop();
                                           },
                                           child: const Text('Ok'))
                                     ],

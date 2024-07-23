@@ -63,8 +63,6 @@ Future<dynamic> readExternalPod(
 
       // Decrypt if reading an encrypted file
 
-      await KeyManager.hasSharedIndividualKey(fileUrl);
-
       if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
         await getKeyFromUserIfRequired(context, child);
 
