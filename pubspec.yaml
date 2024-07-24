@@ -25,7 +25,7 @@ dependencies:
   path: ^1.9.0
   pointycastle: ^3.9.1
   rdflib: ^0.2.10
-  solid_auth: ^0.1.17 # solid-auth updated the token refreshing API since version 0.1.17
+  solid_auth: ^0.1.18 # solid-auth updated the token refreshing API since version 0.1.17
   url_launcher: ^6.2.4
 
 dev_dependencies:
