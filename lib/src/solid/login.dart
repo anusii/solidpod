@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams
+/// Authors: Graham Williams, Anushka Vidanage
 library;
 
 // ignore_for_file: public_member_api_docs
@@ -252,8 +252,10 @@ class _SolidLoginState extends State<SolidLogin> {
       foreground: widget.registerButtonStyle.foreground,
       tooltip: widget.registerButtonStyle.tooltip,
       onPressed: () {
-        launchUrl(
-            Uri.parse('${widget.webID}/.account/login/password/register/'));
+        final podServer = webIdController.text.isNotEmpty
+            ? webIdController.text
+            : widget.webID;
+        launchUrl(Uri.parse('$podServer/.account/login/password/register/'));
       },
     );
 
@@ -293,10 +295,15 @@ class _SolidLoginState extends State<SolidLogin> {
 
           if (_isDialogCanceled) return;
 
+          // Get webId from the textfield or assign a default one
+          final podServer = webIdController.text.isNotEmpty
+              ? webIdController.text
+              : widget.webID;
+
           // Perform the actual authentication by contacting the server at
           // [WebID].
 
-          final authResult = await solidAuthenticate(widget.webID, context);
+          final authResult = await solidAuthenticate(podServer, context);
 
           // Navigates to the Initial Setup Screen using the provided authentication data.
 
@@ -452,6 +459,7 @@ class _SolidLoginState extends State<SolidLogin> {
             controller: webIdController,
             decoration: const InputDecoration(
               border: UnderlineInputBorder(),
+              hintText: 'WebID or Solid server URL',
             ),
           ),
           const SizedBox(

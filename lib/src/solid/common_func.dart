@@ -126,15 +126,6 @@ Future<void> getKeyFromUserIfRequired(
       await Navigator.push(
           context, MaterialPageRoute(builder: (context) => securityKeyInput));
     }
-
-    // await Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (context) => SecurityKeyInput(
-    //           verifySecurityKeyFunc: (key) =>
-    //               verifySecurityKey(key, verificationKey),
-    //           child: child),
-    //     ));
   }
 }
 
@@ -197,16 +188,4 @@ Future<void> deleteDataFile(String fileName, BuildContext context,
   }
 
   if (context.mounted) await alert(context, msg);
-
-  // await showDialog(
-  //     context: context,
-  //     builder: (context) => AlertDialog(
-  //           title: const Text('Notice'),
-  //           content: Text(msg),
-  //           actions: [
-  //             ElevatedButton(
-  //                 onPressed: () => Navigator.pop(context),
-  //                 child: const Text('OK'))
-  //           ],
-  //         ));
 }
