@@ -11,28 +11,35 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages).
 -->
 
-**UNDER DEVELOPMENT**
+<!-- **UNDER DEVELOPMENT**
 
 This package is currently under development and some API may
 change. The SolidLogin() and SolidLoginPopup() are used in a number
-of apps now and are more stable.
+of apps now and are more stable. -->
 
-# Solid Pods
+# Solid Pod
 
-Visit https://soidcommunity.au
+Solid Pod package provides functionality to manage a Solid 
+personal online data stores (Pods) via a flutter application. 
+It supports high level access for an application to
+authenticate users to their Pods, access the users' data from 
+their Pods, and then share the data stored in users' Pods with 
+other Pods through Flutter Widgets.  
 
-Solid is an open standard for a server hosting personal online data
-stores (Pods). Numerous providers of Solid Server hosting are emerging
-allowing users to host and migrate their Pods on any such 
-servers (or to run their own server. 
+## What is Solid? 
 
-This package supports high level access for apps to
-authenticate users and then to access the user's data from their
-Pods through Flutter Widgets. 
+Solid (https://solidproject.org/) is an open standard for a server 
+to host personal online data stores (Pods). Numerous providers of 
+Solid Server hosting are emerging allowing users to host and migrate 
+their Pods on any such servers (or to run their own server). 
+
+To know more about our work relatd to Solid Pods 
+visit https://solidcommunity.au
+
 
 ## Features
 
-+ Standard widget [SolidLogin] to support authentication against a Solid server:
++ [SolidLogin] widget to support authentication against a Solid server:
 
 Default style:
 
@@ -67,6 +74,43 @@ Change the image, logo, login text, button style, colour scheme:
 </div>
 
 Fine tune to suit the theme of the app:
+
+<div align="center">
+	<img
+	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	alt="KeyPod Login" width="400">
+</div>
+
++ [SolidPopupLogin] widget to support authentication within an application. The widget will
+  trigger authentication if user action requires authenticated access.
+
++ [changeKeyPopup] widget to change the security key:
+  
+<div align="center">
+	<img
+	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	alt="KeyPod Login" width="400">
+</div>
+
++ [readPod] function to read file content (either encrypted or plaintext) from a Pod.
+  
++ [writePod] function to write content (either encrypted or plaintext) to a file in a Pod.
+  
++ [GrantPermissionUi] widgt to support permission granting/revoking for resources:
+  
+<div align="center">
+	<img
+	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	alt="KeyPod Login" width="400">
+</div>
+
+<div align="center">
+	<img
+	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	alt="KeyPod Login" width="400">
+</div>
+
++ [SharedResourcesUi] widget to display resources shared with a Pod by others:
 
 <div align="center">
 	<img
