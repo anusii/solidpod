@@ -8,6 +8,7 @@ toward a 0.6 release.
 
 ## 0.6 Future Release
 
++ UI for display permissions given to the user WebID by others [0.5.40]
 + Support the upload, download and delete of large (binary) files [0.5.39]
 + Deploy an example/demo app [0.5.38 20240630]
 + Create ACL file in writePod() if not exist. [0.5.37]
