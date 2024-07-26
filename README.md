@@ -120,6 +120,10 @@ Revoking permission:
 	alt="KeyPod Login" width="400">
 </div>
 
++ [sendLargeFile], [getLargeFile], and [deleteLargeFile] functions 
+  to upload, download, and delete large files from a Solid server.
+
+
 ## Getting started
 
 To start using the package add `solidpod` as a dependency in 
@@ -279,6 +283,31 @@ ElevatedButton(
 		),
 	),
 	),
+)
+```
+### Large File Manager Example
+
+To upload a large file use:
+
+```dart
+await sendLargeFile(
+	remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file
+	localFilePath: 'D:/my-large-file.bin', // Path of the file where it is locally stored
+)
+```
+To download a large file use:
+
+```dart
+await getLargeFile(
+	remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file
+	localFilePath: 'D:/my-large-file.bin', // Path of the file where it will be locally downloaded
+)
+```
+To delete a large file use:
+
+```dart
+await deleteLargeFile(
+	remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file,
 )
 ```
 
