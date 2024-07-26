@@ -88,7 +88,7 @@ Fine tune to suit the theme of the app:
   
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/change_security_key.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -97,16 +97,18 @@ Fine tune to suit the theme of the app:
 + [writePod] function to write content (either encrypted or plaintext) to a file in a Pod.
   
 + [GrantPermissionUi] widgt to support permission granting/revoking for resources:
-  
+
+Granting permission: 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/grant_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
+Revoking permission: 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/revoke_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -114,23 +116,37 @@ Fine tune to suit the theme of the app:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/view_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
 ## Getting started
 
-TODO: List prerequisites and provide or pointer to information on how
-to start using the package.
+To start using the package add `solidpod` as a dependency in 
+your `pubspec.yaml` file. 
+
+```
+dependencies:
+  solidpod: ^<latest-version>
+```
+
+An example project that uses `solidpod` can be found 
+[here](https://github.com/anusii/solidpod/tree/dev/demopod).
+
+<!-- TODO: List prerequisites and provide or pointer to information on how
+to start using the package. -->
 
 ## Usage
 
-A simple login screen is provided by the package to take care of the
-details for authenticating a user against a Solid server. If your
-own home widget is call `MyHome()` then simply wrap this within  the
-`SolidLogin()` widget:
+Following are the usage of main functionalities supported 
+by the package. 
 
-of the 
+### Login Example
+
+A simple login screen to authenticate a user against a Solid server. 
+If your own home widget is call `MyHome()` then simply wrap this within 
+the `SolidLogin()` widget:
+
 ```dart
   @override
   Widget build(BuildContext context) {
@@ -143,8 +159,136 @@ of the
   }
 ```
 
+### Change Security Key Example
+
+Wrap the `changeKeyPopup()` function within a button widget. Parameters
+include the `BuildContext` and the widget that you need to return to 
+after changing the key.
+
+```dart
+ElevatedButton(
+	onPressed: () {
+		changeKeyPopup(context, ReturnPage());
+	},
+	child: const Text('Change Security Key on Pod')
+)
+```
+
+### Read Pod File Example
+
+Read data from the file `data/myfiles/my-data-file.ttl` and return to the
+widget `ReturnPage()`.
+
+```dart
+final fileContent = await readPod(
+        'data/myfiles/my-data-file.ttl',
+        context,
+        ReturnPage(),
+      );
+```
+
+### Write to Pod File Example
+
+Write data to the file `myfiles/my-data-file.ttl` and return to the
+widget `ReturnPage()`.
+
+```dart
+// Turtle string to be written to the file
+final turtleString = '@prefix somePrefix: <http://www.perceive.net/schemas/relationship/> .
+<http://example.org/#green-goblin> somePrefix:enemyOf <http://example.org/#spiderman> .';
+
+await writePod(
+	'myfiles/my-data-file.ttl', 
+	turtleString, 
+	context, 
+	ReturnPage(),
+	encrypted: false // non-required parameter. By default set to true
+);
+```
+
+### Grant Permission UI Example
+
+Wrap the `GrantPermissionUi` widget around a button to navigate to 
+the grant permission page.
+
+```dart
+ElevatedButton(
+	child: const Text(
+		'Add/Delete Permissions'),
+	onPressed: () => Navigator.push(
+	context,
+	MaterialPageRoute(
+		builder: (context) => const GrantPermissionUi(
+		child: ReturnPage(),
+		),
+	),
+	),
+)
+```
+To add/delete permissions to a specific resource use:
+
+```dart
+ElevatedButton(
+	child: const Text(
+		'Add/Delete Permissions from a Specific Resource'),
+	onPressed: () => Navigator.push(
+	context,
+	MaterialPageRoute(
+		builder: (context) => const GrantPermissionUi(
+		fileName: 'my-data-file.ttl',
+		child: ReturnPage(),
+		),
+	),
+	),
+)
+```
+
+### View Permission UI Example
+
+Wrap the `SharedResourcesUi` widget around a button to navigate to 
+the view permission page.
+
+```dart
+ElevatedButton(
+	child: const Text(
+		'View Resources your WebID have access to'),
+	onPressed: () => Navigator.push(
+	context,
+	MaterialPageRoute(
+		builder: (context) => const SharedResourcesUi(
+		child: ReturnPage(),
+		),
+	),
+	),
+)
+```
+
+To view permissions to a specific resource from a specific webID use:
+
+```dart
+ElevatedButton(
+	child: const Text(
+		'View access to specific Resource'),
+	onPressed: () => Navigator.push(
+	context,
+	MaterialPageRoute(
+		builder: (context) => const SharedResourcesUi(
+		fileName: 'my-data-file.ttl',
+		sourceWebId: 'https://pods.solidcommunity.au/john-doe/profile/card#me',
+		child: ReturnPage(),
+		),
+	),
+	),
+)
+```
+
 ## Additional information
 
-TODO: More about the package: where to find more information, how to
+<!-- TODO: More about the package: where to find more information, how to
 contribute to the package, how to file issues, what response they can
-expect from the package authors, and more.
+expect from the package authors, and more. -->
+
+The source code can be accessed via [GitHub repository](https://github.com/anusii/solidpod). 
+You can also file issues you face at [GitHub Issues](https://github.com/anusii/solidpod/issues).
+The authors of the pacakge will respond to issues as conveniently as possible upon
+creating an issue.
