@@ -435,7 +435,8 @@ class _SolidLoginState extends State<SolidLogin> {
           ),
           Row(
             children: [
-              Expanded(
+              SizedBox(
+                height: 200,
                 child: Column(
                   children: [
                     Expanded(
