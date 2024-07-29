@@ -31,12 +31,7 @@
 library solidpod;
 
 export 'src/solid/login.dart'
-    show
-        SolidLogin,
-        LoginButtonStyle,
-        ContinueButtonStyle,
-        RegisterButtonStyle,
-        InfoButtonStyle;
+    show SolidLogin, LoginButtonStyle, RegisterButtonStyle, InfoButtonStyle;
 export 'src/solid/popup_login.dart' show SolidPopupLogin;
 export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
 export 'src/solid/shared_resources_ui.dart' show SharedResourcesUi;
