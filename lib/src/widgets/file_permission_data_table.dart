@@ -130,7 +130,7 @@ Widget buildPermDataTable(BuildContext context, String permDataFile,
                             TextButton(
                                 onPressed: () {
                                   // Close the dialog
-                                  Navigator.of(context).pop();
+                                  Navigator.of(ctx).pop();
                                 },
                                 child: const Text('No'))
                           ],

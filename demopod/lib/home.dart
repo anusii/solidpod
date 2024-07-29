@@ -34,18 +34,11 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/dialogs/about.dart';
-import 'package:demopod/features/edit_keyvalue.dart';
-import 'package:demopod/features/file_service.dart';
-import 'package:demopod/features/view_keys.dart';
-import 'package:demopod/main.dart';
-import 'package:demopod/utils/rdf.dart';
-
 import 'package:solidpod/solidpod.dart'
     show
         AppInfo,
         GrantPermissionUi,
+        SharedResourcesUi,
         KeyManager,
         changeKeyPopup,
         deleteDataFile,
@@ -56,6 +49,14 @@ import 'package:solidpod/solidpod.dart'
         loginIfRequired,
         logoutPopup,
         readPod;
+
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/features/edit_keyvalue.dart';
+import 'package:demopod/features/file_service.dart';
+import 'package:demopod/features/view_keys.dart';
+import 'package:demopod/main.dart';
+import 'package:demopod/utils/rdf.dart';
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -495,6 +496,35 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             MaterialPageRoute(
                               builder: (context) => const GrantPermissionUi(
                                 backgroundColor: titleBackgroundColor,
+                                child: Home(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        largeGapV,
+                        const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Manage External Resources with Access',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        ElevatedButton(
+                          child: const Text(
+                              'View all Resources your WebID have access to'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SharedResourcesUi(
+                                backgroundColor: titleBackgroundColor,
+                                fileName: 'key-value.ttl',
+                                //sourceWebId:
+                                //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
                                 child: Home(),
                               ),
                             ),

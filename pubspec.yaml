@@ -1,6 +1,6 @@
 name: solidpod
 description: Support easy access to data stored on Solid Pod servers.
-version: 0.5.39
+version: 0.5.40
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -21,12 +21,12 @@ dependencies:
   intl: ^0.18.0
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
-  package_info_plus: ^5.0.1
+  package_info_plus: ^8.0.0
   path: ^1.9.0
   pointycastle: ^3.9.1
-  rdflib: ^0.2.8
+  rdflib: ^0.2.10
   riverpod: ^2.5.1
-  solid_auth: ^0.1.17 # solid-auth updated the token refreshing API since version 0.1.17
+  solid_auth: ^0.1.18 # solid-auth updated the token refreshing API since version 0.1.17
   url_launcher: ^6.2.4
 
 dev_dependencies:
@@ -35,7 +35,7 @@ dev_dependencies:
   dart_code_metrics:
     git:
       url: https://github.com/anusii/dart-code-metrics.git
-      ref: main
+      ref: dev
   flutter_lints: ^3.0.1
   flutter_test:
     sdk: flutter

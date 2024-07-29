@@ -36,6 +36,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
+import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 import 'package:crypto/crypto.dart';
@@ -531,4 +532,12 @@ Future<void> deleteFile(String filePath,
   if (await KeyManager.hasIndividualKey(fileUrl)) {
     await KeyManager.removeIndividualKey(filePath);
   }
+}
+
+/// Get date and time from a string
+String getDateTime(String dateTimeStr) {
+  final dateTime = DateTime.parse(dateTimeStr);
+  final dateFormat = DateFormat('dd/MM/yyyy hh:mm:ss a');
+
+  return dateFormat.format(dateTime);
 }

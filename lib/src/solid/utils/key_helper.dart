@@ -134,6 +134,9 @@ class KeyManager {
   /// URL of the file with encrypted individual keys
   static String? _indKeyUrl;
 
+  /// URL of the file with shared encrypted individual keys
+  static String? _sharedIndKeyUrl;
+
   /// URL of the file with public key
   static String? _pubKeyUrl;
 
@@ -155,6 +158,9 @@ class KeyManager {
   /// The encrypted (and decrypted) individual keys
   static Map<String, _IndKeyRecord>? _indKeyMap;
 
+  /// The decrypted shared individual keys
+  static Map<String, _SharedIndKeyRecord>? _sharedIndKeyMap;
+
   /// The string key for storing auth data in secure storage
   static const String _securityKeySecureStorageKey = '_solid_security_key';
 
@@ -165,6 +171,7 @@ class KeyManager {
     _encKeyUrl = null;
     _indKeyUrl = null;
     _pubKeyUrl = null;
+    _sharedIndKeyUrl = null;
 
     _securityKey = null;
     _masterKey = null;
@@ -174,6 +181,7 @@ class KeyManager {
     _prvKeyRecord = null;
 
     _indKeyMap = null;
+    _sharedIndKeyMap = null;
   }
 
   /// Initialise the encKeyFile, indKeyFile and pubKeyFile
@@ -457,6 +465,33 @@ class KeyManager {
     }
   }
 
+  /// Returns true if there is an individual key for a given resource
+  static Future<bool> hasSharedIndividualKey(String resourceUrl) async {
+    if (_sharedIndKeyMap == null) {
+      await _loadSharedIndKeyFile();
+    }
+    assert(_sharedIndKeyMap != null);
+    return _sharedIndKeyMap!.containsKey(resourceUrl);
+  }
+
+  /// Return the (decrypted) individual key for an existing resource
+  static Future<Key> getSharedIndividualKey(String resourceUrl) async {
+    if (_sharedIndKeyMap == null) {
+      await _loadSharedIndKeyFile();
+    }
+
+    assert(_sharedIndKeyMap != null);
+    if (!_sharedIndKeyMap!.containsKey(resourceUrl)) {
+      throw Exception(
+          'Unable to locate the individual key for resource:\n$resourceUrl');
+    }
+
+    final record = _sharedIndKeyMap![resourceUrl];
+    assert(record != null);
+
+    return record!.key;
+  }
+
   /// Load the file with verification key and encrypted private key
   static Future<void> _loadEncKeyFile({bool forceReload = false}) async {
     if (_verificationKey != null && _prvKeyRecord != null && !forceReload) {
@@ -546,6 +581,36 @@ class KeyManager {
 
     await createResource(_pubKeyUrl!,
         content: await _genPubKeyTTLStr(), replaceIfExist: true);
+  }
+
+  /// Load the file with encrypted individual keys
+  static Future<void> _loadSharedIndKeyFile({bool forceReload = false}) async {
+    if (_sharedIndKeyMap != null && !forceReload) {
+      return;
+    }
+
+    _sharedIndKeyUrl ??= await getFileUrl(await getSharedKeyFilePath());
+
+    _sharedIndKeyMap ??= <String, _SharedIndKeyRecord>{};
+
+    final map = await loadPrvTTL(_sharedIndKeyUrl!);
+
+    for (final entry in map.entries) {
+      final v = entry.value as Map;
+      if (v.containsKey(sharedKeyPred)) {
+        // Get private key
+        assert(_prvKeyRecord != null);
+        _prvKeyRecord!.key ??= await getPrivateKey();
+
+        _sharedIndKeyMap![_prvKeyRecord!.decryptData(v[pathPred] as String)] =
+            _SharedIndKeyRecord(
+                filePath: _prvKeyRecord!.decryptData(v[pathPred] as String),
+                accessList:
+                    _prvKeyRecord!.decryptData(v[accessListPred] as String),
+                key: Key.fromBase64(
+                    _prvKeyRecord!.decryptData(v[sharedKeyPred] as String)));
+      }
+    }
   }
 
   /// Generate the content of encKeyFile
@@ -640,6 +705,33 @@ class _IndKeyRecord {
   }
 }
 
+/// [_SharedIndKeyRecord] is a simple class to store decrypted individual keys
+/// shared by others
+
+class _SharedIndKeyRecord {
+  /// Constructor
+  _SharedIndKeyRecord(
+      {required this.filePath, required this.accessList, required this.key});
+
+  /// The path of file corresponds to the key
+  final String filePath;
+
+  /// The access list
+  final String accessList;
+
+  /// The corresponding decrypted key
+  final Key key;
+
+  @override
+  String toString() {
+    return 'SharedIndividualKeyRecord {\n'
+        '    filePath: $filePath,\n'
+        '    accessList: $accessList,\n'
+        '    key: $key\n'
+        '}';
+  }
+}
+
 /// [_PrvKeyRecord] is a simple class to store encrypted and decrypted
 /// private key for data sharing.
 
@@ -655,6 +747,24 @@ class _PrvKeyRecord {
 
   /// The corresponding decrypted private key
   String? key;
+
+  /// Decrypt a given value using private key
+  String decryptData(String encryptedVal) {
+    // Decrypt value using private key
+    final parser = RSAKeyParser();
+    final prvKey = parser.parse(key as String) as RSAPrivateKey;
+    final encrypterPrv = Encrypter(
+      RSA(
+        privateKey: prvKey,
+      ),
+    );
+
+    return encrypterPrv.decrypt(
+      Encrypted.fromBase64(
+        encryptedVal,
+      ),
+    );
+  }
 }
 
 /// [RecipientPubKey] is a class to store public keys of another POD.
