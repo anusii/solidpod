@@ -433,75 +433,42 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 20.0,
           ),
-          Row(
+          //
+
+          Column(
             children: [
-              SizedBox(
-                height: 200,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: loginButton,
-                    ),
-                    const SizedBox(
-                      height: 15.0,
-                    ),
-                    widget.required
-                        ? const Spacer()
-                        : Expanded(
-                            child: infoButton,
-                          ),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: loginButton,
+                  ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
+                  Expanded(
+                    child: registerButton,
+                  ),
+                ],
               ),
               const SizedBox(
-                width: 15.0,
+                height: 15.0,
               ),
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: registerButton,
-                    ),
-                  ],
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  widget.required
+                      ? const Spacer()
+                      : Expanded(
+                          child: infoButton,
+                        ),
+                ],
+              ),
+              const SizedBox(
+                height: 15.0,
               ),
             ],
           ),
-
-          // Column(
-          //   children: [
-          //     Row(
-          //       mainAxisAlignment: MainAxisAlignment.center,
-          //       children: [
-          //         Expanded(
-          //           child: loginButton,
-          //         ),
-          //         const SizedBox(
-          //           width: 15.0,
-          //         ),
-          //         Expanded(
-          //           child: registerButton,
-          //         ),
-          //       ],
-          //     ),
-          //     const SizedBox(
-          //       height: 15.0,
-          //     ),
-          //     Row(
-          //       mainAxisAlignment: MainAxisAlignment.end,
-          //       children: [
-          //         widget.required
-          //             ? const Spacer()
-          //             : Expanded(
-          //                 child: infoButton,
-          //               ),
-          //       ],
-          //     ),
-          //     const SizedBox(
-          //       height: 15.0,
-          //     ),
-          //   ],
-          // ),
 
           const SizedBox(
             height: 20.0,
