@@ -469,7 +469,7 @@ class _SolidLoginState extends State<SolidLogin> {
                     width: 15.0,
                   ),
                   Expanded(
-                    child: widget.required ? continueButton : registerButton,
+                    child: widget.required ? registerButton : continueButton,
                   ),
                 ],
               ),
@@ -478,11 +478,11 @@ class _SolidLoginState extends State<SolidLogin> {
               ),
               Row(
                 children: [
-                  if (widget.required)
+                  if (!widget.required)
                     Expanded(
                       child: registerButton,
                     ),
-                  if (!widget.required)
+                  if (widget.required)
                     Expanded(
                       child: SizedBox(
                         width: MediaQuery.of(context).size.width * 0.5,
@@ -493,10 +493,10 @@ class _SolidLoginState extends State<SolidLogin> {
                     width: 15.0,
                   ),
                   widget.required
-                      ? Expanded(
+                      ? const Spacer()
+                      : Expanded(
                           child: infoButton,
-                        )
-                      : const Spacer(),
+                        ),
                 ],
               ),
               const SizedBox(
