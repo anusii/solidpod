@@ -24,6 +24,8 @@
 ///
 /// Authors: Anushka Vidanage
 
+library;
+
 import 'package:flutter/material.dart';
 
 /// A default app bar that is used when user does not define an app bar for

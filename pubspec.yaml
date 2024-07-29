@@ -35,12 +35,13 @@ dev_dependencies:
     git:
       url: https://github.com/anusii/dart-code-metrics.git
       ref: dev
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
   # Not yet use solid-lints. It requires analyze 6.2.0 and
   # dart-code-metrics fails.
   # solid_lints: ^0.1.1
+  lints: ^4.0.0
   ubuntu_lints: ^0.3.0
 
 # TODO 20240417 gjw We will want to get rid of these eventually. For

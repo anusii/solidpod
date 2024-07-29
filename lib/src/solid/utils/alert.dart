@@ -30,6 +30,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+/// Alert widget to popup a dialog with a given message
+/// and an optional title
 Future<void> alert(BuildContext context, String msg,
     [String title = 'Notice']) async {
   await showDialog(

@@ -164,11 +164,14 @@ class _KeyValueEditState extends State<KeyValueEdit> {
       final ttlStr = await genTTLStr(pairs!);
 
       // Write to POD
-      await writePod(widget.fileName, ttlStr, context, widget.child,
-          encrypted: widget.encrypted);
+      if (context.mounted) {
+        await writePod(widget.fileName, ttlStr, context, widget.child,
+            encrypted: widget.encrypted);
 
-      await _alert('Successfully saved ${dataMap.length} key-value pairs'
-          ' to "${widget.fileName}" in PODs');
+        await _alert('Successfully saved ${dataMap.length} key-value pairs'
+            ' to "${widget.fileName}" in PODs');
+      }
+
       return true;
     } on Exception catch (e) {
       debugPrint('Exception: $e');
@@ -206,6 +209,7 @@ class _KeyValueEditState extends State<KeyValueEdit> {
                       onPressed: () async {
                         final saved = await _saveToPod(context);
                         if (saved) {
+                          if (!context.mounted) return;
                           await Navigator.push(
                               context,
                               MaterialPageRoute(

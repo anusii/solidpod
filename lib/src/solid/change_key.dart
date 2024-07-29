@@ -108,7 +108,9 @@ class _ChangeKeyDialogState extends State<ChangeKeyDialog> {
         duration = const Duration(seconds: 7);
       } finally {
         // Close the dialog
-        Navigator.of(context).pop();
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
 
         // Show message
         _showSnackBar(msg, bgColor, duration: duration);

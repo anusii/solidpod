@@ -24,6 +24,8 @@
 ///
 /// Authors: Anushka Vidanage
 
+library;
+
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
