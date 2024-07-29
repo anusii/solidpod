@@ -58,12 +58,14 @@ const Color defaultButtonForeground = Colors.black;
 const String defaultLoginButtonText = 'Login';
 const String defaultRegisterButtonText = 'Register';
 const String defaultInfoButtonText = 'Info';
+const String defaultContinueButtonText = 'Continue';
 const String defaultChangeKeyButtonText = 'Change Key';
 
 const String defaultLoginTooltip = 'Login to your Solid Pod.';
 const String defaultRegisterTooltip = 'Get a Solid Pod.';
 // TODO 20240515 gjw replace `project` with the appname.
 const String defaultInfoTooltip = 'Visit the project documentation.';
+const String defaultContinueTooltip = 'Continue with no Solid Pod login.';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -98,6 +100,7 @@ class SolidLogin extends StatefulWidget {
     this.title = 'Log in to your Solid Pod',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
+    this.continueButtonStyle = const ContinueButtonStyle(),
     this.infoButtonStyle = const InfoButtonStyle(),
     this.loginButtonStyle = const LoginButtonStyle(),
     this.registerButtonStyle = const RegisterButtonStyle(),
@@ -125,6 +128,9 @@ class SolidLogin extends StatefulWidget {
   /// The style of the INFO button.
 
   final InfoButtonStyle infoButtonStyle;
+
+  /// The style of the CONTINUE button.
+  final ContinueButtonStyle continueButtonStyle;
 
   /// The style of the CHANGE KEY button.
 
@@ -361,6 +367,23 @@ class _SolidLoginState extends State<SolidLogin> {
           }
         });
 
+    // A CONTINUE button that when pressed will proceed to operate without the
+    // need of a Solid Pod and thus no requirement to authenticate. Proceed
+    // directly onto the app (the child).
+
+    final continueButton = PodButton(
+      text: widget.continueButtonStyle.text,
+      background: widget.continueButtonStyle.background,
+      foreground: widget.continueButtonStyle.foreground,
+      tooltip: widget.continueButtonStyle.tooltip,
+      onPressed: () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => widget.child),
+        );
+      },
+    );
+
     // An INFO button that when pressed will proceed to visit a link, often
     // further information or a README or user guide.
 
@@ -446,7 +469,7 @@ class _SolidLoginState extends State<SolidLogin> {
                     width: 15.0,
                   ),
                   Expanded(
-                    child: registerButton,
+                    child: widget.required ? continueButton : registerButton,
                   ),
                 ],
               ),
@@ -455,6 +478,10 @@ class _SolidLoginState extends State<SolidLogin> {
               ),
               Row(
                 children: [
+                  if (widget.required)
+                    Expanded(
+                      child: registerButton,
+                    ),
                   if (!widget.required)
                     Expanded(
                       child: SizedBox(
@@ -465,7 +492,11 @@ class _SolidLoginState extends State<SolidLogin> {
                   const SizedBox(
                     width: 15.0,
                   ),
-                  const Spacer(),
+                  widget.required
+                      ? Expanded(
+                          child: infoButton,
+                        )
+                      : const Spacer(),
                 ],
               ),
               const SizedBox(
@@ -601,6 +632,19 @@ class PodButton extends StatelessWidget {
 }
 
 /// A data structure for the buttons used in the Solid Login widget.
+
+class ContinueButtonStyle {
+  const ContinueButtonStyle({
+    this.text = defaultContinueButtonText,
+    this.background = defaultButtonBackground,
+    this.foreground = defaultButtonForeground,
+    this.tooltip = defaultContinueTooltip,
+  });
+  final String text;
+  final Color background;
+  final Color foreground;
+  final String tooltip;
+}
 
 class ChangeKeyButtonStyle {
   const ChangeKeyButtonStyle({
