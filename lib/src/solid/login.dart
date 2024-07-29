@@ -462,6 +462,9 @@ class _SolidLoginState extends State<SolidLogin> {
                         child: infoButton,
                       ),
                     ),
+                  const SizedBox(
+                    width: 15.0,
+                  ),
                   const Spacer(),
                 ],
               ),
