@@ -433,7 +433,6 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 20.0,
           ),
-          //
 
           Column(
             children: [
@@ -455,13 +454,15 @@ class _SolidLoginState extends State<SolidLogin> {
                 height: 15.0,
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  widget.required
-                      ? const Spacer()
-                      : Expanded(
-                          child: infoButton,
-                        ),
+                  if (!widget.required)
+                    Expanded(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        child: infoButton,
+                      ),
+                    ),
+                  const Spacer(),
                 ],
               ),
               const SizedBox(
