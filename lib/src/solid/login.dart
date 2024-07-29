@@ -64,7 +64,6 @@ const String defaultLoginTooltip = 'Login to your Solid Pod.';
 const String defaultRegisterTooltip = 'Get a Solid Pod.';
 // TODO 20240515 gjw replace `project` with the appname.
 const String defaultInfoTooltip = 'Visit the project documentation.';
-const String defaultContinueTooltip = 'Continue with no Solid Pod login.';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -603,12 +602,10 @@ class ChangeKeyButtonStyle {
     this.text = defaultChangeKeyButtonText,
     this.background = defaultButtonBackground,
     this.foreground = defaultButtonForeground,
-    this.tooltip = defaultContinueTooltip,
   });
   final String text;
   final Color background;
   final Color foreground;
-  final String tooltip;
 }
 
 class LoginButtonStyle {
