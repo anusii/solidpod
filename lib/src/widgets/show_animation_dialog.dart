@@ -76,7 +76,7 @@ Future<void> showAnimationDialog(
             child: Center(
               child: SizedBox(
                 width: 200,
-                height: 280,
+                height: 290,
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
