@@ -435,30 +435,34 @@ class _SolidLoginState extends State<SolidLogin> {
           ),
           Row(
             children: [
-              Column(
-                children: [
-                  Expanded(
-                    child: loginButton,
-                  ),
-                  const SizedBox(
-                    height: 15.0,
-                  ),
-                  widget.required
-                      ? const Spacer()
-                      : Expanded(
-                          child: infoButton,
-                        ),
-                ],
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: loginButton,
+                    ),
+                    const SizedBox(
+                      height: 15.0,
+                    ),
+                    widget.required
+                        ? const Spacer()
+                        : Expanded(
+                            child: infoButton,
+                          ),
+                  ],
+                ),
               ),
               const SizedBox(
                 width: 15.0,
               ),
-              Column(
-                children: [
-                  Expanded(
-                    child: registerButton,
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: registerButton,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
