@@ -6,7 +6,7 @@ Guide: Each version update is recorded here with a short user-oriented
 description of the update. Updates in the 0.5.n series are heading
 toward a 0.6 release.
 
-## 0.6.0 Future Release
+## 0.6.0
 
 + Update dependencies to the latest release [0.5.45]
 + Remove deprecated classes [0.5.44]
