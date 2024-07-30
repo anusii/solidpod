@@ -8,6 +8,11 @@ toward a 0.6 release.
 
 ## 0.6 Future Release
 
++ Update dependencies to the latest release [0.5.45]
++ Remove deprecated classes [0.5.44]
++ Remove deprecated functions [0.5.43]
++ Fix loading animation cancel button cut-off issue in Windows [0.5.42]
++ Get solid server URL from the textfield [0.5.41]
 + UI for display permissions given to the user WebID by others [0.5.40]
 + Support the upload, download and delete of large (binary) files [0.5.39]
 + Deploy an example/demo app [0.5.38 20240630]
