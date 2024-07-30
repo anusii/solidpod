@@ -17,7 +17,7 @@ dependencies:
   flutter_secure_storage: ^9.2.1
   flutter_svg: ^2.0.5
   form_builder_validators: ^9.1.0
-  http: ^1.1.2
+  http: ^1.2.2
   intl: ^0.18.0
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
