@@ -6,7 +6,7 @@ Guide: Each version update is recorded here with a short user-oriented
 description of the update. Updates in the 0.5.n series are heading
 toward a 0.6 release.
 
-## 0.6 Future Release
+## 0.6.0 Future Release
 
 + Update dependencies to the latest release [0.5.45]
 + Remove deprecated classes [0.5.44]
@@ -54,22 +54,22 @@ toward a 0.6 release.
 + Add continueBG parameter to SolidLogin. [0.5.2]
 + lib/solid.dart to lib/solidpod.dart [0.5.1]
 
-## 0.5
+## 0.5.0
 
 + Add solidloginPopup widget to open a popup window for
   authentication.
 
-## 0.4
+## 0.4.0
   
 + Rename to `solidpod` as the name `solid` already taken.
 + Add button titles to parameters for SolidLogin() [0.3.1]
 
-## 0.3
+## 0.3.0
 
 + Authentication implemented.
 + SolidLogin() initial version fully functional.
 
-## 0.2
+## 0.2.0
 
 + Initial implementation of SolidLogin widget with parameters.
 + Actual authentication yet to be implemented.
