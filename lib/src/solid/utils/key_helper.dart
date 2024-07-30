@@ -522,8 +522,7 @@ class KeyManager {
   static Future<void> _saveEncKeyFile() async {
     _encKeyUrl ??= await getFileUrl(await getEncKeyPath());
 
-    await createResource(_encKeyUrl!,
-        content: await _genEncKeyTTLStr(), replaceIfExist: true);
+    await createResource(_encKeyUrl!, content: await _genEncKeyTTLStr());
   }
 
   /// Load the file with encrypted individual keys
@@ -554,8 +553,7 @@ class KeyManager {
   static Future<void> _saveIndKeyFile() async {
     _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
 
-    await createResource(_indKeyUrl!,
-        content: await _genIndKeyTTLStr(), replaceIfExist: true);
+    await createResource(_indKeyUrl!, content: await _genIndKeyTTLStr());
   }
 
   /// Load the file with public key
@@ -580,8 +578,7 @@ class KeyManager {
   static Future<void> _savePubKeyFile() async {
     _pubKeyUrl ??= await getFileUrl(await getPubKeyPath());
 
-    await createResource(_pubKeyUrl!,
-        content: await _genPubKeyTTLStr(), replaceIfExist: true);
+    await createResource(_pubKeyUrl!, content: await _genPubKeyTTLStr());
   }
 
   /// Load the file with encrypted individual keys
