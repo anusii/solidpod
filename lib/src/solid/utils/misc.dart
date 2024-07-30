@@ -38,11 +38,13 @@ import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 import 'package:crypto/crypto.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
@@ -160,14 +162,16 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
     String filePath, String fileContent, Key key, IV iv) async {
-  final tripleMap = {
-    await getFileUrl(filePath): {
-      pathPred: filePath,
-      ivPred: iv.base64,
-      encDataPred: encryptData(fileContent, key, iv),
+  final triples = {
+    URIRef(await getFileUrl(filePath)): {
+      solidTermsNS.ns.withAttr(pathPred): filePath,
+      solidTermsNS.ns.withAttr(ivPred): iv.base64,
+      solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     }
   };
-  return tripleMapToTTLStr(tripleMap);
+  final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
+
+  return tripleMapToTurtle(triples, bindNamespaces: bindNS);
 }
 
 /// Returns the path of file with verification key and private key

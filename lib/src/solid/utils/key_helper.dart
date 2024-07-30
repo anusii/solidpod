@@ -44,12 +44,13 @@ import 'package:pointycastle/asymmetric/api.dart';
 //import 'package:encrypt/encrypt.dart' hide RSA;
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
+import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTTLStr;
+import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
@@ -620,23 +621,31 @@ class KeyManager {
 
     _encKeyUrl ??= await getFileUrl(await getEncKeyPath());
 
-    final tripleMap = <String, Map<String, String>>{};
-    tripleMap[_encKeyUrl!] = {
-      titlePred: encKeyFileTitle,
-      encKeyPred: _verificationKey!,
-      ivPred: _prvKeyRecord!.ivBase64,
-      prvKeyPred: _prvKeyRecord!.encKeyBase64,
+    final triples = {
+      URIRef(_encKeyUrl!): {
+        termsNS.ns.withAttr(titlePred): encKeyFileTitle,
+        solidTermsNS.ns.withAttr(encKeyPred): _verificationKey!,
+        solidTermsNS.ns.withAttr(ivPred): _prvKeyRecord!.ivBase64,
+        solidTermsNS.ns.withAttr(prvKeyPred): _prvKeyRecord!.encKeyBase64,
+      }
     };
 
-    return tripleMapToTTLStr(tripleMap);
+    final bindNS = {
+      solidTermsNS.prefix: solidTermsNS.ns,
+      termsNS.prefix: termsNS.ns
+    };
+
+    return tripleMapToTurtle(triples, bindNamespaces: bindNS);
   }
 
   /// Generate the content of indKeyFile
   static Future<String> _genIndKeyTTLStr() async {
     _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
 
-    final tripleMap = <String, Map<String, String>>{};
-    tripleMap[_indKeyUrl!] = {titlePred: indKeyFileTitle};
+    final triples = <URIRef, Map<URIRef, String>>{};
+    triples[URIRef(_indKeyUrl!)] = {
+      termsNS.ns.withAttr(titlePred): indKeyFileTitle
+    };
 
     if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
       for (final entry in _indKeyMap!.entries) {
@@ -646,15 +655,20 @@ class KeyManager {
         final indKey = record.key;
         assert(indKey != null);
 
-        tripleMap[fileUrl] = {
-          pathPred: record.filePath,
-          ivPred: record.ivBase64,
-          sessionKeyPred: record.encKeyBase64,
+        triples[URIRef(fileUrl)] = {
+          solidTermsNS.ns.withAttr(pathPred): record.filePath,
+          solidTermsNS.ns.withAttr(ivPred): record.ivBase64,
+          solidTermsNS.ns.withAttr(sessionKeyPred): record.encKeyBase64,
         };
       }
     }
 
-    return tripleMapToTTLStr(tripleMap);
+    final bindNS = {
+      solidTermsNS.prefix: solidTermsNS.ns,
+      termsNS.prefix: termsNS.ns
+    };
+
+    return tripleMapToTurtle(triples, bindNamespaces: bindNS);
   }
 
   /// Generate the content of pubKeyFile
@@ -663,13 +677,19 @@ class KeyManager {
 
     _pubKeyUrl ??= await getFileUrl(await getPubKeyPath());
 
-    final tripleMap = <String, Map<String, String>>{};
-    tripleMap[_pubKeyUrl!] = {
-      titlePred: pubKeyFileTitle,
-      pubKeyPred: _pubKey!,
+    final triples = {
+      URIRef(_pubKeyUrl!): {
+        termsNS.ns.withAttr(titlePred): pubKeyFileTitle,
+        solidTermsNS.ns.withAttr(pubKeyPred): _pubKey!,
+      }
     };
 
-    return tripleMapToTTLStr(tripleMap);
+    final bindNS = {
+      solidTermsNS.prefix: solidTermsNS.ns,
+      termsNS.prefix: termsNS.ns
+    };
+
+    return tripleMapToTurtle(triples, bindNamespaces: bindNS);
   }
 }
 
