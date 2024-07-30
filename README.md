@@ -20,7 +20,7 @@ of apps now and are more stable. -->
 # Solid Pod
 
 Solid Pod package provides functionality to manage a Solid 
-personal online data stores (Pods) via a flutter application. 
+personal online data stores (Pods) via a Flutter application. 
 It supports high level access for an application to
 authenticate users to their Pods, access the users' data from 
 their Pods, and then share the data stored in users' Pods with 
@@ -39,7 +39,7 @@ visit https://solidcommunity.au
 
 ## Features
 
-+ [SolidLogin] widget to support authentication against a Solid server:
++ [SolidLogin](#login-example) widget supports authentication against a Solid server:
 
 Default style:
 
@@ -81,10 +81,10 @@ Fine tune to suit the theme of the app:
 	alt="KeyPod Login" width="400">
 </div>
 
-+ [SolidPopupLogin] widget to support authentication within an application. The widget will
-  trigger authentication if user action requires authenticated access.
++ `SolidPopupLogin` widget supports authentication within an application. The widget will
+  trigger authentication if a user action requires authenticated access.
 
-+ [changeKeyPopup] widget to change the security key:
++ [changeKeyPopup](#change-security-key-example) widget supports changing the security key (used to make your data private through encryption):
   
 <div align="center">
 	<img
@@ -92,11 +92,11 @@ Fine tune to suit the theme of the app:
 	alt="KeyPod Login" width="400">
 </div>
 
-+ [readPod] function to read file content (either encrypted or plaintext) from a Pod.
++ [readPod()](#read-pod-file-example) function reads file content (either encrypted or plaintext) from a Pod.
   
-+ [writePod] function to write content (either encrypted or plaintext) to a file in a Pod.
++ [writePod()](#write-to-pod-file-example) function writes content (either encrypted or plaintext) to a file in a Pod.
   
-+ [GrantPermissionUi] widgt to support permission granting/revoking for resources:
++ [GrantPermissionUi](#grant-permission-ui-example) widget supports permission granting/revoking for resources:
 
 Granting permission: 
 <div align="center">
@@ -112,7 +112,7 @@ Revoking permission:
 	alt="KeyPod Login" width="400">
 </div>
 
-+ [SharedResourcesUi] widget to display resources shared with a Pod by others:
++ [SharedResourcesUi](#view-permission-ui-example) widget displays resources shared with a Pod by others:
 
 <div align="center">
 	<img
@@ -120,8 +120,9 @@ Revoking permission:
 	alt="KeyPod Login" width="400">
 </div>
 
-+ [sendLargeFile], [getLargeFile], and [deleteLargeFile] functions 
-  to upload, download, and delete large files from a Solid server.
+<!-- TODO dc: This is pending as we are checking if the latest CCS server natively supports write large files -->
+[`sendLargeFile()`, `getLargeFile()`, and `deleteLargeFile()`](#large-file-manager-example) functions 
+  uploads, downloads, and deletes large files from a Solid server, respectively.
 
 
 ## Getting started
@@ -133,7 +134,7 @@ your `pubspec.yaml` file.
 dependencies:
   solidpod: ^<latest-version>
 ```
-
+<!-- TODO dc: Refer to keypod as the example? -->
 An example project that uses `solidpod` can be found 
 [here](https://github.com/anusii/solidpod/tree/dev/demopod).
 
@@ -148,7 +149,7 @@ by the package.
 ### Login Example
 
 A simple login screen to authenticate a user against a Solid server. 
-If your own home widget is call `MyHome()` then simply wrap this within 
+If your own home widget is called `MyHome()` then simply wrap this within 
 the `SolidLogin()` widget:
 
 ```dart
@@ -183,6 +184,7 @@ ElevatedButton(
 Read data from the file `data/myfiles/my-data-file.ttl` and return to the
 widget `ReturnPage()`.
 
+
 ```dart
 final fileContent = await readPod(
         'data/myfiles/my-data-file.ttl',
@@ -192,7 +194,7 @@ final fileContent = await readPod(
 ```
 
 ### Write to Pod File Example
-
+<!-- TODO dc: Do we want to replace the fileName with filePath (just like in readPod)? -->
 Write data to the file `myfiles/my-data-file.ttl` and return to the
 widget `ReturnPage()`.
 
@@ -286,7 +288,6 @@ ElevatedButton(
 )
 ```
 ### Large File Manager Example
-
 To upload a large file use:
 
 ```dart
@@ -317,7 +318,7 @@ await deleteLargeFile(
 contribute to the package, how to file issues, what response they can
 expect from the package authors, and more. -->
 
-The source code can be accessed via [GitHub repository](https://github.com/anusii/solidpod). 
+The source code can be accessed via the [GitHub repository](https://github.com/anusii/solidpod). 
 You can also file issues you face at [GitHub Issues](https://github.com/anusii/solidpod/issues).
-The authors of the pacakge will respond to issues as conveniently as possible upon
+The authors of the package will respond to issues as conveniently as possible upon
 creating an issue.
