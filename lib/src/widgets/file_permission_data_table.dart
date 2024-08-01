@@ -31,6 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
+import 'package:solidpod/src/solid/utils/snack_bar.dart';
 
 /// Build the permission table widget. Function call requires the
 /// following inputs
@@ -40,9 +41,16 @@ import 'package:solidpod/src/solid/revoke_permission.dart';
 /// [permDataMap] is the map of permission data for the [permDataFile]
 /// [parentWidget] is the widget to return to after an action Eg: deletion of a
 /// permission
+/// [onDeleteFuncion] is the function to be called on delete
 ///
-Widget buildPermDataTable(BuildContext context, String permDataFile,
-    Map<dynamic, dynamic> permDataMap, String ownerWebId, Widget parentWidget) {
+Widget buildPermDataTable(
+  BuildContext context,
+  String permDataFile,
+  Map<dynamic, dynamic> permDataMap,
+  String ownerWebId,
+  Widget parentWidget,
+  Function onDeleteFuncion,
+) {
   DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
         label: Expanded(
@@ -109,24 +117,35 @@ Widget buildPermDataTable(BuildContext context, String permDataFile,
                             TextButton(
                                 onPressed: () async {
                                   await revokePermission(
-                                      permDataFile,
-                                      true,
-                                      permDataMap[index][permStr] as List,
+                                    permDataFile,
+                                    true,
+                                    permDataMap[index][permStr] as List,
+                                    index,
+                                    getRecipientType(
+                                      permDataMap[index][agentStr] as String,
                                       index,
-                                      getRecipientType(
-                                          permDataMap[index][agentStr]
-                                              as String,
-                                          index),
-                                      context,
-                                      parentWidget);
+                                    ),
+                                    context,
+                                    parentWidget,
+                                  );
 
                                   if (!context.mounted) return;
-                                  await Navigator.pushReplacement(
+                                  Navigator.pop(context);
+                                  showSnackBar(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) => parentWidget,
-                                    ),
+                                    'Permission revoked successfully!',
+                                    Colors.red,
                                   );
+
+                                  await onDeleteFuncion(permDataFile);
+
+                                  //await onDeleteFuncion;
+                                  // await Navigator.pushReplacement(
+                                  //   context,
+                                  //   MaterialPageRoute(
+                                  //     builder: (context) => parentWidget,
+                                  //   ),
+                                  // );
                                 },
                                 child: const Text('Yes')),
                             TextButton(

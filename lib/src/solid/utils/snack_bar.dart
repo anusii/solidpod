@@ -22,29 +22,25 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Dawei Chen, Anushka Vidanage
 
 library;
 
 import 'package:flutter/material.dart';
 
-/// A default app bar that is used when user does not define an app bar for
-/// the UI
-PreferredSizeWidget defaultAppBar(
+/// A snack bar to show a custom message on screen
+/// A customised background color and duration can be used
+void showSnackBar(
   BuildContext context,
-  String title,
-  Color backgroundColor,
-  Widget child,
-) {
-  return AppBar(
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.black),
-      onPressed: () => Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => child),
-      ),
+  String msg,
+  Color bgColor, {
+  Duration duration = const Duration(seconds: 4),
+}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(msg),
+      backgroundColor: bgColor,
+      duration: duration,
     ),
-    backgroundColor: backgroundColor,
-    title: Text(title),
   );
 }

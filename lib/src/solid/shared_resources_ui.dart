@@ -39,14 +39,16 @@ import 'package:solidpod/src/widgets/shared_resources_table.dart';
 class SharedResourcesUi extends StatefulWidget {
   /// Initialise widget variables.
 
-  const SharedResourcesUi(
-      {required this.child,
-      this.title = 'Demonstrating retrieve shared data functionality',
-      this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
-      this.sourceWebId,
-      this.fileName,
-      this.appBar,
-      super.key});
+  const SharedResourcesUi({
+    required this.child,
+    this.title = 'Demonstrating retrieve shared data functionality',
+    this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
+    this.showAppBar = true,
+    this.sourceWebId,
+    this.fileName,
+    this.customAppBar,
+    super.key,
+  });
 
   /// The child widget to return to when back button is pressed.
   final Widget child;
@@ -57,6 +59,9 @@ class SharedResourcesUi extends StatefulWidget {
   /// The text appearing in the app bar.
   final Color backgroundColor;
 
+  /// The boolean to decide whether to display an app bar or not
+  final bool showAppBar;
+
   /// The webId of the owner of a resource. This is a non required
   /// parameter. If not set UI will display all resources
   final String? sourceWebId;
@@ -66,7 +71,7 @@ class SharedResourcesUi extends StatefulWidget {
   final String? fileName;
 
   /// App specific app bar. If not set default app bar will be displayed.
-  final PreferredSizeWidget? appBar;
+  final PreferredSizeWidget? customAppBar;
 
   @override
   SharedResourcesUiState createState() => SharedResourcesUiState();
@@ -112,10 +117,16 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
         : subHeadingStr;
 
     return Scaffold(
-      appBar: (widget.appBar != null)
-          ? widget.appBar
-          : defaultAppBar(
-              context, widget.title, widget.backgroundColor, widget.child),
+      appBar: (!widget.showAppBar)
+          ? null
+          : (widget.customAppBar != null)
+              ? widget.customAppBar
+              : defaultAppBar(
+                  context,
+                  widget.title,
+                  widget.backgroundColor,
+                  widget.child,
+                ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -132,14 +143,10 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
                       largeGapV,
                       buildHeading(subHeadingStr, 17.0, Colors.blueGrey, 8),
                       buildSharedResourcesTable(
-                          context,
-                          sharedResMap,
-                          SharedResourcesUi(
-                            title: widget.title,
-                            backgroundColor: widget.backgroundColor,
-                            fileName: widget.fileName,
-                            child: widget.child,
-                          )),
+                        context,
+                        sharedResMap,
+                        widget.child,
+                      ),
                     ],
                   ),
                 ],

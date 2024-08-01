@@ -33,6 +33,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/secret_input_form.dart';
 
 /// Displays a dialog for changing the key
@@ -95,7 +96,7 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
     } finally {
       if (context.mounted) {
         Navigator.pop(context);
-        _showSnackBar(context, msg, bgColor, duration: duration);
+        showSnackBar(context, msg, bgColor, duration: duration);
       }
     }
   }
@@ -138,27 +139,16 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
     final height = size.height * 0.5;
 
     await showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-              content: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: width,
-                    minHeight: height,
-                  ),
-                  child: changeKeyForm),
-            ));
+      context: context,
+      builder: (context) => AlertDialog(
+        content: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: width,
+            minHeight: height,
+          ),
+          child: changeKeyForm,
+        ),
+      ),
+    );
   }
-}
-
-// Show a message
-
-void _showSnackBar(BuildContext context, String msg, Color bgColor,
-    {Duration duration = const Duration(seconds: 4)}) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(msg),
-      backgroundColor: bgColor,
-      duration: duration,
-    ),
-  );
 }

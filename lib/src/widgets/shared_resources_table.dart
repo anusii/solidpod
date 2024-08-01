@@ -40,8 +40,11 @@ import 'package:solidpod/src/solid/api/common_permission.dart';
 /// [parentWidget] is the widget to return to after an action Eg: deletion of a
 /// permission
 ///
-Widget buildSharedResourcesTable(BuildContext context,
-    Map<dynamic, dynamic> sharedResMap, Widget parentWidget) {
+Widget buildSharedResourcesTable(
+  BuildContext context,
+  Map<dynamic, dynamic> sharedResMap,
+  Widget parentWidget,
+) {
   final cWidth = MediaQuery.of(context).size.width * 0.18;
   DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
@@ -109,11 +112,14 @@ Widget buildSharedResourcesTable(BuildContext context,
                   ),
                 ),
                 buildDataCell(
-                    sharedResMap[index][PermissionLogLiteral.owner] as String),
+                  sharedResMap[index][PermissionLogLiteral.owner] as String,
+                ),
                 buildDataCell(sharedResMap[index][PermissionLogLiteral.granter]
                     as String),
-                buildDataCell(sharedResMap[index]
-                    [PermissionLogLiteral.permissions] as String),
+                buildDataCell(
+                  sharedResMap[index][PermissionLogLiteral.permissions]
+                      as String,
+                ),
                 DataCell(
                   IconButton(
                       icon: const Icon(
