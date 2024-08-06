@@ -36,6 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -47,36 +48,43 @@ import 'package:solidpod/src/solid/api/common_permission.dart';
 ///   [fileName] is the name of the file reading permission from
 ///   [sourceWebId] is the source WebID
 
-Future<Map<dynamic, dynamic>> sharedResources(
-    BuildContext context, Widget child,
-    [String? fileName, String? sourceWebId]) async {
-  await loginIfRequired(context);
+Future<dynamic> sharedResources(
+  BuildContext context,
+  Widget child, [
+  String? fileName,
+  String? sourceWebId,
+]) async {
+  final loggedIn = await loginIfRequired(context);
 
-  await getKeyFromUserIfRequired(context, child);
+  if (loggedIn) {
+    await getKeyFromUserIfRequired(context, child);
 
-  // Get user webID
-  final userWebId = await AuthDataManager.getWebId() as String;
+    // Get user webID
+    final userWebId = await AuthDataManager.getWebId() as String;
 
-  // Log file url
-  final logFilePath = await getPermLogFilePath();
-  final logFileUrl = await getFileUrl(logFilePath);
+    // Log file url
+    final logFilePath = await getPermLogFilePath();
+    final logFileUrl = await getFileUrl(logFilePath);
 
-  // Read log file
-  final logContent = await fetchPrvFile(logFileUrl);
+    // Read log file
+    final logContent = await fetchPrvFile(logFileUrl);
 
-  final logDataMap = parseTTLMap(logContent);
+    final logDataMap = parseTTLMap(logContent);
 
-  var uniqueLogMap = getLatestLog(logDataMap, userWebId);
+    var uniqueLogMap = getLatestLog(logDataMap, userWebId);
 
-  // Filer log entried based on defined file name
-  if (fileName != null) {
-    uniqueLogMap = filterLogByFilename(uniqueLogMap, fileName);
+    // Filer log entried based on defined file name
+    if (fileName != null) {
+      uniqueLogMap = filterLogByFilename(uniqueLogMap, fileName);
+    }
+
+    // Filer log entried based on defined source webId
+    if (sourceWebId != null) {
+      uniqueLogMap = filterLogByWebId(uniqueLogMap, sourceWebId);
+    }
+
+    return uniqueLogMap;
+  } else {
+    return SolidFunctionCallStatus.notLoggedIn;
   }
-
-  // Filer log entried based on defined source webId
-  if (sourceWebId != null) {
-    uniqueLogMap = filterLogByWebId(uniqueLogMap, sourceWebId);
-  }
-
-  return uniqueLogMap;
 }

@@ -117,13 +117,15 @@ Future<String> fetchPrvFile(String prvFileUrl) async {
 /// and returns a [Future] that resolves to a [List<dynamic>].
 
 Future<List<dynamic>> initialStructureTest(
-    List<String> folders, Map<dynamic, dynamic> files) async {
+  List<String> folders,
+  Map<dynamic, dynamic> files,
+) async {
   var allExists = true;
   final resNotExist = <dynamic, dynamic>{
     'folders': [],
     'files': [],
     'folderNames': [],
-    'fileNames': []
+    'fileNames': [],
   };
 
   for (final containerName in folders) {
@@ -160,11 +162,13 @@ Future<List<dynamic>> initialStructureTest(
 /// - PUT request: create or replace a resource if exists (e.g. an ACL file)
 /// - POST request: create a resource (e.g. a TTL file or a directory)
 
-Future<void> createResource(String resourceUrl,
-    {dynamic content = '',
-    bool fileFlag = true,
-    bool replaceIfExist = true,
-    ResourceContentType contentType = ResourceContentType.turtleText}) async {
+Future<void> createResource(
+  String resourceUrl, {
+  dynamic content = '',
+  bool fileFlag = true,
+  bool replaceIfExist = true,
+  ResourceContentType contentType = ResourceContentType.turtleText,
+}) async {
   // Sanity check
   if (fileFlag) {
     assert(!resourceUrl.endsWith('/'));
@@ -193,7 +197,9 @@ Future<void> createResource(String resourceUrl,
   }
 
   final (:accessToken, :dPopToken) = await getTokensForResource(
-      put ? resourceUrl : parentUrl, put ? 'PUT' : 'POST');
+    put ? resourceUrl : parentUrl,
+    put ? 'PUT' : 'POST',
+  );
 
   final response = await httpMethod(
     Uri.parse(put ? resourceUrl : parentUrl),
@@ -221,7 +227,9 @@ Future<void> createResource(String resourceUrl,
 
 /// Delete a file or a directory
 Future<void> deleteResource(
-    String resourceUrl, ResourceContentType contentType) async {
+  String resourceUrl,
+  ResourceContentType contentType,
+) async {
   final (:accessToken, :dPopToken) =
       await getTokensForResource(resourceUrl, 'DELETE');
 
@@ -248,8 +256,10 @@ Future<void> deleteResource(
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
 
-Future<ResourceStatus> checkResourceStatus(String resUrl,
-    {bool fileFlag = true}) async {
+Future<ResourceStatus> checkResourceStatus(
+  String resUrl, {
+  bool fileFlag = true,
+}) async {
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
@@ -270,6 +280,33 @@ Future<ResourceStatus> checkResourceStatus(String resUrl,
   } else {
     debugPrint('Failed to check resource status.\n'
         'URL: $resUrl\n'
+        'ERR: ${response.body}');
+    return ResourceStatus.unknown;
+  }
+}
+
+/// Asynchronously checks whether a given webId exists.
+///
+/// This function makes an HTTP GET request to a public resource URL to determine if the webId exists.
+
+Future<ResourceStatus> checkWebIdExists(
+  String webIdUrl,
+) async {
+  final response = await http.get(
+    Uri.parse(webIdUrl),
+    headers: <String, String>{
+      'Content-Type': ResourceContentType.any.value,
+      'Link': fileTypeLink,
+    },
+  );
+
+  if (response.statusCode == 200 || response.statusCode == 204) {
+    return ResourceStatus.exist;
+  } else if (response.statusCode == 404) {
+    return ResourceStatus.notExist;
+  } else {
+    debugPrint('Failed to check resource status.\n'
+        'URL: $webIdUrl\n'
         'ERR: ${response.body}');
     return ResourceStatus.unknown;
   }
@@ -371,7 +408,8 @@ Future<Uint8List> getResource(String resourceUrl) async {
 /// Adapted from getContainerList() in
 /// gurriny/indi/lib/models/common/rest_api.dart
 Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
-    String containerUrl) async {
+  String containerUrl,
+) async {
   // The trailing "/" is essential for a directory
   final url = containerUrl.endsWith('/') ? containerUrl : '$containerUrl/';
 
@@ -414,7 +452,8 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 /// This heuristic is a temporary solution before rdflib (dart) is capable
 /// of parsing the response body.
 ({List<String> subDirs, List<String> files}) _parseGetContainerResponse(
-    String responseBody) {
+  String responseBody,
+) {
   final containers = <String>[];
   final files = <String>[];
   final re = RegExp('^<[^>]+>'); // starts with <, ends with >, no > in between
@@ -445,7 +484,9 @@ Future<bool> checkFileEnc(String fileUrl) async =>
 /// The request will replace the content in ACL file
 /// Returns a string 'ok' upon successful content update
 Future<String> updateAclFileContent(
-    String resourceUrl, String aclFileContent) async {
+  String resourceUrl,
+  String aclFileContent,
+) async {
   // Get acl file url
   final resourceAclUrl = getResAclFile(resourceUrl);
 

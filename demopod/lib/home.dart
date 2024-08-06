@@ -30,6 +30,7 @@
 
 library;
 
+import 'package:demopod/dialogs/alert.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -38,8 +39,9 @@ import 'package:solidpod/solidpod.dart'
     show
         AppInfo,
         GrantPermissionUi,
-        SharedResourcesUi,
         KeyManager,
+        SharedResourcesUi,
+        SolidFunctionCallStatus,
         changeKeyPopup,
         deleteDataFile,
         deleteLogIn,
@@ -112,16 +114,19 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         const Home(),
       );
 
-      //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ViewKeys(
-            keyInfo: fileContent!,
-            title: title,
+      if (![SolidFunctionCallStatus.notLoggedIn, SolidFunctionCallStatus.fail]
+          .contains(fileContent)) {
+        //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ViewKeys(
+              keyInfo: fileContent!,
+              title: title,
+            ),
           ),
-        ),
-      );
+        );
+      }
     } on Exception catch (e) {
       debugPrint('Exception: $e');
     } finally {
@@ -153,7 +158,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       final filePath = [dataDirPath, fileName].join('/');
 
       final fileContent = await readPod(filePath, context, const Home());
-      final pairs = fileContent == null ? null : await parseTTLStr(fileContent);
+      final pairs = [
+        SolidFunctionCallStatus.notLoggedIn,
+        SolidFunctionCallStatus.fail
+      ].contains(fileContent)
+          ? null
+          : await parseTTLStr(fileContent);
 
       await Navigator.push(
           context,
@@ -248,13 +258,17 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
-          await loginIfRequired(context);
-          final webId = await getWebId();
-          setState(() {
-            _webId = webId;
-          });
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const FileService()));
+          final loggedIn = await loginIfRequired(context);
+          if (loggedIn) {
+            final webId = await getWebId();
+            setState(() {
+              _webId = webId;
+            });
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const FileService()));
+          } else {
+            await alert(context, 'Please login to continue');
+          }
         },
         child: const Text('Upload / Download Large File'));
 

@@ -29,6 +29,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/read_external_pod.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/api/common_permission.dart';
@@ -46,29 +47,35 @@ Widget buildSharedResourcesTable(
   Widget parentWidget,
 ) {
   final cWidth = MediaQuery.of(context).size.width * 0.18;
-  DataColumn buildDataColumn(String title, String tooltip) {
+  DataColumn buildDataColumn(
+    String title,
+    String tooltip,
+  ) {
     return DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              title,
-            ),
+      label: Expanded(
+        child: Center(
+          child: Text(
+            title,
           ),
         ),
-        tooltip: tooltip);
+      ),
+      tooltip: tooltip,
+    );
   }
 
   DataCell buildDataCell(String content) {
-    return DataCell(SizedBox(
-      width: cWidth,
-      child: Column(
-        children: <Widget>[
-          SelectableText(
-            content,
-          )
-        ],
+    return DataCell(
+      SizedBox(
+        width: cWidth,
+        child: Column(
+          children: <Widget>[
+            SelectableText(
+              content,
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   return Row(
@@ -82,7 +89,9 @@ Widget buildSharedResourcesTable(
             columnSpacing: 10,
             columns: [
               buildDataColumn(
-                  'Resource URL', 'WebID of the POD receiving permissions'),
+                'Resource URL',
+                'WebID of the POD receiving permissions',
+              ),
               buildDataColumn('Shared on', 'Shared date and time'),
               buildDataColumn('Owner', 'Resource owner WebID'),
               buildDataColumn('Granter', 'Permission granter WebID'),
@@ -90,38 +99,44 @@ Widget buildSharedResourcesTable(
               buildDataColumn('View', 'View file'),
             ],
             rows: sharedResMap.keys.map((index) {
-              return DataRow(cells: [
-                DataCell(Container(
-                  padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-                  width: cWidth,
-                  child: SelectableText(
-                    index as String,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                )),
-                DataCell(
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          getDateTime(sharedResMap[index]
-                              [PermissionLogLiteral.logtime] as String),
-                        ),
+              return DataRow(
+                cells: [
+                  DataCell(
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
+                      width: cWidth,
+                      child: SelectableText(
+                        index as String,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                buildDataCell(
-                  sharedResMap[index][PermissionLogLiteral.owner] as String,
-                ),
-                buildDataCell(sharedResMap[index][PermissionLogLiteral.granter]
-                    as String),
-                buildDataCell(
-                  sharedResMap[index][PermissionLogLiteral.permissions]
-                      as String,
-                ),
-                DataCell(
-                  IconButton(
+                  DataCell(
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            getDateTime(
+                              sharedResMap[index][PermissionLogLiteral.logtime]
+                                  as String,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  buildDataCell(
+                    sharedResMap[index][PermissionLogLiteral.owner] as String,
+                  ),
+                  buildDataCell(
+                    sharedResMap[index][PermissionLogLiteral.granter] as String,
+                  ),
+                  buildDataCell(
+                    sharedResMap[index][PermissionLogLiteral.permissions]
+                        as String,
+                  ),
+                  DataCell(
+                    IconButton(
                       icon: const Icon(
                         Icons.visibility,
                         size: 24.0,
@@ -132,43 +147,50 @@ Widget buildSharedResourcesTable(
                         final fileContent =
                             await readExternalPod(index, context, parentWidget);
 
-                        if (fileContent != null) {
+                        if (fileContent != null &&
+                            fileContent !=
+                                SolidFunctionCallStatus.notLoggedIn) {
                           if (!context.mounted) return;
                           await showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                    title: const Text('File content'),
-                                    content: Stack(
-                                      alignment: Alignment.center,
-                                      children: <Widget>[
-                                        Container(
-                                          width: double.infinity,
-                                          height: 300,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
-                                          ),
-                                          child: Text(fileContent as String),
-                                        ),
-                                      ],
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('File content'),
+                              content: Stack(
+                                alignment: Alignment.center,
+                                children: <Widget>[
+                                  Container(
+                                    width: double.infinity,
+                                    height: 300,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15),
                                     ),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () {
-                                            // Close the dialog
-                                            Navigator.of(ctx).pop();
-                                          },
-                                          child: const Text('Ok'))
-                                    ],
-                                  ));
+                                    child: Text(fileContent as String),
+                                  ),
+                                ],
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Close the dialog
+                                    Navigator.of(ctx).pop();
+                                  },
+                                  child: const Text('Ok'),
+                                ),
+                              ],
+                            ),
+                          );
                         } else {
                           if (!context.mounted) return;
                           await alert(
-                              context, 'The file $index could not be found!');
+                            context,
+                            'The file $index could not be found!',
+                          );
                         }
-                      }),
-                )
-              ]);
+                      },
+                    ),
+                  ),
+                ],
+              );
             }).toList(),
           ),
         ),

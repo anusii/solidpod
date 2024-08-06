@@ -31,6 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
@@ -39,6 +40,7 @@ import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/file_permission_data_table.dart';
 import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/loading_screen.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 /// A widget for the demonstration screen of the application.
@@ -156,18 +158,24 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       context,
       widget.child,
     );
-    final webId = await AuthDataManager.getWebId() as String;
+    final webId = await AuthDataManager.getWebId();
 
-    if (permissionMap.isEmpty) {
+    if (permissionMap == SolidFunctionCallStatus.notLoggedIn) {
       await _alert(
-        'We could not find a resource by the name $fileName',
+        'Please login first to retrieve permission',
       );
     } else {
-      _updatePermTable(
-        permissionMap,
-        webId,
-        fileName,
-      );
+      if ((permissionMap as Map).isEmpty) {
+        await _alert(
+          'We could not find a resource by the name $fileName',
+        );
+      } else {
+        _updatePermTable(
+          permissionMap,
+          webId as String,
+          fileName,
+        );
+      }
     }
   }
 
@@ -292,7 +300,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                           smallGapH,
                           ElevatedButton(
-                            child: const Text('Retreive permissions'),
+                            child: const Text('Retrieve permissions'),
                             onPressed: () async {
                               final fileName = formControllerFileName.text;
 
@@ -451,7 +459,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     final dataFile = widget.fileName ??
                                         formControllerFileName.text;
 
-                                    await grantPermission(
+                                    final result = await grantPermission(
                                       dataFile,
                                       true,
                                       selectedPermList,
@@ -465,13 +473,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           : null,
                                     );
 
-                                    if (!context.mounted) return;
-                                    showSnackBar(
-                                      context,
-                                      'Permission granted successfully!',
-                                      Colors.green,
-                                    );
-                                    await _updatePermissions(dataFile);
+                                    if (result ==
+                                        SolidFunctionCallStatus.success) {
+                                      if (!context.mounted) return;
+                                      showSnackBar(
+                                        context,
+                                        'Permission granted successfully!',
+                                        Colors.green,
+                                      );
+                                      await _updatePermissions(dataFile);
+                                    } else if (result ==
+                                        SolidFunctionCallStatus.fail) {
+                                      if (!context.mounted) return;
+                                      showSnackBar(
+                                        context,
+                                        'Error occured. Please try again!',
+                                        Colors.red,
+                                      );
+                                    } else {
+                                      await _alert(
+                                        'Please login first to update permission',
+                                      );
+                                    }
                                   } else {
                                     await _alert(
                                       'Please select one or more permissions',
@@ -517,6 +540,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget build(BuildContext context) {
     // Build as a separate widget with the possibility of adding a FutureBuilder
     // in the Future
+
     if (widget.fileName != null) {
       return FutureBuilder(
         future: Future.wait([
@@ -525,9 +549,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         ]),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return _buildPermPage(context, snapshot.data);
+            if (snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn) {
+              return widget.child;
+            } else {
+              return _buildPermPage(context, snapshot.data);
+            }
           } else {
-            return const CircularProgressIndicator();
+            return Scaffold(body: loadingScreen(200));
           }
         },
       );

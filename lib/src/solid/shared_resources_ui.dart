@@ -29,9 +29,11 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/shared_resources.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
+import 'package:solidpod/src/widgets/loading_screen.dart';
 import 'package:solidpod/src/widgets/shared_resources_table.dart';
 
 /// A widget for the demonstration screen of the application.
@@ -96,7 +98,9 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
 
   /// Build the main widget
   Widget _buildSharedResourcePage(
-      BuildContext context, List<Object?>? futureObjList) {
+    BuildContext context,
+    List<Object?>? futureObjList,
+  ) {
     // Build the widget.
 
     var sharedResMap = {};
@@ -160,21 +164,24 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
 
   @override
   Widget build(BuildContext context) {
-    // Build as a separate widget with the possibility of adding a FutureBuilder
-    // in the Future
+    // Build widget with a Future
     final fileName = widget.fileName != null ? widget.fileName as String : null;
     final sourceWebId =
         widget.sourceWebId != null ? widget.sourceWebId as String : null;
     return FutureBuilder(
       future: Future.wait([
         sharedResources(context, widget, fileName, sourceWebId),
-        AuthDataManager.getWebId()
+        AuthDataManager.getWebId(),
       ]),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return _buildSharedResourcePage(context, snapshot.data);
+          if (snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn) {
+            return widget.child;
+          } else {
+            return _buildSharedResourcePage(context, snapshot.data);
+          }
         } else {
-          return const CircularProgressIndicator();
+          return Scaffold(body: loadingScreen(200));
         }
       },
     );

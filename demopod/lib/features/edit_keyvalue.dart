@@ -32,7 +32,8 @@ import 'package:demopod/dialogs/alert.dart';
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/utils/rdf.dart';
 
-import 'package:solidpod/solidpod.dart' show writePod;
+import 'package:solidpod/solidpod.dart'
+    show SolidFunctionCallStatus, loginIfRequired, writePod;
 
 class KeyValueEdit extends StatefulWidget {
   /// Constructor
@@ -160,19 +161,32 @@ class _KeyValueEditState extends State<KeyValueEdit> {
     });
 
     try {
-      // Generate TTL str with dataMap
-      final ttlStr = await genTTLStr(pairs!);
-
       // Write to POD
       if (context.mounted) {
-        await writePod(widget.fileName, ttlStr, context, widget.child,
-            encrypted: widget.encrypted);
+        final loggedIn = await loginIfRequired(context);
+        // Generate TTL str with dataMap
+        if (loggedIn) {
+          final ttlStr = await genTTLStr(pairs!);
+          if (context.mounted) {
+            final result = await writePod(
+                widget.fileName, ttlStr, context, widget.child,
+                encrypted: widget.encrypted);
 
-        await _alert('Successfully saved ${dataMap.length} key-value pairs'
-            ' to "${widget.fileName}" in PODs');
+            if (result == SolidFunctionCallStatus.success) {
+              await _alert(
+                  'Successfully saved ${dataMap.length} key-value pairs'
+                  ' to "${widget.fileName}" in PODs');
+              return true;
+            } else {
+              await _alert('Something went wrong. Please try again!');
+              return false;
+            }
+          }
+        } else {
+          await _alert('Please login to write data to your POD');
+          return false;
+        }
       }
-
-      return true;
     } on Exception catch (e) {
       debugPrint('Exception: $e');
     } finally {

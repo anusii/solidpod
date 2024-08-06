@@ -48,6 +48,9 @@ export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
 // UI class to read permission given to the user webID by others
 export 'src/solid/shared_resources_ui.dart' show SharedResourcesUi;
 
+// Status class to represent different function outputs
+export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
+
 // Includes common functions that are useful such as,
 // - Deleting an encrypted file
 // - Check whether login tokens are expired and if they are ridirect to login

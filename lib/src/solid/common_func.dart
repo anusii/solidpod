@@ -36,24 +36,28 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/popup_login.dart' show SolidPopupLogin;
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/secret_input_form.dart';
 
 /// Login if the user has not done so
 
-Future<void> loginIfRequired(BuildContext context) async {
+Future<bool> loginIfRequired(BuildContext context) async {
   final loggedIn = await checkLoggedIn();
   if (!loggedIn && context.mounted) {
-    await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SolidPopupLogin(),
-        ));
+    await loginWebIdInputDialog(
+      context,
+    );
+    // await Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (context) => const SolidPopupLogin(),
+    //     ));
   }
+  return checkLoggedIn();
 }
 
 /// Initialise the user's PODs if the user has not done so
@@ -69,20 +73,22 @@ Future<void> initPodsIfRequired(BuildContext context) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => InitialSetupScreen(
-                resCheckList: resCheckList,
-                child: AlertDialog(
-                  title: const Text('Notice'),
-                  content: const Text('PODs successfully initialised!'),
-                  actions: [
-                    ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: const Text('OK'))
-                  ],
-                ),
-              )),
+        builder: (context) => InitialSetupScreen(
+          resCheckList: resCheckList,
+          child: AlertDialog(
+            title: const Text('Notice'),
+            content: const Text('PODs successfully initialised!'),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -91,7 +97,9 @@ Future<void> initPodsIfRequired(BuildContext context) async {
 /// or cannot be verfied using the verification key stored in PODs.
 
 Future<void> getKeyFromUserIfRequired(
-    BuildContext context, Widget child) async {
+  BuildContext context,
+  Widget child,
+) async {
   if (await KeyManager.hasSecurityKey()) {
     return;
   } else {
@@ -111,80 +119,97 @@ Future<void> getKeyFromUserIfRequired(
       }
     );
     final securityKeyInput = SecretInputForm(
-        title: 'Security Key',
-        message: message,
-        inputFields: [inputField],
-        formKey: GlobalKey<FormBuilderState>(),
-        submitFunc: (formDataMap) async {
-          await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
-          debugPrint('Security key saved');
-          if (context.mounted) Navigator.pop(context);
-        },
-        child: child);
+      title: 'Security Key',
+      message: message,
+      inputFields: [inputField],
+      formKey: GlobalKey<FormBuilderState>(),
+      submitFunc: (formDataMap) async {
+        await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
+        debugPrint('Security key saved');
+        if (context.mounted) Navigator.pop(context);
+      },
+      child: child,
+    );
 
     if (context.mounted) {
       await Navigator.push(
-          context, MaterialPageRoute(builder: (context) => securityKeyInput));
+        context,
+        MaterialPageRoute(builder: (context) => securityKeyInput),
+      );
     }
   }
 }
 
 /// Delete a data file (and its ACL file if exist), remove its individual key
 /// and the corresponding IV from the ind-key-file
-Future<void> deleteDataFile(String fileName, BuildContext context,
-    {ResourceContentType contentType = ResourceContentType.turtleText}) async {
-  await loginIfRequired(context);
-
-  final filePath = [await getDataDirPath(), fileName].join('/');
-  final fileUrl = await getFileUrl(filePath);
-  final status = await checkResourceStatus(fileUrl);
+Future<void> deleteDataFile(
+  String fileName,
+  BuildContext context, {
+  ResourceContentType contentType = ResourceContentType.turtleText,
+}) async {
+  final loggedIn = await loginIfRequired(context);
 
   const smallGapH = SizedBox(width: 10);
   String msg;
 
-  switch (status) {
-    case ResourceStatus.exist:
-      if (context.mounted) {
-        await showDialog(
+  if (loggedIn) {
+    final filePath = [await getDataDirPath(), fileName].join('/');
+    final fileUrl = await getFileUrl(filePath);
+    final status = await checkResourceStatus(fileUrl);
+
+    switch (status) {
+      case ResourceStatus.exist:
+        if (context.mounted) {
+          await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-                  title: const Text('Notice'),
-                  content: Text('Delete data file "$fileName"?'),
-                  actions: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        await deleteFile(filePath, contentType: contentType);
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Successfully deleted data file "$fileName".'),
-                              backgroundColor: Colors.green,
-                              duration: const Duration(seconds: 3),
-                            ),
-                          );
-                        }
-                      },
-                      style:
-                          ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text('Delete',
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                    smallGapH,
-                    ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel')),
-                  ],
-                ));
-      }
-      return;
+              title: const Text('Notice'),
+              content: Text('Delete data file "$fileName"?'),
+              actions: [
+                ElevatedButton(
+                  onPressed: () async {
+                    await deleteFile(filePath, contentType: contentType);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Successfully deleted data file "$fileName".',
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                smallGapH,
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
 
-    case ResourceStatus.notExist:
-      msg = 'Data file "$fileName" does not exist.';
+      case ResourceStatus.notExist:
+        msg = 'Data file "$fileName" does not exist.';
 
-    case ResourceStatus.unknown:
-      msg = 'Error occurred when checking the status of data file "$fileName".';
+      case ResourceStatus.unknown:
+        msg =
+            'Error occurred when checking the status of data file "$fileName".';
+    }
+  } else {
+    msg = 'Please login to delete the data file';
   }
 
   if (context.mounted) await alert(context, msg);
