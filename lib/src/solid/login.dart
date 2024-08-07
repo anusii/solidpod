@@ -130,7 +130,6 @@ class SolidLogin extends StatefulWidget {
   final InfoButtonStyle infoButtonStyle;
 
   /// The style of the CONTINUE button.
-
   final ContinueButtonStyle continueButtonStyle;
 
   /// The style of the CHANGE KEY button.
@@ -478,19 +477,26 @@ class _SolidLoginState extends State<SolidLogin> {
                 height: 15.0,
               ),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  widget.required
-                      ? const Spacer()
-                      : Expanded(
-                          child: registerButton,
-                        ),
+                  if (!widget.required)
+                    Expanded(
+                      child: registerButton,
+                    ),
+                  if (widget.required)
+                    Expanded(
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        child: infoButton,
+                      ),
+                    ),
                   const SizedBox(
                     width: 15.0,
                   ),
-                  Expanded(
-                    child: infoButton,
-                  ),
+                  widget.required
+                      ? const Spacer()
+                      : Expanded(
+                          child: infoButton,
+                        ),
                 ],
               ),
               const SizedBox(
@@ -645,12 +651,10 @@ class ChangeKeyButtonStyle {
     this.text = defaultChangeKeyButtonText,
     this.background = defaultButtonBackground,
     this.foreground = defaultButtonForeground,
-    this.tooltip = defaultContinueTooltip,
   });
   final String text;
   final Color background;
   final Color foreground;
-  final String tooltip;
 }
 
 class LoginButtonStyle {
