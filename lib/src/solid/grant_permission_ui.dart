@@ -103,6 +103,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// WebId textfield enable/disable flag
   bool webIdTextFieldEnabled = true;
 
+  /// Flag to check whether page is initialised
+  bool pageInitialied = false;
+
   /// Form controller
   final formKey = GlobalKey<FormState>();
 
@@ -145,9 +148,25 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Large vertical spacing for the widget.
   final largeGapV = const SizedBox(height: 40.0);
 
+  /// Pod data list retreived as a Future
+  late Future<List<dynamic>> podDataList;
+
+  /// Runs multiple asynchronous functions to get the data from
+  /// POD server if necessary.
+  Future<List<dynamic>> loadPodData() async {
+    final result =
+        await readPermission(widget.fileName as String, true, context, widget);
+    final webId = await AuthDataManager.getWebId();
+    return [result, webId];
+  }
+
   @override
   void initState() {
     super.initState();
+    // Load future
+    if (widget.fileName != null) {
+      podDataList = loadPodData();
+    }
   }
 
   // Get new permission and update the permission map
@@ -238,18 +257,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Build the main widget
   Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
-    // Build the widget.
-
     // Check if future is set or not. If set display the permission map
-    if (futureObjList != null) {
+    if (futureObjList != null && pageInitialied == false) {
       permDataMap = futureObjList.first as Map;
       ownerWebId = futureObjList[1] as String;
       permDataFile = widget.fileName!;
+      pageInitialied = true;
     }
-
-    // A small horizontal spacing for the widget.
-
-    const smallGapH = SizedBox(width: 10.0);
 
     final welcomeHeadingStr = widget.fileName != null
         ? 'Share ${widget.fileName} file with other PODs'
@@ -298,7 +312,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               },
                             ),
                           ),
-                          smallGapH,
+                          smallGapV,
                           ElevatedButton(
                             child: const Text('Retrieve permissions'),
                             onPressed: () async {
@@ -543,10 +557,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     if (widget.fileName != null) {
       return FutureBuilder(
-        future: Future.wait([
-          readPermission(widget.fileName as String, true, context, widget),
-          AuthDataManager.getWebId(),
-        ]),
+        future: podDataList,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             if (snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn) {

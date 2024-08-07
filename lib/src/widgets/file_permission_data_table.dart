@@ -53,14 +53,15 @@ Widget buildPermDataTable(
 ) {
   DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
-        label: Expanded(
-          child: Center(
-            child: Text(
-              title,
-            ),
+      label: Expanded(
+        child: Center(
+          child: Text(
+            title,
           ),
         ),
-        tooltip: tooltip);
+      ),
+      tooltip: tooltip,
+    );
   }
 
   return DataTable(
@@ -71,34 +72,38 @@ Widget buildPermDataTable(
       buildDataColumn('Actions', 'Delete permission'),
     ],
     rows: permDataMap.keys.map((index) {
-      return DataRow(cells: [
-        DataCell(Container(
-          padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-          //width: cWidth,
-          child: Column(
-            children: <Widget>[
-              SelectableText(
-                (index.replaceAll('.ttl', '')) as String,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              )
-            ],
-          ),
-        )),
-        DataCell(
-          Text(
-            getRecipientType(
-                    permDataMap[index][agentStr] as String, index as String)
-                .type,
-          ),
-        ),
-        DataCell(
-          Text(
-            (permDataMap[index][permStr] as List).join(', '),
-          ),
-        ),
-        if (ownerWebId != index) ...[
+      return DataRow(
+        cells: [
           DataCell(
-            IconButton(
+            Container(
+              padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+              //width: cWidth,
+              child: Column(
+                children: <Widget>[
+                  SelectableText(
+                    (index.replaceAll('.ttl', '')) as String,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          DataCell(
+            Text(
+              getRecipientType(
+                permDataMap[index][agentStr] as String,
+                index as String,
+              ).type,
+            ),
+          ),
+          DataCell(
+            Text(
+              (permDataMap[index][permStr] as List).join(', '),
+            ),
+          ),
+          if (ownerWebId != index) ...[
+            DataCell(
+              IconButton(
                 icon: const Icon(
                   Icons.delete,
                   size: 24.0,
@@ -106,65 +111,65 @@ Widget buildPermDataTable(
                 ),
                 onPressed: () {
                   showDialog(
-                      context: context,
-                      builder: (ctx) {
-                        return AlertDialog(
-                          title: const Text('Please Confirm'),
-                          content: Text(
-                              'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from ${index.replaceAll('.ttl', '')}?'),
-                          actions: [
-                            // The "Yes" button
-                            TextButton(
-                                onPressed: () async {
-                                  await revokePermission(
-                                    permDataFile,
-                                    true,
-                                    permDataMap[index][permStr] as List,
-                                    index,
-                                    getRecipientType(
-                                      permDataMap[index][agentStr] as String,
-                                      index,
-                                    ),
-                                    context,
-                                    parentWidget,
-                                  );
+                    context: context,
+                    builder: (ctx) {
+                      return AlertDialog(
+                        title: const Text('Please Confirm'),
+                        content: Text(
+                          'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from ${index.replaceAll('.ttl', '')}?',
+                        ),
+                        actions: [
+                          // The "Yes" button
+                          TextButton(
+                            onPressed: () async {
+                              await revokePermission(
+                                permDataFile,
+                                true,
+                                permDataMap[index][permStr] as List,
+                                index,
+                                getRecipientType(
+                                  permDataMap[index][agentStr] as String,
+                                  index,
+                                ),
+                                context,
+                                parentWidget,
+                              );
 
-                                  if (!context.mounted) return;
-                                  Navigator.pop(context);
-                                  showSnackBar(
-                                    context,
-                                    'Permission revoked successfully!',
-                                    Colors.red,
-                                  );
-
-                                  await onDeleteFuncion(permDataFile);
-
-                                  //await onDeleteFuncion;
-                                  // await Navigator.pushReplacement(
-                                  //   context,
-                                  //   MaterialPageRoute(
-                                  //     builder: (context) => parentWidget,
-                                  //   ),
-                                  // );
-                                },
-                                child: const Text('Yes')),
-                            TextButton(
-                                onPressed: () {
-                                  // Close the dialog
-                                  Navigator.of(ctx).pop();
-                                },
-                                child: const Text('No'))
-                          ],
-                        );
-                      });
-                }),
-          )
-        ] else ...[
-          const DataCell(
-            Text(''),
-          ),
+                              if (ctx.mounted) {
+                                Navigator.pop(ctx);
+                              }
+                              if (context.mounted) {
+                                showSnackBar(
+                                  context,
+                                  'Permission revoked successfully!',
+                                  Colors.red,
+                                );
+                              }
+                              await onDeleteFuncion(permDataFile);
+                            },
+                            child: const Text('Yes'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              // Close the dialog
+                              Navigator.of(ctx).pop();
+                            },
+                            child: const Text('No'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ] else ...[
+            const DataCell(
+              Text(''),
+            ),
+          ],
         ],
-      ]);
+      );
     }).toList(),
   );
 }
