@@ -40,13 +40,14 @@ import 'package:solidpod/src/solid/utils/alert.dart';
 Future<dynamic> loginWebIdInputDialog(
   BuildContext context,
 ) {
-  final formControllerWebId = TextEditingController();
+  final formControllerWebId = TextEditingController()
+    ..text = 'https://pods.solidcommunity.au/';
   return showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 50),
-        title: const Text('Input your WebId to login'),
+        title: const Text('Input server URL/your WebId to login'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -84,7 +85,7 @@ Future<dynamic> loginWebIdInputDialog(
                 Navigator.of(context).pop();
               } else {
                 if (!context.mounted) return;
-                await alert(context, 'Please enter a valid WebID');
+                await alert(context, 'Please enter a valid URL/WebID');
               }
             },
             child: const Text('Ok'),

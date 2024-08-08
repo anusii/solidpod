@@ -292,23 +292,28 @@ Future<ResourceStatus> checkResourceStatus(
 Future<ResourceStatus> checkWebIdExists(
   String webIdUrl,
 ) async {
-  final response = await http.get(
-    Uri.parse(webIdUrl),
-    headers: <String, String>{
-      'Content-Type': ResourceContentType.any.value,
-      'Link': fileTypeLink,
-    },
-  );
+  try {
+    final response = await http.get(
+      Uri.parse(webIdUrl),
+      headers: <String, String>{
+        'Content-Type': ResourceContentType.any.value,
+        'Link': fileTypeLink,
+      },
+    );
 
-  if (response.statusCode == 200 || response.statusCode == 204) {
-    return ResourceStatus.exist;
-  } else if (response.statusCode == 404) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return ResourceStatus.exist;
+    } else if (response.statusCode == 404) {
+      return ResourceStatus.notExist;
+    } else {
+      debugPrint('Failed to check resource status.\n'
+          'URL: $webIdUrl\n'
+          'ERR: ${response.body}');
+      return ResourceStatus.unknown;
+    }
+  } on Object catch (e) {
+    debugPrint('checkWebIdExists() failed: $e');
     return ResourceStatus.notExist;
-  } else {
-    debugPrint('Failed to check resource status.\n'
-        'URL: $webIdUrl\n'
-        'ERR: ${response.body}');
-    return ResourceStatus.unknown;
   }
 }
 

@@ -93,3 +93,6 @@ export 'src/solid/revoke_permission.dart' show revokePermission;
 // Functions to upload, download, and delete large file from a Solid server
 export 'src/solid/utils/large_file_helper.dart'
     show sendLargeFile, getLargeFile, deleteLargeFile;
+
+// Functions to read permission given to the user webID by others
+export 'src/solid/shared_resources.dart' show sharedResources;
