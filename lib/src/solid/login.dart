@@ -265,115 +265,118 @@ class _SolidLoginState extends State<SolidLogin> {
     // provided child widget is instantiated.
 
     final loginButton = PodButton(
-        text: widget.loginButtonStyle.text,
-        background: widget.loginButtonStyle.background,
-        foreground: widget.loginButtonStyle.foreground,
-        tooltip: widget.loginButtonStyle.tooltip,
-        onPressed: () async {
-          // Reset the flag.
+      text: widget.loginButtonStyle.text,
+      background: widget.loginButtonStyle.background,
+      foreground: widget.loginButtonStyle.foreground,
+      tooltip: widget.loginButtonStyle.tooltip,
+      onPressed: () async {
+        // Reset the flag.
 
-          _isDialogCanceled = false;
+        _isDialogCanceled = false;
 
-          // Method to show busy animation requiring BuildContext.
-          //
-          // This approach of creating a local method will avoid the `flutter
-          // analyze` issue `use_build_context_synchronously`, identifying the use
-          // of a BuildContext across asynchronous gaps, without referencing the
-          // BuildContext after the async gap.
+        // Method to show busy animation requiring BuildContext.
+        //
+        // This approach of creating a local method will avoid the `flutter
+        // analyze` issue `use_build_context_synchronously`, identifying the use
+        // of a BuildContext across asynchronous gaps, without referencing the
+        // BuildContext after the async gap.
 
-          void showBusyAnimation() {
-            showAnimationDialog(
-              context,
-              7,
-              'Logging in...',
-              false,
-              updateState,
-            );
+        void showBusyAnimation() {
+          showAnimationDialog(
+            context,
+            7,
+            'Logging in...',
+            false,
+            updateState,
+          );
+        }
+
+        showBusyAnimation();
+
+        if (_isDialogCanceled) return;
+
+        // Get webId from the textfield or assign a default one
+        final podServer = webIdController.text.isNotEmpty
+            ? webIdController.text
+            : widget.webID;
+
+        // Perform the actual authentication by contacting the server at
+        // [WebID].
+
+        final authResult = await solidAuthenticate(podServer, context);
+
+        // Navigates to the Initial Setup Screen using the provided authentication data.
+
+        Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
+          Navigator.of(context, rootNavigator: true).pop();
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => InitialSetupScreen(
+                resCheckList: resCheckList,
+                child: widget.child,
+              ),
+            ),
+          );
+        }
+
+        // Navigates to the Home Screen if the account exits.
+
+        Future<void> navHomeScreen() async {
+          // Close the dialog before navigating away.
+          Navigator.of(context, rootNavigator: true).pop();
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget.child),
+          );
+        }
+
+        // Method to navigate to the child widget, requiring BuildContext, and
+        // so avoiding the "don't use BuildContext across async gaps" warning.
+
+        Future<void> navigateToApp() async {
+          final resCheckList =
+              await initialStructureTest(defaultFolders, defaultFiles);
+          final allExists = resCheckList.first as bool;
+
+          if (!allExists) {
+            await navInitialSetupScreen(resCheckList);
           }
 
-          showBusyAnimation();
+          await navHomeScreen();
+        }
 
-          if (_isDialogCanceled) return;
+        // Method to navigate back to the login widget, requiring BuildContext,
+        // and so avoiding the "don't use BuildContext across async gaps"
+        // warning.
 
-          // Get webId from the textfield or assign a default one
-          final podServer = webIdController.text.isNotEmpty
-              ? webIdController.text
-              : widget.webID;
+        void navigateToLogin() {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget),
+          );
+        }
 
-          // Perform the actual authentication by contacting the server at
-          // [WebID].
+        // Check that the authentication succeeded, and if so navigate to the
+        // app itself. If it failed then notify the user and stay on the
+        // SolidLogin page.
 
-          final authResult = await solidAuthenticate(podServer, context);
+        if (authResult != null && authResult.isNotEmpty) {
+          await navigateToApp();
+        } else {
+          // On moving to using navigateToLogin() the previously implemented
+          // asynchronous showAuthFailedPopup() is lost due to the immediately
+          // following Navigator. We probably don't need a popup and so the code
+          // is much simpler and the user interaction is probably clear enough
+          // for now that for some reason we remain on the Login screen. If
+          // there are non-obvious scneraiors where we fail to authenticate and
+          // revert to thte login screen then we can capture and report them
+          // later.
 
-          // Navigates to the Initial Setup Screen using the provided authentication data.
-
-          Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
-            await Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => InitialSetupScreen(
-                        resCheckList: resCheckList,
-                        child: widget.child,
-                      )),
-            );
-          }
-
-          // Navigates to the Home Screen if the account exits.
-
-          Future<void> navHomeScreen() async {
-            // Close the dialog before navigating away.
-            Navigator.of(context, rootNavigator: true).pop();
-            await Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => widget.child),
-            );
-          }
-
-          // Method to navigate to the child widget, requiring BuildContext, and
-          // so avoiding the "don't use BuildContext across async gaps" warning.
-
-          Future<void> navigateToApp() async {
-            final resCheckList =
-                await initialStructureTest(defaultFolders, defaultFiles);
-            final allExists = resCheckList.first as bool;
-
-            if (!allExists) {
-              await navInitialSetupScreen(resCheckList);
-            }
-
-            await navHomeScreen();
-          }
-
-          // Method to navigate back to the login widget, requiring BuildContext,
-          // and so avoiding the "don't use BuildContext across async gaps"
-          // warning.
-
-          void navigateToLogin() {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => widget),
-            );
-          }
-
-          // Check that the authentication succeeded, and if so navigate to the
-          // app itself. If it failed then notify the user and stay on the
-          // SolidLogin page.
-
-          if (authResult != null && authResult.isNotEmpty) {
-            await navigateToApp();
-          } else {
-            // On moving to using navigateToLogin() the previously implemented
-            // asynchronous showAuthFailedPopup() is lost due to the immediately
-            // following Navigator. We probably don't need a popup and so the code
-            // is much simpler and the user interaction is probably clear enough
-            // for now that for some reason we remain on the Login screen. If
-            // there are non-obvious scneraiors where we fail to authenticate and
-            // revert to thte login screen then we can capture and report them
-            // later.
-
-            navigateToLogin();
-          }
-        });
+          navigateToLogin();
+        }
+      },
+    );
 
     // A CONTINUE button that when pressed will proceed to operate without the
     // need of a Solid Pod and thus no requirement to authenticate. Proceed
@@ -445,13 +448,15 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 50.0,
           ),
-          Text(widget.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.black,
-              )),
+          Text(
+            widget.title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black,
+            ),
+          ),
           const SizedBox(
             height: 20.0,
           ),
@@ -536,7 +541,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
     final loginPanel = Container(
       margin: EdgeInsets.symmetric(
-          horizontal: loginPanelInset * _screenWidth(context)),
+        horizontal: loginPanelInset * _screenWidth(context),
+      ),
       child: SingleChildScrollView(
         child: Card(
           elevation: 50,
