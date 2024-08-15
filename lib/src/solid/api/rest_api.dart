@@ -431,8 +431,7 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
   );
 
   if (profResponse.statusCode == 200) {
-    debugPrint(profResponse.body.runtimeType as String); // String
-
+    //debugPrint(profResponse.body.runtimeType as String); // String
     // NB: rdflib-0.2.8 (dart) is not able to parse this but
     //     rdflib-7.0.0 (python) can parse it
     //

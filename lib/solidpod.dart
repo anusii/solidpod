@@ -94,5 +94,8 @@ export 'src/solid/revoke_permission.dart' show revokePermission;
 export 'src/solid/utils/large_file_helper.dart'
     show sendLargeFile, getLargeFile, deleteLargeFile;
 
-// Functions to read permission given to the user webID by others
+// Function to read permission given to the user webID by others
 export 'src/solid/shared_resources.dart' show sharedResources;
+
+// Function to get resources in a container
+export 'src/solid/api/rest_api.dart' show getResourcesInContainer;
