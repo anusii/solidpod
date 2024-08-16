@@ -33,132 +33,129 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/secret_input_form.dart';
+import 'package:solidpod/src/solid/common_func.dart';
 
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
 Future<void> changeKeyPopup(BuildContext context, Widget child) async {
-  final verificationKey = await KeyManager.getVerificationKey();
+  final loggedIn = await loginIfRequired(context);
 
-  const message = 'Please enter the current security key, the new security key,'
-      ' and repeat the new security key.';
-  const currentKeyStr = 'current_security_key';
-  const newKeyStr = 'new_security_key';
-  const newKeyRepeatStr = 'new_security_key_repeat';
-  final formKey = GlobalKey<FormBuilderState>();
+  if (loggedIn) {
+    final verificationKey = await KeyManager.getVerificationKey();
 
-  String? validateCurrentKey(String key) =>
-      verifySecurityKey(key, verificationKey)
-          ? null
-          : 'Incorrect security key.';
+    const message =
+        'Please enter the current security key, the new security key,'
+        ' and repeat the new security key.';
+    const currentKeyStr = 'current_security_key';
+    const newKeyStr = 'new_security_key';
+    const newKeyRepeatStr = 'new_security_key_repeat';
+    final formKey = GlobalKey<FormBuilderState>();
 
-  String? validateNewKey(String key) => verifySecurityKey(key, verificationKey)
-      ? 'New security key is identical to current security key.'
-      : null;
+    String? validateCurrentKey(String key) =>
+        verifySecurityKey(key, verificationKey)
+            ? null
+            : 'Incorrect security key.';
 
-  String? validateNewKeyRepeat(String key) {
-    final formData = formKey.currentState?.value as Map<String, dynamic>;
-    if (formData.containsKey(newKeyStr) &&
-        formData.containsKey(newKeyRepeatStr) &&
-        formData[newKeyStr].toString() !=
-            formData[newKeyRepeatStr].toString()) {
-      return 'New security keys do not match.';
-    }
-    return null;
-  }
+    String? validateNewKey(String key) =>
+        verifySecurityKey(key, verificationKey)
+            ? 'New security key is identical to current security key.'
+            : null;
 
-  Future<void> submitForm(Map<String, dynamic> formDataMap) async {
-    final currentKey = formDataMap[currentKeyStr].toString();
-    final newKey = formDataMap[newKeyStr].toString();
-    final newKeyRepeat = formDataMap[newKeyRepeatStr].toString();
-
-    if (validateCurrentKey(currentKey) != null ||
-        validateNewKey(newKey) != null ||
-        validateNewKeyRepeat(newKeyRepeat) != null) {
-      return;
+    String? validateNewKeyRepeat(String key) {
+      final formData = formKey.currentState?.value as Map<String, dynamic>;
+      if (formData.containsKey(newKeyStr) &&
+          formData.containsKey(newKeyRepeatStr) &&
+          formData[newKeyStr].toString() !=
+              formData[newKeyRepeatStr].toString()) {
+        return 'New security keys do not match.';
+      }
+      return null;
     }
 
-    late Color bgColor;
-    late Duration duration;
-    late String msg;
+    Future<void> submitForm(Map<String, dynamic> formDataMap) async {
+      final currentKey = formDataMap[currentKeyStr].toString();
+      final newKey = formDataMap[newKeyStr].toString();
+      final newKeyRepeat = formDataMap[newKeyRepeatStr].toString();
 
-    try {
-      await KeyManager.changeSecurityKey(currentKey, newKey);
+      if (validateCurrentKey(currentKey) != null ||
+          validateNewKey(newKey) != null ||
+          validateNewKeyRepeat(newKeyRepeat) != null) {
+        return;
+      }
 
-      msg = 'Successfully changed the security key!';
-      bgColor = Colors.green;
-      duration = const Duration(seconds: 4);
-    } on Exception catch (e) {
-      msg = 'Failed to change security key! $e';
-      bgColor = Colors.red;
-      duration = const Duration(seconds: 7);
-    } finally {
-      if (context.mounted) {
-        Navigator.pop(context);
-        _showSnackBar(context, msg, bgColor, duration: duration);
+      late Color bgColor;
+      late Duration duration;
+      late String msg;
+
+      try {
+        await KeyManager.changeSecurityKey(currentKey, newKey);
+
+        msg = 'Successfully changed the security key!';
+        bgColor = Colors.green;
+        duration = const Duration(seconds: 4);
+      } on Exception catch (e) {
+        msg = 'Failed to change security key! $e';
+        bgColor = Colors.red;
+        duration = const Duration(seconds: 7);
+      } finally {
+        if (context.mounted) {
+          Navigator.pop(context);
+          showSnackBar(context, msg, bgColor, duration: duration);
+        }
       }
     }
-  }
 
-  final inputFields = [
-    (
-      fieldKey: currentKeyStr,
-      fieldLabel: 'Current Security Key',
-      validateFunc: (key) => validateCurrentKey(key as String),
-    ),
-    (
-      fieldKey: newKeyStr,
-      fieldLabel: 'New Security Key',
-      validateFunc: (key) => validateNewKey(key as String),
-    ),
-    (
-      fieldKey: newKeyRepeatStr,
-      fieldLabel: 'Repeat New Security Key',
-      validateFunc: (key) => validateNewKeyRepeat(key as String),
-    )
-  ];
+    final inputFields = [
+      (
+        fieldKey: currentKeyStr,
+        fieldLabel: 'Current Security Key',
+        validateFunc: (key) => validateCurrentKey(key as String),
+      ),
+      (
+        fieldKey: newKeyStr,
+        fieldLabel: 'New Security Key',
+        validateFunc: (key) => validateNewKey(key as String),
+      ),
+      (
+        fieldKey: newKeyRepeatStr,
+        fieldLabel: 'Repeat New Security Key',
+        validateFunc: (key) => validateNewKeyRepeat(key as String),
+      ),
+    ];
 
-  final changeKeyForm = SecretInputForm(
-    title: 'Change Security Key',
-    message: message,
-    inputFields: inputFields,
-    formKey: formKey,
-    submitFunc: submitForm,
-    child: child,
-  );
+    final changeKeyForm = SecretInputForm(
+      title: 'Change Security Key',
+      message: message,
+      inputFields: inputFields,
+      formKey: formKey,
+      submitFunc: submitForm,
+      child: child,
+    );
 
-  // Use MediaQuery to get the size of the current screen.
+    // Use MediaQuery to get the size of the current screen.
 
-  if (context.mounted) {
-    final size = MediaQuery.of(context).size;
+    if (context.mounted) {
+      final size = MediaQuery.of(context).size;
 
-    // Calculate the desired width and height.
+      // Calculate the desired width and height.
 
-    final width = size.width * 0.5;
-    final height = size.height * 0.5;
+      final width = size.width * 0.5;
+      final height = size.height * 0.5;
 
-    await showDialog(
+      await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-              content: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: width,
-                    minHeight: height,
-                  ),
-                  child: changeKeyForm),
-            ));
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: width,
+              minHeight: height,
+            ),
+            child: changeKeyForm,
+          ),
+        ),
+      );
+    }
   }
-}
-
-// Show a message
-
-void _showSnackBar(BuildContext context, String msg, Color bgColor,
-    {Duration duration = const Duration(seconds: 4)}) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(msg),
-      backgroundColor: bgColor,
-      duration: duration,
-    ),
-  );
 }

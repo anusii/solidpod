@@ -28,6 +28,8 @@
 ///
 /// Authors: Anushka Vidanage
 
+library;
+
 import 'package:flutter/material.dart';
 
 /// Sub heading build function

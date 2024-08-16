@@ -91,10 +91,9 @@ class _SecretInputFormState extends State<SecretInputForm> {
 
   Future<void> _submit(BuildContext context) async {
     final formData = widget.formKey.currentState?.value as Map<String, dynamic>;
-    debugPrint('formData: $formData');
 
     if (!_canSubmit) {
-      debugPrint('_verifidMap: $_verifiedMap');
+      // debugPrint('_verifidMap: $_verifiedMap');
       return;
     }
     for (final f in widget.inputFields) {
@@ -163,9 +162,9 @@ class _SecretInputFormState extends State<SecretInputForm> {
             _canSubmit = !_verifiedMap.containsValue(false);
           });
 
-          debugPrint('${formKey.currentState?.value as Map}');
-          debugPrint('onChange(): _verifiedMap = $_verifiedMap');
-          debugPrint('onChange(): _canSubmit =  $_canSubmit');
+          // debugPrint('${formKey.currentState?.value as Map}');
+          // debugPrint('onChange(): _verifiedMap = $_verifiedMap');
+          // debugPrint('onChange(): _canSubmit =  $_canSubmit');
         },
         autovalidateMode: AutovalidateMode.disabled, // called in onChanged()
         child: KeyboardListener(

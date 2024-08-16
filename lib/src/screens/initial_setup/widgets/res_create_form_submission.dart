@@ -89,8 +89,6 @@ ElevatedButton resCreateFormSubmission(
 
   //     final masterKey = genMasterKey(securityKey);
   //     encMasterKeyVerify = genVerificationKey(securityKey);
-  //     debugPrint('Security key: $securityKey');
-  //     debugPrint('Verification key: $encMasterKeyVerify');
 
   //     // Generate asymmetric key pair
   //     final (:publicKey, :privateKey) = await genRandRSAKeyPair();

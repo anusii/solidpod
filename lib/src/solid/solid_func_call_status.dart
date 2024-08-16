@@ -1,6 +1,6 @@
-/// A default app bar.
+/// A function call status for different function calls
 ///
-// Time-stamp: <Sunday 2024-07-11 12:55:00 +1000 Anushka Vidange>
+// Time-stamp: <Thursday 2024-06-27 13:13:12 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -24,27 +24,20 @@
 ///
 /// Authors: Anushka Vidanage
 
-library;
+/// Solid function call results
+enum SolidFunctionCallStatus {
+  /// Read POD data file
+  success('success'),
 
-import 'package:flutter/material.dart';
+  /// Write to POD data file
+  fail('fail'),
 
-/// A default app bar that is used when user does not define an app bar for
-/// the UI
-PreferredSizeWidget defaultAppBar(
-  BuildContext context,
-  String title,
-  Color backgroundColor,
-  Widget child,
-) {
-  return AppBar(
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.black),
-      onPressed: () => Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => child),
-      ),
-    ),
-    backgroundColor: backgroundColor,
-    title: Text(title),
-  );
+  /// Grant permission to other WebIds
+  notLoggedIn('notLoggedIn');
+
+  /// Constructor
+  const SolidFunctionCallStatus(this.value);
+
+  /// String value of the solid function
+  final String value;
 }

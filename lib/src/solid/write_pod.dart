@@ -35,6 +35,7 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -42,109 +43,128 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// Write file [fileName] and content [fileContent] to PODs
 /// The content will be encrypted if [encrypted] is true.
 
-Future<void> writePod(
-    String fileName, String fileContent, BuildContext context, Widget child,
-    {bool encrypted = true}) async {
+Future<dynamic> writePod(
+  String fileName,
+  String fileContent,
+  BuildContext context,
+  Widget child, {
+  bool encrypted = true,
+}) async {
   // Write data to file in the data directory
   final filePath = [await getDataDirPath(), fileName].join('/');
   // [await getDataDirPath(), '.binary_data.bin.chunks', fileName].join('/');
 
-  await loginIfRequired(context);
+  final loggedIn = await loginIfRequired(context);
 
-  // Check if the file already exists
-  // The file should exist if its individual key exists
+  if (loggedIn) {
+    // Check if the file already exists
+    // The file should exist if its individual key exists
 
-  final fileUrl = await getFileUrl(filePath);
-  final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
+    final fileUrl = await getFileUrl(filePath);
+    final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
-  switch (await checkResourceStatus(fileUrl)) {
-    case ResourceStatus.exist:
+    switch (await checkResourceStatus(fileUrl)) {
+      case ResourceStatus.exist:
 
-      // Ask user to confirm when the encryption status of the file is changed
+        // Ask user to confirm when the encryption status of the file is changed
 
-      if (encrypted != existingFileEncrypted) {
-        late bool overwrite;
+        if (encrypted != existingFileEncrypted) {
+          late bool overwrite;
 
-        final overwriteMsg =
-            '${existingFileEncrypted ? "Encrypted" : "Unencrypted"}'
-            ' data file "$fileName" already exists,'
-            ' do you want to overwrite it with '
-            '${encrypted ? "encrypted" : "unencrypted"} content?';
+          final overwriteMsg =
+              '${existingFileEncrypted ? "Encrypted" : "Unencrypted"}'
+              ' data file "$fileName" already exists,'
+              ' do you want to overwrite it with '
+              '${encrypted ? "encrypted" : "unencrypted"} content?';
 
-        await showDialog(
+          await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-                  title: const Text('Notice'),
-                  content: Text(overwriteMsg),
-                  actions: [
-                    ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          overwrite = true;
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red),
-                        child: const Text('Overwrite',
-                            style: TextStyle(color: Colors.white))),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          overwrite = false;
-                        },
-                        child: const Text('Cancel'))
-                  ],
-                ));
+              title: const Text('Notice'),
+              content: Text(overwriteMsg),
+              actions: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    overwrite = true;
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text(
+                    'Overwrite',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    overwrite = false;
+                  },
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          );
 
-        if (!overwrite) {
-          throw Exception(
-              'Not overwriting file "$filePath", writePod() aborted');
-        } else {
-          debugPrint('Overwrite file "$filePath"');
+          if (!overwrite) {
+            throw Exception(
+              'Not overwriting file "$filePath", writePod() aborted',
+            );
+          } else {
+            debugPrint('Overwrite file "$filePath"');
+          }
         }
+
+      case ResourceStatus.unknown:
+        throw Exception(
+          'Unable to determine if file "$filePath" exists, writePod() aborted',
+        );
+
+      case ResourceStatus.notExist: // Empty case falls through.
+      default:
+        debugPrint('File "$filePath" does not exist');
+    }
+
+    late String content;
+
+    if (encrypted) {
+      // Get the security key (and cache it in KeyManager)
+      await getKeyFromUserIfRequired(context, child);
+
+      // Reuse the individual key if the key already exists,
+      // otherwise, generate a random key and add it to the individual key file.
+
+      if (!existingFileEncrypted) {
+        await KeyManager.addIndividualKey(filePath, genRandIndividualKey());
       }
 
-    case ResourceStatus.unknown:
-      throw Exception(
-          'Unable to determine if file "$filePath" exists, writePod() aborted');
+      content = await getEncTTLStr(
+        filePath,
+        fileContent,
+        await KeyManager.getIndividualKey(fileUrl),
+        genRandIV(),
+      );
+    } else {
+      // Delete existing (encrypted) file if the new content is unencrypted
 
-    case ResourceStatus.notExist: // Empty case falls through.
-    default:
-      debugPrint('File "$filePath" does not exist');
-  }
+      if (existingFileEncrypted) {
+        await deleteFile(filePath);
+      }
 
-  late String content;
-
-  if (encrypted) {
-    // Get the security key (and cache it in KeyManager)
-    await getKeyFromUserIfRequired(context, child);
-
-    // Reuse the individual key if the key already exists,
-    // otherwise, generate a random key and add it to the individual key file.
-
-    if (!existingFileEncrypted) {
-      await KeyManager.addIndividualKey(filePath, genRandIndividualKey());
+      content = fileContent;
     }
 
-    content = await getEncTTLStr(filePath, fileContent,
-        await KeyManager.getIndividualKey(fileUrl), genRandIV());
+    // Create file on server
+    await createResource(fileUrl, content: content);
+
+    // Create the ACL file for the data file if necessary
+
+    final aclFileUrl = '$fileUrl.acl';
+    if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
+      await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
+    }
+    return SolidFunctionCallStatus.success;
   } else {
-    // Delete existing (encrypted) file if the new content is unencrypted
-
-    if (existingFileEncrypted) {
-      await deleteFile(filePath);
-    }
-
-    content = fileContent;
-  }
-
-  // Create file on server
-  await createResource(fileUrl, content: content);
-
-  // Create the ACL file for the data file if necessary
-
-  final aclFileUrl = '$fileUrl.acl';
-  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
-    await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
+    return SolidFunctionCallStatus.notLoggedIn;
   }
 }

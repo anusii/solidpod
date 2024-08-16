@@ -77,10 +77,6 @@ Future<List<dynamic>?> solidAuthenticate(
       final issuerUri = await getIssuer(serverId);
       authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
-      // debugPrint('solidAuthenticate() => authenticate() => $authData');
-
-      // print(authData as Map<String, dynamic>);  // this cast fails silently
-
       // write authentication data to flutter secure storage
       await AuthDataManager.saveAuthData(authData);
     }

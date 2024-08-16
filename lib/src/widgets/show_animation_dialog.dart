@@ -70,13 +70,13 @@ Future<void> showAnimationDialog(
   return showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (context) {
+      builder: (animationContext) {
         return Padding(
             padding: const EdgeInsets.all(50),
             child: Center(
               child: SizedBox(
                 width: 200,
-                height: 280,
+                height: 290,
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
@@ -103,8 +103,11 @@ Future<void> showAnimationDialog(
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          updateStateCallback!();
-                          Navigator.of(context).pop(); // Close the dialog
+                          if (context.mounted) {
+                            updateStateCallback!();
+                          }
+                          Navigator.of(animationContext)
+                              .pop(); // Close the dialog
                         },
                         child: const Text('Cancel'),
                       ),

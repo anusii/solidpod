@@ -37,6 +37,7 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
@@ -46,30 +47,39 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 ///   [fileFlag] is the flag to identify if the resources is a file or not
 ///   [child] is the child widget to return to
 
-Future<Map<dynamic, dynamic>> readPermission(
-    String fileName, bool fileFlag, BuildContext context, Widget child) async {
-  await loginIfRequired(context);
+Future<dynamic> readPermission(
+  String fileName,
+  bool fileFlag,
+  BuildContext context,
+  Widget child,
+) async {
+  final loggedIn = await loginIfRequired(context);
 
-  await getKeyFromUserIfRequired(context, child);
+  if (loggedIn) {
+    await getKeyFromUserIfRequired(context, child);
 
-  // Get the file path
-  final filePath = [await getDataDirPath(), fileName].join('/');
+    // Get the file path
+    final filePath = [await getDataDirPath(), fileName].join('/');
 
-  // Get the url of the file
-  final resourceUrl = await getFileUrl(filePath);
+    // Get the url of the file
+    final resourceUrl = await getFileUrl(filePath);
 
-  // Check if file exists
-  final resStatus = await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
+    // Check if file exists
+    final resStatus =
+        await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
-  if (resStatus == ResourceStatus.exist) {
-    // Read ACL file content
-    final aclContentMap = await readAcl(resourceUrl);
+    if (resStatus == ResourceStatus.exist) {
+      // Read ACL file content
+      final aclContentMap = await readAcl(resourceUrl);
 
-    // Extract permission details to a map
-    final permMap = extractAclPerm(aclContentMap);
+      // Extract permission details to a map
+      final permMap = extractAclPerm(aclContentMap);
 
-    return permMap;
+      return permMap;
+    } else {
+      return {};
+    }
   } else {
-    return {};
+    return SolidFunctionCallStatus.notLoggedIn;
   }
 }

@@ -30,31 +30,37 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/popup_login.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
 /// A dialog for adding an individual webId. Function call requires the
 /// following inputs
 /// [context] is the BuildContext from which this function is called.
-/// [formControllerWebId] is the controller for the webid input
-/// [onSubmitFuncion] is the function to be called on submit
 ///
-Future<dynamic> indWebIdInputDialog(BuildContext context,
-    TextEditingController formControllerWebId, Function onSubmitFuncion) {
+Future<dynamic> loginWebIdInputDialog(
+  BuildContext context,
+) {
+  final formControllerWebId = TextEditingController()
+    ..text = 'https://pods.solidcommunity.au/';
   return showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 50),
-        title: const Text('WebID of the recipient'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Web ID text field
-          TextFormField(
-            controller: formControllerWebId,
-            decoration: const InputDecoration(
+        title: const Text('Input server URL/your WebId to login'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Web ID text field
+            TextFormField(
+              controller: formControllerWebId,
+              decoration: const InputDecoration(
                 hintText:
-                    'Eg: https://pods.solidcommunity.au/john-doe/profile/card#me'),
-          ),
-        ]),
+                    'Eg: https://pods.solidcommunity.au/john-doe/profile/card#me',
+              ),
+            ),
+          ],
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () async {
@@ -63,14 +69,23 @@ Future<dynamic> indWebIdInputDialog(BuildContext context,
               // Check the web ID field is not empty and it is a true link
               if (receiverWebId.isNotEmpty &&
                   Uri.parse(receiverWebId.replaceAll('#me', '')).isAbsolute &&
-                  await checkResourceStatus(receiverWebId) ==
+                  await checkWebIdExists(receiverWebId) ==
                       ResourceStatus.exist) {
-                onSubmitFuncion(receiverWebId);
+                if (!context.mounted) return;
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SolidPopupLogin(
+                      webId: receiverWebId,
+                    ),
+                  ),
+                );
+                //return true;
                 if (!context.mounted) return;
                 Navigator.of(context).pop();
               } else {
                 if (!context.mounted) return;
-                await alert(context, 'Please enter a valid WebID');
+                await alert(context, 'Please enter a valid URL/WebID');
               }
             },
             child: const Text('Ok'),

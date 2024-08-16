@@ -97,36 +97,6 @@ String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
   return g.serializedString;
 }
 
-// TODO (dc): Deprecate tripleMapToTTLStr()
-/// Generate TTL string from triples stored in a map:
-/// {subject: {predicate: object}}
-/// where
-/// - subject: usually the URL of a file
-/// - predicate-object: the key-value pairs to be stores in the file
-@Deprecated('''
-[tripleMapToTTLStr] is deprecated.
-Use [tripleMapToTurtle(tripls, bindNamespaces)] instead.
-''')
-String tripleMapToTTLStr(Map<String, Map<String, String>> tripleMap) {
-  assert(tripleMap.isNotEmpty);
-  final g = Graph();
-  final nsTerms = Namespace(ns: appsTerms);
-
-  for (final sub in tripleMap.keys) {
-    assert(tripleMap[sub] != null && tripleMap[sub]!.isNotEmpty);
-    final f = URIRef(sub);
-    for (final pre in tripleMap[sub]!.keys) {
-      final obj = tripleMap[sub]![pre] as String;
-      final ns = (pre == titlePred) ? termsNS.ns : nsTerms;
-      g.addTripleToGroups(f, ns.withAttr(pre), obj);
-    }
-  }
-
-  g.serialize(abbr: 'short');
-
-  return g.serializedString;
-}
-
 // TODO (dc): Unify parseTTL() and parseACL()
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {

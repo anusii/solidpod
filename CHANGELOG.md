@@ -3,11 +3,18 @@
 Recorded here are the high level changes for the SolidPod package.
 
 Guide: Each version update is recorded here with a short user-oriented
-description of the update. Updates in the 0.5.n series are heading
-toward a 0.6 release.
+description of the update.
 
-## 0.6 Future Release
+## 0.6.0
 
++ Fix login animation issue [0.5.48] 
++ Export function to read permission given by others [0.5.47]
++ Export get resources in a container function [0.5.46]
++ Update dependencies to the latest release [0.5.45]
++ Remove deprecated classes [0.5.44]
++ Remove deprecated functions [0.5.43]
++ Fix loading animation cancel button cut-off issue in Windows [0.5.42]
++ Get solid server URL from the textfield [0.5.41]
 + UI for display permissions given to the user WebID by others [0.5.40]
 + Support the upload, download and delete of large (binary) files [0.5.39]
 + Deploy an example/demo app [0.5.38 20240630]
@@ -49,22 +56,22 @@ toward a 0.6 release.
 + Add continueBG parameter to SolidLogin. [0.5.2]
 + lib/solid.dart to lib/solidpod.dart [0.5.1]
 
-## 0.5
+## 0.5.0
 
 + Add solidloginPopup widget to open a popup window for
   authentication.
 
-## 0.4
+## 0.4.0
   
 + Rename to `solidpod` as the name `solid` already taken.
 + Add button titles to parameters for SolidLogin() [0.3.1]
 
-## 0.3
+## 0.3.0
 
 + Authentication implemented.
 + SolidLogin() initial version fully functional.
 
-## 0.2
+## 0.2.0
 
 + Initial implementation of SolidLogin widget with parameters.
 + Actual authentication yet to be implemented.

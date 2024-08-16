@@ -31,13 +31,16 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
+import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/file_permission_data_table.dart';
 import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/loading_screen.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 /// A widget for the demonstration screen of the application.
@@ -45,15 +48,18 @@ import 'package:solidpod/src/widgets/permission_checkbox.dart';
 class GrantPermissionUi extends StatefulWidget {
   /// Initialise widget variables.
 
-  const GrantPermissionUi(
-      {required this.child,
-      this.title = 'Demonstrating data sharing functionality',
-      this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
-      this.fileName,
-      this.appBar,
-      super.key});
+  const GrantPermissionUi({
+    required this.child,
+    this.title = 'Demonstrating data sharing functionality',
+    this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
+    this.showAppBar = true,
+    this.fileName,
+    this.customAppBar,
+    super.key,
+  });
 
-  /// The child widget to return to when back button is pressed.
+  /// The child widget to return to when back button is pressed and/or when
+  /// page is reloaded after a permission is granted or revoked.
   final Widget child;
 
   /// The text appearing in the app bar.
@@ -62,12 +68,15 @@ class GrantPermissionUi extends StatefulWidget {
   /// The text appearing in the app bar.
   final Color backgroundColor;
 
+  /// The boolean to decide whether to display an app bar or not
+  final bool showAppBar;
+
   /// The name of the file permission is being set to. This is a non required
   /// parameter. If not set there will be a text field to define the file name
   final String? fileName;
 
   /// App specific app bar
-  final PreferredSizeWidget? appBar;
+  final PreferredSizeWidget? customAppBar;
 
   @override
   GrantPermissionUiState createState() => GrantPermissionUiState();
@@ -93,6 +102,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// WebId textfield enable/disable flag
   bool webIdTextFieldEnabled = true;
+
+  /// Flag to check whether page is initialised
+  bool pageInitialied = false;
 
   /// Form controller
   final formKey = GlobalKey<FormState>();
@@ -136,14 +148,62 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Large vertical spacing for the widget.
   final largeGapV = const SizedBox(height: 40.0);
 
+  /// Pod data list retreived as a Future
+  late Future<List<dynamic>> podDataList;
+
+  /// Runs multiple asynchronous functions to get the data from
+  /// POD server if necessary.
+  Future<List<dynamic>> loadPodData() async {
+    final result =
+        await readPermission(widget.fileName as String, true, context, widget);
+    final webId = await AuthDataManager.getWebId();
+    return [result, webId];
+  }
+
   @override
   void initState() {
     super.initState();
+    // Load future
+    if (widget.fileName != null) {
+      podDataList = loadPodData();
+    }
   }
 
-  // Update permission map with new data
-  void _updatePermMap(
-      Map<dynamic, dynamic> newPermMap, String webId, String fileName) {
+  // Get new permission and update the permission map
+  Future<void> _updatePermissions(String fileName) async {
+    final permissionMap = await readPermission(
+      fileName,
+      true,
+      context,
+      widget.child,
+    );
+    final webId = await AuthDataManager.getWebId();
+
+    if (permissionMap == SolidFunctionCallStatus.notLoggedIn) {
+      await _alert(
+        'Please login first to retrieve permission',
+      );
+    } else {
+      if ((permissionMap as Map).isEmpty) {
+        await _alert(
+          'We could not find a resource by the name $fileName',
+        );
+      } else {
+        _updatePermTable(
+          permissionMap,
+          webId as String,
+          fileName,
+        );
+      }
+    }
+  }
+
+  // Update permission table with new data
+  void _updatePermTable(
+    Map<dynamic, dynamic> newPermMap,
+    String webId,
+    String fileName,
+  ) {
     setState(() {
       permDataMap = newPermMap;
       permDataFile = fileName;
@@ -197,28 +257,29 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Build the main widget
   Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
-    // Build the widget.
-
     // Check if future is set or not. If set display the permission map
-    if (futureObjList != null) {
+    if (futureObjList != null && pageInitialied == false) {
       permDataMap = futureObjList.first as Map;
       ownerWebId = futureObjList[1] as String;
       permDataFile = widget.fileName!;
+      pageInitialied = true;
     }
-
-    // A small horizontal spacing for the widget.
-
-    const smallGapH = SizedBox(width: 10.0);
 
     final welcomeHeadingStr = widget.fileName != null
         ? 'Share ${widget.fileName} file with other PODs'
         : 'Share your data files with other PODs';
 
     return Scaffold(
-      appBar: (widget.appBar != null)
-          ? widget.appBar
-          : defaultAppBar(
-              context, widget.title, widget.backgroundColor, widget.child),
+      appBar: (!widget.showAppBar)
+          ? null
+          : (widget.customAppBar != null)
+              ? widget.customAppBar
+              : defaultAppBar(
+                  context,
+                  widget.title,
+                  widget.backgroundColor,
+                  widget.child,
+                ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -240,8 +301,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             child: TextFormField(
                               controller: formControllerFileName,
                               decoration: const InputDecoration(
-                                  hintText:
-                                      'Data file path (inside your data folder Eg: personal/about.ttl)'),
+                                hintText:
+                                    'Data file path (inside your data folder Eg: personal/about.ttl)',
+                              ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Empty field';
@@ -250,37 +312,27 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               },
                             ),
                           ),
-                          smallGapH,
+                          smallGapV,
                           ElevatedButton(
-                            child: const Text('Retreive permissions'),
+                            child: const Text('Retrieve permissions'),
                             onPressed: () async {
                               final fileName = formControllerFileName.text;
 
                               if (fileName.isEmpty) {
                                 await _alert('Please enter a file name');
                               } else {
-                                final permissionMap = await readPermission(
-                                    fileName,
-                                    true,
-                                    context,
-                                    GrantPermissionUi(child: widget.child));
-                                final webId =
-                                    await AuthDataManager.getWebId() as String;
-
-                                if (permissionMap.isEmpty) {
-                                  await _alert(
-                                      'We could not find a resource by the name $fileName');
-                                } else {
-                                  _updatePermMap(
-                                      permissionMap, webId, fileName);
-                                }
+                                await _updatePermissions(fileName);
                               }
                             },
                           ),
                         ],
                         largeGapV,
-                        buildHeading('Select the permission recipient', 17.0,
-                            Colors.blueGrey, 8),
+                        buildHeading(
+                          'Select the permission recipient',
+                          17.0,
+                          Colors.blueGrey,
+                          8,
+                        ),
                         Container(
                           padding: const EdgeInsets.all(8.0),
                           child: Row(
@@ -298,9 +350,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       ? '${selectedRecipient.type} ($selectedRecipientDetails)'
                                       : selectedRecipient.type,
                                   style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.deepOrangeAccent),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.deepOrangeAccent,
+                                  ),
                                 ),
                               ),
                             ],
@@ -338,7 +391,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                             RecipientType.authUser;
                                         selectedRecipientDetails = '';
                                         finalWebIdList = [
-                                          authenticatedAgent.value
+                                          authenticatedAgent.value,
                                         ];
                                       });
                                     },
@@ -353,9 +406,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   child: ElevatedButton(
                                     onPressed: () async {
                                       await indWebIdInputDialog(
-                                          context,
-                                          formControllerWebId,
-                                          _updateIndWebIdInput);
+                                        context,
+                                        formControllerWebId,
+                                        _updateIndWebIdInput,
+                                      );
                                     },
                                     child: Text(RecipientType.individual.type),
                                   ),
@@ -368,29 +422,46 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   child: ElevatedButton(
                                     onPressed: () async {
                                       await groupWebIdInputDialog(
-                                          context,
-                                          formControllerGroupName,
-                                          formControllerGroupWebIds,
-                                          _updateGroupWebIdInput);
+                                        context,
+                                        formControllerGroupName,
+                                        formControllerGroupWebIds,
+                                        _updateGroupWebIdInput,
+                                      );
                                     },
                                     child: Text(RecipientType.group.type),
                                   ),
                                 ),
-                              )
+                              ),
                             ],
                           ),
                         ),
                         smallGapV,
-                        buildHeading('Select the list of permissions', 17.0,
-                            Colors.blueGrey, 8),
+                        buildHeading(
+                          'Select the list of permissions',
+                          17.0,
+                          Colors.blueGrey,
+                          8,
+                        ),
                         permissionCheckbox(
-                            AccessMode.read, readChecked, _updateCheckbox),
+                          AccessMode.read,
+                          readChecked,
+                          _updateCheckbox,
+                        ),
                         permissionCheckbox(
-                            AccessMode.write, writeChecked, _updateCheckbox),
-                        permissionCheckbox(AccessMode.control, controlChecked,
-                            _updateCheckbox),
+                          AccessMode.write,
+                          writeChecked,
+                          _updateCheckbox,
+                        ),
                         permissionCheckbox(
-                            AccessMode.append, appendChecked, _updateCheckbox),
+                          AccessMode.control,
+                          controlChecked,
+                          _updateCheckbox,
+                        ),
+                        permissionCheckbox(
+                          AccessMode.append,
+                          appendChecked,
+                          _updateCheckbox,
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: ElevatedButton(
@@ -402,7 +473,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     final dataFile = widget.fileName ??
                                         formControllerFileName.text;
 
-                                    await grantPermission(
+                                    final result = await grantPermission(
                                       dataFile,
                                       true,
                                       selectedPermList,
@@ -410,36 +481,43 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       finalWebIdList as List,
                                       true,
                                       context,
-                                      GrantPermissionUi(
-                                        title: widget.title,
-                                        backgroundColor: widget.backgroundColor,
-                                        fileName: widget.fileName,
-                                        child: widget.child,
-                                      ),
+                                      widget.child,
                                       selectedRecipient == RecipientType.group
                                           ? formControllerGroupName.text.trim()
                                           : null,
                                     );
 
-                                    if (!context.mounted) return;
-                                    await Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => GrantPermissionUi(
-                                          title: widget.title,
-                                          backgroundColor:
-                                              widget.backgroundColor,
-                                          fileName: widget.fileName,
-                                          child: widget.child,
-                                        ),
-                                      ),
-                                    );
+                                    if (result ==
+                                        SolidFunctionCallStatus.success) {
+                                      if (!context.mounted) return;
+                                      showSnackBar(
+                                        context,
+                                        'Permission granted successfully!',
+                                        Colors.green,
+                                      );
+                                      await _updatePermissions(dataFile);
+                                    } else if (result ==
+                                        SolidFunctionCallStatus.fail) {
+                                      if (!context.mounted) return;
+                                      showSnackBar(
+                                        context,
+                                        'Error occured. Please try again!',
+                                        Colors.red,
+                                      );
+                                    } else {
+                                      await _alert(
+                                        'Please login first to update permission',
+                                      );
+                                    }
                                   } else {
                                     await _alert(
-                                        'Please select one or more permissions');
+                                      'Please select one or more permissions',
+                                    );
                                   }
                                 } else {
-                                  await _alert('Please select a recipient');
+                                  await _alert(
+                                    'Please select a recipient',
+                                  );
                                 }
                               }
                             },
@@ -447,18 +525,19 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         ),
                         largeGapV,
                         buildHeading(
-                            'Granted permissions', 17.0, Colors.blueGrey, 8),
+                          'Granted permissions',
+                          17.0,
+                          Colors.blueGrey,
+                          8,
+                        ),
                         buildPermDataTable(
-                            context,
-                            permDataFile,
-                            permDataMap,
-                            ownerWebId,
-                            GrantPermissionUi(
-                              title: widget.title,
-                              backgroundColor: widget.backgroundColor,
-                              fileName: widget.fileName,
-                              child: widget.child,
-                            )),
+                          context,
+                          permDataFile,
+                          permDataMap,
+                          ownerWebId,
+                          widget.child,
+                          _updatePermissions,
+                        ),
                       ],
                     ),
                   ],
@@ -475,17 +554,19 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget build(BuildContext context) {
     // Build as a separate widget with the possibility of adding a FutureBuilder
     // in the Future
+
     if (widget.fileName != null) {
       return FutureBuilder(
-        future: Future.wait([
-          readPermission(widget.fileName as String, true, context, widget),
-          AuthDataManager.getWebId()
-        ]),
+        future: podDataList,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return _buildPermPage(context, snapshot.data);
+            if (snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn) {
+              return widget.child;
+            } else {
+              return _buildPermPage(context, snapshot.data);
+            }
           } else {
-            return const CircularProgressIndicator();
+            return Scaffold(body: loadingScreen(200));
           }
         },
       );

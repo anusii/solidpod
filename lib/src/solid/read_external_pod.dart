@@ -37,6 +37,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -47,43 +48,53 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// read and parse the file content
 
 Future<dynamic> readExternalPod(
-    String fileUrl, BuildContext context, Widget child,
-    {FileOpenMode mode = FileOpenMode.text}) async {
+  String fileUrl,
+  BuildContext context,
+  Widget child, {
+  FileOpenMode mode = FileOpenMode.text,
+}) async {
   // Login and initialise PODs if necessary
 
-  await loginIfRequired(context);
+  final loggedIn = await loginIfRequired(context);
 
-  // Check if the requested file exists
+  if (loggedIn) {
+    // Check if the requested file exists
 
-  final fileExists = await checkResourceStatus(fileUrl);
+    final fileExists = await checkResourceStatus(fileUrl);
 
-  if (fileExists == ResourceStatus.exist) {
-    try {
-      final fileContent = await fetchPrvFile(fileUrl);
+    if (fileExists == ResourceStatus.exist) {
+      try {
+        final fileContent = await fetchPrvFile(fileUrl);
 
-      // Decrypt if reading an encrypted file
+        // Decrypt if reading an encrypted file
 
-      if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-        await getKeyFromUserIfRequired(context, child);
+        if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
+          await getKeyFromUserIfRequired(context, child);
 
-        // Get the individual key for the file
-        final indKey = await KeyManager.getSharedIndividualKey(fileUrl);
+          // Get the individual key for the file
+          final indKey = await KeyManager.getSharedIndividualKey(fileUrl);
 
-        // Decrypt the file content
+          // Decrypt the file content
 
-        final dataMap = parseTTL(fileContent);
-        assert(dataMap.containsKey(fileUrl));
+          final dataMap = parseTTL(fileContent);
+          assert(dataMap.containsKey(fileUrl));
 
-        return decryptData(dataMap[fileUrl][encDataPred] as String, indKey,
-            IV.fromBase64(dataMap[fileUrl][ivPred] as String));
-      } else {
-        return fileContent;
+          return decryptData(
+            dataMap[fileUrl][encDataPred] as String,
+            indKey,
+            IV.fromBase64(dataMap[fileUrl][ivPred] as String),
+          );
+        } else {
+          return fileContent;
+        }
+      } on Object catch (e) {
+        debugPrint(e.toString());
       }
-    } on Object catch (e) {
-      debugPrint(e.toString());
     }
-  }
 
-  debugPrint('Resource "$fileUrl" does not exist.');
-  return null;
+    debugPrint('Resource "$fileUrl" does not exist.');
+    return null;
+  } else {
+    return SolidFunctionCallStatus.notLoggedIn;
+  }
 }

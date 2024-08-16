@@ -24,6 +24,8 @@
 ///
 /// Authors: Anushka Vidanage
 
+library;
+
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -38,10 +40,11 @@ import 'package:solidpod/src/solid/utils/alert.dart';
 /// [onSubmitFuncion] is the function to be called on submit
 ///
 Future<dynamic> groupWebIdInputDialog(
-    BuildContext context,
-    TextEditingController formControllerGroupName,
-    TextEditingController formControllerGroupWebIds,
-    Function onSubmitFuncion) {
+  BuildContext context,
+  TextEditingController formControllerGroupName,
+  TextEditingController formControllerGroupWebIds,
+  Function onSubmitFuncion,
+) {
   return showDialog(
     context: context,
     builder: (context) {

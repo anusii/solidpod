@@ -48,23 +48,31 @@ class _SolidPopupLoginState extends State<SolidPopupLogin> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // Login and initialise PODs if required
-  Future<void> _loginAndInitPods(String webId, BuildContext context) async {
-    await solidAuthenticate(webId, context);
-    if (context.mounted) await initPodsIfRequired(context);
+  Future<bool> _loginAndInitPods(String webId, BuildContext context) async {
+    try {
+      await solidAuthenticate(webId, context);
+      if (context.mounted) await initPodsIfRequired(context);
+      return true;
+    } on Object catch (e) {
+      debugPrint('solidAuthenticate() failed: $e');
+      return false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        key: _scaffoldKey,
-        body: FutureBuilder<void>(
-            future: _loginAndInitPods(widget.webId, context),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return _loadedScreen();
-              }
-              return loadingScreen(200);
-            }));
+      key: _scaffoldKey,
+      body: FutureBuilder(
+        future: _loginAndInitPods(widget.webId, context),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return _loadedScreen(snapshot.data!);
+          }
+          return loadingScreen(200);
+        },
+      ),
+    );
   }
 
   @override
@@ -72,18 +80,24 @@ class _SolidPopupLoginState extends State<SolidPopupLogin> {
     super.initState();
   }
 
-  Widget _loadedScreen() {
+  Widget _loadedScreen(bool loginStatus) {
+    final dialogTitle = loginStatus ? 'Success!' : 'Failed!';
+    final dialogContent = loginStatus
+        ? 'You have successfully logged in and/or initialised your PODs'
+        : 'You have cancelled the login';
     return AlertDialog(
-        title: const Text('Success!'),
-        content: const Text(
-            'You have successfully logged in and/or initialised your PODs'),
-        actions: <Widget>[
-          ElevatedButton(
-            child: const Text('OK'),
-            onPressed: () async {
-              Navigator.pop(context);
-            },
-          ),
-        ]);
+      title: Text(dialogTitle),
+      content: Text(
+        dialogContent,
+      ),
+      actions: <Widget>[
+        ElevatedButton(
+          child: const Text('OK'),
+          onPressed: () async {
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
   }
 }

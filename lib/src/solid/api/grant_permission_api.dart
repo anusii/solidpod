@@ -148,7 +148,6 @@ Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
     await createResource(
       groupFileUrl,
       content: groupFileContent,
-      replaceIfExist: true,
     );
   }
 
@@ -279,7 +278,6 @@ Future<void> copySharedKeyUserClass(Key indKey, String resourceUrl,
     await createResource(
       '$userClassIndKeyFileUrl.acl',
       content: aclContentStr,
-      replaceIfExist: true,
     );
   } else {
     // Update the existing file using a sparql query
@@ -291,4 +289,3 @@ Future<void> copySharedKeyUserClass(Key indKey, String resourceUrl,
     await updateFileByQuery(userClassIndKeyFileUrl, insertQuery);
   }
 }
-
