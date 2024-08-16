@@ -308,6 +308,7 @@ class _SolidLoginState extends State<SolidLogin> {
         // Navigates to the Initial Setup Screen using the provided authentication data.
 
         Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
+          // Close the animation dialog before navigating away.
           Navigator.of(context, rootNavigator: true).pop();
           await Navigator.pushReplacement(
             context,
@@ -323,7 +324,7 @@ class _SolidLoginState extends State<SolidLogin> {
         // Navigates to the Home Screen if the account exits.
 
         Future<void> navHomeScreen() async {
-          // Close the dialog before navigating away.
+          // Close the animation dialog before navigating away.
           Navigator.of(context, rootNavigator: true).pop();
           await Navigator.pushReplacement(
             context,
@@ -339,11 +340,15 @@ class _SolidLoginState extends State<SolidLogin> {
               await initialStructureTest(defaultFolders, defaultFiles);
           final allExists = resCheckList.first as bool;
 
+          // if (context.mounted) {
+          //   Navigator.of(context, rootNavigator: true).pop();
+          // }
+
           if (!allExists) {
             await navInitialSetupScreen(resCheckList);
+          } else {
+            await navHomeScreen();
           }
-
-          await navHomeScreen();
         }
 
         // Method to navigate back to the login widget, requiring BuildContext,

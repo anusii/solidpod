@@ -7,6 +7,9 @@ description of the update.
 
 ## 0.6.0
 
++ Fix login animation issue [0.5.48] 
++ Export function to read permission given by others [0.5.47]
++ Export get resources in a container function [0.5.46]
 + Update dependencies to the latest release [0.5.45]
 + Remove deprecated classes [0.5.44]
 + Remove deprecated functions [0.5.43]

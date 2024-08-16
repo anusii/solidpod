@@ -277,6 +277,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: titleBackgroundColor,
         title: Text(title),
         actions: [

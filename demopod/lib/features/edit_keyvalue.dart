@@ -224,7 +224,7 @@ class _KeyValueEditState extends State<KeyValueEdit> {
                         final saved = await _saveToPod(context);
                         if (saved) {
                           if (!context.mounted) return;
-                          await Navigator.push(
+                          await Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
                                   builder: (context) => widget.child));
