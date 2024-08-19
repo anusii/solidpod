@@ -126,16 +126,22 @@ enum AccessMode {
   read('Read', 'permission to read the content of the shared file'),
 
   /// Write access
-  write('Write',
-      'permission to add/delete/modify content to/from the shared file'),
+  write(
+    'Write',
+    'permission to add/delete/modify content to/from the shared file',
+  ),
 
   /// Control access: read and write access to the ACL file
-  control('Control',
-      'permission to alter the access permission to the shared file'),
+  control(
+    'Control',
+    'permission to alter the access permission to the shared file',
+  ),
 
   /// Append data (a type of write)
-  append('Append',
-      'permission to add content but not remove or modify content from the shared file');
+  append(
+    'Append',
+    'permission to add content but not remove or modify content from the shared file',
+  );
 
   /// Constructor
   const AccessMode(this._value, this._description);
@@ -227,7 +233,7 @@ Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
           URIRef(webId as String),
         },
       },
-    }
+    },
   };
 
   final bindNS = {
@@ -253,8 +259,8 @@ Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
     if (initialDataList != null) ...{
       URIRef(initialDataList.first): {
         URIRef('${appsTerms}sessionKey'): initialDataList.last,
-      }
-    }
+      },
+    },
   };
 
   final bindNS = {

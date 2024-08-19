@@ -66,8 +66,10 @@ String _getChunkName(int chunkId) => '$chunkId.bin';
 
 /// Transform the stream of file content into a stream of (larger) chunks.
 /// [contentStream] is typically set to [file.openRead()]
-Stream<Uint8List> _getChunkStream(Stream<List<int>> contentStream,
-    {int chunkSize = 2 * 1024 * 1024}) async* {
+Stream<Uint8List> _getChunkStream(
+  Stream<List<int>> contentStream, {
+  int chunkSize = 2 * 1024 * 1024,
+}) async* {
   // Dart reads file in blocks of size 64k, see
   // https://github.com/dart-lang/sdk/lib/io/file_impl.dart
   assert(chunkSize >= 64 * 1024);
@@ -108,12 +110,17 @@ Future<void> sendLargeFile({
   }
 
   // Create the directory for storing chunked data
-  await createResource(chunkDirUrl,
-      fileFlag: false, contentType: ResourceContentType.directory);
+  await createResource(
+    chunkDirUrl,
+    fileFlag: false,
+    contentType: ResourceContentType.directory,
+  );
 
   // Create ACL of the directory
-  await createResource('$chunkDirUrl/.acl',
-      content: await genAclTurtle(chunkDirUrl, fileFlag: false));
+  await createResource(
+    '$chunkDirUrl/.acl',
+    content: await genAclTurtle(chunkDirUrl, fileFlag: false),
+  );
 
   var chunkId = 0;
   final chunkUrls = <String>[];
@@ -125,12 +132,17 @@ Future<void> sendLargeFile({
     chunkUrls.add(chunkUrl);
 
     // Create the chunk file
-    await createResource(chunkUrl,
-        content: chunk, contentType: ResourceContentType.binary);
+    await createResource(
+      chunkUrl,
+      content: chunk,
+      contentType: ResourceContentType.binary,
+    );
 
     // Create ACL of the chunk file
-    await createResource('$chunkUrl.acl',
-        content: await genAclTurtle(chunkUrl));
+    await createResource(
+      '$chunkUrl.acl',
+      content: await genAclTurtle(chunkUrl),
+    );
 
     sentBytes += chunk.lengthInBytes;
     if (onProgress != null) {
@@ -146,7 +158,7 @@ Future<void> sendLargeFile({
     URIRef(remoteFileUrl): {
       SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
-    }
+    },
   };
 
   final bindNS = {
@@ -154,8 +166,10 @@ Future<void> sendLargeFile({
     'c': Namespace(ns: chunkDirUrl),
   };
 
-  await createResource(fileUrl,
-      content: tripleMapToTurtle(triples, bindNamespaces: bindNS));
+  await createResource(
+    fileUrl,
+    content: tripleMapToTurtle(triples, bindNamespaces: bindNS),
+  );
 
   // Create ACL of the Turtle file
   await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));

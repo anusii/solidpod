@@ -115,7 +115,7 @@ class AclResource {
         userPermMap[accessStr] = [
           accessResItemSet,
           accessPersItemSet,
-          accessItemSet
+          accessItemSet,
         ];
       }
     }

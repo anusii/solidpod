@@ -37,7 +37,10 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 /// [updateCheckBox] is the function to update the checkbox data when pressed
 ///
 CheckboxListTile permissionCheckbox(
-    AccessMode accessMode, bool checkboxChecked, Function updateCheckBox) {
+  AccessMode accessMode,
+  bool checkboxChecked,
+  Function updateCheckBox,
+) {
   return CheckboxListTile(
     title: Text('${accessMode.mode} (${accessMode.description})'),
     value: checkboxChecked,

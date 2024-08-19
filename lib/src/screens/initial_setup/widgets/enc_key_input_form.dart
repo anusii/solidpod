@@ -102,7 +102,8 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
               ),
               suffixIcon: IconButton(
                 icon: Icon(
-                    _showSecurityKey ? Icons.visibility : Icons.visibility_off),
+                  _showSecurityKey ? Icons.visibility : Icons.visibility_off,
+                ),
                 onPressed: () {
                   setState(() {
                     _showSecurityKey =
@@ -131,9 +132,11 @@ class _EncKeyInputFormState extends State<EncKeyInputForm> {
                 fontWeight: FontWeight.bold,
               ),
               suffixIcon: IconButton(
-                icon: Icon(_showRetypedSecurityKey
-                    ? Icons.visibility
-                    : Icons.visibility_off),
+                icon: Icon(
+                  _showRetypedSecurityKey
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                ),
                 onPressed: () {
                   setState(() {
                     _showRetypedSecurityKey = !_showRetypedSecurityKey;

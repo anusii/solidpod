@@ -23,6 +23,7 @@
 ///
 ///
 /// Authors: Anushka Vidanage
+library;
 
 /// Solid function call results
 enum SolidFunctionCallStatus {

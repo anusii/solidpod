@@ -49,9 +49,14 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// set the permission for a resource.
 /// It returns a Future that resolves to a String
 /// representing the result of the operation.
-Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
-    List<dynamic> recipientWebIdList, List<dynamic> permissionList,
-    [String? groupName, bool fileFlag = true]) async {
+Future<String> setPermissionAcl(
+  String resourceUrl,
+  RecipientType recipientType,
+  List<dynamic> recipientWebIdList,
+  List<dynamic> permissionList, [
+  String? groupName,
+  bool fileFlag = true,
+]) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);
 
@@ -151,13 +156,15 @@ Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
     );
   }
 
-  final aclFullContentStr = await genAclTurtle(resourceUrl,
-      fileFlag: fileFlag,
-      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
-      publicAccess: publicPermSet,
-      authUserAccess: authUserPermSet,
-      thirdPartyAccess: updatedIndPermMap,
-      groupAccess: updatedGroupPermMap);
+  final aclFullContentStr = await genAclTurtle(
+    resourceUrl,
+    fileFlag: fileFlag,
+    ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+    publicAccess: publicPermSet,
+    authUserAccess: authUserPermSet,
+    thirdPartyAccess: updatedIndPermMap,
+    groupAccess: updatedGroupPermMap,
+  );
 
   final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
 
@@ -166,8 +173,13 @@ Future<String> setPermissionAcl(String resourceUrl, RecipientType recipientType,
 
 /// Create a shared file on recepient's POD.
 /// Copy encrypted shared key, shared file path, and acess list to this file
-Future<void> copySharedKey(String receiverWebId, String resUniqueId,
-    String encSharedKey, String encSharedPath, String encSharedAccess) async {
+Future<void> copySharedKey(
+  String receiverWebId,
+  String resUniqueId,
+  String encSharedKey,
+  String encSharedPath,
+  String encSharedAccess,
+) async {
   /// Get shared key file url.
   final sharedKeyFilePath = await getSharedKeyFilePath();
   final receiverSharedKeyFileUrl =
@@ -236,8 +248,12 @@ Future<void> copySharedKey(String receiverWebId, String resUniqueId,
 }
 
 /// Copy shared individual key, either publicly or for all authenticated users
-Future<void> copySharedKeyUserClass(Key indKey, String resourceUrl,
-    List<dynamic> permissionList, RecipientType recipientType) async {
+Future<void> copySharedKeyUserClass(
+  Key indKey,
+  String resourceUrl,
+  List<dynamic> permissionList,
+  RecipientType recipientType,
+) async {
   // File contents variables
   var userClassIndKeyFileUrl = '';
   var aclContentStr = '';
@@ -247,17 +263,21 @@ Future<void> copySharedKeyUserClass(Key indKey, String resourceUrl,
     userClassIndKeyFileUrl = await getFileUrl(await getPubIndKeyPath());
 
     // Create ACL content for the file
-    aclContentStr = await genAclTurtle(userClassIndKeyFileUrl,
-        ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
-        publicAccess: {AccessMode.read});
+    aclContentStr = await genAclTurtle(
+      userClassIndKeyFileUrl,
+      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+      publicAccess: {AccessMode.read},
+    );
   } else if (recipientType == RecipientType.authUser) {
     // Get the url of the file
     userClassIndKeyFileUrl = await getFileUrl(await getAuthUserIndKeyPath());
 
     // Create ACL content for the file
-    aclContentStr = await genAclTurtle(userClassIndKeyFileUrl,
-        ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
-        authUserAccess: {AccessMode.read});
+    aclContentStr = await genAclTurtle(
+      userClassIndKeyFileUrl,
+      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+      authUserAccess: {AccessMode.read},
+    );
   }
 
   // Check if individual key file exists. If not create a file

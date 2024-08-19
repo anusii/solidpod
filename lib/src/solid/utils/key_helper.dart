@@ -54,7 +54,8 @@ import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
-    sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32));
+      sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
+    );
 
 /// Derive the verification key from the security key
 String genVerificationKey(String securityKey) =>
@@ -87,7 +88,10 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
 /// Add the encrypted individual/session key string [encIndKey] and
 /// the corresponding IV string [ivBase64] for file with path [filePath]
 Future<void> _addIndKey(
-    String filePath, String encIndKey, String ivBase64) async {
+  String filePath,
+  String encIndKey,
+  String ivBase64,
+) async {
   final sub = await getFileUrl(filePath);
 
   final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
@@ -102,7 +106,10 @@ Future<void> _addIndKey(
 /// Delete the encrypted individual/session key string [encIndKey] and
 /// the corresponding IV string [ivBase64] for file with path [filePath]
 Future<void> _delIndKey(
-    String filePath, String encIndKey, String ivBase64) async {
+  String filePath,
+  String encIndKey,
+  String ivBase64,
+) async {
   final sub = await getFileUrl(filePath);
 
   final query = 'DELETE DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
@@ -206,9 +213,10 @@ class KeyManager {
     _pubKey = trimPubKeyStr(pair.publicKey);
     final iv = genRandIV();
     _prvKeyRecord = _PrvKeyRecord(
-        encKeyBase64: encryptPrivateKey(pair.privateKey, _masterKey!, iv),
-        ivBase64: iv.base64,
-        key: pair.privateKey);
+      encKeyBase64: encryptPrivateKey(pair.privateKey, _masterKey!, iv),
+      ivBase64: iv.base64,
+      key: pair.privateKey,
+    );
 
     // Save encKeyFile, indKeyFile, and pubKeyFile (on server)
 
@@ -306,7 +314,9 @@ class KeyManager {
 
   /// Change the security key and update encKeyFile and indKeyFile in POD
   static Future<void> changeSecurityKey(
-      String currentSecurityKey, String newSecurityKey) async {
+    String currentSecurityKey,
+    String newSecurityKey,
+  ) async {
     if (!verifySecurityKey(currentSecurityKey, await getVerificationKey())) {
       throw Exception('Unable to verify the current security key!');
     }
@@ -394,8 +404,11 @@ class KeyManager {
 
     assert(_prvKeyRecord != null);
 
-    _prvKeyRecord!.key ??= decryptPrivateKey(_prvKeyRecord!.encKeyBase64,
-        await getMasterKey(), IV.fromBase64(_prvKeyRecord!.ivBase64));
+    _prvKeyRecord!.key ??= decryptPrivateKey(
+      _prvKeyRecord!.encKeyBase64,
+      await getMasterKey(),
+      IV.fromBase64(_prvKeyRecord!.ivBase64),
+    );
 
     return _prvKeyRecord!.key!;
   }
@@ -418,15 +431,21 @@ class KeyManager {
     assert(_indKeyMap != null);
     if (!_indKeyMap!.containsKey(resourceUrl)) {
       throw Exception(
-          'Unable to locate the individual key for resource:\n$resourceUrl');
+        'Unable to locate the individual key for resource:\n$resourceUrl',
+      );
     }
 
     final record = _indKeyMap![resourceUrl];
     assert(record != null);
 
     if (record!.key == null) {
-      record.key = Key.fromBase64(decryptData(record.encKeyBase64,
-          await getMasterKey(), IV.fromBase64(record.ivBase64)));
+      record.key = Key.fromBase64(
+        decryptData(
+          record.encKeyBase64,
+          await getMasterKey(),
+          IV.fromBase64(record.ivBase64),
+        ),
+      );
       _indKeyMap![resourceUrl] = record;
     }
     return record.key!;
@@ -443,7 +462,10 @@ class KeyManager {
     final iv = genRandIV();
     final encIndKey = encryptData(indKey.base64, await getMasterKey(), iv);
     _indKeyMap![fileUrl] = _IndKeyRecord(
-        filePath: filePath, encKeyBase64: encIndKey, ivBase64: iv.base64);
+      filePath: filePath,
+      encKeyBase64: encIndKey,
+      ivBase64: iv.base64,
+    );
 
     await _addIndKey(filePath, encIndKey, iv.base64);
   }
@@ -484,7 +506,8 @@ class KeyManager {
     assert(_sharedIndKeyMap != null);
     if (!_sharedIndKeyMap!.containsKey(resourceUrl)) {
       throw Exception(
-          'Unable to locate the individual key for resource:\n$resourceUrl');
+        'Unable to locate the individual key for resource:\n$resourceUrl',
+      );
     }
 
     final record = _sharedIndKeyMap![resourceUrl];
@@ -515,7 +538,9 @@ class KeyManager {
     _verificationKey = v[encKeyPred] as String;
 
     _prvKeyRecord = _PrvKeyRecord(
-        encKeyBase64: v[prvKeyPred] as String, ivBase64: v[ivPred] as String);
+      encKeyBase64: v[prvKeyPred] as String,
+      ivBase64: v[ivPred] as String,
+    );
   }
 
   /// Generate the content of indKeyFile and save it (on server)
@@ -542,9 +567,10 @@ class KeyManager {
       final v = entry.value as Map;
       if (v.containsKey(sessionKeyPred)) {
         _indKeyMap![k] = _IndKeyRecord(
-            encKeyBase64: v[sessionKeyPred] as String,
-            ivBase64: v[ivPred] as String,
-            filePath: v[pathPred] as String);
+          encKeyBase64: v[sessionKeyPred] as String,
+          ivBase64: v[ivPred] as String,
+          filePath: v[pathPred] as String,
+        );
       }
     }
   }
@@ -602,11 +628,12 @@ class KeyManager {
 
         _sharedIndKeyMap![_prvKeyRecord!.decryptData(v[pathPred] as String)] =
             _SharedIndKeyRecord(
-                filePath: _prvKeyRecord!.decryptData(v[pathPred] as String),
-                accessList:
-                    _prvKeyRecord!.decryptData(v[accessListPred] as String),
-                key: Key.fromBase64(
-                    _prvKeyRecord!.decryptData(v[sharedKeyPred] as String)));
+          filePath: _prvKeyRecord!.decryptData(v[pathPred] as String),
+          accessList: _prvKeyRecord!.decryptData(v[accessListPred] as String),
+          key: Key.fromBase64(
+            _prvKeyRecord!.decryptData(v[sharedKeyPred] as String),
+          ),
+        );
       }
     }
   }
@@ -624,12 +651,12 @@ class KeyManager {
         solidTermsNS.ns.withAttr(encKeyPred): _verificationKey!,
         solidTermsNS.ns.withAttr(ivPred): _prvKeyRecord!.ivBase64,
         solidTermsNS.ns.withAttr(prvKeyPred): _prvKeyRecord!.encKeyBase64,
-      }
+      },
     };
 
     final bindNS = {
       solidTermsNS.prefix: solidTermsNS.ns,
-      termsNS.prefix: termsNS.ns
+      termsNS.prefix: termsNS.ns,
     };
 
     return tripleMapToTurtle(triples, bindNamespaces: bindNS);
@@ -641,7 +668,7 @@ class KeyManager {
 
     final triples = <URIRef, Map<URIRef, String>>{};
     triples[URIRef(_indKeyUrl!)] = {
-      termsNS.ns.withAttr(titlePred): indKeyFileTitle
+      termsNS.ns.withAttr(titlePred): indKeyFileTitle,
     };
 
     if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
@@ -662,7 +689,7 @@ class KeyManager {
 
     final bindNS = {
       solidTermsNS.prefix: solidTermsNS.ns,
-      termsNS.prefix: termsNS.ns
+      termsNS.prefix: termsNS.ns,
     };
 
     return tripleMapToTurtle(triples, bindNamespaces: bindNS);
@@ -678,12 +705,12 @@ class KeyManager {
       URIRef(_pubKeyUrl!): {
         termsNS.ns.withAttr(titlePred): pubKeyFileTitle,
         solidTermsNS.ns.withAttr(pubKeyPred): _pubKey!,
-      }
+      },
     };
 
     final bindNS = {
       solidTermsNS.prefix: solidTermsNS.ns,
-      termsNS.prefix: termsNS.ns
+      termsNS.prefix: termsNS.ns,
     };
 
     return tripleMapToTurtle(triples, bindNamespaces: bindNS);
@@ -695,10 +722,11 @@ class KeyManager {
 
 class _IndKeyRecord {
   /// Constructor
-  _IndKeyRecord(
-      {required this.filePath,
-      required this.encKeyBase64,
-      required this.ivBase64});
+  _IndKeyRecord({
+    required this.filePath,
+    required this.encKeyBase64,
+    required this.ivBase64,
+  });
 
   /// The path of file corresponds to the key
   final String filePath;
@@ -727,8 +755,11 @@ class _IndKeyRecord {
 
 class _SharedIndKeyRecord {
   /// Constructor
-  _SharedIndKeyRecord(
-      {required this.filePath, required this.accessList, required this.key});
+  _SharedIndKeyRecord({
+    required this.filePath,
+    required this.accessList,
+    required this.key,
+  });
 
   /// The path of file corresponds to the key
   final String filePath;

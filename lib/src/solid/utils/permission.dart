@@ -65,11 +65,11 @@ Future<String> genAclTurtle(
     URIRef(ownerWebId!): [AclPredicate.agent.uriRef, ownerAccess],
     if (thirdPartyAccess != null && thirdPartyAccess.isNotEmpty) ...{
       for (final entry in thirdPartyAccess.entries)
-        URIRef(entry.key): [AclPredicate.agent.uriRef, entry.value]
+        URIRef(entry.key): [AclPredicate.agent.uriRef, entry.value],
     },
     if (groupAccess != null && groupAccess.isNotEmpty) ...{
       for (final entry in groupAccess.entries)
-        URIRef(entry.key): [AclPredicate.agentGroup.uriRef, entry.value]
+        URIRef(entry.key): [AclPredicate.agentGroup.uriRef, entry.value],
     },
     if (publicAccess != null && publicAccess.isNotEmpty) ...{
       publicAgent: [AclPredicate.agentClass.uriRef, publicAccess],
@@ -124,7 +124,8 @@ Future<String> genAclTurtle(
 /// {AccessMode: {webId/agent | publicAgent}}
 
 Map<AccessMode, Map<URIRef, Set<URIRef>>> getAccessMap(
-    Map<URIRef, List<dynamic>> permissions) {
+  Map<URIRef, List<dynamic>> permissions,
+) {
   final accessMap = {
     for (final mode in [
       AccessMode.read,
@@ -132,7 +133,7 @@ Map<AccessMode, Map<URIRef, Set<URIRef>>> getAccessMap(
       AccessMode.control,
       AccessMode.append,
     ])
-      mode: <URIRef, Set<URIRef>>{}
+      mode: <URIRef, Set<URIRef>>{},
   };
 
   for (final uriRef in permissions.keys) {
@@ -154,8 +155,10 @@ Map<AccessMode, Map<URIRef, Set<URIRef>>> getAccessMap(
 ///
 /// Returns a Future that completes with a Map containing the permission data.
 /// The Map structure is defined by the REST API response.
-Future<Map<dynamic, dynamic>> readAcl(String resourceUrl,
-    [bool fileFlag = true]) async {
+Future<Map<dynamic, dynamic>> readAcl(
+  String resourceUrl, [
+  bool fileFlag = true,
+]) async {
   final resourceAclUrl = getResAclFile(resourceUrl, fileFlag);
 
   final aclContent = await fetchPrvFile(resourceAclUrl);

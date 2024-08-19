@@ -38,23 +38,30 @@ import 'package:solidpod/src/solid/utils/alert.dart';
 /// [formControllerWebId] is the controller for the webid input
 /// [onSubmitFuncion] is the function to be called on submit
 ///
-Future<dynamic> indWebIdInputDialog(BuildContext context,
-    TextEditingController formControllerWebId, Function onSubmitFuncion) {
+Future<dynamic> indWebIdInputDialog(
+  BuildContext context,
+  TextEditingController formControllerWebId,
+  Function onSubmitFuncion,
+) {
   return showDialog(
     context: context,
     builder: (context) {
       return AlertDialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 50),
         title: const Text('WebID of the recipient'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Web ID text field
-          TextFormField(
-            controller: formControllerWebId,
-            decoration: const InputDecoration(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Web ID text field
+            TextFormField(
+              controller: formControllerWebId,
+              decoration: const InputDecoration(
                 hintText:
-                    'Eg: https://pods.solidcommunity.au/john-doe/profile/card#me'),
-          ),
-        ]),
+                    'Eg: https://pods.solidcommunity.au/john-doe/profile/card#me',
+              ),
+            ),
+          ],
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () async {

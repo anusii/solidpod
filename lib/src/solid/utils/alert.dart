@@ -32,17 +32,22 @@ import 'package:flutter/material.dart';
 
 /// Alert widget to popup a dialog with a given message
 /// and an optional title
-Future<void> alert(BuildContext context, String msg,
-    [String title = 'Notice']) async {
+Future<void> alert(
+  BuildContext context,
+  String msg, [
+  String title = 'Notice',
+]) async {
   await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-            title: Text(title),
-            content: Text(msg),
-            actions: [
-              ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'))
-            ],
-          ));
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(msg),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }

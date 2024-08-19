@@ -43,9 +43,13 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Remove permission from ALC file by running a Sparql DELETE query
-Future<String> removePermissionAcl(String resourceName, String resourceUrl,
-    String removerId, RecipientType recipientType,
-    [bool fileFlag = true]) async {
+Future<String> removePermissionAcl(
+  String resourceName,
+  String resourceUrl,
+  String removerId,
+  RecipientType recipientType, [
+  bool fileFlag = true,
+]) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);
 
@@ -118,13 +122,15 @@ Future<String> removePermissionAcl(String resourceName, String resourceUrl,
     await deleteResource(groupFileUrl, ResourceContentType.turtleText);
   }
 
-  final aclFullContentStr = await genAclTurtle(resourceUrl,
-      fileFlag: fileFlag,
-      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
-      publicAccess: publicPermSet,
-      authUserAccess: authUserPermSet,
-      thirdPartyAccess: updatedIndPermMap,
-      groupAccess: updatedGroupPermMap);
+  final aclFullContentStr = await genAclTurtle(
+    resourceUrl,
+    fileFlag: fileFlag,
+    ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+    publicAccess: publicPermSet,
+    authUserAccess: authUserPermSet,
+    thirdPartyAccess: updatedIndPermMap,
+    groupAccess: updatedGroupPermMap,
+  );
 
   final updateRes = await updateAclFileContent(resourceUrl, aclFullContentStr);
 
@@ -175,7 +181,9 @@ Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
 
 /// Copy shared individual key, either publicly or for all authenticated users
 Future<void> removeSharedKeyUserClass(
-    String resourceUrl, RecipientType recipientType) async {
+  String resourceUrl,
+  RecipientType recipientType,
+) async {
   // File contents variables
   var userClassIndKeyFileUrl = '';
 

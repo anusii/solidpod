@@ -91,20 +91,21 @@ class AuthDataManager {
     _authResponse = authData['authResponse'] as Credential;
 
     await writeToSecureStorage(
-        _authDataSecureStorageKey,
-        jsonEncode({
-          'web_id': _webId,
-          'logout_url': _logoutUrl,
-          'rsa_info': jsonEncode({
-            ..._rsaInfo!,
-            // Overwrite the 'rsa' keypair in rsaInfo
-            'rsa': {
-              'public_key': _rsaInfo!['rsa'].publicKey as String,
-              'private_key': _rsaInfo!['rsa'].privateKey as String,
-            },
-          }),
-          'auth_response': _authResponse!.toJson(),
-        }));
+      _authDataSecureStorageKey,
+      jsonEncode({
+        'web_id': _webId,
+        'logout_url': _logoutUrl,
+        'rsa_info': jsonEncode({
+          ..._rsaInfo!,
+          // Overwrite the 'rsa' keypair in rsaInfo
+          'rsa': {
+            'public_key': _rsaInfo!['rsa'].publicKey as String,
+            'private_key': _rsaInfo!['rsa'].privateKey as String,
+          },
+        }),
+        'auth_response': _authResponse!.toJson(),
+      }),
+    );
 
     debugPrint('AuthDataManager => saveAuthData() done');
   }
@@ -185,7 +186,8 @@ class AuthDataManager {
       var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
       if (JwtDecoder.isExpired(tokenResponse.accessToken!)) {
         debugPrint(
-            'AuthDataManager => _getTokenResponse() refreshing expired token');
+          'AuthDataManager => _getTokenResponse() refreshing expired token',
+        );
         assert(_rsaInfo != null);
         final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
         final publicKeyJwk = _rsaInfo!['pubKeyJwk'];

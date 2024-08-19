@@ -63,7 +63,9 @@ final List<String> _scopes = <String>[
 /// occurs during the authentication process.
 
 Future<List<dynamic>?> solidAuthenticate(
-    String serverId, BuildContext context) async {
+  String serverId,
+  BuildContext context,
+) async {
   try {
     final loggedIn = await checkLoggedIn();
     debugPrint('solidAuthenticate() => checkLoggedIn() => $loggedIn');

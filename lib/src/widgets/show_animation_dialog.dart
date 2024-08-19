@@ -68,53 +68,54 @@ Future<void> showAnimationDialog(
   VoidCallback? updateStateCallback,
 ) {
   return showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (animationContext) {
-        return Padding(
-            padding: const EdgeInsets.all(50),
-            child: Center(
-              child: SizedBox(
-                width: 200,
-                height: 290,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      LoadingIndicator(
-                        indicatorType: Indicator.values[animationIndex],
-                        colors: _defaultPodColors,
-                        strokeWidth: 100.0,
-                        pathBackgroundColor: showPathBackground
-                            ? const Color.fromARGB(59, 0, 0, 0)
-                            : null,
-                      ),
-                      const SizedBox(height: 5),
-                      DefaultTextStyle(
-                        style: const TextStyle(
-                          fontSize: 20,
-                          color: Colors.white,
-                        ),
-                        child: Text(
-                          alertMsg,
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          if (context.mounted) {
-                            updateStateCallback!();
-                          }
-                          Navigator.of(animationContext)
-                              .pop(); // Close the dialog
-                        },
-                        child: const Text('Cancel'),
-                      ),
-                    ],
+    barrierDismissible: false,
+    context: context,
+    builder: (animationContext) {
+      return Padding(
+        padding: const EdgeInsets.all(50),
+        child: Center(
+          child: SizedBox(
+            width: 200,
+            height: 290,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  LoadingIndicator(
+                    indicatorType: Indicator.values[animationIndex],
+                    colors: _defaultPodColors,
+                    strokeWidth: 100.0,
+                    pathBackgroundColor: showPathBackground
+                        ? const Color.fromARGB(59, 0, 0, 0)
+                        : null,
                   ),
-                ),
+                  const SizedBox(height: 5),
+                  DefaultTextStyle(
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                    child: Text(
+                      alertMsg,
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (context.mounted) {
+                        updateStateCallback!();
+                      }
+                      Navigator.of(animationContext).pop(); // Close the dialog
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                ],
               ),
-            ));
-      });
+            ),
+          ),
+        ),
+      );
+    },
+  );
 }

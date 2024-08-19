@@ -33,8 +33,12 @@ library;
 import 'package:flutter/material.dart';
 
 /// Sub heading build function
-Row buildHeading(String headingStr, double fontSize,
-    [Color? headingColor, double? padding]) {
+Row buildHeading(
+  String headingStr,
+  double fontSize, [
+  Color? headingColor,
+  double? padding,
+]) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -43,9 +47,10 @@ Row buildHeading(String headingStr, double fontSize,
         child: Text(
           headingStr,
           style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w700,
-              color: headingColor ?? Colors.black),
+            fontSize: fontSize,
+            fontWeight: FontWeight.w700,
+            color: headingColor ?? Colors.black,
+          ),
         ),
       ),
     ],

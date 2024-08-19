@@ -169,8 +169,11 @@ ElevatedButton resCreateFormSubmission(
 
         try {
           // await _initPodOriginalFunc(securityKey);
-          await initPod(securityKey,
-              dirUrls: resFoldersLink, fileUrls: resFilesLink);
+          await initPod(
+            securityKey,
+            dirUrls: resFoldersLink,
+            fileUrls: resFilesLink,
+          );
         } on Exception catch (e) {
           debugPrint(e.toString());
         }
@@ -184,10 +187,11 @@ ElevatedButton resCreateFormSubmission(
       }
     },
     style: ElevatedButton.styleFrom(
-        foregroundColor: darkBlue,
-        backgroundColor: darkBlue, // foreground
-        padding: const EdgeInsets.symmetric(horizontal: 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+      foregroundColor: darkBlue,
+      backgroundColor: darkBlue, // foreground
+      padding: const EdgeInsets.symmetric(horizontal: 50),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
     child: Text(
       'SUBMIT',
       style: TextStyle(

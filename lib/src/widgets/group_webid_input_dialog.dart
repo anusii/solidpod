@@ -51,23 +51,28 @@ Future<dynamic> groupWebIdInputDialog(
       return AlertDialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 50),
         title: const Text('Group of WebIDs'),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          // Group name. Should be a single string
-          TextFormField(
-            controller: formControllerGroupName,
-            decoration: const InputDecoration(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Group name. Should be a single string
+            TextFormField(
+              controller: formControllerGroupName,
+              decoration: const InputDecoration(
                 labelText: 'Group name',
-                hintText: 'Multiple words will be combined using the symbol -'),
-          ),
-          const SizedBox(height: 10.0),
-          // List of Web IDs divided by semicolon
-          TextFormField(
-            controller: formControllerGroupWebIds,
-            decoration: const InputDecoration(
+                hintText: 'Multiple words will be combined using the symbol -',
+              ),
+            ),
+            const SizedBox(height: 10.0),
+            // List of Web IDs divided by semicolon
+            TextFormField(
+              controller: formControllerGroupWebIds,
+              decoration: const InputDecoration(
                 labelText: 'List of WebIDs',
-                hintText: 'Divide multiple WebIDs using the semicolon (;)'),
-          ),
-        ]),
+                hintText: 'Divide multiple WebIDs using the semicolon (;)',
+              ),
+            ),
+          ],
+        ),
         actions: <Widget>[
           TextButton(
             onPressed: () async {
@@ -95,13 +100,17 @@ Future<dynamic> groupWebIdInputDialog(
                   Navigator.of(context).pop();
                 } else {
                   if (!context.mounted) return;
-                  await alert(context,
-                      'At least one of the Web IDs you entered is not valid');
+                  await alert(
+                    context,
+                    'At least one of the Web IDs you entered is not valid',
+                  );
                 }
               } else {
                 if (!context.mounted) return;
                 await alert(
-                    context, 'Please enter a group name and a list of Web IDs');
+                  context,
+                  'Please enter a group name and a list of Web IDs',
+                );
               }
             },
             child: const Text('Ok'),

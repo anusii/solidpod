@@ -54,7 +54,7 @@ Map<String, Map<String, List<dynamic>>> turtleToTripleMap(String turtleString) {
       }
     } else {
       triples[sub] = {
-        pre: [obj]
+        pre: [obj],
       };
     }
   }
@@ -66,8 +66,10 @@ Map<String, Map<String, List<dynamic>>> turtleToTripleMap(String turtleString) {
 /// - subject: URIRef String
 /// - predicate: URIRef String
 /// - object: {dynamic}
-String tripleMapToTurtle(Map<URIRef, Map<URIRef, dynamic>> triples,
-    {Map<String, Namespace>? bindNamespaces}) {
+String tripleMapToTurtle(
+  Map<URIRef, Map<URIRef, dynamic>> triples, {
+  Map<String, Namespace>? bindNamespaces,
+}) {
   final g = Graph();
 
   for (final sub in triples.keys) {
@@ -139,7 +141,7 @@ Map<String, dynamic> parseTTLMap(String ttlContent) {
       }
     } else {
       dataMap[sub] = {
-        pre: {obj}
+        pre: {obj},
       };
     }
   }
@@ -170,7 +172,7 @@ Map<String, dynamic> parseACL(String aclContent) {
       }
     } else {
       dataMap[sub] = {
-        pre: [obj]
+        pre: [obj],
       };
     }
   }
@@ -178,11 +180,14 @@ Map<String, dynamic> parseACL(String aclContent) {
 }
 
 /// Generate permission log file content
-String genPermLogTTLStr(String resourceUrl) => tripleMapToTurtle({
-      URIRef(resourceUrl): {
-        termsNS.ns.withAttr(titlePred): logFileTitle,
-        rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
-      }
-    }, bindNamespaces: {
-      termsNS.prefix: termsNS.ns
-    });
+String genPermLogTTLStr(String resourceUrl) => tripleMapToTurtle(
+      {
+        URIRef(resourceUrl): {
+          termsNS.ns.withAttr(titlePred): logFileTitle,
+          rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
+        },
+      },
+      bindNamespaces: {
+        termsNS.prefix: termsNS.ns,
+      },
+    );

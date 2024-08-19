@@ -46,8 +46,11 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dar
 class InitialSetupScreen extends StatefulWidget {
   /// Parameters for initla setup screen
 
-  const InitialSetupScreen(
-      {required this.resCheckList, required this.child, super.key});
+  const InitialSetupScreen({
+    required this.resCheckList,
+    required this.child,
+    super.key,
+  });
 
   // Validated authentication data returing from the Solid server.
   // Includes Access token, Refresh token, logout URL, RSA info, Client info, etc.
@@ -87,10 +90,11 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
       child: Column(
         children: [
           Expanded(
-              child: InitialSetupScreenBody(
-            resNeedToCreate: resNeedToCreate,
-            child: widget.child,
-          ))
+            child: InitialSetupScreenBody(
+              resNeedToCreate: resNeedToCreate,
+              child: widget.child,
+            ),
+          ),
         ],
       ),
     );

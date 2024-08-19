@@ -50,37 +50,45 @@ class _LogoutDialogState extends State<LogoutDialog> {
       content: Text('Logout from the remote Solid Server for $title?'),
       actions: [
         ElevatedButton(
-            child: const Text('OK'),
-            onPressed: () async {
-              if (await logoutPod()) {
-                if (context.mounted) {
-                  await Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => widget.child));
-                }
-              } else {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  await showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                              title: const Text('Logging out failed'),
-                              content: Text(
-                                  'Unable to logging out the $title, please try again later'),
-                              actions: [
-                                ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                    },
-                                    child: const Text('Dismiss'))
-                              ]));
-                }
+          child: const Text('OK'),
+          onPressed: () async {
+            if (await logoutPod()) {
+              if (context.mounted) {
+                await Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => widget.child),
+                );
               }
-            }),
+            } else {
+              if (context.mounted) {
+                Navigator.pop(context);
+                await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Logging out failed'),
+                    content: Text(
+                      'Unable to logging out the $title, please try again later',
+                    ),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Dismiss'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
+          },
+        ),
         ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Cancel')),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
       ],
     );
   }
@@ -88,18 +96,19 @@ class _LogoutDialogState extends State<LogoutDialog> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<({String name, String version})>(
-        future: getAppNameVersion(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            final appName = snapshot.data?.name;
-            final title = appName!.isNotEmpty
-                ? appName[0].toUpperCase() + appName.substring(1)
-                : '';
-            return _build(context, title);
-          } else {
-            return const CircularProgressIndicator();
-          }
-        });
+      future: getAppNameVersion(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final appName = snapshot.data?.name;
+          final title = appName!.isNotEmpty
+              ? appName[0].toUpperCase() + appName.substring(1)
+              : '';
+          return _build(context, title);
+        } else {
+          return const CircularProgressIndicator();
+        }
+      },
+    );
   }
 }
 

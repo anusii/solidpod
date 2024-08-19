@@ -104,7 +104,11 @@ double getWidgetHeight(String content) {
 /// coloring based on the message type to enhance user experience.
 
 Container buildMsgBox(
-    BuildContext context, String msgType, String title, String msg) {
+  BuildContext context,
+  String msgType,
+  String title,
+  String msg,
+) {
   // Zheyuan might need to use isRTL in the future
   // ignore: unused_local_variable
   var isRTL = false;
@@ -183,7 +187,7 @@ Container buildMsgBox(
               SizedBox(height: size.height * 0.015),
             ],
           ),
-        )
+        ),
       ],
     ),
   );

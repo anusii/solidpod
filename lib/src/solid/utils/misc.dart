@@ -87,8 +87,12 @@ String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
     Encrypter(AES(key, mode: mode)).encrypt(data, iv: iv).base64;
 
 /// Decrypt a ciphertext value
-String decryptData(String encData, Key key, IV iv,
-        {AESMode mode = AESMode.sic}) =>
+String decryptData(
+  String encData,
+  Key key,
+  IV iv, {
+  AESMode mode = AESMode.sic,
+}) =>
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
 
 /// Load and parse a private TTL file from POD
@@ -128,8 +132,11 @@ String getUniqueIdResUrl(String resourceUrl, String receiverWebId) {
 /// [isContainer] should be true if the resource is a directory, otherwise false
 /// returns the full resource URL
 
-Future<String> _getResourceUrl(String resourcePath, bool isContainer,
-    [String? extWebId]) async {
+Future<String> _getResourceUrl(
+  String resourcePath,
+  bool isContainer, [
+  String? extWebId,
+]) async {
   String? webId = '';
   // Check if resource url is needed for an external webId
   if (extWebId != null) {
@@ -161,13 +168,17 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
 
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
-    String filePath, String fileContent, Key key, IV iv) async {
+  String filePath,
+  String fileContent,
+  Key key,
+  IV iv,
+) async {
   final triples = {
     URIRef(await getFileUrl(filePath)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
-    }
+    },
   };
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 
@@ -349,7 +360,7 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
       } else {
         filePermMap[receiverId] = {
           permStr: permList,
-          agentStr: receiverMap[receiverId]
+          agentStr: receiverMap[receiverId],
         };
       }
     }
@@ -367,7 +378,9 @@ String getResNameFromUrl(String resourceUrl) {
 ///
 /// returns the access token and DPoP token
 Future<({String accessToken, String dPopToken})> getTokensForResource(
-    String resourceUrl, String httpMethod) async {
+  String resourceUrl,
+  String httpMethod,
+) async {
   final authData = await AuthDataManager.loadAuthData();
   assert(authData != null);
 
@@ -416,8 +429,11 @@ String trimPubKeyStr(String keyStr) {
 
 /// Initialise the directory and file structure in a POD
 
-Future<void> initPod(String securityKey,
-    {List<String>? dirUrls, List<String>? fileUrls}) async {
+Future<void> initPod(
+  String securityKey, {
+  List<String>? dirUrls,
+  List<String>? fileUrls,
+}) async {
   // Check if the user has logged in
 
   final loggedIn = await checkLoggedIn();
@@ -444,8 +460,11 @@ Future<void> initPod(String securityKey,
   // Create the required directories
 
   for (final d in dirUrls) {
-    await createResource(d,
-        fileFlag: false, contentType: ResourceContentType.directory);
+    await createResource(
+      d,
+      fileFlag: false,
+      contentType: ResourceContentType.directory,
+    );
   }
 
   // Check (and generate) the file URLs
@@ -491,8 +510,11 @@ Future<void> initPod(String securityKey,
           fileFlag = false;
       }
 
-      fileContent = await genAclTurtle(resourceUrl,
-          fileFlag: fileFlag, publicAccess: publicAccess);
+      fileContent = await genAclTurtle(
+        resourceUrl,
+        fileFlag: fileFlag,
+        publicAccess: publicAccess,
+      );
 
       aclFlag = true;
     } else {
@@ -520,15 +542,18 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 
     case ResourceStatus.unknown:
       throw Exception(
-          'Error occurred when checking status of ACL file for "$resourceUrl"');
+        'Error occurred when checking status of ACL file for "$resourceUrl"',
+      );
   }
 }
 
 /// Delete a file with path [filePath], its ACL file, and its encryption key
 /// if exists.
 /// Throws an exception if the file does not exist or any error occurs.
-Future<void> deleteFile(String filePath,
-    {ResourceContentType contentType = ResourceContentType.turtleText}) async {
+Future<void> deleteFile(
+  String filePath, {
+  ResourceContentType contentType = ResourceContentType.turtleText,
+}) async {
   final fileUrl = await getFileUrl(filePath);
   await deleteResource(fileUrl, contentType);
   await deleteAclForResource(fileUrl);

@@ -40,14 +40,15 @@ import 'package:solidpod/src/widgets/secret_text_field.dart';
 class SecretInputForm extends StatefulWidget {
   /// Constructor
 
-  const SecretInputForm(
-      {required this.title,
-      required this.message,
-      required this.inputFields,
-      required this.formKey,
-      required this.submitFunc,
-      required this.child,
-      super.key});
+  const SecretInputForm({
+    required this.title,
+    required this.message,
+    required this.inputFields,
+    required this.formKey,
+    required this.submitFunc,
+    required this.child,
+    super.key,
+  });
 
   /// Title of the form
   final String title;
@@ -131,53 +132,58 @@ class _SecretInputFormState extends State<SecretInputForm> {
 
     for (final f in widget.inputFields) {
       column.add(smallGapV);
-      column.add(StatefulBuilder(
+      column.add(
+        StatefulBuilder(
           builder: (context, setState) => SecretTextField(
-                fieldKey: f.fieldKey,
-                fieldLabel: f.fieldLabel,
-                validateFunc: (val) {
-                  final r = f.validateFunc(val);
+            fieldKey: f.fieldKey,
+            fieldLabel: f.fieldLabel,
+            validateFunc: (val) {
+              final r = f.validateFunc(val);
 
-                  setState(() {
-                    _verifiedMap[f.fieldKey] = (r == null);
-                  });
+              setState(() {
+                _verifiedMap[f.fieldKey] = (r == null);
+              });
 
-                  return r;
-                },
-              )));
+              return r;
+            },
+          ),
+        ),
+      );
     }
 
     final form = FormBuilder(
-        key: formKey,
-        onChanged: () {
-          // Save input and validate them
+      key: formKey,
+      onChanged: () {
+        // Save input and validate them
 
-          formKey.currentState!.save();
-          formKey.currentState!.validate(
-            focusOnInvalid: false, // allow update new key even if it is valid
-          );
+        formKey.currentState!.save();
+        formKey.currentState!.validate(
+          focusOnInvalid: false, // allow update new key even if it is valid
+        );
 
-          // Update state
-          setState(() {
-            _canSubmit = !_verifiedMap.containsValue(false);
-          });
+        // Update state
+        setState(() {
+          _canSubmit = !_verifiedMap.containsValue(false);
+        });
 
-          // debugPrint('${formKey.currentState?.value as Map}');
-          // debugPrint('onChange(): _verifiedMap = $_verifiedMap');
-          // debugPrint('onChange(): _canSubmit =  $_canSubmit');
+        // debugPrint('${formKey.currentState?.value as Map}');
+        // debugPrint('onChange(): _verifiedMap = $_verifiedMap');
+        // debugPrint('onChange(): _canSubmit =  $_canSubmit');
+      },
+      autovalidateMode: AutovalidateMode.disabled, // called in onChanged()
+      child: KeyboardListener(
+        focusNode: FocusNode(),
+        onKeyEvent: (event) async {
+          if (event.logicalKey == LogicalKeyboardKey.enter) {
+            await _submit(context);
+          }
         },
-        autovalidateMode: AutovalidateMode.disabled, // called in onChanged()
-        child: KeyboardListener(
-            focusNode: FocusNode(),
-            onKeyEvent: (event) async {
-              if (event.logicalKey == LogicalKeyboardKey.enter) {
-                await _submit(context);
-              }
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: column,
-            )));
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: column,
+        ),
+      ),
+    );
 
     // The submit button
 
@@ -193,38 +199,46 @@ class _SecretInputFormState extends State<SecretInputForm> {
 
     final cancelButton = ElevatedButton(
       onPressed: () async => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => widget.child,
-          )),
+        context,
+        MaterialPageRoute(
+          builder: (context) => widget.child,
+        ),
+      ),
       child: _createText('Cancel', fontSize: 15),
     );
 
     return Scaffold(
-        body: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  form,
-                  medGapV,
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [submitButton, smallGapH, cancelButton],
-                  ),
-                ])));
+      body: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            form,
+            medGapV,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [submitButton, smallGapH, cancelButton],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 // Create a Text widget
-Text _createText(String str,
-    {required double fontSize,
-    FontWeight? fontWeight,
-    Color? color = Colors.black}) {
-  return Text(str,
-      style: TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: fontWeight,
-      ));
+Text _createText(
+  String str, {
+  required double fontSize,
+  FontWeight? fontWeight,
+  Color? color = Colors.black,
+}) {
+  return Text(
+    str,
+    style: TextStyle(
+      color: color,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+    ),
+  );
 }

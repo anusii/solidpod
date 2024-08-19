@@ -84,7 +84,11 @@ SizedBox initialSetupWelcome(BuildContext context) {
           ),
           Center(
             child: buildMsgBox(
-                context, 'warning', initialStructureTitle, initialStructureMsg),
+              context,
+              'warning',
+              initialStructureTitle,
+              initialStructureMsg,
+            ),
           ),
         ],
       ),

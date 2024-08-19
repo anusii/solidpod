@@ -147,84 +147,94 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
         ),
 
         Expanded(
-            child: SizedBox(
-                height: 700,
-                child: ListView(primary: false, children: [
-                  Center(
-                    child: initialSetupWelcome(context),
-                  ),
-                  Center(
-                      child: SizedBox(
-                          child: Padding(
-                              padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  EncKeyInputForm(
-                                    formKey: formKey,
-                                  ),
-                                  Center(
-                                    child: TextButton.icon(
-                                      icon: const Icon(
-                                        Icons.logout,
-                                        color: Colors.grey,
-                                        size: 24.0,
-                                      ),
-                                      label: const Text(
-                                        'Or you can Logout from your Solid Pod'
-                                        ' to login again as another user.',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey, //black,
-                                        ),
-                                      ),
-                                      onPressed: () async {
-                                        // Navigator.pop(context);
+          child: SizedBox(
+            height: 700,
+            child: ListView(
+              primary: false,
+              children: [
+                Center(
+                  child: initialSetupWelcome(context),
+                ),
+                Center(
+                  child: SizedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(80, 10, 80, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          EncKeyInputForm(
+                            formKey: formKey,
+                          ),
+                          Center(
+                            child: TextButton.icon(
+                              icon: const Icon(
+                                Icons.logout,
+                                color: Colors.grey,
+                                size: 24.0,
+                              ),
+                              label: const Text(
+                                'Or you can Logout from your Solid Pod'
+                                ' to login again as another user.',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey, //black,
+                                ),
+                              ),
+                              onPressed: () async {
+                                // Navigator.pop(context);
 
-                                        await logoutPopup(
-                                            context, widget.child);
-                                      },
-                                      style: TextButton.styleFrom(
-                                        backgroundColor: Colors
-                                            .white, //lightBlue, // Set the background color to light blue
-                                      ),
-                                      // remove the popup warning.
+                                await logoutPopup(
+                                  context,
+                                  widget.child,
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors
+                                    .white, //lightBlue, // Set the background color to light blue
+                              ),
+                              // remove the popup warning.
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 40,
+                          ),
+                          Center(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ResourceCreationTextWidget(
+                                  resLinks: combinedLinks,
+                                  baseUrl: baseUrl,
+                                ),
+                                const Divider(
+                                  color: Colors.grey,
+                                ),
+                                for (final String? resLink
+                                    in extractedParts) ...[
+                                  ListTile(
+                                    title: Text(resLink!),
+                                    leading: Icon(
+                                      resLink.endsWith('/')
+                                          ? Icons.folder
+                                          : Icons.insert_drive_file_outlined,
                                     ),
                                   ),
-                                  const SizedBox(
-                                    height: 40,
-                                  ),
-                                  Center(
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          ResourceCreationTextWidget(
-                                            resLinks: combinedLinks,
-                                            baseUrl: baseUrl,
-                                          ),
-                                          const Divider(
-                                            color: Colors.grey,
-                                          ),
-                                          for (final String? resLink
-                                              in extractedParts) ...[
-                                            ListTile(
-                                              title: Text(resLink!),
-                                              leading: Icon(resLink
-                                                      .endsWith('/')
-                                                  ? Icons.folder
-                                                  : Icons
-                                                      .insert_drive_file_outlined),
-                                            ),
-                                          ],
-                                          const SizedBox(
-                                            height: 20,
-                                          ),
-                                        ]),
-                                  )
                                 ],
-                              )))),
-                ]))),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
 
         Center(
           child: Padding(
@@ -250,8 +260,11 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
 }
 
 class ResourceCreationTextWidget extends StatelessWidget {
-  const ResourceCreationTextWidget(
-      {required this.resLinks, required this.baseUrl, super.key});
+  const ResourceCreationTextWidget({
+    required this.resLinks,
+    required this.baseUrl,
+    super.key,
+  });
   final List<String> resLinks;
   final String baseUrl;
 

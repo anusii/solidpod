@@ -38,11 +38,12 @@ import 'package:form_builder_validators/form_builder_validators.dart';
 class SecretTextField extends StatefulWidget {
   /// Constructor.
 
-  const SecretTextField(
-      {required this.fieldKey,
-      required this.fieldLabel,
-      required this.validateFunc,
-      super.key});
+  const SecretTextField({
+    required this.fieldKey,
+    required this.fieldLabel,
+    required this.validateFunc,
+    super.key,
+  });
 
   /// The key of this text field (to be used in a form)
   final String fieldKey;

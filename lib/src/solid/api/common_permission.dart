@@ -114,8 +114,10 @@ Future<void> addPermLogLine(
 }
 
 /// Get latest log entries
-Map<dynamic, dynamic> getLatestLog(Map<dynamic, dynamic> logDataMap,
-    [String? userWebId]) {
+Map<dynamic, dynamic> getLatestLog(
+  Map<dynamic, dynamic> logDataMap, [
+  String? userWebId,
+]) {
   final uniqueLogMap = <dynamic, dynamic>{};
 
   // Loop through logs and get the latest for each resource
@@ -138,8 +140,10 @@ Map<dynamic, dynamic> getLatestLog(Map<dynamic, dynamic> logDataMap,
       if (uniqueLogMap.containsKey(resoruceUrl)) {
         final prevDateTime =
             uniqueLogMap[resoruceUrl][PermissionLogLiteral.logtime];
-        if ([0, 1].contains(DateTime.parse(logEntryList.first as String)
-            .compareTo(DateTime.parse(prevDateTime as String)))) {
+        if ([0, 1].contains(
+          DateTime.parse(logEntryList.first as String)
+              .compareTo(DateTime.parse(prevDateTime as String)),
+        )) {
           replaceExist = true;
         }
       } else {
@@ -154,7 +158,7 @@ Map<dynamic, dynamic> getLatestLog(Map<dynamic, dynamic> logDataMap,
           PermissionLogLiteral.granter: logEntryList[4],
           PermissionLogLiteral.recepient: logEntryList[5],
           PermissionLogLiteral.type: logEntryList[3],
-          PermissionLogLiteral.permissions: logEntryList[6]
+          PermissionLogLiteral.permissions: logEntryList[6],
         };
       }
     }
@@ -165,7 +169,9 @@ Map<dynamic, dynamic> getLatestLog(Map<dynamic, dynamic> logDataMap,
 
 /// Filter log entries by file name
 Map<dynamic, dynamic> filterLogByFilename(
-    Map<dynamic, dynamic> logMap, String fileName) {
+  Map<dynamic, dynamic> logMap,
+  String fileName,
+) {
   final filteredLogMap = {};
   for (final fileUrl in logMap.keys) {
     if ((fileUrl as String).contains(fileName)) {
@@ -177,7 +183,9 @@ Map<dynamic, dynamic> filterLogByFilename(
 
 /// Filter log entries by file name
 Map<dynamic, dynamic> filterLogByWebId(
-    Map<dynamic, dynamic> logMap, String webId) {
+  Map<dynamic, dynamic> logMap,
+  String webId,
+) {
   final filteredLogMap = {};
   for (final logEntry in logMap.entries) {
     if (logEntry.value[PermissionLogLiteral.owner] == webId) {
