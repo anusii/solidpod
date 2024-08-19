@@ -7,6 +7,7 @@ description of the update.
 
 ## 0.6.0
 
++ Update Readme with prerequisites for `macos` and `web` [0.5.49]
 + Fix login animation issue [0.5.48] 
 + Export function to read permission given by others [0.5.47]
 + Export get resources in a container function [0.5.46]

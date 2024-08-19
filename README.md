@@ -141,6 +141,67 @@ An example project that uses `solidpod` can be found
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
 
+## Prerequisites
+
+If the package is being used to build either a `macos` or `web` app, the following 
+changes are required in order to make the package fully functional.
+
+### macos
+Inside the app directory go to the directory `/macos/Runner/`. Inside there are two files named `DebugProfile.entitlements` and `Release.entitlements`. Add the following lines inside the `<dict> </dict>` tag in both files.
+
+```
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+    <true/>
+	<key>keychain-access-groups</key>
+    <array/>
+	<key>com.apple.security.keychain</key>
+    <true/>
+```
+*Note: You may already have some of the above lines in those files. If so fill the missing.*
+
+### web
+Inside the app directory go to the directory `/web/`. Inside create a file called `callback.html`. Add the following piece of code into that file.
+
+```
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script>
+        const AUTH_DESTINATION_KEY = "openidconnect_auth_destination_url";
+        const AUTH_RESPONSE_KEY = "openidconnect_auth_response_info";
+
+        window.onload = function () {
+            if (window.opener && window.opener !== window) { //Used when working as a popup. Uses post message to respond to the parent window                
+                var parent = window.opener ?? window.parent;
+                parent.postMessage(location.href, "*");
+            } else { //Used for redirect loop functionality.
+                //Get the original page destination
+                const destination = sessionStorage.getItem(AUTH_DESTINATION_KEY || "/");
+                sessionStorage.removeItem(AUTH_DESTINATION_KEY);
+                //Store the current window location that will be used to get the information for authentication
+                sessionStorage.setItem(AUTH_RESPONSE_KEY, window.location);
+
+                //Redirect to where we're going so that we can restore state completely
+                location.assign(destination);
+            }
+        }
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
+```
+
+
 ## Usage
 
 Following are the usage of main functionalities supported 
