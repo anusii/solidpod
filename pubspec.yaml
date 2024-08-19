@@ -53,15 +53,7 @@ platforms:
   web:
   windows:
 
-# TODO 20240417 gjw We will want to get rid of these eventually. For
-# example, even though intl 0.18.0 is otherwise required, we override
-# with 0.19.0 to suit some package (SOMEONE FORGOT TO DOCUMENT WHY -
-# PLEASE). But the apps need to also override it, which is really
-# ugly. Maybe for file as well? WHY IS IT OVERRIDEN PLEASE.
-
 dependency_overrides:
-  file: ^7.0.0
-  # intl: ^0.19.0 # solid-auth depends on intl-0.19.0
 
 flutter:
   assets:
