@@ -99,3 +99,6 @@ export 'src/solid/shared_resources.dart' show sharedResources;
 
 // Function to get resources in a container
 export 'src/solid/api/rest_api.dart' show getResourcesInContainer;
+
+// Function to get the latest log enties
+export 'src/solid/api/common_permission.dart' show getLatestLog;

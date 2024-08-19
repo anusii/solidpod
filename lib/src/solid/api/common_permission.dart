@@ -114,6 +114,8 @@ Future<void> addPermLogLine(
 }
 
 /// Get latest log entries
+/// If need to exclude logs of files owned by a specific webid
+/// define [userWebId].
 Map<dynamic, dynamic> getLatestLog(
   Map<dynamic, dynamic> logDataMap, [
   String? userWebId,
