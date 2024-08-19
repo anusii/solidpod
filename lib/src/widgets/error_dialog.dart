@@ -1,6 +1,6 @@
-/// Support for flutter apps accessing solid PODs.
+/// Shows a Widget as Error Dialog.
 ///
-// Time-stamp: <Saturday 2024-01-06 07:04:42 +1100 Graham Williams>
+// Time-stamp: <Sunday 2024-01-07 08:36:42 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,7 +27,40 @@
 // SOFTWARE.
 ///
 /// Authors: Graham Williams
+library;
 
-library solid;
+import 'package:flutter/material.dart';
 
-export 'src/solid/login.dart' show SolidLogin;
+/// Displays an error dialog with a non-dismissible alert.
+///
+/// This function creates and displays an error dialog box in the Flutter application.
+/// It is designed to be non-dismissible, meaning that the user must explicitly acknowledge
+/// the error by tapping the 'OK' button to close the dialog. The error message to be displayed
+/// is passed as a parameter to this function.
+
+Future<void> showErrDialog(BuildContext context, String errMsg) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false, // user must tap button!
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('ERROR!'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text(errMsg),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}

@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Sunday 2024-01-07 08:27:47 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-02-16 11:07:50 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -28,15 +28,18 @@
 ///
 /// Authors: Zheyuan Xu, Graham Williams
 
+// ignore_for_file: use_build_context_synchronously
+
 library;
 
 import 'package:flutter/material.dart';
 
-import 'package:fast_rsa/fast_rsa.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart';
 
-import 'package:solid/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart'
+    show AuthDataManager;
+import 'package:solidpod/src/solid/utils/misc.dart' show checkLoggedIn;
 
 // Scopes variables used in the authentication process.
 
@@ -44,6 +47,7 @@ final List<String> _scopes = <String>[
   'openid',
   'profile',
   'offline_access',
+  'webid', // web ID is necessary to get refresh token
 ];
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
@@ -55,35 +59,37 @@ final List<String> _scopes = <String>[
 ///
 /// Return a list containing authentication data: user's webId; profile data.
 ///
-/// Error Handling: The function has a broad error handling mechanism through
-/// using `on ()`, which returns null if any exception occurs during the
-/// authentication process.
+/// Error Handling: The function has a catch all to return null if any exception
+/// occurs during the authentication process.
 
 Future<List<dynamic>?> solidAuthenticate(
     String serverId, BuildContext context) async {
   try {
-    final issuerUri = await getIssuer(serverId);
+    final loggedIn = await checkLoggedIn();
+    debugPrint('solidAuthenticate() => checkLoggedIn() => $loggedIn');
+    Map<dynamic, dynamic>? authData;
+    if (loggedIn) {
+      authData = await AuthDataManager.loadAuthData();
+      assert(authData != null);
+    } else {
+      // Authentication process for the POD issuer.
 
-    // Authentication process for the POD issuer.
+      final issuerUri = await getIssuer(serverId);
+      authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
-    // ignore: use_build_context_synchronously
-    final authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
+      // write authentication data to flutter secure storage
+      await AuthDataManager.saveAuthData(authData);
+    }
 
-    final accessToken = authData['accessToken'].toString();
-    final decodedToken = JwtDecoder.decode(accessToken);
-    final webId = decodedToken['webid'].toString();
+    final webId = await AuthDataManager.getWebId();
+    assert(webId != null);
 
-    final rsaInfo = authData['rsaInfo'];
-    final rsaKeyPair = rsaInfo['rsa'];
-    final publicKeyJwk = rsaInfo['pubKeyJwk'];
-    final profCardUrl = webId.replaceAll('#me', '');
-    final dPopToken =
-        genDpopToken(profCardUrl, rsaKeyPair as KeyPair, publicKeyJwk, 'GET');
-
-    final profData = await fetchPrvFile(profCardUrl, accessToken, dPopToken);
+    final profCardUrl = webId!.replaceAll('#me', '');
+    final profData = await fetchPrvFile(profCardUrl);
 
     return [authData, webId, profData];
-  } on () {
+  } on Exception catch (e) {
+    debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
 }

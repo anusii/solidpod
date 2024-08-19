@@ -1,6 +1,6 @@
-/// Warning popup window.
+/// A customisable heading widget.
 ///
-// Time-stamp: <Thursday 2024-01-04 11:46:24 +1100 Graham Williams>
+// Time-stamp: <Friday 2024-07-11 09:56:10 +1100 Anushka Vidanage>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,37 +26,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu
+/// Authors: Anushka Vidanage
 
 library;
 
 import 'package:flutter/material.dart';
 
-/// An asynchronous function used to display a warning dialog.
-/// The [BuildContext] is necessary for rendering the dialog within
-/// the widget tree, while the String parameter [content] allows
-/// for custom text to be displayed within the dialog.
-
-Future<dynamic> popupWarning(BuildContext context, String content) {
-  return showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Warning'),
-        content: Text(
-          content,
+/// Sub heading build function
+Row buildHeading(String headingStr, double fontSize,
+    [Color? headingColor, double? padding]) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: padding == null ? EdgeInsets.zero : EdgeInsets.all(padding),
+        child: Text(
+          headingStr,
+          style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              color: headingColor ?? Colors.black),
         ),
-        actions: [
-          TextButton(
-            child: const Text(
-              'Ok',
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      );
-    },
+      ),
+    ],
   );
 }
