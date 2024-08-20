@@ -31,7 +31,7 @@ library;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart'
-    show acl, foaf, ldp, rdf, rdfs, terms, vcard, xsd;
+    show acl, foaf, rdf, terms, vcard;
 
 // /// Predicates schema.
 
@@ -155,7 +155,7 @@ final NS foafNS = (prefix: 'foaf', ns: Namespace(ns: foaf));
 
 ///
 
-final NS ldpNS = (prefix: 'ldp', ns: Namespace(ns: ldp));
+// final NS ldpNS = (prefix: 'ldp', ns: Namespace(ns: ldp));
 
 ///
 
@@ -163,7 +163,7 @@ final NS rdfNS = (prefix: 'rdf', ns: Namespace(ns: rdf));
 
 ///
 
-final NS rdfsNS = (prefix: 'rdfs', ns: Namespace(ns: rdfs));
+// final NS rdfsNS = (prefix: 'rdfs', ns: Namespace(ns: rdfs));
 
 ///
 
@@ -175,7 +175,7 @@ final NS vcardNS = (prefix: 'vcard', ns: Namespace(ns: vcard));
 
 ///
 
-final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
+// final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
 
 ///
 final NS solidTermsNS = (prefix: 'solidTerms', ns: Namespace(ns: appsTerms));
@@ -190,15 +190,15 @@ String httpDcTerms = terms;
 
 /// Title schema.
 
-String httpTitle = '${httpDcTerms}title';
+// String httpTitle = '${httpDcTerms}title';
 
 /// Auth Acl schema.
 
-String httpAuthAcl = acl;
+// String httpAuthAcl = acl;
 
 /// File predicate
 
-const String appsFile = 'https://solidcommunity.au/predicates/file#';
+// const String appsFile = 'https://solidcommunity.au/predicates/file#';
 
 /// Resource ID predicate
 
