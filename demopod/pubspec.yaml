@@ -23,10 +23,10 @@ dependencies:
   window_manager: ^0.3.7
 
 dev_dependencies:
-  dart_code_metrics:
-    git:
-      url: https://github.com/anusii/dart-code-metrics.git
-      ref: dev
+  # dart_code_metrics:
+  #   git:
+  #     url: https://github.com/anusii/dart-code-metrics.git
+  #     ref: dev
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0

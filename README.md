@@ -45,7 +45,7 @@ Default style:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/solid_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/solid_login.png"
 	alt="Solid Login" width="400">
 </div>
 
@@ -53,7 +53,7 @@ Optional version and visit link:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/podnotes_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/podnotes_login.png"
 	alt="Solid Login" width="400">
 </div>
 
@@ -61,7 +61,7 @@ Changing the image, logo, login text, colour scheme:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/tomy_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/tomy_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -69,7 +69,7 @@ Change the image, logo, login text, button style, colour scheme:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/keypod_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/keypod_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -77,7 +77,7 @@ Fine tune to suit the theme of the app:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/dev/images/innerpod_login.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/innerpod_login.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -88,7 +88,7 @@ Fine tune to suit the theme of the app:
   
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/change_security_key.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/change_security_key.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -101,14 +101,14 @@ Fine tune to suit the theme of the app:
 Granting permission: 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/grant_permission.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/grant_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
 Revoking permission: 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/revoke_permission.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/revoke_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
@@ -116,7 +116,7 @@ Revoking permission:
 
 <div align="center">
 	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/av/216_solidpod_release_v1.0.0/images/view_permission.png"
+	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/view_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
