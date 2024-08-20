@@ -68,7 +68,7 @@ const String sharedKeyPred = 'sharedKey';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';
 const String typePred = 'type';
-const String accessToPred = 'accessTo';
+// const String accessToPred = 'accessTo';
 const String agentPred = 'agent';
 const String agentGroupPred = 'agentGroup';
 const String modePred = 'mode';
@@ -85,14 +85,14 @@ const String agentStr = 'agentType';
 
 /// String terms used as values in ttl files.
 
-const String aclAuth = 'Authorization';
-const String aclRead = 'Read';
-const String aclWrite = 'Write';
-const String aclAppend = 'Append';
-const String aclControl = 'Control';
-const String aclAgent = 'Agent';
-const String aclAuthAgent = 'AuthenticatedAgent';
-const String aclDefault = 'default';
+// const String aclAuth = 'Authorization';
+// const String aclRead = 'Read';
+// const String aclWrite = 'Write';
+// const String aclAppend = 'Append';
+// const String aclControl = 'Control';
+// const String aclAgent = 'Agent';
+// const String aclAuthAgent = 'AuthenticatedAgent';
+// const String aclDefault = 'default';
 const String profileDoc = 'PersonalProfileDocument';
 
 /// String link variables used in files generation process for defining ttl
@@ -100,22 +100,22 @@ const String profileDoc = 'PersonalProfileDocument';
 
 const String acl = 'http://www.w3.org/ns/auth/acl#';
 const String foaf = 'http://xmlns.com/foaf/0.1/';
-const String ldp = 'http://www.w3.org/ns/ldp#';
+// const String ldp = 'http://www.w3.org/ns/ldp#';
 const String rdf = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
-const String rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
+// const String rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
 const String terms = 'http://purl.org/dc/terms/';
 const String vcard = 'http://www.w3.org/2006/vcard/ns#';
-const String xsd = 'http://www.w3.org/2001/XMLSchema#';
-const String pubAgent = 'http://xmlns.com/foaf/0.1/Agent';
-const String authAgent = 'http://xmlns.com/foaf/0.1/AuthenticatedAgent';
+// const String xsd = 'http://www.w3.org/2001/XMLSchema#';
+// const String pubAgent = 'http://xmlns.com/foaf/0.1/Agent';
+// const String authAgent = 'http://xmlns.com/foaf/0.1/AuthenticatedAgent';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String terms used as prfixes in turtle and acl files
 const String foafPrefix = 'foaf:';
-const String aclPrefix = 'acl:';
+// const String aclPrefix = 'acl:';
 const String selfPrefix = ':';
 const String termsPrefix = 'terms:';
-const String filePrefix = 'file:';
+// const String filePrefix = 'file:';
 const String dataPrefix = 'data:';
 const String resIdPrefix = 'resourceId:';
 const String logIdPrefix = 'logId:';
