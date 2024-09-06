@@ -198,12 +198,7 @@ class _SecretInputFormState extends State<SecretInputForm> {
     // The Cancel button
 
     final cancelButton = ElevatedButton(
-      onPressed: () async => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => widget.child,
-        ),
-      ),
+      onPressed: () async => Navigator.pop(context),
       child: _createText('Cancel', fontSize: 15),
     );
 
