@@ -377,7 +377,11 @@ await deleteLargeFile(
 ## Ontology
 
 *Solid Pod*'s internal storage structure consists of [turtle](https://www.w3.org/TR/turtle/) files containing security information about the pod's content (data files) and their access.  The internal structure is based on the following [ontology](onto), which captures essential concepts about the app's security information, data files, encryption, shared resources, and access control lists.  
-![Ontology's concept map](onto/SOLID-App-Ontology (schema).png)
+<div align="center">
+	<img
+	src="https://github.com/anusii/solidpod/blob/dev/onto/SOLID-App-Ontology%20(schema).png"
+	alt="Ontology's concept map">
+</div>
 
 
 ## Additional information
