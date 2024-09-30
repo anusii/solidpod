@@ -1,5 +1,5 @@
 name: solidpod
-description: Support easy access to data stored on Solid Pod servers.
+description: A library to support easy access to data stored on Pods in Solid servers.
 version: 0.6.1
 homepage: https://github.com/anusii/solidpod
 
