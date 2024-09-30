@@ -43,7 +43,11 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 // development.
 
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show generateDefaultFiles, generateDefaultFolders, getAppNameVersion;
+    show
+        generateDefaultFiles,
+        generateDefaultFolders,
+        getAppNameVersion,
+        setAppDirName;
 
 // Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -93,6 +97,7 @@ class SolidLogin extends StatefulWidget {
 
     required this.child,
     this.required = true,
+    this.appDirectory = '',
     this.image =
         const AssetImage('assets/images/default_image.jpg', package: 'solid'),
     this.logo =
@@ -166,6 +171,9 @@ class SolidLogin extends StatefulWidget {
 
   final bool required;
 
+  /// Directory name to consider when storing app data
+  final String appDirectory;
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -195,6 +203,7 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
+    await setAppDirName(widget.appDirectory);
     final folders = await generateDefaultFolders();
     final files = await generateDefaultFiles();
 

@@ -187,44 +187,41 @@ Future<String> getEncTTLStr(
 
 /// Returns the path of file with verification key and private key
 Future<String> getEncKeyPath() async =>
-    [await AppInfo.canonicalName, encDir, encKeyFile].join('/');
+    [appDirName, encDir, encKeyFile].join('/');
 
 /// Returns the path of file with individual keys
 Future<String> getIndKeyPath() async =>
-    [await AppInfo.canonicalName, encDir, indKeyFile].join('/');
+    [appDirName, encDir, indKeyFile].join('/');
 
 /// Returns the path of file with public keys
 Future<String> getPubKeyPath() async =>
-    [await AppInfo.canonicalName, sharingDir, pubKeyFile].join('/');
+    [appDirName, sharingDir, pubKeyFile].join('/');
 
 /// Returns the path of public file with individual keys
 Future<String> getPubIndKeyPath() async =>
-    [await AppInfo.canonicalName, sharingDir, pubIndKeyFile].join('/');
+    [appDirName, sharingDir, pubIndKeyFile].join('/');
 
 /// Returns the path of file with individual keys accessed only
 /// by authenticated users
 Future<String> getAuthUserIndKeyPath() async =>
-    [await AppInfo.canonicalName, sharingDir, authUserIndKeyFile].join('/');
+    [appDirName, sharingDir, authUserIndKeyFile].join('/');
 
 /// Returns the path of the data directory
-Future<String> getDataDirPath() async =>
-    [await AppInfo.canonicalName, dataDir].join('/');
+Future<String> getDataDirPath() async => [appDirName, dataDir].join('/');
 
 /// Returns the path of the shared directory
-Future<String> getSharedDirPath() async =>
-    [await AppInfo.canonicalName, sharedDir].join('/');
+Future<String> getSharedDirPath() async => [appDirName, sharedDir].join('/');
 
 /// Returns the path of the shared directory
 Future<String> getSharedKeyFilePath() async =>
-    [await AppInfo.canonicalName, sharedDir, sharedKeyFile].join('/');
+    [appDirName, sharedDir, sharedKeyFile].join('/');
 
 /// Returns the path of the encryption directory
-Future<String> getEncDirPath() async =>
-    [await AppInfo.canonicalName, encDir].join('/');
+Future<String> getEncDirPath() async => [appDirName, encDir].join('/');
 
 /// Returns the path of the encryption directory
 Future<String> getPermLogFilePath() async =>
-    [await AppInfo.canonicalName, logsDir, permLogFile].join('/');
+    [appDirName, logsDir, permLogFile].join('/');
 
 /// Extract the app name and the version from the package info
 /// Return a record (with named fields https://dart.dev/language/records)
@@ -267,16 +264,14 @@ Future<bool> deleteLogIn() async => AuthDataManager.removeAuthData();
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<List<String>> generateDefaultFolders() async {
-  final mainResDir = await AppInfo.canonicalName;
-
-  final dataDirLoc = [mainResDir, dataDir].join('/');
-  final sharingDirLoc = [mainResDir, sharingDir].join('/');
-  final sharedDirLoc = [mainResDir, sharedDir].join('/');
-  final encDirLoc = [mainResDir, encDir].join('/');
-  final logDirLoc = [mainResDir, logsDir].join('/');
+  final dataDirLoc = [appDirName, dataDir].join('/');
+  final sharingDirLoc = [appDirName, sharingDir].join('/');
+  final sharedDirLoc = [appDirName, sharedDir].join('/');
+  final encDirLoc = [appDirName, encDir].join('/');
+  final logDirLoc = [appDirName, logsDir].join('/');
 
   final folders = [
-    mainResDir,
+    appDirName,
     sharingDirLoc,
     sharedDirLoc,
     dataDirLoc,
@@ -292,12 +287,10 @@ Future<List<String>> generateDefaultFolders() async {
 /// Each string in the list represents a path to a default folder for the application.
 
 Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
-  final mainResDir = await AppInfo.canonicalName;
-
-  final sharingDirLoc = [mainResDir, sharingDir].join('/');
-  final sharedDirLoc = [mainResDir, sharedDir].join('/');
-  final encDirLoc = [mainResDir, encDir].join('/');
-  final logDirLoc = [mainResDir, logsDir].join('/');
+  final sharingDirLoc = [appDirName, sharingDir].join('/');
+  final sharedDirLoc = [appDirName, sharedDir].join('/');
+  final encDirLoc = [appDirName, encDir].join('/');
+  final logDirLoc = [appDirName, logsDir].join('/');
 
   final files = {
     sharingDirLoc: [
@@ -312,6 +305,18 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     encDirLoc: [encKeyFile, indKeyFile],
   };
   return files;
+}
+
+/// Set directory name for the app for storing the POD data
+///
+/// If not initially set the app name will be taken by default.
+
+Future<void> setAppDirName(String inputAppDirName) async {
+  if (inputAppDirName.isEmpty) {
+    appDirName = await AppInfo.canonicalName;
+  } else {
+    appDirName = inputAppDirName;
+  }
 }
 
 /// Get resource acl file path
