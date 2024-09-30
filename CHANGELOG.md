@@ -5,6 +5,11 @@ Recorded here are the high level changes for the SolidPod package.
 Guide: Each version update is recorded here with a short user-oriented
 description of the update.
 
+## 0.6.1
+
++ Add app directory name as an optional parameter to the `SolidLogin`
+  function
+
 ## 0.6.0
 
 + Update Readme with prerequisites for `macos` and `web` [0.5.49]
