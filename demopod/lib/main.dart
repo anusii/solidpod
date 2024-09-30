@@ -79,6 +79,7 @@ class DemoPod extends StatelessWidget {
         // DALL-E3.
 
         title: 'SOLID POD DEMONSTRATOR',
+        appDirectory: 'exampleApp',
         image: AssetImage('assets/images/demopod_image.png'),
         logo: AssetImage('assets/images/demopod_logo.png'),
         link: 'https://github.com/anusii/solidpod/blob/main/demopod/README.md',
