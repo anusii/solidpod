@@ -23,6 +23,7 @@
 
 library;
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'package:file_picker/file_picker.dart';
@@ -122,15 +123,28 @@ class _FileServiceState extends State<FileService> {
                 setState(() {
                   uploadInProgress = true;
                 });
-                await sendLargeFile(
-                    localFilePath: uploadFile!,
-                    remoteFileUrl: remoteFileUrl!,
-                    onProgress: (sent, total) {
-                      setState(() {
-                        uploadDone = sent == total;
-                        uploadPercent = sent / total;
-                      });
+                final file = File(uploadFile!);
+                await CssApiClient.pushBinaryData(
+                  remoteFileUrl!,
+                  stream: file.openRead(),
+                  contentLength: file.lengthSync(),
+                  onProgress: (sent, total) {
+                    setState(() {
+                      uploadDone = sent == total;
+                      uploadPercent = sent / total;
                     });
+                  },
+                );
+
+                // await sendLargeFile(
+                //     localFilePath: uploadFile!,
+                //     remoteFileUrl: remoteFileUrl!,
+                //     onProgress: (sent, total) {
+                //       setState(() {
+                //         uploadDone = sent == total;
+                //         uploadPercent = sent / total;
+                //       });
+                //     });
                 if (uploadDone) {
                   setState(() {
                     uploadInProgress = false;
