@@ -73,7 +73,7 @@ class DemoPod extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'Solid Key Pod',
+      title: 'Solid Pod Demonstrator',
       home: SolidLogin(
         // Images generated using Bing Image Creator from Designer, powered by
         // DALL-E3.
