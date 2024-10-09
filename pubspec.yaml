@@ -25,7 +25,9 @@ dependencies:
   path: ^1.9.0
   pointycastle: ^3.9.1
   rdflib: ^0.2.10
-  solid_auth: ^0.1.21
+  solid_auth: ^0.1.22
+  # solid_auth:
+  #   path: ../solid-auth # Use a local path whilst solid auth is under development.
   url_launcher: ^6.3.0
 
 dev_dependencies:
