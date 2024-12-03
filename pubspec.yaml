@@ -1,6 +1,6 @@
 name: solidpod
 description: A library to support easy access to data stored on Pods in Solid servers.
-version: 0.6.2
+version: 0.6.3
 homepage: https://github.com/anusii/solidpod
 
 environment:
