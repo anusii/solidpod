@@ -504,6 +504,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         'Error occured. Please try again!',
                                         Colors.red,
                                       );
+                                    } else if (result ==
+                                        SolidFunctionCallStatus
+                                            .notInitialised) {
+                                      if (!context.mounted) return;
+                                      showSnackBar(
+                                        context,
+                                        'One or more WebIds you entered have not initialised their PODs yet!',
+                                        Colors.orange,
+                                      );
                                     } else {
                                       await _alert(
                                         'Please login first to update permission',
