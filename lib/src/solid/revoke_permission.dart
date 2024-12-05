@@ -104,12 +104,14 @@ Future<dynamic> revokePermission(
         if ([RecipientType.individual, RecipientType.group]
             .contains(recipientType)) {
           for (final removerId in removerIdList) {
-            // Generate unique ID for the resource being shared
-            final resUniqueId =
-                getUniqueIdResUrl(resourceUrl, removerId as String);
+            // Check if POD file structure is still there
+            if (await checkPodInitialised(removerId as String)) {
+              // Generate unique ID for the resource being shared
+              final resUniqueId = getUniqueIdResUrl(resourceUrl, removerId);
 
-            // Delete shared key content from recipient's POD
-            await removeSharedKey(removerId, resUniqueId);
+              // Delete shared key content from recipient's POD
+              await removeSharedKey(removerId, resUniqueId);
+            }
           }
         } else {
           // if the recipient type is either public or authenticated agent
@@ -162,12 +164,14 @@ Future<dynamic> revokePermission(
         // Add log entry if the recipient is either an individual or group of WebIDs
         if ([RecipientType.individual, RecipientType.group]
             .contains(recipientType)) {
-          final receiverLogFileUrl = await getFileUrl(logFilePath, removerId);
-          await addPermLogLine(
-            receiverLogFileUrl,
-            logEntryRes[0] as String,
-            logEntryRes[1] as String,
-          );
+          if (await checkPodInitialised(removerId)) {
+            final receiverLogFileUrl = await getFileUrl(logFilePath, removerId);
+            await addPermLogLine(
+              receiverLogFileUrl,
+              logEntryRes[0] as String,
+              logEntryRes[1] as String,
+            );
+          }
         }
       }
       return SolidFunctionCallStatus.success;
