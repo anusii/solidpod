@@ -511,7 +511,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       showSnackBar(
                                         context,
                                         'One or more WebIds you entered have not initialised their PODs yet!',
-                                        Colors.orange,
+                                        const Color.fromARGB(255, 204, 99, 1),
                                       );
                                     } else {
                                       await _alert(
