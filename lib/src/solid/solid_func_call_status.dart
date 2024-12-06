@@ -34,7 +34,10 @@ enum SolidFunctionCallStatus {
   fail('fail'),
 
   /// Grant permission to other WebIds
-  notLoggedIn('notLoggedIn');
+  notLoggedIn('notLoggedIn'),
+
+  /// Other WebIds not initialised
+  notInitialised('notInitialised');
 
   /// Constructor
   const SolidFunctionCallStatus(this.value);

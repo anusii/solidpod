@@ -317,6 +317,32 @@ Future<ResourceStatus> checkWebIdExists(
   }
 }
 
+/// Given a WebID check if their POD is initialised using the Solidpod
+/// directory structure
+Future<bool> checkPodInitialised(
+  String webIdUrl,
+) async {
+  try {
+    final sharedDirPath = await getSharedDirPath();
+    final sharedDirUrl = webIdUrl.replaceAll(profCard, '$sharedDirPath/');
+
+    // Check if directory exists
+    final dirStatus = await checkResourceStatus(
+      sharedDirUrl,
+      fileFlag: false,
+    );
+
+    if (dirStatus == ResourceStatus.exist) {
+      return true;
+    } else {
+      return false;
+    }
+  } on Object catch (e) {
+    debugPrint('checkPodInitialised() failed: $e');
+    return false;
+  }
+}
+
 /// Updates a file on the server with the provided SPARQL query.
 ///
 /// This asynchronous function sends a PATCH request to the server, targeting
