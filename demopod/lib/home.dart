@@ -264,8 +264,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             setState(() {
               _webId = webId;
             });
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const FileService()));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => FileService(child: widget)));
           } else {
             await alert(context, 'Please login to continue');
           }

@@ -31,7 +31,8 @@ import 'package:solidpod/solidpod.dart';
 import 'package:demopod/dialogs/alert.dart';
 
 class FileService extends StatefulWidget {
-  const FileService({super.key});
+  const FileService({required this.child, super.key});
+  final Widget child;
 
   @override
   State<FileService> createState() => _FileServiceState();
@@ -41,7 +42,7 @@ class _FileServiceState extends State<FileService> {
   String remoteFileName = 'large_file.bin';
   String? uploadFile;
   String? downloadFile;
-  String? remoteFileUrl;
+  // String? remoteFileUrl;
 
   double uploadPercent = 0.0;
   double downloadPercent = 0.0;
@@ -59,8 +60,8 @@ class _FileServiceState extends State<FileService> {
   final smallGapV = const SizedBox(height: 10);
   final largeGapV = const SizedBox(height: 50);
 
-  Future<String> getRemoteFileUrl() async =>
-      getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
+  // Future<String> getRemoteFileUrl() async =>
+  //     getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
 
   Widget getProgressBar(String message, bool isDone, double percent) {
     const textStyle = TextStyle(
@@ -118,13 +119,16 @@ class _FileServiceState extends State<FileService> {
           ? null
           : () async {
               try {
-                remoteFileUrl ??= await getRemoteFileUrl();
+                // remoteFileUrl ??= await getRemoteFileUrl();
+
                 setState(() {
                   uploadInProgress = true;
                 });
                 await sendLargeFile(
                     localFilePath: uploadFile!,
-                    remoteFileUrl: remoteFileUrl!,
+                    remoteFileName: remoteFileName,
+                    context: context,
+                    child: widget.child,
                     onProgress: (sent, total) {
                       setState(() {
                         uploadDone = sent == total;
@@ -160,23 +164,27 @@ class _FileServiceState extends State<FileService> {
                   downloadFile = outputFile;
                 });
                 try {
-                  remoteFileUrl ??= await getRemoteFileUrl();
+                  // remoteFileUrl ??= await getRemoteFileUrl();
                   setState(() {
                     downloadInProgress = true;
                   });
-                  await getLargeFile(
-                      remoteFileUrl: remoteFileUrl!,
-                      localFilePath: outputFile,
-                      onProgress: (received, total) {
-                        setState(() {
-                          downloadDone = received == total;
-                          downloadPercent = received / total;
+                  if (context.mounted) {
+                    await getLargeFile(
+                        remoteFileName: remoteFileName,
+                        localFilePath: outputFile,
+                        context: context,
+                        child: widget.child,
+                        onProgress: (received, total) {
+                          setState(() {
+                            downloadDone = received == total;
+                            downloadPercent = received / total;
+                          });
                         });
+                    if (downloadDone) {
+                      setState(() {
+                        downloadInProgress = false;
                       });
-                  if (downloadDone) {
-                    setState(() {
-                      downloadInProgress = false;
-                    });
+                    }
                   }
                 } on Object catch (e) {
                   if (context.mounted) {
@@ -194,12 +202,14 @@ class _FileServiceState extends State<FileService> {
           ? null
           : () async {
               try {
-                remoteFileUrl ??= await getRemoteFileUrl();
+                // remoteFileUrl ??= await getRemoteFileUrl();
                 setState(() {
                   deleteInProgress = true;
                 });
                 await deleteLargeFile(
-                    remoteFileUrl: remoteFileUrl!,
+                    remoteFileName: remoteFileName,
+                    context: context,
+                    child: widget.child,
                     onProgress: (deleted, total) {
                       setState(() {
                         deleteDone = deleted == total;
@@ -314,10 +324,10 @@ class _FileServiceState extends State<FileService> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      const Text('Delete file'),
+                      const Text('Delete remote file'),
                       smallGapH,
                       Text(
-                        remoteFileUrl!,
+                        remoteFileName,
                         style: const TextStyle(color: Colors.blue),
                       ),
                       smallGapH,
