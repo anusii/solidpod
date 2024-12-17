@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   editable: ^2.0.0
-  # file_picker: ^8.1.5
+  file_picker: ^8.1.6
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -27,10 +27,6 @@ dev_dependencies:
   #   git:
   #     url: https://github.com/anusii/dart-code-metrics.git
   #     ref: dev
-  file_picker:
-    git:
-      url: https://github.com/abdelaziz-mahdy/flutter_file_picker.git
-      ref: fix-flutter-3.27-compile-error
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
