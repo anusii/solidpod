@@ -5,6 +5,10 @@ Recorded here are the high level changes for the SolidPod package.
 Guide: Each version update is recorded here with a short user-oriented
 description of the update.
 
+## 0.6.4
+
++ Encrypt large files
+
 ## 0.6.3
 
 + Add POD initialised check
