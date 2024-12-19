@@ -197,7 +197,7 @@ Future<void> sendLargeFile({
       if (encrypted) ...{
         SIIPredicate.encryptionKey.uriRef: encKey!.base64,
         SIIPredicate.ivB64.uriRef: iv!.base64,
-      }
+      },
     },
   };
 

@@ -124,7 +124,7 @@ Future<SolidFunctionCallStatus> writePod(
       );
 
     case ResourceStatus.notExist: // Empty case falls through.
-    default:
+      //default:
       // debugPrint('File "$filePath" does not exist');
       {}
   }
