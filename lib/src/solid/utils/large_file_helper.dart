@@ -25,32 +25,42 @@
 // SOFTWARE.
 ///
 /// Authors: Dawei Chen
+//
+// ignore_for_file: use_build_context_synchronously
 
 library;
 
-import 'dart:convert' show utf8;
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
-import 'package:flutter/foundation.dart' show debugPrint;
+// import 'package:flutter/foundation.dart' show debugPrint hide Key;
 
+import 'package:encrypt/encrypt.dart';
+import 'package:flutter/widgets.dart' hide Key;
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show createResource, checkResourceStatus, getResource, deleteResource;
-import 'package:solidpod/src/solid/utils/misc.dart' show deleteAclForResource;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show deleteAclForResource, deleteFile;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
     show siiNS, SIIPredicate;
+import 'package:solidpod/src/solid/read_pod.dart' show readPod;
+import 'package:solidpod/src/solid/utils/key_helper.dart'
+    show genRandIndividualKey, genRandIV;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show getDataDirPath, getDirUrl, getFileUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
+import 'package:solidpod/src/solid/write_pod.dart' show writePod;
 
 /// Return the URL of directory storing the chunked data
 /// A hidden directory (starts with .) to hide the clutter
-String _getChunkDirUrl(String fileUrl) {
-  final items = fileUrl.split('/');
+String _getChunkDirPath(String remoteFilePath) {
+  final items = remoteFilePath.split('/');
   final parentUrl = items.getRange(0, items.length - 1).join('/');
   return '$parentUrl/.${items.last}.chunks/';
 }
@@ -92,21 +102,37 @@ Stream<Uint8List> _getChunkStream(
   }
 }
 
+Encrypter _getEncrypter(Key key, {AESMode mode = AESMode.sic}) =>
+    Encrypter(AES(key, mode: mode));
+
+/// Encrypt binary data using AES with the specified key
+Uint8List _encryptBytes(List<int> data, Encrypter encrypter, IV iv) =>
+    encrypter.encryptBytes(data, iv: iv).bytes;
+
+/// Decrypt an encrypted binary data
+Uint8List _decryptBytes(Uint8List encData, Encrypter encrypter, IV iv) =>
+    Uint8List.fromList(encrypter.decryptBytes(Encrypted(encData), iv: iv));
+
 /// Send a large local file with path [localFilePath] to a remote server
-/// using URL [remoteFileUrl]
+/// using name [remoteFileName],
+/// encrypt the file content if [encrypted] is true.
 Future<void> sendLargeFile({
   required String localFilePath,
-  required String remoteFileUrl,
+  required String remoteFileName,
+  required BuildContext context,
+  required Widget child,
   void Function(int, int)? onProgress,
+  bool encrypted = true,
 }) async {
   final file = File(localFilePath);
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
+  final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
+  final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
+  final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
-  final fileUrl = '$remoteFileUrl.ttl';
   if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
     throw Exception('Failed to send file $localFilePath.\n'
-        '$remoteFileUrl already exists.');
+        '$remoteFileName already exists.');
   }
 
   // Create the directory for storing chunked data
@@ -118,9 +144,19 @@ Future<void> sendLargeFile({
 
   // Create ACL of the directory
   await createResource(
-    '$chunkDirUrl/.acl',
+    '$chunkDirUrl.acl',
     content: await genAclTurtle(chunkDirUrl, fileFlag: false),
   );
+
+  // Encryption key and IV
+  Key? encKey;
+  Encrypter? encrypter;
+  IV? iv;
+  if (encrypted) {
+    encKey = genRandIndividualKey();
+    encrypter = _getEncrypter(encKey);
+    iv = genRandIV();
+  }
 
   var chunkId = 0;
   final chunkUrls = <String>[];
@@ -134,7 +170,7 @@ Future<void> sendLargeFile({
     // Create the chunk file
     await createResource(
       chunkUrl,
-      content: chunk,
+      content: encrypted ? _encryptBytes(chunk, encrypter!, iv!) : chunk,
       contentType: ResourceContentType.binary,
     );
 
@@ -155,9 +191,13 @@ Future<void> sendLargeFile({
   // Create turtle file with metadata of the (chunked) large file on server
 
   final triples = {
-    URIRef(remoteFileUrl): {
+    URIRef(fileUrl): {
       SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
+      if (encrypted) ...{
+        SIIPredicate.encryptionKey.uriRef: encKey!.base64,
+        SIIPredicate.ivB64.uriRef: iv!.base64,
+      }
     },
   };
 
@@ -166,44 +206,65 @@ Future<void> sendLargeFile({
     'c': Namespace(ns: chunkDirUrl),
   };
 
-  await createResource(
-    fileUrl,
-    content: tripleMapToTurtle(triples, bindNamespaces: bindNS),
+  await writePod(
+    '$remoteFileName.ttl',
+    tripleMapToTurtle(triples, bindNamespaces: bindNS),
+    context,
+    child,
   );
 
   // Create ACL of the Turtle file
   await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
 }
 
-/// Get a large file previously sent using [sendLargeFile] with URL
-/// [remoteFileUrl] and save it to a local file with path [localFilePath]
+/// Get a large file previously sent using [sendLargeFile] with name
+/// [remoteFileName] and save it to a local file with path [localFilePath]
 Future<void> getLargeFile({
-  required String remoteFileUrl,
+  required String remoteFileName,
   required String localFilePath,
+  required BuildContext context,
+  required Widget child,
   void Function(int, int)? onProgress,
+  bool encrypted = true,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
 
-  final fileUrl = '$remoteFileUrl.ttl';
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
+  final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
+  final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
+  final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
   if (await checkResourceStatus(fileUrl) != ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
-    throw Exception('Failed to get the requested file. \nURL: $remoteFileUrl');
+    throw Exception('Failed to get the requested file "$remoteFileName');
   }
 
   // Parse the Turtle file with metadata of the (chunked) large file
   // on server to get the URLs of individual chunks
 
-  final triples = turtleToTripleMap(utf8.decode(await getResource(fileUrl)));
+  final triples = turtleToTripleMap(
+    await readPod('$remoteFilePath.ttl', context, child) as String,
+  );
   assert(triples.length == 1);
-  assert(triples.containsKey(remoteFileUrl));
+  assert(triples.containsKey(fileUrl));
 
-  final map = triples[remoteFileUrl];
+  final map = triples[fileUrl];
   final chunkPred = SIIPredicate.dataChunk.uriRef.value;
   final sizePred = SIIPredicate.dataSize.uriRef.value;
   assert(map!.containsKey(chunkPred));
   assert(map!.containsKey(sizePred));
+
+  // Get the encryption key and IV
+
+  Encrypter? encrypter;
+  IV? iv;
+  if (encrypted) {
+    final keyPred = SIIPredicate.encryptionKey.uriRef.value;
+    final ivPred = SIIPredicate.ivB64.uriRef.value;
+    assert(map!.containsKey(keyPred));
+    assert(map!.containsKey(ivPred));
+    encrypter = _getEncrypter(Key.fromBase64(map![keyPred]!.first as String));
+    iv = IV.fromBase64(map[ivPred]!.first as String);
+  }
 
   // Get the individual chunks, combine them, and save combined to file
 
@@ -212,7 +273,8 @@ Future<void> getLargeFile({
   final chunkUrls = map[chunkPred];
   final sink = File(localFilePath).openWrite();
   for (final url in chunkUrls!) {
-    final chunk = await getResource(url as String);
+    final c = await getResource(url as String);
+    final chunk = encrypted ? _decryptBytes(c, encrypter!, iv!) : c;
     sink.add(chunk);
     receivedBytes += chunk.lengthInBytes;
     if (onProgress != null) {
@@ -223,15 +285,18 @@ Future<void> getLargeFile({
 }
 
 /// Delete a large file previously sent using [sendLargeFile] with URL
-/// [remoteFileUrl] in POD
+/// [remoteFileName] in POD
 Future<void> deleteLargeFile({
-  required String remoteFileUrl,
+  required String remoteFileName,
+  required BuildContext context,
+  required Widget child,
   void Function(int, int)? onProgress,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
 
-  final fileUrl = '$remoteFileUrl.ttl';
-  final chunkDirUrl = _getChunkDirUrl(remoteFileUrl);
+  final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
+  final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
+  final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
   if (await checkResourceStatus(fileUrl) != ResourceStatus.exist &&
       await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
@@ -242,16 +307,15 @@ Future<void> deleteLargeFile({
   // Parse the Turtle file with metadata of the (chunked) large file
   // on server to get the URLs of individual chunks
 
-  final triples = turtleToTripleMap(utf8.decode(await getResource(fileUrl)));
+  final triples = turtleToTripleMap(
+    await readPod('$remoteFilePath.ttl', context, child) as String,
+  );
   assert(triples.length == 1);
-  assert(triples.containsKey(remoteFileUrl));
+  assert(triples.containsKey(fileUrl));
 
-  final map = triples[remoteFileUrl];
+  final map = triples[fileUrl];
   final chunkPred = SIIPredicate.dataChunk.uriRef.value;
   assert(map!.containsKey(chunkPred));
-
-  await deleteResource(fileUrl, ResourceContentType.turtleText);
-  // await deleteAclForResource(fileUrl);  // this may not be necessary
 
   // Delete the individual chunks
 
@@ -271,8 +335,14 @@ Future<void> deleteLargeFile({
     }
   }
 
+  // Delete the directory with individual chunks
+
   await deleteAclForResource(chunkDirUrl);
   await deleteResource(chunkDirUrl, ResourceContentType.directory);
 
-  debugPrint('Deleted $remoteFileUrl');
+  // Delete the representing turtle file
+
+  await deleteFile('$remoteFilePath.ttl');
+
+  debugPrint('Deleted $remoteFileName');
 }
