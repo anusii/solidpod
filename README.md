@@ -19,21 +19,21 @@ of apps now and are more stable. -->
 
 # Solid Pod
 
-Solid Pod package provides functionality to manage a Solid 
-personal online data stores (Pods) via a Flutter application. 
+Solid Pod package provides functionality to manage a Solid
+personal online data stores (Pods) via a Flutter application.
 It supports high level access for an application to
-authenticate users to their Pods, access the users' data from 
-their Pods, and then share the data stored in users' Pods with 
-other Pods through Flutter Widgets.  
+authenticate users to their Pods, access the users' data from
+their Pods, and then share the data stored in users' Pods with
+other Pods through Flutter Widgets.
 
-## What is Solid? 
+## What is Solid?
 
-Solid (https://solidproject.org/) is an open standard for a server 
-to host personal online data stores (Pods). Numerous providers of 
-Solid Server hosting are emerging allowing users to host and migrate 
-their Pods on any such servers (or to run their own server). 
+Solid (https://solidproject.org/) is an open standard for a server
+to host personal online data stores (Pods). Numerous providers of
+Solid Server hosting are emerging allowing users to host and migrate
+their Pods on any such servers (or to run their own server).
 
-To know more about our work relatd to Solid Pods 
+To know more about our work relatd to Solid Pods
 visit https://solidcommunity.au
 
 
@@ -85,7 +85,7 @@ Fine tune to suit the theme of the app:
   trigger authentication if a user action requires authenticated access.
 
 + [changeKeyPopup](#change-security-key-example) widget supports changing the security key (used to make your data private through encryption):
-  
+
 <div align="center">
 	<img
 	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/change_security_key.png"
@@ -93,19 +93,19 @@ Fine tune to suit the theme of the app:
 </div>
 
 + [readPod()](#read-pod-file-example) function reads file content (either encrypted or plaintext) from a Pod.
-  
+
 + [writePod()](#write-to-pod-file-example) function writes content (either encrypted or plaintext) to a file in a Pod.
-  
+
 + [GrantPermissionUi](#grant-permission-ui-example) widget supports permission granting/revoking for resources:
 
-Granting permission: 
+Granting permission:
 <div align="center">
 	<img
 	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/grant_permission.png"
 	alt="KeyPod Login" width="400">
 </div>
 
-Revoking permission: 
+Revoking permission:
 <div align="center">
 	<img
 	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/revoke_permission.png"
@@ -121,21 +121,21 @@ Revoking permission:
 </div>
 
 <!-- TODO dc: This is pending as we are checking if the latest CCS server natively supports write large files -->
-[`sendLargeFile()`, `getLargeFile()`, and `deleteLargeFile()`](#large-file-manager-example) functions 
+[`sendLargeFile()`, `getLargeFile()`, and `deleteLargeFile()`](#large-file-manager-example) functions
   uploads, downloads, and deletes large files from a Solid server, respectively.
 
 
 ## Getting started
 
-To start using the package add `solidpod` as a dependency in 
-your `pubspec.yaml` file. 
+To start using the package add `solidpod` as a dependency in
+your `pubspec.yaml` file.
 
 ```
 dependencies:
   solidpod: ^<latest-version>
 ```
 <!-- TODO dc: Refer to keypod as the example? -->
-An example project that uses `solidpod` can be found 
+An example project that uses `solidpod` can be found
 [here](https://github.com/anusii/solidpod/tree/dev/demopod).
 
 <!-- TODO: List prerequisites and provide or pointer to information on how
@@ -143,7 +143,7 @@ to start using the package. -->
 
 ## Prerequisites
 
-If the package is being used to build either a `macos` or `web` app, the following 
+If the package is being used to build either a `macos` or `web` app, the following
 changes are required in order to make the package fully functional.
 
 ### macos
@@ -178,7 +178,7 @@ Inside the app directory go to the directory `/web/`. Inside create a file calle
         const AUTH_RESPONSE_KEY = "openidconnect_auth_response_info";
 
         window.onload = function () {
-            if (window.opener && window.opener !== window) { //Used when working as a popup. Uses post message to respond to the parent window                
+            if (window.opener && window.opener !== window) { //Used when working as a popup. Uses post message to respond to the parent window
                 var parent = window.opener ?? window.parent;
                 parent.postMessage(location.href, "*");
             } else { //Used for redirect loop functionality.
@@ -204,13 +204,13 @@ Inside the app directory go to the directory `/web/`. Inside create a file calle
 
 ## Usage
 
-Following are the usage of main functionalities supported 
-by the package. 
+Following are the usage of main functionalities supported
+by the package.
 
 ### Login Example
 
-A simple login screen to authenticate a user against a Solid server. 
-If your own home widget is called `MyHome()` then simply wrap this within 
+A simple login screen to authenticate a user against a Solid server.
+If your own home widget is called `MyHome()` then simply wrap this within
 the `SolidLogin()` widget:
 
 ```dart
@@ -228,7 +228,7 @@ the `SolidLogin()` widget:
 ### Change Security Key Example
 
 Wrap the `changeKeyPopup()` function within a button widget. Parameters
-include the `BuildContext` and the widget that you need to return to 
+include the `BuildContext` and the widget that you need to return to
 after changing the key.
 
 ```dart
@@ -265,9 +265,9 @@ final turtleString = '@prefix somePrefix: <http://www.perceive.net/schemas/relat
 <http://example.org/#green-goblin> somePrefix:enemyOf <http://example.org/#spiderman> .';
 
 await writePod(
-	'myfiles/my-data-file.ttl', 
-	turtleString, 
-	context, 
+	'myfiles/my-data-file.ttl',
+	turtleString,
+	context,
 	ReturnPage(),
 	encrypted: false // non-required parameter. By default set to true
 );
@@ -275,7 +275,7 @@ await writePod(
 
 ### Grant Permission UI Example
 
-Wrap the `GrantPermissionUi` widget around a button to navigate to 
+Wrap the `GrantPermissionUi` widget around a button to navigate to
 the grant permission page.
 
 ```dart
@@ -312,7 +312,7 @@ ElevatedButton(
 
 ### View Permission UI Example
 
-Wrap the `SharedResourcesUi` widget around a button to navigate to 
+Wrap the `SharedResourcesUi` widget around a button to navigate to
 the view permission page.
 
 ```dart
@@ -376,7 +376,7 @@ await deleteLargeFile(
 
 ## Ontology
 
-*Solid Pod*'s internal storage structure consists of [turtle](https://www.w3.org/TR/turtle/) files containing security information about the pod's content (data files) and their access.  The internal structure is based on the following [ontology](onto), which captures essential concepts about the app's security information, data files, encryption, shared resources, and access control lists.  
+*Solid Pod*'s internal storage structure consists of [turtle](https://www.w3.org/TR/turtle/) files containing security information about the pod's content (data files) and their access.  The internal structure is based on the following [ontology](onto), which captures essential concepts about the app's security information, data files, encryption, shared resources, and access control lists.
 <div align="center">
 	<img
 	src="https://github.com/anusii/solidpod/blob/dev/onto/SOLID-App-Ontology%20(schema).png"
@@ -390,7 +390,7 @@ await deleteLargeFile(
 contribute to the package, how to file issues, what response they can
 expect from the package authors, and more. -->
 
-The source code can be accessed via the [GitHub repository](https://github.com/anusii/solidpod). 
+The source code can be accessed via the [GitHub repository](https://github.com/anusii/solidpod).
 You can also file issues you face at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as conveniently as possible upon
 creating an issue.
