@@ -124,12 +124,15 @@ class AuthDataManager {
     assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
     try {
       final tokenResponse = await _getTokenResponse();
+      if (tokenResponse == null) {
+        throw Exception('Refreshing access token failed');
+      }
       return {
         'client': _authResponse!.client,
         'rsaInfo': _rsaInfo,
         'authResponse': _authResponse,
         'tokenResponse': tokenResponse,
-        'accessToken': tokenResponse!.accessToken,
+        'accessToken': tokenResponse.accessToken,
         'idToken': _authResponse!.idToken,
         'refreshToken': _authResponse!.refreshToken,
         'expiresIn': tokenResponse.expiresIn,
