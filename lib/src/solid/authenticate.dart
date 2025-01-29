@@ -74,6 +74,7 @@ Future<List<dynamic>?> solidAuthenticate(
       authData = await AuthDataManager.loadAuthData();
       assert(authData != null);
     } else {
+      debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
       // Authentication process for the POD issuer.
 
       final issuerUri = await getIssuer(serverId);
