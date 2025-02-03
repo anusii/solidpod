@@ -1,6 +1,6 @@
 /// Initial setup page constants.
 ///
-// Time-stamp: <Tuesday 2024-04-02 21:36:29 +1100 Graham Williams>
+// Time-stamp: <Friday 2025-01-10 13:34:52 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -89,4 +89,4 @@ const requiredSecurityKeyMsg =
 
 const publicKeyMsg =
     'We will also create a random public/private key pair for secure data'
-    ' sharing with other Solid Pods.';
+    ' sharing, under your control, with other Solid Pods.';
