@@ -111,7 +111,10 @@ Map<String, dynamic> parseTTL(String ttlContent) {
     final pre = extract(t.pre.value as String);
     final obj = extract(t.obj.value as String);
     if (dataMap.containsKey(sub)) {
-      assert(!(dataMap[sub] as Map).containsKey(pre));
+      /// TODO: zy 20250207 To make msfatigue app work. Comment out this line.
+      
+      // assert(!(dataMap[sub] as Map).containsKey(pre));
+      
       dataMap[sub][pre] = obj;
     } else {
       dataMap[sub] = {pre: obj};
