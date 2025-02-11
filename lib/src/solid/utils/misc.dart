@@ -100,7 +100,7 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
   // final fileUrl = await getFileUrl(filePath);
   try {
     final rawContent = await fetchPrvFile(fileUrl);
-    return parseTTL(rawContent);
+    return turtleToTripleMap(rawContent);
   } on Exception catch (e) {
     throw Exception(e);
   }
