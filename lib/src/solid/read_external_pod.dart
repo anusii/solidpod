@@ -76,13 +76,13 @@ Future<dynamic> readExternalPod(
 
           // Decrypt the file content
 
-          final dataMap = parseTTL(fileContent);
+          final dataMap = turtleToTripleMap(fileContent);
           assert(dataMap.containsKey(fileUrl));
 
           return decryptData(
-            dataMap[fileUrl][encDataPred] as String,
+            dataMap[fileUrl]![encDataPred] as String,
             indKey,
-            IV.fromBase64(dataMap[fileUrl][ivPred] as String),
+            IV.fromBase64(dataMap[fileUrl]![ivPred] as String),
           );
         } else {
           return fileContent;

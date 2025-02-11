@@ -99,30 +99,6 @@ String tripleMapToTurtle(
   return g.serializedString;
 }
 
-// TODO (dc): Unify parseTTL() and parseACL()
-/// Parse TTL content into a map {subject: {predicate: object}}
-Map<String, dynamic> parseTTL(String ttlContent) {
-  final g = Graph();
-  g.parseTurtle(ttlContent);
-  final dataMap = <String, dynamic>{};
-  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
-  for (final t in g.triples) {
-    final sub = extract(t.sub.value as String);
-    final pre = extract(t.pre.value as String);
-    final obj = extract(t.obj.value as String);
-    if (dataMap.containsKey(sub)) {
-      /// TODO: zy 20250207 To make msfatigue app work. Comment out this line.
-      
-      // assert(!(dataMap[sub] as Map).containsKey(pre));
-      
-      dataMap[sub][pre] = obj;
-    } else {
-      dataMap[sub] = {pre: obj};
-    }
-  }
-  return dataMap;
-}
-
 // TODO av: The function parseTTL needs to be converted to parseTTLMap in all
 // places where it has been used. A TTl can contain multiple objects with same
 // predicate. Also the function extract() can be removed when we have properly
