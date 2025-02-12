@@ -33,8 +33,6 @@ library;
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
-// import 'package:flutter/foundation.dart' show debugPrint hide Key;
-
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/widgets.dart' hide Key;
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
@@ -125,14 +123,44 @@ Future<void> sendLargeFile({
   bool encrypted = true,
 }) async {
   final file = File(localFilePath);
+  final totalBytes = file.lengthSync();
+  await post(
+    dataStream: file.openRead(),
+    remoteFileName: remoteFileName,
+    context: context,
+    child: child,
+    totalBytes: totalBytes,
+    onProgress: (sent, total) {
+      if (onProgress != null) {
+        onProgress(sent, total!);
+      }
+    },
+    encrypted: encrypted,
+  );
+}
+
+/// Send a stream of data [dataStream] to a remote server
+/// using name [remoteFileName],
+/// encrypt the file content if [encrypted] is true.
+Future<void> post({
+  required Stream<List<int>> dataStream,
+  required String remoteFileName,
+  required BuildContext context,
+  required Widget child,
+  int? totalBytes,
+  void Function(int, int?)? onProgress,
+  bool encrypted = true,
+}) async {
+  // final file = File(localFilePath);
   final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
   final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
   if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
-    throw Exception('Failed to send file $localFilePath.\n'
-        '$remoteFileName already exists.');
+    // throw Exception('Failed to send file $localFilePath.\n'
+    //    '$remoteFileName already exists.');
+    throw Exception('ERROR: $remoteFileName already exists.');
   }
 
   // Create the directory for storing chunked data
@@ -160,9 +188,10 @@ Future<void> sendLargeFile({
 
   var chunkId = 0;
   final chunkUrls = <String>[];
-  final totalBytes = await file.length();
+  // final totalBytes = await file.length();
   var sentBytes = 0;
-  final chunks = _getChunkStream(file.openRead());
+  // final chunks = _getChunkStream(file.openRead());
+  final chunks = _getChunkStream(dataStream);
   await for (final chunk in chunks) {
     final chunkUrl = '$chunkDirUrl${_getChunkName(chunkId)}';
     chunkUrls.add(chunkUrl);
@@ -192,7 +221,8 @@ Future<void> sendLargeFile({
 
   final triples = {
     URIRef(fileUrl): {
-      SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
+      // SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
+      SIIPredicate.dataSize.uriRef: Literal(sentBytes.toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
       if (encrypted) ...{
         SIIPredicate.encryptionKey.uriRef: encKey!.base64,
@@ -220,6 +250,17 @@ Future<void> sendLargeFile({
 /// Get a large file previously sent using [sendLargeFile] with name
 /// [remoteFileName] and save it to a local file with path [localFilePath]
 Future<void> getLargeFile({
+  required String remoteFileName,
+  required String localFilePath,
+  required BuildContext context,
+  required Widget child,
+  void Function(int, int)? onProgress,
+  bool encrypted = true,
+}) async {}
+
+/// Get a large file previously sent using [sendLargeFile] with name
+/// [remoteFileName] and save it to a local file with path [localFilePath]
+Future<Stream<List<int>> get({
   required String remoteFileName,
   required String localFilePath,
   required BuildContext context,
