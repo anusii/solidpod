@@ -262,10 +262,9 @@ Future<void> getLargeFile({
 /// [remoteFileName] and save it to a local file with path [localFilePath]
 Future<Stream<List<int>> get({
   required String remoteFileName,
-  required String localFilePath,
   required BuildContext context,
   required Widget child,
-  void Function(int, int)? onProgress,
+  void Function(int, int?)? onProgress,
   bool encrypted = true,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
