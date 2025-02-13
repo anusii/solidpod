@@ -102,22 +102,17 @@ String tripleMapToTurtle(
 // TODO (dc): Unify parseTTL() and parseACL()
 /// Parse TTL content into a map {subject: {predicate: object}}
 Map<String, dynamic> parseTTL(String ttlContent) {
-  final g = Graph();
-  g.parseTurtle(ttlContent);
-  final dataMap = <String, dynamic>{};
+  final triples = turtleToTripleMap(ttlContent);
   String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
-  for (final t in g.triples) {
-    final sub = extract(t.sub.value as String);
-    final pre = extract(t.pre.value as String);
-    final obj = extract(t.obj.value as String);
-    if (dataMap.containsKey(sub)) {
-      assert(!(dataMap[sub] as Map).containsKey(pre));
-      dataMap[sub][pre] = obj;
-    } else {
-      dataMap[sub] = {pre: obj};
-    }
-  }
-  return dataMap;
+  return {
+    for (final sub in triples.keys)
+      extract(sub): {
+        for (final pre in triples[sub]!.keys)
+          extract(pre): triples[sub]![pre]!.length > 1
+              ? [for (final obj in triples[sub]![pre]!) extract(obj as String)]
+              : extract(triples[sub]![pre]!.first as String),
+      },
+  };
 }
 
 // TODO av: The function parseTTL needs to be converted to parseTTLMap in all
