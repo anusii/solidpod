@@ -31,6 +31,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
@@ -256,18 +257,29 @@ Future<void> getLargeFile({
   required BuildContext context,
   required Widget child,
   void Function(int, int)? onProgress,
-  bool encrypted = true,
-}) async {}
+}) async {
+  final chunks = fetch(
+    remoteFileName: remoteFileName,
+    context: context,
+    child: child,
+    onProgress: onProgress,
+  );
+  final sink = File(localFilePath).openWrite();
+  await for (final chunk in chunks) {
+    sink.add(chunk);
+  }
+  await sink.flush();
+  await sink.close();
+}
 
 /// Get a large file previously sent using [sendLargeFile] with name
-/// [remoteFileName] and save it to a local file with path [localFilePath]
-Future<Stream<List<int>>> fetch({
+/// [remoteFileName] and return a stream of bytes.
+Stream<List<int>> fetch({
   required String remoteFileName,
   required BuildContext context,
   required Widget child,
-  void Function(int, int?)? onProgress,
-  bool encrypted = true,
-}) async {
+  void Function(int, int)? onProgress,
+}) async* {
   // Check if the corresponding Turtle file and directory of chunks exist
 
   final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
@@ -298,17 +310,16 @@ Future<Stream<List<int>>> fetch({
 
   Encrypter? encrypter;
   IV? iv;
-  if (encrypted) {
-    final keyPred = SIIPredicate.encryptionKey.uriRef.value;
-    final ivPred = SIIPredicate.ivB64.uriRef.value;
-    assert(map!.containsKey(keyPred));
+  bool encrypted = false;
+  final keyPred = SIIPredicate.encryptionKey.uriRef.value;
+  final ivPred = SIIPredicate.ivB64.uriRef.value;
+
+  if (map!.containsKey(keyPred)) {
     assert(map!.containsKey(ivPred));
+    encrypted = true;
     encrypter = _getEncrypter(Key.fromBase64(map![keyPred]!.first as String));
     iv = IV.fromBase64(map[ivPred]!.first as String);
   }
-
-  // Amplifier frame stream controller
-  final controller = StreamController<List<int>>();
 
   // Get the individual chunks, combine them, and save combined to file
 
@@ -319,15 +330,14 @@ Future<Stream<List<int>>> fetch({
   for (final url in chunkUrls!) {
     final c = await getResource(url as String);
     final chunk = encrypted ? _decryptBytes(c, encrypter!, iv!) : c;
-    controller.sink.add(chunk);
+    // sink.add(chunk);
     receivedBytes += chunk.lengthInBytes;
     if (onProgress != null) {
       onProgress(receivedBytes, totalBytes);
     }
+    yield chunk;
   }
-  await controller.sink.close();
-
-  return controller.stream;
+  // await sink.close();
 }
 
 /// Delete a large file previously sent using [sendLargeFile] with URL
