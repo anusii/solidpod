@@ -30,6 +30,7 @@
 
 library;
 
+import 'dart:async';
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
@@ -124,7 +125,7 @@ Future<void> sendLargeFile({
 }) async {
   final file = File(localFilePath);
   final totalBytes = file.lengthSync();
-  await post(
+  await send(
     dataStream: file.openRead(),
     remoteFileName: remoteFileName,
     context: context,
@@ -142,7 +143,7 @@ Future<void> sendLargeFile({
 /// Send a stream of data [dataStream] to a remote server
 /// using name [remoteFileName],
 /// encrypt the file content if [encrypted] is true.
-Future<void> post({
+Future<void> send({
   required Stream<List<int>> dataStream,
   required String remoteFileName,
   required BuildContext context,
@@ -260,7 +261,7 @@ Future<void> getLargeFile({
 
 /// Get a large file previously sent using [sendLargeFile] with name
 /// [remoteFileName] and save it to a local file with path [localFilePath]
-Future<Stream<List<int>> get({
+Future<Stream<List<int>>> fetch({
   required String remoteFileName,
   required BuildContext context,
   required Widget child,
@@ -306,22 +307,27 @@ Future<Stream<List<int>> get({
     iv = IV.fromBase64(map[ivPred]!.first as String);
   }
 
+  // Amplifier frame stream controller
+  final controller = StreamController<List<int>>();
+
   // Get the individual chunks, combine them, and save combined to file
 
   final totalBytes = int.parse(map![sizePred]!.first as String);
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
-  final sink = File(localFilePath).openWrite();
+  // final sink = File(localFilePath).openWrite();
   for (final url in chunkUrls!) {
     final c = await getResource(url as String);
     final chunk = encrypted ? _decryptBytes(c, encrypter!, iv!) : c;
-    sink.add(chunk);
+    controller.sink.add(chunk);
     receivedBytes += chunk.lengthInBytes;
     if (onProgress != null) {
       onProgress(receivedBytes, totalBytes);
     }
   }
-  await sink.close();
+  await controller.sink.close();
+
+  return controller.stream;
 }
 
 /// Delete a large file previously sent using [sendLargeFile] with URL
