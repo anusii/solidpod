@@ -31,7 +31,6 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
@@ -295,7 +294,7 @@ Stream<List<int>> fetch({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl', context, child) as String,
+    await readPod('$remoteFilePath.ttl', context, child),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
@@ -315,15 +314,15 @@ Stream<List<int>> fetch({
   final ivPred = SIIPredicate.ivB64.uriRef.value;
 
   if (map!.containsKey(keyPred)) {
-    assert(map!.containsKey(ivPred));
+    assert(map.containsKey(ivPred));
     encrypted = true;
-    encrypter = _getEncrypter(Key.fromBase64(map![keyPred]!.first as String));
+    encrypter = _getEncrypter(Key.fromBase64(map[keyPred]!.first as String));
     iv = IV.fromBase64(map[ivPred]!.first as String);
   }
 
   // Get the individual chunks, combine them, and save combined to file
 
-  final totalBytes = int.parse(map![sizePred]!.first as String);
+  final totalBytes = int.parse(map[sizePred]!.first as String);
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
   // final sink = File(localFilePath).openWrite();
@@ -364,7 +363,7 @@ Future<void> deleteLargeFile({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl', context, child) as String,
+    await readPod('$remoteFilePath.ttl', context, child),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
