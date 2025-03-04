@@ -30,10 +30,9 @@
 
 library;
 
+import 'dart:async';
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
-
-// import 'package:flutter/foundation.dart' show debugPrint hide Key;
 
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter/widgets.dart' hide Key;
@@ -125,14 +124,44 @@ Future<void> sendLargeFile({
   bool encrypted = true,
 }) async {
   final file = File(localFilePath);
+  final totalBytes = file.lengthSync();
+  await send(
+    dataStream: file.openRead(),
+    remoteFileName: remoteFileName,
+    context: context,
+    child: child,
+    totalBytes: totalBytes,
+    onProgress: (sent, total) {
+      if (onProgress != null) {
+        onProgress(sent, total!);
+      }
+    },
+    encrypted: encrypted,
+  );
+}
+
+/// Send a stream of data [dataStream] to a remote server
+/// using name [remoteFileName],
+/// encrypt the file content if [encrypted] is true.
+Future<void> send({
+  required Stream<List<int>> dataStream,
+  required String remoteFileName,
+  required BuildContext context,
+  required Widget child,
+  int? totalBytes,
+  void Function(int, int?)? onProgress,
+  bool encrypted = true,
+}) async {
+  // final file = File(localFilePath);
   final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
   final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
   if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
-    throw Exception('Failed to send file $localFilePath.\n'
-        '$remoteFileName already exists.');
+    // throw Exception('Failed to send file $localFilePath.\n'
+    //    '$remoteFileName already exists.');
+    throw Exception('ERROR: $remoteFileName already exists.');
   }
 
   // Create the directory for storing chunked data
@@ -160,9 +189,10 @@ Future<void> sendLargeFile({
 
   var chunkId = 0;
   final chunkUrls = <String>[];
-  final totalBytes = await file.length();
+  // final totalBytes = await file.length();
   var sentBytes = 0;
-  final chunks = _getChunkStream(file.openRead());
+  // final chunks = _getChunkStream(file.openRead());
+  final chunks = _getChunkStream(dataStream);
   await for (final chunk in chunks) {
     final chunkUrl = '$chunkDirUrl${_getChunkName(chunkId)}';
     chunkUrls.add(chunkUrl);
@@ -192,7 +222,8 @@ Future<void> sendLargeFile({
 
   final triples = {
     URIRef(fileUrl): {
-      SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
+      // SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
+      SIIPredicate.dataSize.uriRef: Literal(sentBytes.toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
       if (encrypted) ...{
         SIIPredicate.encryptionKey.uriRef: encKey!.base64,
@@ -225,8 +256,29 @@ Future<void> getLargeFile({
   required BuildContext context,
   required Widget child,
   void Function(int, int)? onProgress,
-  bool encrypted = true,
 }) async {
+  final chunks = fetch(
+    remoteFileName: remoteFileName,
+    context: context,
+    child: child,
+    onProgress: onProgress,
+  );
+  final sink = File(localFilePath).openWrite();
+  await for (final chunk in chunks) {
+    sink.add(chunk);
+  }
+  await sink.flush();
+  await sink.close();
+}
+
+/// Get a large file previously sent using [sendLargeFile] with name
+/// [remoteFileName] and return a stream of bytes.
+Stream<List<int>> fetch({
+  required String remoteFileName,
+  required BuildContext context,
+  required Widget child,
+  void Function(int, int)? onProgress,
+}) async* {
   // Check if the corresponding Turtle file and directory of chunks exist
 
   final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
@@ -242,7 +294,7 @@ Future<void> getLargeFile({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl', context, child) as String,
+    await readPod('$remoteFilePath.ttl', context, child),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
@@ -257,31 +309,34 @@ Future<void> getLargeFile({
 
   Encrypter? encrypter;
   IV? iv;
-  if (encrypted) {
-    final keyPred = SIIPredicate.encryptionKey.uriRef.value;
-    final ivPred = SIIPredicate.ivB64.uriRef.value;
-    assert(map!.containsKey(keyPred));
-    assert(map!.containsKey(ivPred));
-    encrypter = _getEncrypter(Key.fromBase64(map![keyPred]!.first as String));
+  bool encrypted = false;
+  final keyPred = SIIPredicate.encryptionKey.uriRef.value;
+  final ivPred = SIIPredicate.ivB64.uriRef.value;
+
+  if (map!.containsKey(keyPred)) {
+    assert(map.containsKey(ivPred));
+    encrypted = true;
+    encrypter = _getEncrypter(Key.fromBase64(map[keyPred]!.first as String));
     iv = IV.fromBase64(map[ivPred]!.first as String);
   }
 
   // Get the individual chunks, combine them, and save combined to file
 
-  final totalBytes = int.parse(map![sizePred]!.first as String);
+  final totalBytes = int.parse(map[sizePred]!.first as String);
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
-  final sink = File(localFilePath).openWrite();
+  // final sink = File(localFilePath).openWrite();
   for (final url in chunkUrls!) {
     final c = await getResource(url as String);
     final chunk = encrypted ? _decryptBytes(c, encrypter!, iv!) : c;
-    sink.add(chunk);
+    // sink.add(chunk);
     receivedBytes += chunk.lengthInBytes;
     if (onProgress != null) {
       onProgress(receivedBytes, totalBytes);
     }
+    yield chunk;
   }
-  await sink.close();
+  // await sink.close();
 }
 
 /// Delete a large file previously sent using [sendLargeFile] with URL
@@ -308,7 +363,7 @@ Future<void> deleteLargeFile({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl', context, child) as String,
+    await readPod('$remoteFilePath.ttl', context, child),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));

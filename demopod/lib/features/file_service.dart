@@ -141,7 +141,13 @@ class _FileServiceState extends State<FileService> {
                   });
                 }
               } on Object catch (e) {
-                if (context.mounted) alert(context, 'Failed to send file.');
+                setState(() {
+                  uploadFile = null;
+                  uploadInProgress = false;
+                });
+                if (context.mounted) {
+                  await alert(context, 'Failed to send file. $e', 'Error');
+                }
                 debugPrint('$e');
               }
             },
@@ -187,8 +193,13 @@ class _FileServiceState extends State<FileService> {
                     }
                   }
                 } on Object catch (e) {
+                  setState(() {
+                    downloadFile = null;
+                    downloadInProgress = false;
+                  });
                   if (context.mounted) {
-                    alert(context, 'Failed to download file.');
+                    await alert(
+                        context, 'Failed to download file. $e', 'Error');
                   }
                   debugPrint('$e');
                 }
@@ -222,8 +233,11 @@ class _FileServiceState extends State<FileService> {
                   });
                 }
               } on Object catch (e) {
+                setState(() {
+                  deleteInProgress = false;
+                });
                 if (context.mounted) {
-                  alert(context, 'Failed to delete file.');
+                  await alert(context, 'Failed to delete file. $e', 'Error');
                 }
                 debugPrint('$e');
               }

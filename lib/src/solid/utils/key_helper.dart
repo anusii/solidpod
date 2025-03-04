@@ -121,6 +121,13 @@ Future<void> _delIndKey(
   await updateFileByQuery(fileUrl, query);
 }
 
+/// Check duplicated values
+void _checkDuplicatedValue({required dynamic value, required String errMsg}) {
+  if (value is Iterable && (value as List).length > 1) {
+    throw Exception(errMsg);
+  }
+}
+
 /// [KeyManager] is a class to manage security key and encryption keys
 /// for data stored in PODs.
 ///
@@ -535,6 +542,10 @@ class KeyManager {
     assert(map.length == 1);
 
     final v = map[_encKeyUrl] as Map;
+    _checkDuplicatedValue(
+      value: v[encKeyPred],
+      errMsg: 'ERROR: Duplicated verification key',
+    );
     _verificationKey = v[encKeyPred] as String;
 
     _prvKeyRecord = _PrvKeyRecord(
@@ -566,6 +577,19 @@ class KeyManager {
       final k = entry.key;
       final v = entry.value as Map;
       if (v.containsKey(sessionKeyPred)) {
+        _checkDuplicatedValue(
+          value: v[sessionKeyPred],
+          errMsg: 'ERROR: Duplicated encryption key for resource "$k"',
+        );
+        _checkDuplicatedValue(
+          value: v[ivPred],
+          errMsg: 'ERROR: Duplicated IV for resource "$k"',
+        );
+        _checkDuplicatedValue(
+          value: v[pathPred],
+          errMsg: 'ERROR: Duplicated path for resource "$k"',
+        );
+
         _indKeyMap![k] = _IndKeyRecord(
           encKeyBase64: v[sessionKeyPred] as String,
           ivBase64: v[ivPred] as String,
@@ -596,6 +620,11 @@ class KeyManager {
     if (!map.containsKey(_pubKeyUrl)) {
       throw Exception('Invalid content in file: "$_pubKeyUrl"');
     }
+
+    _checkDuplicatedValue(
+      value: map[_pubKeyUrl][pubKeyPred],
+      errMsg: 'ERROR: Duplicated public key',
+    );
 
     _pubKey = map[_pubKeyUrl][pubKeyPred] as String;
   }

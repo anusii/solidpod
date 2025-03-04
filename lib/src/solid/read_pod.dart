@@ -37,7 +37,6 @@ import 'package:encrypt/encrypt.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -47,7 +46,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// First check if the user is logged in and then
 /// read and parse the file content
 
-Future<dynamic> readPod(
+Future<String> readPod(
   String filePath,
   BuildContext context,
   Widget child, {
@@ -57,13 +56,17 @@ Future<dynamic> readPod(
 
   final loggedIn = await loginIfRequired(context);
 
-  if (loggedIn) {
-    // Check if the requested file exists
+  if (!loggedIn) {
+    throw Exception('User has not logged in.');
+  }
 
-    final fileUrl = await getFileUrl(filePath);
-    final fileExists = await checkResourceStatus(fileUrl);
+  // Check if the requested file exists
 
-    if (fileExists == ResourceStatus.exist) {
+  final fileUrl = await getFileUrl(filePath);
+  final fileExists = await checkResourceStatus(fileUrl);
+
+  switch (fileExists) {
+    case ResourceStatus.exist:
       try {
         final fileContent = await fetchPrvFile(fileUrl);
 
@@ -90,13 +93,11 @@ Future<dynamic> readPod(
         }
       } on Object catch (e) {
         debugPrint(e.toString());
+        rethrow;
       }
-    }
-
-    debugPrint('Resource "$filePath" does not exist.');
-    return SolidFunctionCallStatus.fail;
-  } else {
-    debugPrint('Not logged in.');
-    return SolidFunctionCallStatus.notLoggedIn;
+    case ResourceStatus.notExist:
+      throw Exception('Resource "$filePath" does not exist.');
+    default:
+      throw Exception('Unknown error.');
   }
 }

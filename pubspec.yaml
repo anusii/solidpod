@@ -1,6 +1,6 @@
 name: solidpod
 description: A library to support easy access to data stored on Pods in Solid servers.
-version: 0.6.5
+version: 0.6.6
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -32,7 +32,7 @@ dependencies:
 
 dev_dependencies:
   build_runner: ^2.4.14
-  custom_lint: ^0.7.1
+  custom_lint: ^0.7.0
   dart_code_metrics:
     git:
       url: https://github.com/anusii/dart-code-metrics.git

@@ -41,7 +41,6 @@ import 'package:solidpod/solidpod.dart'
         GrantPermissionUi,
         KeyManager,
         SharedResourcesUi,
-        SolidFunctionCallStatus,
         changeKeyPopup,
         deleteDataFile,
         deleteLogIn,
@@ -111,22 +110,20 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       final fileContent = await readPod(
         filePath,
         context,
-        const Home(),
+        widget,
       );
 
-      if (![SolidFunctionCallStatus.notLoggedIn, SolidFunctionCallStatus.fail]
-          .contains(fileContent)) {
-        //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ViewKeys(
-              keyInfo: fileContent!,
-              title: title,
-            ),
+      //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewKeys(
+            keyInfo: fileContent,
+            title: title,
           ),
-        );
-      }
+        ),
+      );
+      //}
     } on Exception catch (e) {
       debugPrint('Exception: $e');
     } finally {
@@ -153,37 +150,37 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileName = _writeEncrypted ? dataFile : dataFilePlain;
 
+    final dataDirPath = await getDataDirPath();
+    final filePath = [dataDirPath, fileName].join('/');
+
+    List<({String key, dynamic value})>? pairs;
+
     try {
-      final dataDirPath = await getDataDirPath();
-      final filePath = [dataDirPath, fileName].join('/');
+      final fileContent = await readPod(
+        filePath,
+        context,
+        widget,
+      );
 
-      final fileContent = await readPod(filePath, context, const Home());
-      final pairs = [
-        SolidFunctionCallStatus.notLoggedIn,
-        SolidFunctionCallStatus.fail
-      ].contains(fileContent)
-          ? null
-          : await parseTTLStr(fileContent);
+      pairs = await parseTTLStr(fileContent);
+    } on Exception catch (e) {
+      debugPrint('Exception: $e');
+    }
 
-      await Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => KeyValueEdit(
+    await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => KeyValueEdit(
                   title: 'Basic Key Value Editor',
                   fileName: fileName,
                   keyValuePairs: pairs,
                   encrypted: _writeEncrypted,
-                  child: const Home())));
-    } on Exception catch (e) {
-      debugPrint('Exception: $e');
-    } finally {
-      if (mounted) {
-        setState(() {
-          // End loading.
-          _isLoading = false;
-        });
-      }
-    }
+                  child: widget,
+                )));
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Widget _build(BuildContext context, String title) {
