@@ -5,6 +5,11 @@ Recorded here are the high level changes for the SolidPod package.
 Guide: Each version update is recorded here with a short user-oriented
 description of the update.
 
+## 0.6.6
+
++ Add APIs to stream data from / to solid server
++ Refactor internal function parseTTL
+
 ## 0.6.5
 
 + Require log into solid server if refreshing expired access token is failed
