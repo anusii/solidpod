@@ -82,6 +82,7 @@ class DemoPod extends StatelessWidget {
         appDirectory: 'exampleApp',
         image: AssetImage('assets/images/demopod_image.png'),
         logo: AssetImage('assets/images/demopod_logo.png'),
+        webID: 'https://solid.dev.empwr.au',
         link: 'https://github.com/anusii/solidpod/blob/main/demopod/README.md',
         required: false,
         infoButtonStyle: InfoButtonStyle(

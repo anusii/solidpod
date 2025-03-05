@@ -80,7 +80,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   bool _isLoading = false;
 
   // Indicator for write encrypted/plaintext data
-  bool _writeEncrypted = true;
+  // bool _writeEncrypted = true;
+  bool _writeEncrypted = false;
 
   // The current webID
   String? _webId;
