@@ -155,6 +155,11 @@ Future<SolidFunctionCallStatus> writePod(
       await KeyManager.getIndividualKey(fileUrl),
       genRandIV(),
     );
+
+    if (!fileUrl.endsWith('.ttl')) {
+      debugPrint('WARN: Encrypted text file should be in turtle format, '
+          'but the extension of provided filename "$fileName" is not ".ttl"');
+    }
   } else {
     // Delete existing (encrypted) file if the new content is unencrypted
 
