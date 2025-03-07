@@ -164,6 +164,9 @@ enum ResourceContentType {
   /// Plain text file
   plainText('text/plain'),
 
+  /// Any text
+  anyText('text/*'),
+
   /// Directory
   directory('application/octet-stream'),
 
