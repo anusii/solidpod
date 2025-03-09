@@ -37,6 +37,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:http/http.dart' as http;
+import 'package:mime/mime.dart' as mime;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -201,13 +202,19 @@ Future<void> createResource(
     put ? 'PUT' : 'POST',
   );
 
+  var contentTypeStr = contentType.value;
+  if (contentType == ResourceContentType.auto) {
+    contentTypeStr =
+        mime.lookupMimeType(resourceUrl) ?? ResourceContentType.any.value;
+  }
+
   final response = await httpMethod(
     Uri.parse(put ? resourceUrl : parentUrl),
     headers: <String, String>{
       'Accept': '*/*',
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
-      'Content-Type': contentType.value,
+      'Content-Type': contentTypeStr,
       if (put) 'Content-Length': content.length.toString(),
       if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
       if (!put) 'Slug': name,

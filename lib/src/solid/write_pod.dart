@@ -170,9 +170,9 @@ Future<SolidFunctionCallStatus> writePod(
     // If the filename does not end with `.ttl', set content type to plain text
 
     if (!fileUrl.endsWith('.ttl')) {
-      // .plainText may lead to a filename suffix `$.txt'
-      // .anyText may lead to a filename suffix `$.unknown'
-      contentType = ResourceContentType.any;
+      // .plainText may result in a filename ending with `$.txt'
+      // .any may result in a filename ending with `$.unknown'
+      contentType = ResourceContentType.auto;
     }
   }
 
