@@ -32,6 +32,8 @@ library;
 
 import 'package:flutter/material.dart' hide Key;
 
+import 'package:path/path.dart' as path;
+
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -40,7 +42,8 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
-/// Write file [fileName] and content [fileContent] to PODs
+/// Write file [fileName] with content [fileContent] to PODs in the
+/// data directory (within potential subdirectories encoded in [fileName]).
 /// The content will be encrypted if [encrypted] is true.
 
 Future<SolidFunctionCallStatus> writePod(
@@ -50,9 +53,10 @@ Future<SolidFunctionCallStatus> writePod(
   Widget child, {
   bool encrypted = true,
 }) async {
-  // Write data to file in the data directory
-  final filePath = [await getDataDirPath(), fileName].join('/');
-  // [await getDataDirPath(), '.binary_data.bin.chunks', fileName].join('/');
+  // Sanity check
+
+  assert(!fileName.endsWith(path.separator));
+  assert(!fileName.endsWith('/'));
 
   final loggedIn = await loginIfRequired(context);
 
@@ -63,6 +67,10 @@ Future<SolidFunctionCallStatus> writePod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
+  final filePath = [
+    await getDataDirPath(),
+    fileName.replaceAll(path.separator, '/'),
+  ].join('/');
   final fileUrl = await getFileUrl(filePath);
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
@@ -124,12 +132,11 @@ Future<SolidFunctionCallStatus> writePod(
       );
 
     case ResourceStatus.notExist: // Empty case falls through.
-      //default:
-      // debugPrint('File "$filePath" does not exist');
-      {}
+      debugPrint('File "$filePath" does not exist');
   }
 
-  late String content;
+  var content = fileContent;
+  var contentType = ResourceContentType.turtleText;
 
   if (encrypted) {
     // Get the security key (and cache it in KeyManager)
@@ -148,6 +155,11 @@ Future<SolidFunctionCallStatus> writePod(
       await KeyManager.getIndividualKey(fileUrl),
       genRandIV(),
     );
+
+    if (!fileUrl.endsWith('.ttl')) {
+      debugPrint('WARN: Encrypted text file should be in turtle format, '
+          'but the extension of provided filename "$fileName" is not ".ttl"');
+    }
   } else {
     // Delete existing (encrypted) file if the new content is unencrypted
 
@@ -155,11 +167,17 @@ Future<SolidFunctionCallStatus> writePod(
       await deleteFile(filePath);
     }
 
-    content = fileContent;
+    // If the filename does not end with `.ttl', set content type to plain text
+
+    if (!fileUrl.endsWith('.ttl')) {
+      // .plainText may result in a filename ending with `$.txt'
+      // .any may result in a filename ending with `$.unknown'
+      contentType = ResourceContentType.auto;
+    }
   }
 
   // Create file on server
-  await createResource(fileUrl, content: content);
+  await createResource(fileUrl, content: content, contentType: contentType);
 
   // Create the ACL file for the data file if necessary
 
@@ -167,5 +185,6 @@ Future<SolidFunctionCallStatus> writePod(
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
+
   return SolidFunctionCallStatus.success;
 }

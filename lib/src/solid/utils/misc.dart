@@ -252,6 +252,16 @@ Future<bool> checkLoggedIn() async {
   return false;
 }
 
+/// Create a directory with the given URL
+
+Future<void> createDir(String dirUrl) async {
+  assert(dirUrl.endsWith('/'));
+  await createResource(dirUrl,
+      fileFlag: false,
+      replaceIfExist: false,
+      contentType: ResourceContentType.directory);
+}
+
 /// Delete login information from the local storage
 ///
 /// returns true if successful

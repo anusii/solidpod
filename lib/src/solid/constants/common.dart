@@ -158,6 +158,9 @@ enum ResourceStatus {
 
 /// Types of the content of resources
 enum ResourceContentType {
+  /// Detect the MIME type automatically at runtime
+  auto(''),
+
   /// TTL text file
   turtleText('text/turtle'),
 
