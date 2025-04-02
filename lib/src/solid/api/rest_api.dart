@@ -473,8 +473,8 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 
     final (:subDirs, :files) = _parseGetContainerResponse(profResponse.body);
 
-    debugPrint('SubDirs: |${subDirs.join(", ")}|');
-    debugPrint('Files  : |${files.join(", ")}|');
+    // debugPrint('SubDirs: |${subDirs.join(", ")}|');
+    // debugPrint('Files  : |${files.join(", ")}|');
 
     return (subDirs: subDirs, files: files);
   } else {
