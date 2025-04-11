@@ -32,6 +32,7 @@ library;
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -110,6 +111,7 @@ class SolidLogin extends StatefulWidget {
     this.loginButtonStyle = const LoginButtonStyle(),
     this.registerButtonStyle = const RegisterButtonStyle(),
     this.changeKeyButtonStyle = const ChangeKeyButtonStyle(),
+    this.themeConfig = const SolidLoginTheme(),
     // this.secureKeyObject = const SecureKey('', ''),
     super.key,
   });
@@ -174,6 +176,9 @@ class SolidLogin extends StatefulWidget {
   /// Directory name to consider when storing app data
   final String appDirectory;
 
+  /// Theme configuration for the login panel.
+  final SolidLoginTheme themeConfig;
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -194,10 +199,16 @@ class _SolidLoginState extends State<SolidLogin> {
 
   Map<dynamic, dynamic> defaultFiles = {};
 
+  // Track the current theme mode
+  bool _isDarkMode = false;
+
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
+
+    // Always start with light mode regardless of system preference
+    _isDarkMode = false;
   }
 
   // Fetch the package information.
@@ -231,8 +242,20 @@ class _SolidLoginState extends State<SolidLogin> {
     }
   }
 
+  // Toggle between light and dark mode
+  void _toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Use the internal state for theme instead of system brightness
+    final currentTheme = _isDarkMode
+        ? widget.themeConfig.darkTheme
+        : widget.themeConfig.lightTheme;
+
     // The login box's default image Widget for the left/background panel
     // depending on screen width.
 
@@ -444,10 +467,10 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // Build the login panel decorations from the component parts.
-
-    final loginPanelDecor = Container(
+    final loginPanelContent = Container(
       height: 650,
       padding: const EdgeInsets.all(30),
+      color: currentTheme.backgroundColor,
       child: Column(
         children: [
           Image(
@@ -457,17 +480,21 @@ class _SolidLoginState extends State<SolidLogin> {
           const SizedBox(
             height: 0.0,
           ),
-          const Divider(height: 15, thickness: 2),
+          Divider(
+            height: 15,
+            thickness: 2,
+            color: currentTheme.dividerColor,
+          ),
           const SizedBox(
             height: 50.0,
           ),
           Text(
             widget.title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
-              color: Colors.black,
+              color: currentTheme.titleColor,
             ),
           ),
           const SizedBox(
@@ -475,9 +502,17 @@ class _SolidLoginState extends State<SolidLogin> {
           ),
           TextFormField(
             controller: webIdController,
-            decoration: const InputDecoration(
-              border: UnderlineInputBorder(),
+            style: TextStyle(color: currentTheme.textColor),
+            decoration: InputDecoration(
+              border: const UnderlineInputBorder(),
               hintText: 'WebID or Solid server URL',
+              hintStyle: TextStyle(color: currentTheme.hintColor),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: currentTheme.inputBorderColor),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: currentTheme.inputBorderColor),
+              ),
             ),
           ),
           const SizedBox(
@@ -540,11 +575,41 @@ class _SolidLoginState extends State<SolidLogin> {
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: versionDisplay,
+              child: SizedBox(
+                height: boxTextHeight,
+                child: Center(
+                  child: SelectableText(
+                    'Version $appVersion',
+                    style: TextStyle(
+                      color: currentTheme.versionTextColor,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
       ),
+    );
+
+    // Wrap the content in a Stack to add the theme toggle
+    final loginPanelDecor = Stack(
+      children: [
+        loginPanelContent,
+        Positioned(
+          top: 10,
+          right: 10,
+          child: IconButton(
+            icon: Icon(
+              _isDarkMode ? Icons.wb_sunny_outlined : Icons.nightlight_round,
+              color: _isDarkMode ? Colors.amber : Colors.blueGrey,
+            ),
+            onPressed: _toggleTheme,
+            tooltip:
+                _isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+          ),
+        ),
+      ],
     );
 
     // The final login panel's offset depends on the screen size.
@@ -557,7 +622,7 @@ class _SolidLoginState extends State<SolidLogin> {
             ? 0.05
             : 0.25;
 
-    // Create the actual login panel around the deocrated login panel.
+    // Create the actual login panel around the decorated login panel.
 
     final loginPanel = Container(
       margin: EdgeInsets.symmetric(
@@ -566,6 +631,8 @@ class _SolidLoginState extends State<SolidLogin> {
       child: SingleChildScrollView(
         child: Card(
           elevation: 50,
+          color: currentTheme.cardColor,
+          shadowColor: currentTheme.shadowColor,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: loginPanelDecor, //actualChildEventually,
@@ -722,4 +789,70 @@ class InfoButtonStyle {
   final Color background;
   final Color foreground;
   final String tooltip;
+}
+
+/// Theme configuration for a single mode (light or dark)
+class SolidLoginThemeMode {
+  const SolidLoginThemeMode({
+    this.backgroundColor = Colors.white,
+    this.cardColor = Colors.white,
+    this.shadowColor = Colors.black45,
+    this.titleColor = Colors.black,
+    this.textColor = Colors.black,
+    this.hintColor = Colors.grey,
+    this.dividerColor = Colors.grey,
+    this.inputBorderColor = Colors.grey,
+    this.versionTextColor = Colors.grey,
+  });
+
+  /// Background color of the login panel
+  final Color backgroundColor;
+
+  /// Card color for the login panel
+  final Color cardColor;
+
+  /// Shadow color for the login panel card
+  final Color shadowColor;
+
+  /// Color for the title text
+  final Color titleColor;
+
+  /// Color for regular text
+  final Color textColor;
+
+  /// Color for hint text in input fields
+  final Color hintColor;
+
+  /// Color for dividers
+  final Color dividerColor;
+
+  /// Color for input field borders
+  final Color inputBorderColor;
+
+  /// Color for the version text
+  final Color versionTextColor;
+}
+
+/// Theme configuration for the SolidLogin widget
+class SolidLoginTheme {
+  const SolidLoginTheme({
+    this.lightTheme = const SolidLoginThemeMode(),
+    this.darkTheme = const SolidLoginThemeMode(
+      backgroundColor: Color(0xFF121212),
+      cardColor: Color(0xFF1E1E1E),
+      shadowColor: Colors.black87,
+      titleColor: Colors.white,
+      textColor: Colors.white,
+      hintColor: Colors.grey,
+      dividerColor: Colors.grey,
+      inputBorderColor: Colors.grey,
+      versionTextColor: Colors.grey,
+    ),
+  });
+
+  /// Theme configuration for light mode
+  final SolidLoginThemeMode lightTheme;
+
+  /// Theme configuration for dark mode
+  final SolidLoginThemeMode darkTheme;
 }
