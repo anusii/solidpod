@@ -137,6 +137,7 @@ class SolidLogin extends StatefulWidget {
   final InfoButtonStyle infoButtonStyle;
 
   /// The style of the CONTINUE button.
+
   final ContinueButtonStyle continueButtonStyle;
 
   /// The style of the CHANGE KEY button.
@@ -173,10 +174,12 @@ class SolidLogin extends StatefulWidget {
 
   final bool required;
 
-  /// Directory name to consider when storing app data
+  /// Directory name to consider when storing app data.
+
   final String appDirectory;
 
   /// Theme configuration for the login panel.
+
   final SolidLoginTheme themeConfig;
 
   @override
@@ -199,7 +202,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
   Map<dynamic, dynamic> defaultFiles = {};
 
-  // Track the current theme mode
+  // Track the current theme mode.
+
   bool _isDarkMode = false;
 
   @override
@@ -207,7 +211,8 @@ class _SolidLoginState extends State<SolidLogin> {
     super.initState();
     _initPackageInfo();
 
-    // Always start with light mode regardless of system preference
+    // Always start with light mode regardless of system preference.
+
     _isDarkMode = false;
   }
 
@@ -242,7 +247,8 @@ class _SolidLoginState extends State<SolidLogin> {
     }
   }
 
-  // Toggle between light and dark mode
+  // Toggle between light and dark mode.
+
   void _toggleTheme() {
     setState(() {
       _isDarkMode = !_isDarkMode;
@@ -251,7 +257,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
   @override
   Widget build(BuildContext context) {
-    // Use the internal state for theme instead of system brightness
+    // Use the internal state for theme instead of system brightness.
+
     final currentTheme = _isDarkMode
         ? widget.themeConfig.darkTheme
         : widget.themeConfig.lightTheme;
@@ -326,7 +333,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
         if (_isDialogCanceled) return;
 
-        // Get webId from the textfield or assign a default one
+        // Get webId from the textfield or assign a default one.
+
         final podServer = webIdController.text.isNotEmpty
             ? webIdController.text
             : widget.webID;
@@ -340,6 +348,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
         Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
           // Close the animation dialog before navigating away.
+
           Navigator.of(context, rootNavigator: true).pop();
           await Navigator.pushReplacement(
             context,
@@ -356,6 +365,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
         Future<void> navHomeScreen() async {
           // Close the animation dialog before navigating away.
+
           Navigator.of(context, rootNavigator: true).pop();
           await Navigator.pushReplacement(
             context,
@@ -467,6 +477,7 @@ class _SolidLoginState extends State<SolidLogin> {
     );
 
     // Build the login panel decorations from the component parts.
+
     final loginPanelContent = Container(
       height: 650,
       padding: const EdgeInsets.all(30),
@@ -572,6 +583,7 @@ class _SolidLoginState extends State<SolidLogin> {
           ),
 
           // Expand to the bottom of the login panel.
+
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -592,7 +604,8 @@ class _SolidLoginState extends State<SolidLogin> {
       ),
     );
 
-    // Wrap the content in a Stack to add the theme toggle
+    // Wrap the content in a Stack to add the theme toggle.
+
     final loginPanelDecor = Stack(
       children: [
         loginPanelContent,
@@ -791,7 +804,8 @@ class InfoButtonStyle {
   final String tooltip;
 }
 
-/// Theme configuration for a single mode (light or dark)
+/// Theme configuration for a single mode (light or dark).
+
 class SolidLoginThemeMode {
   const SolidLoginThemeMode({
     this.backgroundColor = Colors.white,
@@ -805,35 +819,44 @@ class SolidLoginThemeMode {
     this.versionTextColor = Colors.grey,
   });
 
-  /// Background color of the login panel
+  /// Background color of the login panel.
+
   final Color backgroundColor;
 
-  /// Card color for the login panel
+  /// Card color for the login panel.
+
   final Color cardColor;
 
-  /// Shadow color for the login panel card
+  /// Shadow color for the login panel card.
+
   final Color shadowColor;
 
-  /// Color for the title text
+  /// Color for the title text.
+
   final Color titleColor;
 
-  /// Color for regular text
+  /// Color for regular text.
+
   final Color textColor;
 
-  /// Color for hint text in input fields
+  /// Color for hint text in input fields.
+
   final Color hintColor;
 
   /// Color for dividers
   final Color dividerColor;
 
-  /// Color for input field borders
+  /// Color for input field borders.
+
   final Color inputBorderColor;
 
-  /// Color for the version text
+  /// Color for the version text.
+
   final Color versionTextColor;
 }
 
-/// Theme configuration for the SolidLogin widget
+/// Theme configuration for the SolidLogin widget.
+
 class SolidLoginTheme {
   const SolidLoginTheme({
     this.lightTheme = const SolidLoginThemeMode(),
@@ -850,9 +873,11 @@ class SolidLoginTheme {
     ),
   });
 
-  /// Theme configuration for light mode
+  /// Theme configuration for light mode.
+
   final SolidLoginThemeMode lightTheme;
 
-  /// Theme configuration for dark mode
+  /// Theme configuration for dark mode.
+
   final SolidLoginThemeMode darkTheme;
 }
