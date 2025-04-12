@@ -4,6 +4,14 @@ pubspec.lock
 *~
 ignore
 
+# Platform-specific build folders
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+/web/
+
 # Miscellaneous
 *.class
 *.log
