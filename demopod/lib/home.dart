@@ -49,7 +49,8 @@ import 'package:solidpod/solidpod.dart'
         getWebId,
         loginIfRequired,
         logoutPopup,
-        readPod;
+        readPod,
+        getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -181,6 +182,31 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  // Helper method to demonstrate the security key prompt
+  Future<void> _showSecurityKeyPrompt() async {
+    // First ensure we are logged in
+    final loggedIn = await loginIfRequired(context);
+    if (!loggedIn) {
+      await alert(context, 'Please login to continue');
+      return;
+    }
+    
+    // Forget the security key to ensure the prompt appears.
+    
+    await KeyManager.forgetSecurityKey();
+    
+    // Show the updated security key prompt with WebID.
+    // Use any function that requires the security key.
+
+    try {
+      final encKeyPath = await getEncKeyPath();
+      await readPod(encKeyPath, context, widget);
+      await alert(context, 'Security key verified successfully!');
+    } catch (e) {
+      debugPrint('Error: $e');
+    }
   }
 
   Widget _build(BuildContext context, String title) {
@@ -361,6 +387,31 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           child: const Text('Show Security Key (Encrypted)'),
                           onPressed: () async {
                             await _showPrivateData(title);
+                          },
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text('Demonstrate Security Key Prompt'),
+                          onPressed: () async {
+                            // Use the dedicated helper method
+                            await _showSecurityKeyPrompt();
+                          },
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text('Show Improved Security Key Prompt (with WebID)'),
+                          onPressed: () async {
+                            // First ensure we are logged in
+                            final loggedIn = await loginIfRequired(context);
+                            if (loggedIn) {
+                              // First forget any existing key
+                              await KeyManager.forgetSecurityKey();
+                              // Directly call the getKeyFromUserIfRequired function
+                              // to display the prompt with WebID
+                              await getKeyFromUserIfRequired(context, widget);
+                            } else {
+                              await alert(context, 'Please login to continue');
+                            }
                           },
                         ),
                         smallGapV,
