@@ -184,9 +184,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
-  // Helper method to demonstrate the security key prompt
+  // Helper method to demonstrate the security key prompt.
+
   Future<void> _showSecurityKeyPrompt() async {
-    // First ensure we are logged in
+    // First ensure we are logged in.
+    
     final loggedIn = await loginIfRequired(context);
     if (!loggedIn) {
       await alert(context, 'Please login to continue');
@@ -393,7 +395,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           child: const Text('Demonstrate Security Key Prompt'),
                           onPressed: () async {
-                            // Use the dedicated helper method
+                            // Use the dedicated helper method.
+                            
                             await _showSecurityKeyPrompt();
                           },
                         ),
@@ -401,13 +404,16 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           child: const Text('Show Improved Security Key Prompt (with WebID)'),
                           onPressed: () async {
-                            // First ensure we are logged in
+                            // First ensure we are logged in.
+                            
                             final loggedIn = await loginIfRequired(context);
                             if (loggedIn) {
-                              // First forget any existing key
+                              // First forget any existing key. 
+                              
                               await KeyManager.forgetSecurityKey();
                               // Directly call the getKeyFromUserIfRequired function
-                              // to display the prompt with WebID
+                              // to display the prompt with WebID.
+                              
                               await getKeyFromUserIfRequired(context, widget);
                             } else {
                               await alert(context, 'Please login to continue');
