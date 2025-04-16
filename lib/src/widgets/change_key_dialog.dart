@@ -36,7 +36,7 @@ import 'package:solidpod/src/solid/common_func.dart' show loginIfRequired;
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
-import 'package:solidpod/src/widgets/security_key_dialog.dart';
+import 'package:solidpod/src/widgets/security_key_ui.dart';
 
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
@@ -128,13 +128,15 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
       ),
     ];
 
-    final changeKeyForm = SecurityKeyDialog(
+    // Use the unified SecurityKeyUI widget in dialog mode
+    final changeKeyForm = SecurityKeyUI(
       webId: webId,
       title: 'Change Security Key',
       message: message,
       inputFields: inputFields,
       formKey: formKey,
       submitFunc: submitForm,
+      displayMode: SecurityKeyDisplayMode.dialog,
       child: child,
     );
 

@@ -36,12 +36,13 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
-import 'package:solidpod/src/widgets/security_key_prompt.dart';
+import 'package:solidpod/src/widgets/security_key_ui.dart';
 
 /// Login if the user has not done so.
 
@@ -120,11 +121,13 @@ Future<void> getKeyFromUserIfRequired(
       }
     );
 
-    // Use the improved SecurityKeyPrompt instead of SecretInputForm.
+    // Use the unified SecurityKeyUI widget with the appropriate configuration.
 
-    final securityKeyInput = SecurityKeyPrompt(
+    final securityKeyInput = SecurityKeyUI(
       webId: webId,
-      inputField: inputField,
+      title: 'Security Key',
+      message: SecurityStrings.securityKeyPrompt,
+      inputFields: [inputField],
       formKey: GlobalKey<FormBuilderState>(),
       submitFunc: (formDataMap) async {
         await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
