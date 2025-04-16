@@ -196,18 +196,23 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
 
     // Forget the security key to ensure the prompt appears.
+
     await KeyManager.forgetSecurityKey();
 
-    // Inform user about what will happen next
+    // Inform user about what will happen next.
+
     await alert(context,
         'The security key has been forgotten locally. The next step will show the security key prompt which you would normally see when accessing secured data after logging in.');
 
-    // Directly show the security key prompt with WebID
+    // Directly show the security key prompt with WebID.
+
     try {
-      // This will trigger the security key prompt since we've forgotten the key
+      // This will trigger the security key prompt since we've forgotten the key.
+
       await getKeyFromUserIfRequired(context, widget);
 
-      // Only show this if the user enters the correct key
+      // Only show this if the user enters the correct key.
+      
       await alert(context,
           'Your security key was entered correctly and has been saved for this session.');
     } catch (e) {
