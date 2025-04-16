@@ -51,11 +51,11 @@ class SecurityKeyPrompt extends StatefulWidget {
   });
 
   /// The WebID to display.
-  
+
   final String? webId;
 
   /// The input text field.
-  
+
   final ({
     String fieldKey,
     String fieldLabel,
@@ -63,15 +63,15 @@ class SecurityKeyPrompt extends StatefulWidget {
   }) inputField;
 
   /// Key of the form for data retrieval.
-  
+
   final GlobalKey<FormBuilderState> formKey;
 
   /// The submit function.
-  
+
   final Future<void> Function(Map<String, dynamic> formDataMap) submitFunc;
 
   /// The child widget.
-  
+
   final Widget child;
 
   @override
@@ -93,7 +93,7 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
     if (!_canSubmit) {
       return;
     }
-    
+
     if (formData[widget.inputField.fieldKey] == null) {
       debugPrint('${widget.inputField.fieldKey} is null');
       return;
@@ -109,11 +109,11 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
   @override
   Widget build(BuildContext context) {
     // Key of the form for data retrieval.
-    
+
     final formKey = widget.formKey;
 
     // Input field widget.
-    
+
     final inputFieldWidget = StatefulBuilder(
       builder: (context, setState) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -138,19 +138,19 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
     );
 
     // Form.
-    
+
     final form = FormBuilder(
       key: formKey,
       onChanged: () {
         // Save input and validate.
-        
+
         formKey.currentState!.save();
         formKey.currentState!.validate(
           focusOnInvalid: false,
         );
 
         // Update state.
-        
+
         setState(() {
           _canSubmit = _isVerified;
         });
@@ -168,7 +168,7 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
     );
 
     // Submit button.
-    
+
     final submitButton = ElevatedButton(
       onPressed: _canSubmit ? () async => _submit(context) : null,
       style: ElevatedButton.styleFrom(
@@ -204,7 +204,7 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
     );
 
     // Card content.
-    
+
     final cardContent = Container(
       width: SecurityLayout.dialogWidth,
       constraints: BoxConstraints(
@@ -236,38 +236,38 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
                   'Security Key',
                   style: SecurityTextStyles.heading,
                 ),
-                
+
                 // Green divider under heading.
-                
+
                 Container(
                   height: SecurityLayout.dividerHeight,
                   color: SecurityColors.accent,
                   margin: SecurityLayout.dividerMargin,
                 ),
-                
+
                 // "Currently logged in as:" label.
-                
+
                 Text(
                   SecurityStrings.webIdLabel,
                   style: SecurityTextStyles.label,
                 ),
-                
+
                 // WebID on separate line.
-                
+
                 Padding(
                   padding: SecurityLayout.webIdPadding,
                   child: Text(
                     widget.webId ?? SecurityStrings.notLoggedIn,
                     style: SecurityTextStyles.webId.copyWith(
-                      color: widget.webId != null 
-                          ? SecurityColors.primary 
+                      color: widget.webId != null
+                          ? SecurityColors.primary
                           : Colors.red,
                     ),
                   ),
                 ),
-                
+
                 // Instructions text.
-                
+
                 Text(
                   SecurityStrings.securityKeyPrompt,
                   style: SecurityTextStyles.body,
@@ -275,22 +275,22 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
               ],
             ),
           ),
-          
+
           // Separator.
-          
+
           Container(
             height: SecurityLayout.separatorHeight,
             color: Colors.grey.shade200,
           ),
-          
+
           // Form with input field.
           Padding(
             padding: SecurityLayout.formPadding,
             child: form,
           ),
-          
+
           // Buttons.
-          
+
           Padding(
             padding: SecurityLayout.buttonsPadding,
             child: Row(
@@ -316,4 +316,4 @@ class _SecurityKeyPromptState extends State<SecurityKeyPrompt> {
       ),
     );
   }
-} 
+}

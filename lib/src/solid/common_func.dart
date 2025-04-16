@@ -105,9 +105,9 @@ Future<void> getKeyFromUserIfRequired(
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
     // Get the webId to display in the security key prompt.
-    
+
     final webId = await getWebId();
-    
+
     const inputKey = 'security_key';
     final inputField = (
       fieldKey: inputKey,
@@ -119,9 +119,9 @@ Future<void> getKeyFromUserIfRequired(
             : 'Incorrect Security Key';
       }
     );
-    
+
     // Use the improved SecurityKeyPrompt instead of SecretInputForm.
-    
+
     final securityKeyInput = SecurityKeyPrompt(
       webId: webId,
       inputField: inputField,

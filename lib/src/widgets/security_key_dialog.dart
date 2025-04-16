@@ -53,19 +53,19 @@ class SecurityKeyDialog extends StatefulWidget {
   });
 
   /// The WebID to display.
-  
+
   final String? webId;
-  
+
   /// Title of the dialog.
-  
+
   final String title;
-  
+
   /// Message to display.
-  
+
   final String message;
 
   /// The input text fields.
-  
+
   final List<
       ({
         String fieldKey,
@@ -74,15 +74,15 @@ class SecurityKeyDialog extends StatefulWidget {
       })> inputFields;
 
   /// Key of the form for data retrieval.
-  
+
   final GlobalKey<FormBuilderState> formKey;
 
   /// The submit function.
-  
+
   final Future<void> Function(Map<String, dynamic> formDataMap) submitFunc;
 
   /// The child widget.
-  
+
   final Widget child;
 
   @override
@@ -108,7 +108,7 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
     if (!_canSubmit) {
       return;
     }
-    
+
     for (final f in widget.inputFields) {
       if (formData[f.fieldKey] == null) {
         debugPrint('${f.fieldKey} is null');
@@ -126,13 +126,13 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
   @override
   Widget build(BuildContext context) {
     // Key of the form for data retrieval.
-    
+
     final formKey = widget.formKey;
 
     // Create the input fields.
-    
+
     final inputFieldWidgets = <Widget>[];
-    
+
     for (final f in widget.inputFields) {
       inputFieldWidgets.add(
         Padding(
@@ -161,19 +161,19 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
     }
 
     // Form.
-    
+
     final form = FormBuilder(
       key: formKey,
       onChanged: () {
         // Save input and validate.
-        
+
         formKey.currentState!.save();
         formKey.currentState!.validate(
           focusOnInvalid: false,
         );
 
         // Update state.
-        
+
         setState(() {
           _canSubmit = !_verifiedMap.containsValue(false);
         });
@@ -194,7 +194,7 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
     );
 
     // Submit button.
-    
+
     final submitButton = ElevatedButton(
       onPressed: _canSubmit ? () async => _submit(context) : null,
       style: ElevatedButton.styleFrom(
@@ -230,7 +230,7 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
     );
 
     // Card content.
-    
+
     final cardContent = Container(
       width: SecurityLayout.dialogWidth,
       constraints: BoxConstraints(
@@ -252,50 +252,50 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header section.
-          
+
           Padding(
             padding: SecurityLayout.contentPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Title heading.
-                
+
                 Text(
                   widget.title,
                   style: SecurityTextStyles.heading,
                 ),
-                
+
                 // Green divider under heading.
-                
+
                 Container(
                   height: SecurityLayout.dividerHeight,
                   color: SecurityColors.accent,
                   margin: SecurityLayout.dividerMargin,
                 ),
-                
+
                 // "Currently logged in as:" label.
-                
+
                 Text(
                   SecurityStrings.webIdLabel,
                   style: SecurityTextStyles.label,
                 ),
-                
+
                 // WebID on separate line.
-                
+
                 Padding(
                   padding: SecurityLayout.webIdPadding,
                   child: Text(
                     widget.webId ?? SecurityStrings.notLoggedIn,
                     style: SecurityTextStyles.webId.copyWith(
-                      color: widget.webId != null 
-                          ? SecurityColors.primary 
+                      color: widget.webId != null
+                          ? SecurityColors.primary
                           : Colors.red,
                     ),
                   ),
                 ),
-                
+
                 // Instructions text.
-                
+
                 Text(
                   widget.message,
                   style: SecurityTextStyles.body,
@@ -303,23 +303,23 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
               ],
             ),
           ),
-          
+
           // Separator.
-          
+
           Container(
             height: SecurityLayout.separatorHeight,
             color: Colors.grey.shade200,
           ),
-          
+
           // Form with input fields.
-          
+
           Padding(
             padding: SecurityLayout.formPadding,
             child: form,
           ),
-          
+
           // Buttons.
-          
+
           Padding(
             padding: SecurityLayout.buttonsPadding,
             child: Row(
@@ -337,4 +337,4 @@ class _SecurityKeyDialogState extends State<SecurityKeyDialog> {
 
     return cardContent;
   }
-} 
+}

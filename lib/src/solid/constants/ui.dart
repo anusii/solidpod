@@ -34,23 +34,23 @@ import 'package:flutter/material.dart';
 
 class SecurityColors {
   /// Primary colour (Forest Green) used for headings and important elements.
-  
+
   static const primary = Color(0xFF2E7D32);
-  
+
   /// Accent colour (Lighter Green) used for dividers and secondary elements.
-  
+
   static const accent = Color(0xFF4CAF50);
-  
+
   /// Background colour (Light Grey) used for dialog backgrounds.
-  
+
   static const background = Color(0xFFF5F5F5);
-  
+
   /// Text colour (Dark Grey) used for main text content.
-  
+
   static const text = Color(0xFF212121);
-  
+
   /// Grey colour used for labels and secondary text.
-  
+
   static const labelGrey = Colors.grey;
 }
 
@@ -58,36 +58,36 @@ class SecurityColors {
 
 class SecurityTextStyles {
   /// Style for main headings (e.g. "Security Key").
-  
+
   static const heading = TextStyle(
     fontSize: 22,
     fontWeight: FontWeight.bold,
     color: SecurityColors.primary,
   );
-  
+
   /// Style for regular text content.
-  
+
   static const body = TextStyle(
     fontSize: 15,
     color: SecurityColors.text,
   );
-  
+
   /// Style for the WebID display.
-  
+
   static const webId = TextStyle(
     fontSize: 13,
     fontWeight: FontWeight.w500,
   );
-  
+
   /// Style for the "Currently logged in as:" label.
-  
+
   static const label = TextStyle(
     fontSize: 13,
     color: SecurityColors.labelGrey,
   );
-  
+
   /// Style for button text.
-  
+
   static const button = TextStyle(
     fontSize: 14,
     color: Colors.white,
@@ -98,59 +98,60 @@ class SecurityTextStyles {
 
 class SecurityLayout {
   /// Horizontal gap between elements.
-  
+
   static const horizontalGap = SizedBox(width: 16);
-  
+
   /// Standard padding for dialog content.
-  
+
   static const contentPadding = EdgeInsets.all(20);
-  
+
   /// Padding for form sections.
-  
+
   static const formPadding = EdgeInsets.fromLTRB(20, 20, 20, 8);
-  
+
   /// Padding for button sections.
-  
+
   static const buttonsPadding = EdgeInsets.fromLTRB(20, 8, 20, 20);
-  
+
   /// Margin for green divider under heading.
-  
+
   static const dividerMargin = EdgeInsets.only(top: 4, bottom: 14);
-  
+
   /// Padding for WebID display.
-  
+
   static const webIdPadding = EdgeInsets.only(top: 4, bottom: 20);
-  
+
   /// Input field spacing.
-  
+
   static const inputFieldSpacing = EdgeInsets.only(bottom: 16);
-  
+
   /// Button padding.
-   
-  static const buttonPadding = EdgeInsets.symmetric(horizontal: 16, vertical: 10);
-  
+
+  static const buttonPadding =
+      EdgeInsets.symmetric(horizontal: 16, vertical: 10);
+
   /// Standard width for security dialogs.
-  
+
   static const dialogWidth = 480.0;
-  
+
   /// Maximum width constraint for security dialogs.
-  
+
   static const maxDialogWidth = 500.0;
-  
+
   /// Border radius for cards and buttons.
-  
+
   static const borderRadius = 8.0;
-  
+
   /// Border radius for buttons.
-  
+
   static const buttonRadius = 6.0;
-  
+
   /// Height for divider lines.
-  
+
   static const dividerHeight = 1.5;
-  
+
   /// Height for separator lines.
-  
+
   static const separatorHeight = 1.0;
 }
 
@@ -158,23 +159,23 @@ class SecurityLayout {
 
 class SecurityStrings {
   /// Label for the WebID display.
-  
+
   static const webIdLabel = 'Currently logged in as:';
-  
+
   /// Label for not logged in state.
-  
+
   static const notLoggedIn = 'Not logged in';
-  
+
   /// Security key input prompt.
-  
-  static const securityKeyPrompt = 
+
+  static const securityKeyPrompt =
       'Please enter the security key you previously provided for securing your data.';
-  
+
   /// Submit button text.
-  
+
   static const submit = 'Submit';
-  
+
   /// Cancel button text.
-  
+
   static const cancel = 'Cancel';
-} 
+}

@@ -38,7 +38,6 @@ import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/security_key_dialog.dart';
 
-
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
 
@@ -128,7 +127,7 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
         validateFunc: (key) => validateNewKeyRepeat(key as String),
       ),
     ];
-    
+
     final changeKeyForm = SecurityKeyDialog(
       webId: webId,
       title: 'Change Security Key',
