@@ -34,16 +34,19 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
-import 'package:solidpod/src/widgets/secret_input_form.dart';
-import 'package:solidpod/src/solid/common_func.dart';
+import 'package:solidpod/src/widgets/security_key_dialog.dart';
+import 'package:solidpod/src/solid/common_func.dart' show loginIfRequired;
+import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
 
 /// Displays a dialog for changing the key
 /// [context] is the BuildContext from which this function is called.
+
 Future<void> changeKeyPopup(BuildContext context, Widget child) async {
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
     final verificationKey = await KeyManager.getVerificationKey();
+    final webId = await getWebId();
 
     const message =
         'Please enter the current security key, the new security key,'
@@ -124,8 +127,9 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
         validateFunc: (key) => validateNewKeyRepeat(key as String),
       ),
     ];
-
-    final changeKeyForm = SecretInputForm(
+    
+    final changeKeyForm = SecurityKeyDialog(
+      webId: webId,
       title: 'Change Security Key',
       message: message,
       inputFields: inputFields,
@@ -134,26 +138,16 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
       child: child,
     );
 
-    // Use MediaQuery to get the size of the current screen.
-
     if (context.mounted) {
-      final size = MediaQuery.of(context).size;
-
-      // Calculate the desired width and height.
-
-      final width = size.width * 0.5;
-      final height = size.height * 0.5;
-
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          content: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: width,
-              minHeight: height,
-            ),
+          content: SingleChildScrollView(
             child: changeKeyForm,
           ),
+          contentPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
       );
     }

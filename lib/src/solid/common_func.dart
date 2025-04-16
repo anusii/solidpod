@@ -41,9 +41,9 @@ import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
-import 'package:solidpod/src/widgets/secret_input_form.dart';
+import 'package:solidpod/src/widgets/security_key_prompt.dart';
 
-/// Login if the user has not done so
+/// Login if the user has not done so.
 
 Future<bool> loginIfRequired(BuildContext context) async {
   final loggedIn = await checkLoggedIn();
@@ -104,9 +104,10 @@ Future<void> getKeyFromUserIfRequired(
     return;
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
-
-    const message = 'Please enter the security key you previously provided'
-        ' for securing your data.';
+    // Get the webId to display in the security key prompt.
+    
+    final webId = await getWebId();
+    
     const inputKey = 'security_key';
     final inputField = (
       fieldKey: inputKey,
@@ -118,10 +119,12 @@ Future<void> getKeyFromUserIfRequired(
             : 'Incorrect Security Key';
       }
     );
-    final securityKeyInput = SecretInputForm(
-      title: 'Security Key',
-      message: message,
-      inputFields: [inputField],
+    
+    // Use the improved SecurityKeyPrompt instead of SecretInputForm.
+    
+    final securityKeyInput = SecurityKeyPrompt(
+      webId: webId,
+      inputField: inputField,
       formKey: GlobalKey<FormBuilderState>(),
       submitFunc: (formDataMap) async {
         await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
@@ -142,6 +145,7 @@ Future<void> getKeyFromUserIfRequired(
 
 /// Delete a data file (and its ACL file if exist), remove its individual key
 /// and the corresponding IV from the ind-key-file
+
 Future<void> deleteDataFile(
   String fileName,
   BuildContext context, {
