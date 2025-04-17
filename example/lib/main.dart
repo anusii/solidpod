@@ -87,9 +87,6 @@ class DemoPod extends StatelessWidget {
         infoButtonStyle: InfoButtonStyle(
           tooltip: 'Visit the DemoPod documentation.',
         ),
-        loginButtonStyle: LoginButtonStyle(
-          background: Colors.lightGreenAccent,
-        ),
         child: Home(),
       ),
     );

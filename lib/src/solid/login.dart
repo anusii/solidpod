@@ -60,10 +60,12 @@ const int _veryNarrowScreenLimit = 750;
 const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
 
-// Teal color to match logo.
+// Colours for highlighted buttons.
 
-const Color highlightedButtonBackground = Color(0xFF00BCD4); 
-const Color highlightedButtonForeground = Colors.white;
+const Color registerButtonBackground = Color(0xFF00BCD4); 
+const Color registerButtonForeground = Colors.white;
+const Color loginButtonBackground = Color(0xFF4CAF50); 
+const Color loginButtonForeground = Colors.white;
 
 const String defaultLoginButtonText = 'Login';
 const String defaultRegisterButtonText = 'Register';
@@ -784,8 +786,8 @@ class ChangeKeyButtonStyle {
 class LoginButtonStyle {
   const LoginButtonStyle({
     this.text = defaultLoginButtonText,
-    this.background = defaultButtonBackground,
-    this.foreground = defaultButtonForeground,
+    this.background = loginButtonBackground,
+    this.foreground = loginButtonForeground,
     this.tooltip = defaultLoginTooltip,
   });
   final String text;
@@ -797,8 +799,8 @@ class LoginButtonStyle {
 class RegisterButtonStyle {
   const RegisterButtonStyle({
     this.text = defaultRegisterButtonText,
-    this.background = highlightedButtonBackground,
-    this.foreground = highlightedButtonForeground,
+    this.background = registerButtonBackground,
+    this.foreground = registerButtonForeground,
     this.tooltip = defaultRegisterTooltip,
   });
   final String text;
