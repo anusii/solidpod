@@ -49,7 +49,8 @@ import 'package:solidpod/solidpod.dart'
         getWebId,
         loginIfRequired,
         logoutPopup,
-        readPod;
+        readPod,
+        getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -181,6 +182,43 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  // Helper method to demonstrate the security key prompt.
+
+  Future<void> _showSecurityKeyPrompt() async {
+    // First ensure we are logged in.
+
+    final loggedIn = await loginIfRequired(context);
+    if (!loggedIn) {
+      await alert(context, 'Please login to continue');
+      return;
+    }
+
+    // Forget the security key to ensure the prompt appears.
+
+    await KeyManager.forgetSecurityKey();
+
+    // Inform user about what will happen next.
+
+    await alert(context,
+        'The security key has been forgotten locally. The next step will show the security key prompt which you would normally see when accessing secured data after logging in.');
+
+    // Directly show the security key prompt with WebID.
+
+    try {
+      // This will trigger the security key prompt since we've forgotten the key.
+
+      await getKeyFromUserIfRequired(context, widget);
+
+      // Only show this if the user enters the correct key.
+      
+      await alert(context,
+          'Your security key was entered correctly and has been saved for this session.');
+    } catch (e) {
+      debugPrint('Error: $e');
+      await alert(context, 'Error or cancelled: $e');
+    }
   }
 
   Widget _build(BuildContext context, String title) {
@@ -361,6 +399,16 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           child: const Text('Show Security Key (Encrypted)'),
                           onPressed: () async {
                             await _showPrivateData(title);
+                          },
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text(
+                              'Show Security Key Prompt (For Demonstration)'),
+                          onPressed: () async {
+                            // Use the dedicated helper method.
+
+                            await _showSecurityKeyPrompt();
                           },
                         ),
                         smallGapV,
