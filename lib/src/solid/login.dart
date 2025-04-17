@@ -60,6 +60,11 @@ const int _veryNarrowScreenLimit = 750;
 const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
 
+// Teal color to match logo.
+
+const Color highlightedButtonBackground = Color(0xFF00BCD4); 
+const Color highlightedButtonForeground = Colors.white;
+
 const String defaultLoginButtonText = 'Login';
 const String defaultRegisterButtonText = 'Register';
 const String defaultInfoButtonText = 'Info';
@@ -711,7 +716,7 @@ class PodButton extends StatelessWidget {
   final buttonTextStyle = const TextStyle(
     fontSize: 16.0,
     letterSpacing: 2.0,
-    // fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w500,
   );
 
   @override
@@ -723,8 +728,19 @@ class PodButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: background,
           foregroundColor: foreground,
-          // Increase vertical padding.
+          // Add a solid border to make buttons more visible.
 
+          side: BorderSide(
+            color: Colors.grey.shade400,
+          ),
+
+          // Apply rounded corners consistent with card style.
+
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          // Increase vertical padding.
+          
           padding: const EdgeInsets.symmetric(vertical: 12),
           // Ensure a minimum size of 48px in height as per guidelines.
 
@@ -781,8 +797,8 @@ class LoginButtonStyle {
 class RegisterButtonStyle {
   const RegisterButtonStyle({
     this.text = defaultRegisterButtonText,
-    this.background = defaultButtonBackground,
-    this.foreground = defaultButtonForeground,
+    this.background = highlightedButtonBackground,
+    this.foreground = highlightedButtonForeground,
     this.tooltip = defaultRegisterTooltip,
   });
   final String text;
