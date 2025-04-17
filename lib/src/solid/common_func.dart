@@ -36,14 +36,15 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
-import 'package:solidpod/src/widgets/secret_input_form.dart';
+import 'package:solidpod/src/widgets/security_key_ui.dart';
 
-/// Login if the user has not done so
+/// Login if the user has not done so.
 
 Future<bool> loginIfRequired(BuildContext context) async {
   final loggedIn = await checkLoggedIn();
@@ -104,9 +105,10 @@ Future<void> getKeyFromUserIfRequired(
     return;
   } else {
     final verificationKey = await KeyManager.getVerificationKey();
+    // Get the webId to display in the security key prompt.
 
-    const message = 'Please enter the security key you previously provided'
-        ' for securing your data.';
+    final webId = await getWebId();
+
     const inputKey = 'security_key';
     final inputField = (
       fieldKey: inputKey,
@@ -118,9 +120,13 @@ Future<void> getKeyFromUserIfRequired(
             : 'Incorrect Security Key';
       }
     );
-    final securityKeyInput = SecretInputForm(
+
+    // Use the unified SecurityKeyUI widget with the appropriate configuration.
+
+    final securityKeyInput = SecurityKeyUI(
+      webId: webId,
       title: 'Security Key',
-      message: message,
+      message: SecurityStrings.securityKeyPrompt,
       inputFields: [inputField],
       formKey: GlobalKey<FormBuilderState>(),
       submitFunc: (formDataMap) async {
@@ -142,6 +148,7 @@ Future<void> getKeyFromUserIfRequired(
 
 /// Delete a data file (and its ACL file if exist), remove its individual key
 /// and the corresponding IV from the ind-key-file
+
 Future<void> deleteDataFile(
   String fileName,
   BuildContext context, {
