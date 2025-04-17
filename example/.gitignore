@@ -4,6 +4,14 @@ pubspec.lock
 *~
 ignore
 
+# Platform-specific build folders
+/android/
+/ios/
+/linux/
+/macos/
+/windows/
+/web/
+
 # Miscellaneous
 *.class
 *.log
@@ -11,9 +19,11 @@ ignore
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related

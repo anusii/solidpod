@@ -2,7 +2,7 @@
 #
 # Generic Makefile
 #
-# Time-stamp: <Wednesday 2024-05-22 15:08:58 +1000 Graham Williams>
+# Time-stamp: <Thursday 2024-11-14 07:34:13 +1100 Graham Williams>
 #
 # Copyright (c) Graham.Williams@togaware.com
 #
@@ -31,7 +31,7 @@ DEST=/var/www/html/$(APP)
 # Often the support Makefiles will be in the local support folder, or
 # else installed in the local user's shares.
 
-INC_BASE=support
+INC_BASE=../support
 
 # Specific Makefiles will be loaded if they are found in
 # INC_BASE. Sometimes the INC_BASE is shared by multiple local
@@ -40,6 +40,7 @@ INC_BASE=support
 
 INC_DOCKER=skip
 INC_MLHUB=skip
+INC_WEBCAM=skip
 
 # Load any modules available.
 
@@ -57,8 +58,7 @@ endif
 define HELP
 $(APP):
 
-  solidcommunity	Install to https://$(APP).solidcommunity.au
-  wc                    Count the number of lines of code.
+  locals	     No local targets defined yet.
 
 endef
 export HELP
