@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Friday 2024-05-17 13:53:44 +1000 Graham Williams>
+// Time-stamp: <Tuesday 2025-04-22 13:52:44 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -61,11 +61,19 @@ const Color defaultButtonBackground = Colors.white;
 const Color defaultButtonForeground = Colors.black;
 
 // Colours for highlighted buttons.
+//
+// Do these need to be highligheted. By default the package should not highlight
+// them but if an app developer wants to then we should support that. (gjw
+// 20250422)
+//
+// The original alternatives were Color(0xFF00BCD4) and Colors.white for
+// register and Color(0xFF4CAF50) abd Colors.white for login. I find the colours
+// a bit distracting as a user. (gjw 20250422)
 
-const Color registerButtonBackground = Color(0xFF00BCD4); 
-const Color registerButtonForeground = Colors.white;
-const Color loginButtonBackground = Color(0xFF4CAF50); 
-const Color loginButtonForeground = Colors.white;
+const Color registerButtonBackground = defaultButtonBackground;
+const Color registerButtonForeground = defaultButtonForeground;
+const Color loginButtonBackground = defaultButtonBackground;
+const Color loginButtonForeground = defaultButtonForeground;
 
 const String defaultLoginButtonText = 'Login';
 const String defaultRegisterButtonText = 'Register';
@@ -742,7 +750,7 @@ class PodButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           // Increase vertical padding.
-          
+
           padding: const EdgeInsets.symmetric(vertical: 12),
           // Ensure a minimum size of 48px in height as per guidelines.
 
