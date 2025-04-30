@@ -5,17 +5,14 @@ Recorded here are the high level changes for the SolidPod package.
 Guide: Each version update is recorded here with a short user-oriented
 description of the update.
 
-## 0.6.7
+## [0.6.5 20250430]
 
++ Bug fixes.
++ Support light/dark mode and GUI updates [atangster]
++ Updated security key prompt [atangster]
 + Fix incorrect filename suffix for unencrypted text files
-
-## 0.6.6
-
 + Add APIs to stream data from / to solid server
 + Refactor internal function parseTTL
-
-## 0.6.5
-
 + Require log into solid server if refreshing expired access token is failed
 + Update dependencies
 
@@ -39,7 +36,7 @@ description of the update.
 ## 0.6.0
 
 + Update Readme with prerequisites for `macos` and `web` [0.5.49]
-+ Fix login animation issue [0.5.48] 
++ Fix login animation issue [0.5.48]
 + Export function to read permission given by others [0.5.47]
 + Export get resources in a container function [0.5.46]
 + Update dependencies to the latest release [0.5.45]
@@ -51,7 +48,7 @@ description of the update.
 + Support the upload, download and delete of large (binary) files [0.5.39]
 + Deploy an example/demo app [0.5.38 20240630]
 + Create ACL file in writePod() if not exist. [0.5.37]
-+ Catch any non-null objects thrown in exception handling. [0.5.36] 
++ Catch any non-null objects thrown in exception handling. [0.5.36]
 + Add read and grant permissions backend and UI. [0.5.35]
 + Deprecate APIs: `updateIndKeyFile` and `getFileContent`. [0.5.34]
 + Check and grant access permissions to data file. [0.5.33]
@@ -61,7 +58,7 @@ description of the update.
 + Add/Delete corresponding individual keys when adding/deleting data files. [0.5.29]
 + Support the read/write of non-encrypted data file. [0.5.28].
 + Refactor POD initialisation code. [0.5.27]
-+ Fix security key reloads bug, change button text colour. [0.5.26] 
++ Fix security key reloads bug, change button text colour. [0.5.26]
 + Add version number to login screen. [0.5.25]
 + Fix login animation won't disappear in some cases. [0.5.24]
 + Implement API for changing "security key". [0.5.23]
@@ -94,7 +91,7 @@ description of the update.
   authentication.
 
 ## 0.4.0
-  
+
 + Rename to `solidpod` as the name `solid` already taken.
 + Add button titles to parameters for SolidLogin() [0.3.1]
 
