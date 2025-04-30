@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Tuesday 2025-04-22 13:52:44 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-04-30 15:52:42 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -477,19 +477,19 @@ class _SolidLoginState extends State<SolidLogin> {
     // [versionTextColor], as it is not to be a standout text in full black.
 
     const boxTextHeight = 20.0;
-    const versionTextColor = Colors.grey;
+    // const versionTextColor = Colors.grey;
 
-    final Widget versionDisplay = SizedBox(
-      height: boxTextHeight,
-      child: Center(
-        child: SelectableText(
-          'Version $appVersion',
-          style: const TextStyle(
-            color: versionTextColor,
-          ),
-        ),
-      ),
-    );
+    // final Widget versionDisplay = SizedBox(
+    //   height: boxTextHeight,
+    //   child: Center(
+    //     child: SelectableText(
+    //       'Version $appVersion',
+    //       style: const TextStyle(
+    //         color: versionTextColor,
+    //       ),
+    //     ),
+    //   ),
+    // );
 
     // Build the login panel decorations from the component parts.
 

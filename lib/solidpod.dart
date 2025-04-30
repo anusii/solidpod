@@ -1,6 +1,6 @@
 /// Support for flutter apps accessing solid PODs.
 ///
-// Time-stamp: <Monday 2024-04-22 15:19:23 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-04-30 15:52:59 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,8 +27,6 @@
 // SOFTWARE.
 ///
 /// Authors: Graham Williams, Anushka Vidanage
-
-library solidpod;
 
 // Solid server login UI class and its corresponding button style classes
 export 'src/solid/login.dart'

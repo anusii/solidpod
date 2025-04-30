@@ -1,6 +1,6 @@
 /// Miscellaneous utility functions used across the package.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Wednesday 2025-04-30 15:53:26 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -256,10 +256,12 @@ Future<bool> checkLoggedIn() async {
 
 Future<void> createDir(String dirUrl) async {
   assert(dirUrl.endsWith('/'));
-  await createResource(dirUrl,
-      fileFlag: false,
-      replaceIfExist: false,
-      contentType: ResourceContentType.directory);
+  await createResource(
+    dirUrl,
+    fileFlag: false,
+    replaceIfExist: false,
+    contentType: ResourceContentType.directory,
+  );
 }
 
 /// Delete login information from the local storage
