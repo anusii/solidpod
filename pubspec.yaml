@@ -1,5 +1,5 @@
 name: solidpod
-description: Support access to private data from Pods on Solid servers.
+description: Support access to private data from PODs on Solid servers.
 version: 0.6.7
 homepage: https://github.com/anusii/solidpod
 
@@ -28,20 +28,7 @@ dependencies:
   path: ^1.9.0
   pointycastle: ^3.9.1
   rdflib: ^0.2.11
-
-  # For testing we temporarily use the github version or the local
-  # version of solid_auth. Leave only the follow dependency line for
-  # release. (gjw 20250429)
-  #
-  # solid_auth: ^0.1.24
-  #
-  # solid_auth:
-  #   path: ../solid_auth
-
-  solid_auth:
-    git:
-      url: https://github.com/anusii/solid_auth.git
-      ref: main
+  solid_auth: ^0.1.24
   url_launcher: ^6.3.1
 
 dev_dependencies:
@@ -61,12 +48,6 @@ platforms:
   macos:
   web:
   windows:
-
-# Is this still required. Please document why it is. Update this for
-# release. (gjw 20250429)
-#
-# dependency_overrides:
-#   collection: ^1.19.0
 
 flutter:
   assets:
