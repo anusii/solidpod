@@ -36,6 +36,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
+import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
@@ -141,7 +142,22 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
         Row(
           children: [
             BackButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                // Navigate back to the login screen.
+
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const SolidLogin(
+                      child: Scaffold(
+                          body: Center(
+                              child: Text('Please log in to your Solid Pod'))),
+                    ),
+                  ),
+                  // Remove all previous routes from the stack.
+
+                  (route) => false,
+                );
+              },
             ),
           ],
         ),
