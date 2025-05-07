@@ -143,20 +143,10 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
           children: [
             BackButton(
               onPressed: () {
-                // Navigate back to the login screen.
+                // Navigate back to the login screen (root route) or the previous screen.
+                // This ensures we go back to the existing screen instead of creating a new one.
 
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => const SolidLogin(
-                      child: Scaffold(
-                          body: Center(
-                              child: Text('Please log in to your Solid Pod'))),
-                    ),
-                  ),
-                  // Remove all previous routes from the stack.
-
-                  (route) => false,
-                );
+                Navigator.of(context).popUntil((route) => route.isFirst);
               },
             ),
           ],

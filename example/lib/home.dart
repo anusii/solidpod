@@ -30,7 +30,6 @@
 
 library;
 
-import 'package:demopod/dialogs/alert.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -52,6 +51,11 @@ import 'package:solidpod/solidpod.dart'
         readPod,
         getKeyFromUserIfRequired;
 
+// Import the setup wizard components directly for demonstration.
+
+// ignore: implementation_imports
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
+
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
@@ -59,6 +63,7 @@ import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
+import 'package:demopod/dialogs/alert.dart';
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -609,48 +614,39 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         smallGapV,
                         ElevatedButton(
                           onPressed: () async {
-                            // Use WillPopScope to handle back button properly
+                            // Now that the back button issue is fixed in InitialSetupScreenBody,
+                            // we can use it directly without any custom wrapper.
+                            
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => WillPopScope(
-                                  onWillPop: () async {
-                                    // Show confirmation dialog
-                                    final result = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        title: const Text('Exit Setup Wizard?'),
-                                        content: const Text(
-                                            'Are you sure you want to exit the setup wizard? '
-                                            'This demonstrates proper back button handling.'),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, false),
-                                            child: const Text('No'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context, true),
-                                            child: const Text('Yes'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
+                                builder: (context) => Scaffold(
 
-                                    // If confirmed, go back to home screen properly
-                                    if (result == true) {
-                                      Navigator.of(context).pop();
-                                    }
-                                    return false; // Always prevent default back navigation
-                                  },
-                                  child: const SetupWizardDemo(),
+                                  body: SafeArea(
+                                    child: InitialSetupScreenBody(
+                                      // Sample resources that would need to be created.
+
+                                      resNeedToCreate: {
+                                        'folders': [
+                                          'https://example.pod/exampleApp/public/',
+                                          'https://example.pod/exampleApp/data/',
+                                        ],
+                                        'files': [
+                                          'https://example.pod/exampleApp/data/key-value.ttl',
+                                        ],
+                                        'fileNames': [
+                                          'key-value.ttl',
+                                        ],
+                                      },
+                                      child: const Home(),
+                                    ),
+                                  ),
                                 ),
                               ),
                             );
                           },
                           child: const Text(
-                              'Show Solid Pod Setup Wizard Demo (With Back Button Fix)'),
+                              'Show Solid Pod Setup Wizard (Using Real Component)'),
                         ),
                         smallGapV,
                       ],
@@ -680,157 +676,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           return const CircularProgressIndicator();
         }
       },
-    );
-  }
-}
-
-/// A demonstration widget that simulates the Solid Pod Setup Wizard
-/// with proper back button handling.
-
-class SetupWizardDemo extends StatelessWidget {
-  const SetupWizardDemo({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Setup Wizard Demo'),
-        backgroundColor: Colors.green[100],
-        leading: BackButton(
-          onPressed: () {
-            showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Exit Setup Wizard?'),
-                content: const Text(
-                  'This dialog demonstrates how to handle back button press '
-                  'properly to prevent blank screens.\n\n'
-                  'In a real implementation, you would navigate back to '
-                  'the SolidLogin screen instead of showing this dialog.',
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Cancel'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context, true);
-                      Navigator.pop(context); // Return to previous screen
-                    },
-                    child: const Text('Return to Home'),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                height: 60,
-                width: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.green[300],
-                ),
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.playlist_add,
-                  color: Colors.white,
-                  size: 50,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Welcome to the Solid Pod Setup Wizard!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              Card(
-                color: Colors.grey[300],
-                child: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Solid Pod',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text(
-                        'We notice that you have either created a new Solid Pod '
-                        'or your Pod has some missing files/folders (called resources). '
-                        'We will now setup the required resources to fully support '
-                        'the app functionalities.',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              const Text(
-                'We require a security key to protect your data:',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Security Key',
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
-              TextField(
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Confirm Security Key',
-                ),
-                obscureText: true,
-              ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 12,
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Setup complete! Returning to Home.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                },
-                child: const Text('Complete Setup',
-                    style: TextStyle(fontSize: 16)),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
