@@ -58,12 +58,12 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dar
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/dialogs/alert.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
-import 'package:demopod/dialogs/alert.dart';
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -616,12 +616,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           onPressed: () async {
                             // Now that the back button issue is fixed in InitialSetupScreenBody,
                             // we can use it directly without any custom wrapper.
-                            
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => Scaffold(
-
                                   body: SafeArea(
                                     child: InitialSetupScreenBody(
                                       // Sample resources that would need to be created.
