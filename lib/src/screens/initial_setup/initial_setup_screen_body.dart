@@ -40,6 +40,7 @@ import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
+import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/widgets/logout_dialog.dart' show logoutPopup;
 
 /// A [StatefulWidget] that represents the initial setup screen for the desktop version of an application.
@@ -143,10 +144,17 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
           children: [
             BackButton(
               onPressed: () {
-                // Navigate back to the login screen (root route) or the previous screen.
-                // This ensures we go back to the existing screen instead of creating a new one.
-
-                Navigator.of(context).popUntil((route) => route.isFirst);
+                // Navigate to a new login screen while preserving auth data
+                // This allows the user to try logging in again if needed.
+                
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => SolidLogin(
+                      child: widget.child,
+                    ),
+                  ),
+                  (route) => false,
+                );
               },
             ),
           ],
