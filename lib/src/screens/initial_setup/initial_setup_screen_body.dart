@@ -54,6 +54,7 @@ class InitialSetupScreenBody extends StatefulWidget {
   const InitialSetupScreenBody({
     required this.resNeedToCreate,
     required this.child,
+    this.originalLogin,
     super.key,
   });
 
@@ -73,6 +74,10 @@ class InitialSetupScreenBody extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
+  
+  /// The original SolidLogin widget to return to when back is pressed
+  
+  final SolidLogin? originalLogin;
 
   @override
   State<InitialSetupScreenBody> createState() {
@@ -144,17 +149,19 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
           children: [
             BackButton(
               onPressed: () {
-                // Navigate to a new login screen while preserving auth data
-                // This allows the user to try logging in again if needed.
-                
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (context) => SolidLogin(
-                      child: widget.child,
+                // Navigate back to the original login screen with all parameters preserved.
+
+                if (widget.originalLogin != null) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => widget.originalLogin!,
                     ),
-                  ),
-                  (route) => false,
-                );
+                  );
+                } else {
+                  // Fallback to navigating to the root if original login is not available.
+                  
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
               },
             ),
           ],
