@@ -371,6 +371,7 @@ class _SolidLoginState extends State<SolidLogin> {
               builder: (context) => InitialSetupScreen(
                 resCheckList: resCheckList,
                 child: widget.child,
+                originalLogin: widget,
               ),
             ),
           );

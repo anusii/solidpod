@@ -33,6 +33,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
+import 'package:solidpod/src/solid/login.dart';
 
 /// Numeric variables used in initial setup page.
 
@@ -49,6 +50,7 @@ class InitialSetupScreen extends StatefulWidget {
   const InitialSetupScreen({
     required this.resCheckList,
     required this.child,
+    this.originalLogin,
     super.key,
   });
 
@@ -69,6 +71,10 @@ class InitialSetupScreen extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
+  
+  /// The original SolidLogin widget to return to when back is pressed
+  
+  final SolidLogin? originalLogin;
 
   @override
   State<InitialSetupScreen> createState() => _InitialSetupScreenState();
@@ -93,6 +99,7 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
             child: InitialSetupScreenBody(
               resNeedToCreate: resNeedToCreate,
               child: widget.child,
+              originalLogin: widget.originalLogin,
             ),
           ),
         ],

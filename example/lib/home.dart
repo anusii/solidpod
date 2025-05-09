@@ -30,7 +30,6 @@
 
 library;
 
-import 'package:demopod/dialogs/alert.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -52,8 +51,14 @@ import 'package:solidpod/solidpod.dart'
         readPod,
         getKeyFromUserIfRequired;
 
+// Import the setup wizard components directly for demonstration.
+
+// ignore: implementation_imports
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
+
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/dialogs/alert.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/view_keys.dart';
@@ -212,7 +217,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       await getKeyFromUserIfRequired(context, widget);
 
       // Only show this if the user enters the correct key.
-      
+
       await alert(context,
           'Your security key was entered correctly and has been saved for this session.');
     } catch (e) {
@@ -591,6 +596,56 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               ),
                             ),
                           ),
+                        ),
+                        smallGapV,
+                        largeGapV,
+                        const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Setup Wizard Demo',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          onPressed: () async {
+                            // Now that the back button issue is fixed in InitialSetupScreenBody,
+                            // we can use it directly without any custom wrapper.
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Scaffold(
+                                  body: SafeArea(
+                                    child: InitialSetupScreenBody(
+                                      // Sample resources that would need to be created.
+
+                                      resNeedToCreate: {
+                                        'folders': [
+                                          'https://example.pod/exampleApp/public/',
+                                          'https://example.pod/exampleApp/data/',
+                                        ],
+                                        'files': [
+                                          'https://example.pod/exampleApp/data/key-value.ttl',
+                                        ],
+                                        'fileNames': [
+                                          'key-value.ttl',
+                                        ],
+                                      },
+                                      child: const Home(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                              'Show Solid Pod Setup Wizard (Using Real Component)'),
                         ),
                         smallGapV,
                       ],

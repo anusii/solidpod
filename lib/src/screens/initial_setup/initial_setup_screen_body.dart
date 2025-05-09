@@ -36,9 +36,11 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
+import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
+import 'package:solidpod/src/solid/login.dart';
 import 'package:solidpod/src/widgets/logout_dialog.dart' show logoutPopup;
 
 /// A [StatefulWidget] that represents the initial setup screen for the desktop version of an application.
@@ -52,6 +54,7 @@ class InitialSetupScreenBody extends StatefulWidget {
   const InitialSetupScreenBody({
     required this.resNeedToCreate,
     required this.child,
+    this.originalLogin,
     super.key,
   });
 
@@ -71,6 +74,10 @@ class InitialSetupScreenBody extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
+  
+  /// The original SolidLogin widget to return to when back is pressed
+  
+  final SolidLogin? originalLogin;
 
   @override
   State<InitialSetupScreenBody> createState() {
@@ -141,7 +148,21 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
         Row(
           children: [
             BackButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                // Navigate back to the original login screen with all parameters preserved.
+
+                if (widget.originalLogin != null) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => widget.originalLogin!,
+                    ),
+                  );
+                } else {
+                  // Fallback to navigating to the root if original login is not available.
+                  
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
+              },
             ),
           ],
         ),
