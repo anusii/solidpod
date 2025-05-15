@@ -34,10 +34,12 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
-import 'package:solidpod/src/solid/authenticate.dart';
-import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
+import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+import 'package:solidpod/src/widgets/snackbar_config.dart';
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
 // development.
@@ -961,37 +963,4 @@ class SolidLoginTheme {
   /// Theme configuration for dark mode.
 
   final SolidLoginThemeMode darkTheme;
-}
-
-/// Configuration for snackbar notifications.
-
-class SnackbarConfig {
-  const SnackbarConfig({
-    this.textColor = Colors.black,
-    this.backgroundColor,
-    this.actionTextColor = Colors.black,
-    this.duration = const Duration(seconds: 3),
-    this.borderRadius = 10.0,
-  });
-
-  /// Text color for snackbar content.
-
-  final Color textColor;
-
-  /// Background color for snackbar.
-  /// If null, will default to Colors.blueGrey[700] in dark mode and Colors.blue[100] in light mode.
-
-  final Color? backgroundColor;
-
-  /// Text color for action buttons in snackbar.
-
-  final Color actionTextColor;
-
-  /// Duration to show the snackbar.
-
-  final Duration duration;
-
-  /// Border radius for snackbar corners.
-
-  final double borderRadius;
 }
