@@ -48,7 +48,8 @@ import 'package:solidpod/src/solid/utils/misc.dart'
         generateDefaultFiles,
         generateDefaultFolders,
         getAppNameVersion,
-        setAppDirName;
+        setAppDirName,
+        checkLoggedIn;
 
 // Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -196,9 +197,9 @@ class SolidLogin extends StatefulWidget {
   /// Theme configuration for the login panel.
 
   final SolidLoginTheme themeConfig;
-  
+
   /// Snackbar configuration for login notifications.
-  
+
   final SnackbarConfig snackbarConfig;
 
   @override
@@ -238,13 +239,13 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
-    if (!mounted) return; // Early return if the widget is no longer mounted
-    
+    if (!mounted) return;
+
     await setAppDirName(widget.appDirectory);
     final folders = await generateDefaultFolders();
     final files = await generateDefaultFiles();
 
-    if (!mounted) return; // Check again after async operations
+    if (!mounted) return;
 
     setState(() {
       defaultFolders = folders;
@@ -254,9 +255,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // Fetch the app information.
 
     final appInfo = await getAppNameVersion();
-    
-    if (!mounted) return; // Check again after getAppNameVersion
-    
+
+    if (!mounted) return;
+
     setState(() {
       appName = appInfo.name;
       appVersion = appInfo.version;
@@ -365,47 +366,57 @@ class _SolidLoginState extends State<SolidLogin> {
             ? webIdController.text
             : widget.webID;
 
-        // Track login start time to detect fast login (which indicates cached session)
-        final loginStartTime = DateTime.now();
+        // Check if user is already logged in before attempting authentication.
+
+        final wasAlreadyLoggedIn = await checkLoggedIn();
+
+        if (!context.mounted) return;
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
         final authResult = await solidAuthenticate(podServer, context);
-        
-        // Calculate login duration 
-        final loginDuration = DateTime.now().difference(loginStartTime);
-        final isQuickLogin = loginDuration.inSeconds < 2; // Quick login suggests cached session
+
+        // If authentication succeeded and the user was already logged in,
+        // it means they are using a cached session.
+
+        final isCachedSession =
+            wasAlreadyLoggedIn && authResult != null && authResult.isNotEmpty;
 
         // Check that the authentication succeeded, and if so navigate to the
         // app itself. If it failed then notify the user and stay on the
         // SolidLogin page.
 
         if (authResult != null && authResult.isNotEmpty) {
-          // Close animation dialog only once
+          if (!context.mounted) return;
+
+          // Close animation dialog only once.
+
           if (Navigator.of(context, rootNavigator: true).canPop()) {
             Navigator.of(context, rootNavigator: true).pop();
           }
 
-          // If login was quick, show snackbar informing about cached session
-          if (isQuickLogin) {
-            // Use theme colors instead of hardcoded colors
+          // If using a cached session, show snackbar informing about it.
+
+          if (isCachedSession) {
+            // Use theme colors instead of hardcoded colors.
+
             final currentTheme = _isDarkMode
                 ? widget.themeConfig.darkTheme
                 : widget.themeConfig.lightTheme;
-                
-            final backgroundColor = widget.snackbarConfig.backgroundColor ?? 
-                (_isDarkMode 
-                  ? currentTheme.backgroundColor.withOpacity(0.9)
-                  : currentTheme.backgroundColor.withOpacity(0.7));
-                
+
+            final backgroundColor = widget.snackbarConfig.backgroundColor ??
+                (_isDarkMode
+                    ? currentTheme.backgroundColor.withValues(alpha: 0.9)
+                    : currentTheme.backgroundColor.withValues(alpha: 0.7));
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
                   'Logged in with your previously saved session',
                   style: TextStyle(
                     color: widget.snackbarConfig.textColor != Colors.black
-                        ? widget.snackbarConfig.textColor 
+                        ? widget.snackbarConfig.textColor
                         : currentTheme.textColor,
                     fontWeight: FontWeight.w500,
                   ),
@@ -414,7 +425,8 @@ class _SolidLoginState extends State<SolidLogin> {
                 behavior: SnackBarBehavior.floating,
                 backgroundColor: backgroundColor,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(widget.snackbarConfig.borderRadius),
+                  borderRadius:
+                      BorderRadius.circular(widget.snackbarConfig.borderRadius),
                   side: BorderSide(
                     color: currentTheme.dividerColor,
                     width: 0.5,
@@ -422,22 +434,27 @@ class _SolidLoginState extends State<SolidLogin> {
                 ),
                 action: SnackBarAction(
                   label: 'OK',
-                  textColor: widget.snackbarConfig.actionTextColor != Colors.black
-                      ? widget.snackbarConfig.actionTextColor
-                      : currentTheme.titleColor,
+                  textColor:
+                      widget.snackbarConfig.actionTextColor != Colors.black
+                          ? widget.snackbarConfig.actionTextColor
+                          : currentTheme.titleColor,
                   onPressed: () {},
                 ),
               ),
             );
-            
-            // Short delay to allow snackbar to be visible
+
+            // Short delay to allow snackbar to be visible.
+
             await Future.delayed(const Duration(milliseconds: 300));
           }
-          
-          // Navigate to the appropriate screen based on structure test
+
+          // Navigate to the appropriate screen based on structure test.
+
           final resCheckList =
               await initialStructureTest(defaultFolders, defaultFiles);
           final allExists = resCheckList.first as bool;
+
+          if (!context.mounted) return;
 
           if (!allExists) {
             await Navigator.pushReplacement(
@@ -445,8 +462,8 @@ class _SolidLoginState extends State<SolidLogin> {
               MaterialPageRoute(
                 builder: (context) => InitialSetupScreen(
                   resCheckList: resCheckList,
-                  child: widget.child,
                   originalLogin: widget,
+                  child: widget.child,
                 ),
               ),
             );
@@ -466,8 +483,10 @@ class _SolidLoginState extends State<SolidLogin> {
           // revert to thte login screen then we can capture and report them
           // later.
 
+          if (!context.mounted) return;
+
           // Navigate back to the login screen after authentication failed
-          Navigator.pushReplacement(
+          await Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => widget),
           );
@@ -956,18 +975,23 @@ class SnackbarConfig {
   });
 
   /// Text color for snackbar content.
+
   final Color textColor;
 
   /// Background color for snackbar.
   /// If null, will default to Colors.blueGrey[700] in dark mode and Colors.blue[100] in light mode.
+
   final Color? backgroundColor;
 
   /// Text color for action buttons in snackbar.
+
   final Color actionTextColor;
 
   /// Duration to show the snackbar.
+
   final Duration duration;
 
   /// Border radius for snackbar corners.
+
   final double borderRadius;
 }
