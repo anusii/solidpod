@@ -74,9 +74,9 @@ class InitialSetupScreenBody extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
-  
+
   /// The original SolidLogin widget to return to when back is pressed
-  
+
   final SolidLogin? originalLogin;
 
   @override
@@ -159,7 +159,7 @@ class _InitialSetupScreenBodyState extends State<InitialSetupScreenBody> {
                   );
                 } else {
                   // Fallback to navigating to the root if original login is not available.
-                  
+
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 }
               },

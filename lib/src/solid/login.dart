@@ -127,7 +127,7 @@ class SolidLogin extends StatefulWidget {
     this.registerButtonStyle = const RegisterButtonStyle(),
     this.changeKeyButtonStyle = const ChangeKeyButtonStyle(),
     this.themeConfig = const SolidLoginTheme(),
-    // this.secureKeyObject = const SecureKey('', ''),
+    this.snackbarConfig = const SnackbarConfig(),
     super.key,
   });
 
@@ -196,6 +196,10 @@ class SolidLogin extends StatefulWidget {
   /// Theme configuration for the login panel.
 
   final SolidLoginTheme themeConfig;
+  
+  /// Snackbar configuration for login notifications.
+  
+  final SnackbarConfig snackbarConfig;
 
   @override
   State<SolidLogin> createState() => _SolidLoginState();
@@ -234,9 +238,13 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
+    if (!mounted) return; // Early return if the widget is no longer mounted
+    
     await setAppDirName(widget.appDirectory);
     final folders = await generateDefaultFolders();
     final files = await generateDefaultFiles();
+
+    if (!mounted) return; // Check again after async operations
 
     setState(() {
       defaultFolders = folders;
@@ -246,6 +254,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // Fetch the app information.
 
     final appInfo = await getAppNameVersion();
+    
+    if (!mounted) return; // Check again after getAppNameVersion
+    
     setState(() {
       appName = appInfo.name;
       appVersion = appInfo.version;
@@ -354,77 +365,97 @@ class _SolidLoginState extends State<SolidLogin> {
             ? webIdController.text
             : widget.webID;
 
+        // Track login start time to detect fast login (which indicates cached session)
+        final loginStartTime = DateTime.now();
+
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
         final authResult = await solidAuthenticate(podServer, context);
-
-        // Navigates to the Initial Setup Screen using the provided authentication data.
-
-        Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
-          // Close the animation dialog before navigating away.
-
-          Navigator.of(context, rootNavigator: true).pop();
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => InitialSetupScreen(
-                resCheckList: resCheckList,
-                child: widget.child,
-                originalLogin: widget,
-              ),
-            ),
-          );
-        }
-
-        // Navigates to the Home Screen if the account exits.
-
-        Future<void> navHomeScreen() async {
-          // Close the animation dialog before navigating away.
-
-          Navigator.of(context, rootNavigator: true).pop();
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          );
-        }
-
-        // Method to navigate to the child widget, requiring BuildContext, and
-        // so avoiding the "don't use BuildContext across async gaps" warning.
-
-        Future<void> navigateToApp() async {
-          final resCheckList =
-              await initialStructureTest(defaultFolders, defaultFiles);
-          final allExists = resCheckList.first as bool;
-
-          // if (context.mounted) {
-          //   Navigator.of(context, rootNavigator: true).pop();
-          // }
-
-          if (!allExists) {
-            await navInitialSetupScreen(resCheckList);
-          } else {
-            await navHomeScreen();
-          }
-        }
-
-        // Method to navigate back to the login widget, requiring BuildContext,
-        // and so avoiding the "don't use BuildContext across async gaps"
-        // warning.
-
-        void navigateToLogin() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget),
-          );
-        }
+        
+        // Calculate login duration 
+        final loginDuration = DateTime.now().difference(loginStartTime);
+        final isQuickLogin = loginDuration.inSeconds < 2; // Quick login suggests cached session
 
         // Check that the authentication succeeded, and if so navigate to the
         // app itself. If it failed then notify the user and stay on the
         // SolidLogin page.
 
         if (authResult != null && authResult.isNotEmpty) {
-          await navigateToApp();
+          // Close animation dialog only once
+          if (Navigator.of(context, rootNavigator: true).canPop()) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          // If login was quick, show snackbar informing about cached session
+          if (isQuickLogin) {
+            // Use theme colors instead of hardcoded colors
+            final currentTheme = _isDarkMode
+                ? widget.themeConfig.darkTheme
+                : widget.themeConfig.lightTheme;
+                
+            final backgroundColor = widget.snackbarConfig.backgroundColor ?? 
+                (_isDarkMode 
+                  ? currentTheme.backgroundColor.withOpacity(0.9)
+                  : currentTheme.backgroundColor.withOpacity(0.7));
+                
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Logged in with your previously saved session',
+                  style: TextStyle(
+                    color: widget.snackbarConfig.textColor != Colors.black
+                        ? widget.snackbarConfig.textColor 
+                        : currentTheme.textColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                duration: widget.snackbarConfig.duration,
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: backgroundColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(widget.snackbarConfig.borderRadius),
+                  side: BorderSide(
+                    color: currentTheme.dividerColor,
+                    width: 0.5,
+                  ),
+                ),
+                action: SnackBarAction(
+                  label: 'OK',
+                  textColor: widget.snackbarConfig.actionTextColor != Colors.black
+                      ? widget.snackbarConfig.actionTextColor
+                      : currentTheme.titleColor,
+                  onPressed: () {},
+                ),
+              ),
+            );
+            
+            // Short delay to allow snackbar to be visible
+            await Future.delayed(const Duration(milliseconds: 300));
+          }
+          
+          // Navigate to the appropriate screen based on structure test
+          final resCheckList =
+              await initialStructureTest(defaultFolders, defaultFiles);
+          final allExists = resCheckList.first as bool;
+
+          if (!allExists) {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InitialSetupScreen(
+                  resCheckList: resCheckList,
+                  child: widget.child,
+                  originalLogin: widget,
+                ),
+              ),
+            );
+          } else {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => widget.child),
+            );
+          }
         } else {
           // On moving to using navigateToLogin() the previously implemented
           // asynchronous showAuthFailedPopup() is lost due to the immediately
@@ -435,7 +466,11 @@ class _SolidLoginState extends State<SolidLogin> {
           // revert to thte login screen then we can capture and report them
           // later.
 
-          navigateToLogin();
+          // Navigate back to the login screen after authentication failed
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget),
+          );
         }
       },
     );
@@ -907,4 +942,32 @@ class SolidLoginTheme {
   /// Theme configuration for dark mode.
 
   final SolidLoginThemeMode darkTheme;
+}
+
+/// Configuration for snackbar notifications.
+
+class SnackbarConfig {
+  const SnackbarConfig({
+    this.textColor = Colors.black,
+    this.backgroundColor,
+    this.actionTextColor = Colors.black,
+    this.duration = const Duration(seconds: 3),
+    this.borderRadius = 10.0,
+  });
+
+  /// Text color for snackbar content.
+  final Color textColor;
+
+  /// Background color for snackbar.
+  /// If null, will default to Colors.blueGrey[700] in dark mode and Colors.blue[100] in light mode.
+  final Color? backgroundColor;
+
+  /// Text color for action buttons in snackbar.
+  final Color actionTextColor;
+
+  /// Duration to show the snackbar.
+  final Duration duration;
+
+  /// Border radius for snackbar corners.
+  final double borderRadius;
 }
