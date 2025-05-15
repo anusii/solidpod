@@ -32,13 +32,12 @@ library;
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
 // development.
@@ -485,7 +484,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
           if (!context.mounted) return;
 
-          // Navigate back to the login screen after authentication failed
+          // Navigate back to the login screen after authentication failed.
+
           await Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => widget),
