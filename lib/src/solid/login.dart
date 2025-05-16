@@ -38,7 +38,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
-import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/widgets/snackbar_config.dart';
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
@@ -347,17 +346,8 @@ class _SolidLoginState extends State<SolidLogin> {
         // of a BuildContext across asynchronous gaps, without referencing the
         // BuildContext after the async gap.
 
-        void showBusyAnimation() {
-          showAnimationDialog(
-            context,
-            7,
-            'Logging in...',
-            false,
-            updateState,
-          );
-        }
-
-        showBusyAnimation();
+        // We're replacing the busy animation with a persistent snackbar
+        // showBusyAnimation();
 
         if (_isDialogCanceled) return;
 
@@ -372,6 +362,55 @@ class _SolidLoginState extends State<SolidLogin> {
         final wasAlreadyLoggedIn = await checkLoggedIn();
 
         if (!context.mounted) return;
+
+        // Only show the browser login instructions if user is not already logged in.
+
+        if (!wasAlreadyLoggedIn) {
+          final currentTheme = _isDarkMode
+              ? widget.themeConfig.darkTheme
+              : widget.themeConfig.lightTheme;
+
+          final backgroundColor = widget.snackbarConfig.backgroundColor ??
+              (_isDarkMode
+                  ? currentTheme.backgroundColor.withValues(alpha: 0.9)
+                  : currentTheme.backgroundColor.withValues(alpha: 0.7));
+
+          // Use a longer duration for this snackbar since it's replacing the login animation.
+
+          const loginDuration = Duration(seconds: 30);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Please complete the login process in your browser',
+                style: TextStyle(
+                  color: widget.snackbarConfig.textColor != Colors.black
+                      ? widget.snackbarConfig.textColor
+                      : currentTheme.textColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              duration: loginDuration,
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: backgroundColor,
+              shape: RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(widget.snackbarConfig.borderRadius),
+                side: BorderSide(
+                  color: currentTheme.dividerColor,
+                  width: 0.5,
+                ),
+              ),
+              action: SnackBarAction(
+                label: 'OK',
+                textColor: widget.snackbarConfig.actionTextColor != Colors.black
+                    ? widget.snackbarConfig.actionTextColor
+                    : currentTheme.titleColor,
+                onPressed: () {},
+              ),
+            ),
+          );
+        }
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
@@ -396,6 +435,10 @@ class _SolidLoginState extends State<SolidLogin> {
           if (Navigator.of(context, rootNavigator: true).canPop()) {
             Navigator.of(context, rootNavigator: true).pop();
           }
+
+          // Dismiss the login process snackbar.
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
           // If using a cached session, show snackbar informing about it.
 
