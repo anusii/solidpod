@@ -47,12 +47,13 @@ import 'package:solidpod/src/solid/api/grant_permission_api.dart';
 
 /// Grant permission to [fileName] for a given [recipientWebIdList].
 /// Parameters:
-///   [fileName] is the name of the file providing permission to
+///   [fileName] is the name of the file providing permission to. In case where
+///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
 ///   [fileFlag] is the flag to identify if the resources is a file or not
 ///   [permissionList] is the list of permission to be granted
 ///   [recipientType] is the type of the recipient
 ///   [recipientWebIdList] is the list of webIds of the permission receivers
-///   [isFileEncrypted] is the flag to determine if the file is encrypted or not
+///   [ownerWebId] is the web ID of the owner of the file
 ///   [child] is the child widget to return to
 
 Future<dynamic> grantPermission(
@@ -61,21 +62,28 @@ Future<dynamic> grantPermission(
   List<dynamic> permissionList,
   RecipientType recipientType,
   List<dynamic> recipientWebIdList,
-  bool isFileEncrypted,
+  String ownerWebId,
   BuildContext context,
-  Widget child, [
+  Widget child, {
+  bool isExternalRes = false,
   String? groupName,
-]) async {
+}) async {
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
     await getKeyFromUserIfRequired(context, child);
 
-    // Get the file path
-    final filePath = [await getDataDirPath(), fileName].join('/');
+    var resourceUrl = '';
 
-    // Get the url of the file
-    final resourceUrl = await getFileUrl(filePath);
+    if (!isExternalRes) {
+      // Get the file path
+      final filePath = [await getDataDirPath(), fileName].join('/');
+
+      // Get the url of the file
+      resourceUrl = await getFileUrl(filePath);
+    } else {
+      resourceUrl = fileName;
+    }
 
     // Check if file exists
     final resStatus =
@@ -95,6 +103,7 @@ Future<dynamic> grantPermission(
         // Add the permission line to the relevant ACL file
         await setPermissionAcl(
           resourceUrl,
+          ownerWebId,
           recipientType,
           recipientWebIdList,
           permissionList,
@@ -108,7 +117,9 @@ Future<dynamic> grantPermission(
         // with the receiver
         if (fileIsEncrypted) {
           // Get the individual encryption key for the file
-          final indKey = await KeyManager.getIndividualKey(resourceUrl);
+          final indKey = isExternalRes
+              ? await KeyManager.getSharedIndividualKey(resourceUrl)
+              : await KeyManager.getIndividualKey(resourceUrl);
 
           if ([RecipientType.individual, RecipientType.group]
               .contains(recipientType)) {
@@ -158,10 +169,6 @@ Future<dynamic> grantPermission(
         }
 
         // Add log entry to owner, granter, and receiver permission log files
-        // av20240703: At this instance the owner and the granter are the same
-        //             At some point we might need to change this function so that
-        //             it can be used in the instances where owner is different from
-        //             the granter
 
         // Get user webID
         final userWebId = await AuthDataManager.getWebId() as String;
@@ -170,7 +177,7 @@ Future<dynamic> grantPermission(
           final logEntryRes = createPermLogEntry(
             permissionList,
             resourceUrl,
-            userWebId,
+            ownerWebId,
             'grant',
             userWebId,
             recipientWebId as String,
@@ -178,14 +185,29 @@ Future<dynamic> grantPermission(
 
           // Log file urls of the owner, granter, and receiver
           final logFilePath = await getPermLogFilePath();
-          final ownerLogFileUrl = await getFileUrl(logFilePath);
 
-          // Run log entry insert query for the owner
+          // Owner
+          final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
+
+          // Granter
+          final granterLogFileUrl = await getFileUrl(logFilePath);
+
+          // Run log entry insert query for the granter
           await addPermLogLine(
-            ownerLogFileUrl,
+            granterLogFileUrl,
             logEntryRes[0] as String,
             logEntryRes[1] as String,
           );
+
+          // If owner and the granter is not the same add another log file entry
+          // for the owner
+          if (ownerLogFileUrl != granterLogFileUrl) {
+            await addPermLogLine(
+              ownerLogFileUrl,
+              logEntryRes[0] as String,
+              logEntryRes[1] as String,
+            );
+          }
 
           // Add log entry if the recipient is either an individual or group of WebIDs
           if ([RecipientType.individual, RecipientType.group]

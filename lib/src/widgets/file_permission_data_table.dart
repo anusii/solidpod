@@ -49,8 +49,9 @@ Widget buildPermDataTable(
   Map<dynamic, dynamic> permDataMap,
   String ownerWebId,
   Widget parentWidget,
-  Function onDeleteFuncion,
-) {
+  Function onDeleteFuncion, {
+  bool isExternalRes = false,
+}) {
   DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
       label: Expanded(
@@ -127,12 +128,14 @@ Widget buildPermDataTable(
                                 true,
                                 permDataMap[index][permStr] as List,
                                 index,
+                                ownerWebId,
                                 getRecipientType(
                                   permDataMap[index][agentStr] as String,
                                   index,
                                 ),
                                 context,
                                 parentWidget,
+                                isExternalRes: isExternalRes,
                               );
 
                               if (ctx.mounted) {
