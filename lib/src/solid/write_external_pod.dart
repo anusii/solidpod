@@ -109,44 +109,6 @@ Future<SolidFunctionCallStatus> writeExternalPod(
       debugPrint('File "$fileUrl" does not exist');
   }
 
-  // if (encrypted) {
-  //   // Get the security key (and cache it in KeyManager)
-  //   await getKeyFromUserIfRequired(context, child);
-
-  //   // Reuse the individual key if the key already exists,
-  //   // otherwise, generate a random key and add it to the individual key file.
-
-  //   if (!existingFileEncrypted) {
-  //     await KeyManager.addIndividualKey(fileUrl, genRandIndividualKey());
-  //   }
-
-  //   content = await getEncTTLStr(
-  //     filePath,
-  //     fileContent,
-  //     await KeyManager.getIndividualKey(fileUrl),
-  //     genRandIV(),
-  //   );
-
-  //   if (!fileUrl.endsWith('.ttl')) {
-  //     debugPrint('WARN: Encrypted text file should be in turtle format, '
-  //         'but the extension of provided filename "$fileName" is not ".ttl"');
-  //   }
-  // } else {
-  //   // Delete existing (encrypted) file if the new content is unencrypted
-
-  //   if (existingFileEncrypted) {
-  //     await deleteFile(filePath);
-  //   }
-
-  //   // If the filename does not end with `.ttl', set content type to plain text
-
-  //   if (!fileUrl.endsWith('.ttl')) {
-  //     // .plainText may result in a filename ending with `$.txt'
-  //     // .any may result in a filename ending with `$.unknown'
-  //     contentType = ResourceContentType.auto;
-  //   }
-  // }
-
   // Create file on server
   await createResource(fileUrl, content: content, contentType: contentType);
 
