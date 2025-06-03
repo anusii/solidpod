@@ -234,12 +234,13 @@ class _SolidLoginState extends State<SolidLogin> {
     super.initState();
     _initPackageInfo();
 
+    // Configure AuthDataManager's auth storage type
+
+    AuthDataManager.useInMemoryAuthStorage = widget.useInMemoryAuthStorage;
+
     // Always start with light mode regardless of system preference.
 
     _isDarkMode = false;
-
-    // Secure storage or shared preferences
-    AuthDataManager.useInMemoryAuthStorage = widget.useInMemoryAuthStorage;
   }
 
   // Fetch the package information.
