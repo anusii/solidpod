@@ -71,7 +71,7 @@ class AuthDataManager {
   static final Map<String, String> _inMemoryStorage = {};
 
   /// Save the auth data returned by solid-auth authenticate in secure storage
-  /// (or in memory)
+  /// (or memory)
   /// It seems Map<String, dynamic> does not work
   static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
     const keys = [
@@ -120,7 +120,7 @@ class AuthDataManager {
     debugPrint('AuthDataManager => saveAuthData() done');
   }
 
-  /// Retrieve (and reconstruct) auth data from secure storage (or in memory)
+  /// Retrieve (and reconstruct) auth data from secure storage (or memory)
   /// It seems Map<String, dynamic> does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
     if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
@@ -155,7 +155,7 @@ class AuthDataManager {
     return null;
   }
 
-  /// Remove/delete auth data from secure storage (or in memory)
+  /// Remove/delete auth data from secure storage (or memory)
   static Future<bool> removeAuthData() async {
     try {
       if (useInMemoryAuthStorage) {
@@ -258,7 +258,7 @@ class AuthDataManager {
     return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
   }
 
-  /// Retrieve auth data from secure storage (or in memory)
+  /// Retrieve auth data from secure storage (or memory)
   static Future<bool> _loadData() async {
     String? dataStr;
 
