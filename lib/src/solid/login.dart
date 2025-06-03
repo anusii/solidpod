@@ -33,13 +33,13 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
 // development.
