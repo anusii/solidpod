@@ -201,6 +201,9 @@ Inside the app directory go to the directory `/web/`. Inside create a file calle
 </html>
 ```
 
+### WSL 
+
+Due to compatibility issues with the `flutter_secure_storage` package under Windows Subsystem for Linux (WSL), the `SolidLogin()` widget may not work properly. As a workaround, set the `useInMemoryAuthStorage` flag to `true` to store authentication data in memory instead of using secure storage. *This option is intended for development or testing purposes only and should not be used in production to ensure the security of authentication data.*
 
 ## Usage
 
