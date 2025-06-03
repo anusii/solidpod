@@ -1,4 +1,4 @@
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -22,7 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen
+/// Authors: Dawei Chen, Arjun Raj
 
 library;
 
@@ -32,6 +32,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken;
 // ignore: implementation_imports
 import 'package:solid_auth/src/openid/openid_client.dart'
@@ -64,7 +65,14 @@ class AuthDataManager {
   /// The string key for storing auth data in secure storage
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
+  /// Flag to determine whether to use in-memory storage (for testing/dev)
+  static bool useInMemoryAuthStorage = false;
+
+  // In-memory storage
+  static final Map<String, String> _inMemoryStorage = {};
+
   /// Save the auth data returned by solid-auth authenticate in secure storage
+  /// (or in memory)
   /// It seems Map<String, dynamic> does not work
   static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
     const keys = [
@@ -90,9 +98,7 @@ class AuthDataManager {
         dynamic>; // Note that use Map<String, dynamic> does not seem to work
     _authResponse = authData['authResponse'] as Credential;
 
-    await writeToSecureStorage(
-      _authDataSecureStorageKey,
-      jsonEncode({
+    final authDataJson =  jsonEncode({
         'web_id': _webId,
         'logout_url': _logoutUrl,
         'rsa_info': jsonEncode({
@@ -104,13 +110,18 @@ class AuthDataManager {
           },
         }),
         'auth_response': _authResponse!.toJson(),
-      }),
-    );
+      });
+
+    if (useInMemoryAuthStorage) {
+      _inMemoryStorage[_authDataSecureStorageKey] = authDataJson;
+    } else {
+      await writeToSecureStorage(_authDataSecureStorageKey, authDataJson);
+    }
 
     debugPrint('AuthDataManager => saveAuthData() done');
   }
 
-  /// Retrieve (and reconstruct) auth data from secure storage
+  /// Retrieve (and reconstruct) auth data from secure storage (or in memory)
   /// It seems Map<String, dynamic> does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
     if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
@@ -145,16 +156,21 @@ class AuthDataManager {
     return null;
   }
 
-  /// Remove/delete auth data from secure storage
+  /// Remove/delete auth data from secure storage (or in memory)
   static Future<bool> removeAuthData() async {
     try {
-      if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
-        await secureStorage.delete(key: _authDataSecureStorageKey);
-        _webId = null;
-        _logoutUrl = null;
-        _rsaInfo = null;
-        _authResponse = null;
+      if (useInMemoryAuthStorage) {
+        _inMemoryStorage.remove(_authDataSecureStorageKey);
+      } else {
+        if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
+          await secureStorage.delete(key: _authDataSecureStorageKey);
+        }
       }
+
+      _webId = null;
+      _logoutUrl = null;
+      _rsaInfo = null;
+      _authResponse = null;
 
       return true;
     } on Object catch (e) {
@@ -243,9 +259,15 @@ class AuthDataManager {
     return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
   }
 
-  /// Retrieve auth data from secure storage
+  /// Retrieve auth data from secure storage (or in memory)
   static Future<bool> _loadData() async {
-    final dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
+    String? dataStr;
+
+    if (useInMemoryAuthStorage) {
+      dataStr = _inMemoryStorage[_authDataSecureStorageKey];
+    } else {
+      dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
+    }
 
     if (dataStr != null) {
       try {
