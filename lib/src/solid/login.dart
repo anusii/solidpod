@@ -33,6 +33,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
@@ -127,6 +128,7 @@ class SolidLogin extends StatefulWidget {
     this.registerButtonStyle = const RegisterButtonStyle(),
     this.changeKeyButtonStyle = const ChangeKeyButtonStyle(),
     this.themeConfig = const SolidLoginTheme(),
+    this.useInMemoryAuthStorage = false,
     // this.secureKeyObject = const SecureKey('', ''),
     super.key,
   });
@@ -197,6 +199,12 @@ class SolidLogin extends StatefulWidget {
 
   final SolidLoginTheme themeConfig;
 
+  /// Flag to determine whether to use memory instead of Secure Storage
+  /// for storing authentication data, as a workaround for WSL-related issues.
+
+  final bool useInMemoryAuthStorage;
+  
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -229,6 +237,9 @@ class _SolidLoginState extends State<SolidLogin> {
     // Always start with light mode regardless of system preference.
 
     _isDarkMode = false;
+
+    // Secure storage or shared preferences
+    AuthDataManager.useInMemoryAuthStorage = widget.useInMemoryAuthStorage;
   }
 
   // Fetch the package information.
