@@ -55,6 +55,8 @@ import 'package:solidpod/src/solid/api/grant_permission_api.dart';
 ///   [recipientWebIdList] is the list of webIds of the permission receivers
 ///   [ownerWebId] is the web ID of the owner of the file
 ///   [child] is the child widget to return to
+///   [isExternalRes] is the flag to identify if the resource is external
+///   [groupName] is the name of the group permission
 
 Future<dynamic> grantPermission(
   String fileName,
@@ -111,7 +113,8 @@ Future<dynamic> grantPermission(
         );
 
         // Check if the file is encrypted
-        final fileIsEncrypted = await checkFileEnc(resourceUrl);
+        final fileIsEncrypted =
+            await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
 
         // If the file is encrypted then share the individual encryption key
         // with the receiver

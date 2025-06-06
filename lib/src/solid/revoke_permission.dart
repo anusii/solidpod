@@ -106,7 +106,8 @@ Future<dynamic> revokePermission(
       }
 
       // Check if the file is encrypted
-      final fileIsEncrypted = await checkFileEnc(resourceUrl);
+      final fileIsEncrypted =
+          await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
 
       // If the file is encrypted then remove the individual key from relavant
       // users/ user classes
