@@ -101,6 +101,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
           contentType = ResourceContentType.auto;
         }
       }
+      break;
     case ResourceStatus.unknown:
       throw Exception(
         'Unable to determine if file "$fileUrl" exists, writePod() aborted',
