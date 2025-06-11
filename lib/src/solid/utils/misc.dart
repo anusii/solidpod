@@ -178,23 +178,13 @@ Future<String> getEncTTLStr(
   IV iv, [
   String? extWebId,
 ]) async {
-  final triples = extWebId == null
-      ? {
-          URIRef(await getFileUrl(filePath)): {
-            solidTermsNS.ns.withAttr(pathPred): filePath,
-            solidTermsNS.ns.withAttr(ivPred): iv.base64,
-            solidTermsNS.ns.withAttr(encDataPred):
-                encryptData(fileContent, key, iv),
-          },
-        }
-      : {
-          URIRef(await getFileUrl(filePath, extWebId)): {
-            solidTermsNS.ns.withAttr(pathPred): filePath,
-            solidTermsNS.ns.withAttr(ivPred): iv.base64,
-            solidTermsNS.ns.withAttr(encDataPred):
-                encryptData(fileContent, key, iv),
-          },
-        };
+  final triples = {
+    URIRef(await getFileUrl(filePath, extWebId)): {
+      solidTermsNS.ns.withAttr(pathPred): filePath,
+      solidTermsNS.ns.withAttr(ivPred): iv.base64,
+      solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
+    },
+  };
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
