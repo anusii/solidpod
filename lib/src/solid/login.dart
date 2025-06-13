@@ -434,16 +434,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // there are non-obvious scneraiors where we fail to authenticate and
           // revert to the login screen then we can capture and report them
           // later.
-
           navigateToLogin();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Login unsuccessful!'),
-                duration: const Duration(milliseconds: 3000),
-              ),
-            );
-          }
         }
       },
     );
