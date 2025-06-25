@@ -42,14 +42,16 @@ Row buildHeading(
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Padding(
-        padding: padding == null ? EdgeInsets.zero : EdgeInsets.all(padding),
-        child: Text(
-          headingStr,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.w700,
-            color: headingColor ?? Colors.black,
+      Flexible(
+        child: Padding(
+          padding: padding == null ? EdgeInsets.zero : EdgeInsets.all(padding),
+          child: Text(
+            headingStr,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w700,
+              color: headingColor ?? Colors.black,
+            ),
           ),
         ),
       ),

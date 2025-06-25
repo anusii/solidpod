@@ -121,6 +121,33 @@ Future<void> _delIndKey(
   await updateFileByQuery(fileUrl, query);
 }
 
+/// Delete the shared individual/session key string [sharedKey] and
+/// the corresponding file path [filePath] and access list [accessList]
+Future<void> _delSharedIndKey(
+  String resUniqueId,
+  String sharedKey,
+  String filePath,
+  String accessList,
+) async {
+  // Define prefix and subject
+  const prefix1 = '$resIdPrefix <$appsResId>';
+  const prefix2 = '$dataPrefix <$appsData>';
+  final subject = '$resIdPrefix$resUniqueId';
+
+  // Define predicates and objects
+  final predObjPath = '$dataPrefix$pathPred "$filePath";';
+  final predObjAcc = '$dataPrefix$accessListPred "$accessList";';
+  final predObjKey = '$dataPrefix$sharedKeyPred "$sharedKey".';
+
+  // Generate delete sparql query
+  final query =
+      'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+
+  final fileUrl = await getFileUrl(await getSharedKeyFilePath());
+
+  await updateFileByQuery(fileUrl, query);
+}
+
 /// Check duplicated values
 void _checkDuplicatedValue({required dynamic value, required String errMsg}) {
   if (value is Iterable && (value as List).length > 1) {
@@ -523,6 +550,30 @@ class KeyManager {
     return record!.key;
   }
 
+  /// Remove the (encrypted) shared individual key for file
+  static Future<void> removeSharedIndividualKey(
+    String resourceUrl,
+    String resUniqueId,
+  ) async {
+    if (_sharedIndKeyMap == null) {
+      await _loadSharedIndKeyFile();
+    }
+    assert(_sharedIndKeyMap != null);
+
+    if (_sharedIndKeyMap!.containsKey(resourceUrl)) {
+      final record = _sharedIndKeyMap!.remove(resourceUrl);
+      assert(record != null);
+
+      // Delete shared key from shared keys file
+      await _delSharedIndKey(resUniqueId, record!.encKey, record.encFilePath,
+          record.encAccessList);
+      debugPrint('Deleted $record');
+    } else {
+      debugPrint(
+          'Individual key for "$resourceUrl" does not exist, do nothing.');
+    }
+  }
+
   /// Load the file with verification key and encrypted private key
   static Future<void> _loadEncKeyFile({bool forceReload = false}) async {
     if (_verificationKey != null && _prvKeyRecord != null && !forceReload) {
@@ -662,6 +713,9 @@ class KeyManager {
           key: Key.fromBase64(
             _prvKeyRecord!.decryptData(v[sharedKeyPred] as String),
           ),
+          encFilePath: v[pathPred] as String,
+          encAccessList: v[accessListPred] as String,
+          encKey: v[sharedKeyPred] as String,
         );
       }
     }
@@ -779,8 +833,8 @@ class _IndKeyRecord {
   }
 }
 
-/// [_SharedIndKeyRecord] is a simple class to store decrypted individual keys
-/// shared by others
+/// [_SharedIndKeyRecord] is a simple class to store both encrypted and
+/// decrypted individual keys shared by others
 
 class _SharedIndKeyRecord {
   /// Constructor
@@ -788,6 +842,9 @@ class _SharedIndKeyRecord {
     required this.filePath,
     required this.accessList,
     required this.key,
+    required this.encFilePath,
+    required this.encAccessList,
+    required this.encKey,
   });
 
   /// The path of file corresponds to the key
@@ -798,6 +855,15 @@ class _SharedIndKeyRecord {
 
   /// The corresponding decrypted key
   final Key key;
+
+  /// The encrypted path of file corresponds to the key
+  final String encFilePath;
+
+  /// The encrypted access list
+  final String encAccessList;
+
+  /// The encrypted key string
+  final String encKey;
 
   @override
   String toString() {

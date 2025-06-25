@@ -99,8 +99,12 @@ String decryptData(
 Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
   // final fileUrl = await getFileUrl(filePath);
   try {
-    final rawContent = await fetchPrvFile(fileUrl);
-    return parseTTL(rawContent);
+    if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
+      final rawContent = await fetchPrvFile(fileUrl);
+      return parseTTL(rawContent);
+    } else {
+      return {};
+    }
   } on Exception catch (e) {
     throw Exception(e);
   }
@@ -171,10 +175,11 @@ Future<String> getEncTTLStr(
   String filePath,
   String fileContent,
   Key key,
-  IV iv,
-) async {
+  IV iv, [
+  String? extWebId,
+]) async {
   final triples = {
-    URIRef(await getFileUrl(filePath)): {
+    URIRef(await getFileUrl(filePath, extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
@@ -212,7 +217,7 @@ Future<String> getDataDirPath() async => [appDirName, dataDir].join('/');
 /// Returns the path of the shared directory
 Future<String> getSharedDirPath() async => [appDirName, sharedDir].join('/');
 
-/// Returns the path of the shared directory
+/// Returns the path of the file with shared individual keys
 Future<String> getSharedKeyFilePath() async =>
     [appDirName, sharedDir, sharedKeyFile].join('/');
 
@@ -577,6 +582,26 @@ Future<void> deleteFile(
   if (await KeyManager.hasIndividualKey(fileUrl)) {
     await KeyManager.removeIndividualKey(filePath);
   }
+}
+
+/// Delete an external file with path [fileUrl] and the shared key
+/// if the file is encrypted.
+/// Throws an exception if the file does not exist or any error occurs.
+Future<void> deleteExternalFile(
+  String fileUrl, {
+  ResourceContentType contentType = ResourceContentType.turtleText,
+}) async {
+  await deleteResource(fileUrl, contentType);
+  await deleteAclForResource(fileUrl);
+  if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
+    final webId = await AuthDataManager.getWebId();
+    final resUniqueId = getUniqueIdResUrl(fileUrl, webId!);
+
+    await KeyManager.removeSharedIndividualKey(fileUrl, resUniqueId);
+  }
+
+  /// av: Need to add the funtionality to remove the log line from permission
+  /// log. Otherwise, it will give an error.
 }
 
 /// Get date and time from a string

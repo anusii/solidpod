@@ -38,6 +38,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart'
 /// Generate TTL string for ACL file of a given resource
 Future<String> genAclTurtle(
   String resourceUrl, {
+  String externalWebId = '',
   bool fileFlag = true,
   Set<AccessMode> ownerAccess = const {
     AccessMode.read,
@@ -55,14 +56,20 @@ Future<String> genAclTurtle(
   // The resource to be accessed
   final r = fileFlag ? URIRef(resourceUrl.split('/').last) : thisDir;
 
-  final ownerWebId = await AuthDataManager.getWebId();
-  assert(ownerWebId != null);
+  var ownerWebId = '';
+  if (externalWebId.isEmpty) {
+    ownerWebId = await AuthDataManager.getWebId() as String;
+  } else {
+    ownerWebId = externalWebId;
+  }
+
+  assert(ownerWebId != '');
   if (thirdPartyAccess != null) {
     assert(!thirdPartyAccess.containsKey(ownerWebId));
   }
 
   final accessMap = getAccessMap({
-    URIRef(ownerWebId!): [AclPredicate.agent.uriRef, ownerAccess],
+    URIRef(ownerWebId): [AclPredicate.agent.uriRef, ownerAccess],
     if (thirdPartyAccess != null && thirdPartyAccess.isNotEmpty) ...{
       for (final entry in thirdPartyAccess.entries)
         URIRef(entry.key): [AclPredicate.agent.uriRef, entry.value],

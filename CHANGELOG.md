@@ -5,6 +5,9 @@ Recorded here are the high level changes for the SolidPod package.
 Guide: Each version update is recorded here with a short user-oriented
 description of the update.
 
+## [0.6.7 20250613]
+* Error fix when cancelling the authentication process
+
 ## [0.6.6 20250509]
 
 + POD initialisation back button goes back usefully [atangser]

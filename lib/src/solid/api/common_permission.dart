@@ -128,10 +128,10 @@ Map<dynamic, dynamic> getLatestLog(
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
       final logEntryList = logEntry.split(';');
 
-      final ownerWebId = logEntryList[2];
+      final recepientWebId = logEntryList[5];
 
       if (userWebId != null) {
-        if (ownerWebId == userWebId) {
+        if (recepientWebId != userWebId) {
           continue;
         }
       }
