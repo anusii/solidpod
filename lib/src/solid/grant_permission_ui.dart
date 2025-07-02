@@ -54,6 +54,8 @@ class GrantPermissionUi extends StatefulWidget {
     this.backgroundColor = const Color.fromARGB(255, 210, 210, 210),
     this.showAppBar = true,
     this.isExternalRes = false,
+    this.accessModeList = const ['read', 'write', 'append', 'control'],
+    this.recipientList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
     this.fileName,
     this.customAppBar,
@@ -70,11 +72,19 @@ class GrantPermissionUi extends StatefulWidget {
   /// The text appearing in the app bar.
   final Color backgroundColor;
 
-  /// The boolean to decide whether to display an app bar or not
+  /// The boolean to decide whether to display an app bar or not.
   final bool showAppBar;
 
   /// The boolean to decide whether the resources is from an external POD or not
   final bool isExternalRes;
+
+  /// The list of access modes to be displayed. By default all four types of
+  /// access mode are listed.
+  final List<String> accessModeList;
+
+  /// The list of permission recipients to be displayed. By default all four
+  /// types of recipient types are listed.
+  final List<String> recipientList;
 
   /// String to assign the external webId of the resource owner. Must be set
   /// if [isExternalRes] is set to true.
@@ -116,6 +126,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Flag to check whether page is initialised
   bool pageInitialied = false;
+
+  /// Define access mode list
+  List<AccessMode> acessModeList = [];
+
+  /// Define recipient type list
+  List<RecipientType> recipientList = [];
 
   /// Form controller
   final formKey = GlobalKey<FormState>();
@@ -185,6 +201,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     // Load future
     if (widget.fileName != null) {
       podDataList = loadPodData();
+    }
+
+    // Load access mode list to be displayed
+    for (final accessModeStr in widget.accessModeList) {
+      acessModeList.add(getAccessMode(accessModeStr));
+    }
+
+    // Load recipient list to be displayed
+    for (final recipient in widget.recipientList) {
+      recipientList.add(getRecType(recipient));
     }
   }
 
@@ -393,75 +419,91 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               // external resources is not yet implemented in
                               // [grantPermission()] function.
                               if (!widget.isExternalRes) ...[
-                                Expanded(
-                                  child: SizedBox(
-                                    height: 50,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          selectedRecipient =
-                                              RecipientType.public;
-                                          selectedRecipientDetails = '';
-                                          finalWebIdList = [publicAgent.value];
-                                        });
-                                      },
-                                      child: Text(RecipientType.public.type),
+                                if (recipientList
+                                    .contains(RecipientType.public)) ...[
+                                  Expanded(
+                                    child: SizedBox(
+                                      height: 50,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedRecipient =
+                                                RecipientType.public;
+                                            selectedRecipientDetails = '';
+                                            finalWebIdList = [
+                                              publicAgent.value
+                                            ];
+                                          });
+                                        },
+                                        child: Text(RecipientType.public.type),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                ],
+                                if (recipientList
+                                    .contains(RecipientType.authUser)) ...[
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.only(left: 8.0),
+                                      height: 50,
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedRecipient =
+                                                RecipientType.authUser;
+                                            selectedRecipientDetails = '';
+                                            finalWebIdList = [
+                                              authenticatedAgent.value,
+                                            ];
+                                          });
+                                        },
+                                        child:
+                                            Text(RecipientType.authUser.type),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                              if (recipientList
+                                  .contains(RecipientType.individual)) ...[
                                 Expanded(
                                   child: Container(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     height: 50,
                                     child: ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          selectedRecipient =
-                                              RecipientType.authUser;
-                                          selectedRecipientDetails = '';
-                                          finalWebIdList = [
-                                            authenticatedAgent.value,
-                                          ];
-                                        });
+                                      onPressed: () async {
+                                        await indWebIdInputDialog(
+                                          context,
+                                          formControllerWebId,
+                                          _updateIndWebIdInput,
+                                        );
                                       },
-                                      child: Text(RecipientType.authUser.type),
+                                      child:
+                                          Text(RecipientType.individual.type),
                                     ),
                                   ),
                                 ),
                               ],
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      await indWebIdInputDialog(
-                                        context,
-                                        formControllerWebId,
-                                        _updateIndWebIdInput,
-                                      );
-                                    },
-                                    child: Text(RecipientType.individual.type),
+                              if (recipientList
+                                  .contains(RecipientType.group)) ...[
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.only(left: 8.0),
+                                    height: 50,
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        await groupWebIdInputDialog(
+                                          context,
+                                          formControllerGroupName,
+                                          formControllerGroupWebIds,
+                                          _updateGroupWebIdInput,
+                                        );
+                                      },
+                                      child: Text(RecipientType.group.type),
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  height: 50,
-                                  child: ElevatedButton(
-                                    onPressed: () async {
-                                      await groupWebIdInputDialog(
-                                        context,
-                                        formControllerGroupName,
-                                        formControllerGroupWebIds,
-                                        _updateGroupWebIdInput,
-                                      );
-                                    },
-                                    child: Text(RecipientType.group.type),
-                                  ),
-                                ),
-                              ),
+                              ],
                             ],
                           ),
                         ),
@@ -472,26 +514,34 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           Colors.blueGrey,
                           8,
                         ),
-                        permissionCheckbox(
-                          AccessMode.read,
-                          readChecked,
-                          _updateCheckbox,
-                        ),
-                        permissionCheckbox(
-                          AccessMode.write,
-                          writeChecked,
-                          _updateCheckbox,
-                        ),
-                        permissionCheckbox(
-                          AccessMode.control,
-                          controlChecked,
-                          _updateCheckbox,
-                        ),
-                        permissionCheckbox(
-                          AccessMode.append,
-                          appendChecked,
-                          _updateCheckbox,
-                        ),
+                        if (acessModeList.contains(AccessMode.read)) ...[
+                          permissionCheckbox(
+                            AccessMode.read,
+                            readChecked,
+                            _updateCheckbox,
+                          ),
+                        ],
+                        if (acessModeList.contains(AccessMode.write)) ...[
+                          permissionCheckbox(
+                            AccessMode.write,
+                            writeChecked,
+                            _updateCheckbox,
+                          ),
+                        ],
+                        if (acessModeList.contains(AccessMode.control)) ...[
+                          permissionCheckbox(
+                            AccessMode.control,
+                            controlChecked,
+                            _updateCheckbox,
+                          ),
+                        ],
+                        if (acessModeList.contains(AccessMode.append)) ...[
+                          permissionCheckbox(
+                            AccessMode.append,
+                            appendChecked,
+                            _updateCheckbox,
+                          ),
+                        ],
                         Padding(
                           padding: const EdgeInsets.all(8),
                           child: ElevatedButton(
@@ -615,5 +665,22 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     } else {
       return _buildPermPage(context);
     }
+  }
+}
+
+/// Return recipient type based on a given String value
+RecipientType getRecType(String recipient) {
+  switch (recipient.toLowerCase()) {
+    case 'public':
+      return RecipientType.public;
+    case 'indi':
+      return RecipientType.individual;
+    case 'auth':
+      return RecipientType.authUser;
+    case 'group':
+      return RecipientType.group;
+    default:
+      throw Exception('Wrong recipient type given'
+          '\nRecipient: $recipient');
   }
 }

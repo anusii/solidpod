@@ -171,8 +171,11 @@ AccessMode getAccessMode(String mode) {
       return AccessMode.write;
     case 'control':
       return AccessMode.control;
-    default:
+    case 'append':
       return AccessMode.append;
+    default:
+      throw Exception('Wrong access mode given'
+          '\nMode: $mode');
   }
 }
 
