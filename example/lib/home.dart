@@ -549,6 +549,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               builder: (context) => const GrantPermissionUi(
                                 backgroundColor: titleBackgroundColor,
                                 fileName: 'key-value.ttl',
+                                // accessModeList: ['read', 'write'],
+                                // recipientList: ['indi', 'group'],
                                 child: Home(),
                               ),
                             ),

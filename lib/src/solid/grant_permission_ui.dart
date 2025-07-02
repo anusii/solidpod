@@ -72,16 +72,18 @@ class GrantPermissionUi extends StatefulWidget {
   /// The text appearing in the app bar.
   final Color backgroundColor;
 
-  /// The boolean to decide whether to display an app bar or not
+  /// The boolean to decide whether to display an app bar or not.
   final bool showAppBar;
 
   /// The boolean to decide whether the resources is from an external POD or not
   final bool isExternalRes;
 
-  /// The list of access modes to be displayed
+  /// The list of access modes to be displayed. By default all four types of
+  /// access mode are listed.
   final List<String> accessModeList;
 
-  /// The list of permission recipients to be displayed
+  /// The list of permission recipients to be displayed. By default all four
+  /// types of recipient types are listed.
   final List<String> recipientList;
 
   /// String to assign the external webId of the resource owner. Must be set

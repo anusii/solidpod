@@ -97,6 +97,7 @@ Fine tune to suit the theme of the app:
 + [writePod()](#write-to-pod-file-example) function writes content (either encrypted or plaintext) to a file in a Pod.
 
 + [GrantPermissionUi](#grant-permission-ui-example) widget supports permission granting/revoking for resources:
+  + For defining specific access mode types or recipient types, use optional parameters `accessModeList` and `recipientList`.
 
 Granting permission:
 <div align="center">
