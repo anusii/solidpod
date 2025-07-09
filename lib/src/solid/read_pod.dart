@@ -1,6 +1,6 @@
-/// Function to read a private file in PODs.
+/// SolidPod library to support privacy first data store on Solid Servers
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -26,6 +26,8 @@
 ///
 /// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang
 
+// TODO 20250709 WHY IGNORE? PLEASE EXPLAIN.
+//
 // ignore_for_file: use_build_context_synchronously
 
 library;
@@ -61,8 +63,9 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to ensure consistency with writePod.
-  // Check if the dataDirPath is already prepended, if not add it.
+  // Normalise the file path to ensure consistency with writePod.  Check if the
+  // dataDirPath is already prepended (for backward compatibilty), if not add
+  // it.
 
   final dataDirPath = await getDataDirPath();
   String normalizedFilePath;
