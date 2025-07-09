@@ -111,14 +111,17 @@ class SolidLogin extends StatefulWidget {
 
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs.
-
     required this.child,
     this.required = true,
     this.appDirectory = '',
-    this.image =
-        const AssetImage('assets/images/default_image.jpg', package: 'solid'),
-    this.logo =
-        const AssetImage('assets/images/default_logo.png', package: 'solid'),
+    this.image = const AssetImage(
+      'assets/images/default_image.jpg',
+      package: 'solid',
+    ),
+    this.logo = const AssetImage(
+      'assets/images/default_logo.png',
+      package: 'solid',
+    ),
     this.title = 'Log in to your Solid Pod',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
@@ -239,11 +242,18 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
+    // Check if widget is still mounted before starting any async operations.
+    // This prevents unnecessary work if the widget has been disposed.
+
     if (!mounted) return;
 
     await setAppDirName(widget.appDirectory);
     final folders = await generateDefaultFolders();
     final files = await generateDefaultFiles();
+
+    // Check if widget is still mounted after async operations and before setState.
+    // This prevents "setState() called after dispose()" errors that can occur
+    // if the widget was disposed while async operations were running.
 
     if (!mounted) return;
 
@@ -255,6 +265,10 @@ class _SolidLoginState extends State<SolidLogin> {
     // Fetch the app information.
 
     final appInfo = await getAppNameVersion();
+
+    // Check if widget is still mounted after final async operation and before setState.
+    // This ensures we don't call setState on a disposed widget, which would throw
+    // a FlutterError and potentially crash the app.
 
     if (!mounted) return;
 
@@ -272,6 +286,50 @@ class _SolidLoginState extends State<SolidLogin> {
         _isDialogCanceled = true;
       });
     }
+  }
+
+  // Helper method to create and show a snackbar with consistent theming.
+
+  void _showSnackbar(String message, {Duration? duration}) {
+    final currentTheme = _isDarkMode
+        ? widget.themeConfig.darkTheme
+        : widget.themeConfig.lightTheme;
+
+    final backgroundColor =
+        widget.snackbarConfig.backgroundColor ??
+        (_isDarkMode
+            ? currentTheme.backgroundColor.withValues(alpha: 0.9)
+            : currentTheme.backgroundColor.withValues(alpha: 0.7));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(
+            color: widget.snackbarConfig.textColor != Colors.black
+                ? widget.snackbarConfig.textColor
+                : currentTheme.textColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        duration: duration ?? widget.snackbarConfig.duration,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            widget.snackbarConfig.borderRadius,
+          ),
+          side: BorderSide(color: currentTheme.dividerColor, width: 0.5),
+        ),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: widget.snackbarConfig.actionTextColor != Colors.black
+              ? widget.snackbarConfig.actionTextColor
+              : currentTheme.titleColor,
+          onPressed: () {},
+        ),
+      ),
+    );
   }
 
   // Toggle between light and dark mode.
@@ -294,10 +352,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // depending on screen width.
 
     final loginBoxDecor = BoxDecoration(
-      image: DecorationImage(
-        image: widget.image,
-        fit: BoxFit.cover,
-      ),
+      image: DecorationImage(image: widget.image, fit: BoxFit.cover),
     );
 
     // Text controller for the URI of the solid server to which an authenticate
@@ -366,49 +421,11 @@ class _SolidLoginState extends State<SolidLogin> {
         // Only show the browser login instructions if user is not already logged in.
 
         if (!wasAlreadyLoggedIn) {
-          final currentTheme = _isDarkMode
-              ? widget.themeConfig.darkTheme
-              : widget.themeConfig.lightTheme;
-
-          final backgroundColor = widget.snackbarConfig.backgroundColor ??
-              (_isDarkMode
-                  ? currentTheme.backgroundColor.withValues(alpha: 0.9)
-                  : currentTheme.backgroundColor.withValues(alpha: 0.7));
-
           // Use a longer duration for this snackbar since it's replacing the login animation.
-
           const loginDuration = Duration(seconds: 30);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Please complete the login process in your browser',
-                style: TextStyle(
-                  color: widget.snackbarConfig.textColor != Colors.black
-                      ? widget.snackbarConfig.textColor
-                      : currentTheme.textColor,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              duration: loginDuration,
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: backgroundColor,
-              shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(widget.snackbarConfig.borderRadius),
-                side: BorderSide(
-                  color: currentTheme.dividerColor,
-                  width: 0.5,
-                ),
-              ),
-              action: SnackBarAction(
-                label: 'OK',
-                textColor: widget.snackbarConfig.actionTextColor != Colors.black
-                    ? widget.snackbarConfig.actionTextColor
-                    : currentTheme.titleColor,
-                onPressed: () {},
-              ),
-            ),
+          _showSnackbar(
+            'Please complete the login process in your browser',
+            duration: loginDuration,
           );
         }
 
@@ -430,12 +447,6 @@ class _SolidLoginState extends State<SolidLogin> {
         if (authResult != null && authResult.isNotEmpty) {
           if (!context.mounted) return;
 
-          // Close animation dialog only once.
-
-          if (Navigator.of(context, rootNavigator: true).canPop()) {
-            Navigator.of(context, rootNavigator: true).pop();
-          }
-
           // Dismiss the login process snackbar.
 
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -443,49 +454,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // If using a cached session, show snackbar informing about it.
 
           if (isCachedSession) {
-            // Use theme colors instead of hardcoded colors.
-
-            final currentTheme = _isDarkMode
-                ? widget.themeConfig.darkTheme
-                : widget.themeConfig.lightTheme;
-
-            final backgroundColor = widget.snackbarConfig.backgroundColor ??
-                (_isDarkMode
-                    ? currentTheme.backgroundColor.withValues(alpha: 0.9)
-                    : currentTheme.backgroundColor.withValues(alpha: 0.7));
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Logged in with your previously saved session',
-                  style: TextStyle(
-                    color: widget.snackbarConfig.textColor != Colors.black
-                        ? widget.snackbarConfig.textColor
-                        : currentTheme.textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                duration: widget.snackbarConfig.duration,
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: backgroundColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(widget.snackbarConfig.borderRadius),
-                  side: BorderSide(
-                    color: currentTheme.dividerColor,
-                    width: 0.5,
-                  ),
-                ),
-                action: SnackBarAction(
-                  label: 'OK',
-                  textColor:
-                      widget.snackbarConfig.actionTextColor != Colors.black
-                          ? widget.snackbarConfig.actionTextColor
-                          : currentTheme.titleColor,
-                  onPressed: () {},
-                ),
-              ),
-            );
+            _showSnackbar('Logged in with your previously saved session');
 
             // Short delay to allow snackbar to be visible.
 
@@ -494,8 +463,10 @@ class _SolidLoginState extends State<SolidLogin> {
 
           // Navigate to the appropriate screen based on structure test.
 
-          final resCheckList =
-              await initialStructureTest(defaultFolders, defaultFiles);
+          final resCheckList = await initialStructureTest(
+            defaultFolders,
+            defaultFiles,
+          );
           final allExists = resCheckList.first as bool;
 
           if (!context.mounted) return;
@@ -599,21 +570,10 @@ class _SolidLoginState extends State<SolidLogin> {
       color: currentTheme.backgroundColor,
       child: Column(
         children: [
-          Image(
-            image: widget.logo,
-            width: 200,
-          ),
-          const SizedBox(
-            height: 0.0,
-          ),
-          Divider(
-            height: 15,
-            thickness: 2,
-            color: currentTheme.dividerColor,
-          ),
-          const SizedBox(
-            height: 50.0,
-          ),
+          Image(image: widget.logo, width: 200),
+          const SizedBox(height: 0.0),
+          Divider(height: 15, thickness: 2, color: currentTheme.dividerColor),
+          const SizedBox(height: 50.0),
           Text(
             widget.title,
             textAlign: TextAlign.center,
@@ -623,9 +583,7 @@ class _SolidLoginState extends State<SolidLogin> {
               color: currentTheme.titleColor,
             ),
           ),
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
           TextFormField(
             controller: webIdController,
             style: TextStyle(color: currentTheme.textColor),
@@ -641,35 +599,24 @@ class _SolidLoginState extends State<SolidLogin> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
 
           Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: loginButton,
-                  ),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
+                  Expanded(child: loginButton),
+                  const SizedBox(width: 15.0),
                   Expanded(
                     child: widget.required ? registerButton : continueButton,
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 15.0,
-              ),
+              const SizedBox(height: 15.0),
               Row(
                 children: [
-                  if (!widget.required)
-                    Expanded(
-                      child: registerButton,
-                    ),
+                  if (!widget.required) Expanded(child: registerButton),
                   if (widget.required)
                     Expanded(
                       child: SizedBox(
@@ -677,28 +624,19 @@ class _SolidLoginState extends State<SolidLogin> {
                         child: infoButton,
                       ),
                     ),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
+                  const SizedBox(width: 15.0),
                   widget.required
                       ? const Spacer()
-                      : Expanded(
-                          child: infoButton,
-                        ),
+                      : Expanded(child: infoButton),
                 ],
               ),
-              const SizedBox(
-                height: 15.0,
-              ),
+              const SizedBox(height: 15.0),
             ],
           ),
 
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
 
           // Expand to the bottom of the login panel.
-
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -707,9 +645,7 @@ class _SolidLoginState extends State<SolidLogin> {
                 child: Center(
                   child: SelectableText(
                     'Version $appVersion',
-                    style: TextStyle(
-                      color: currentTheme.versionTextColor,
-                    ),
+                    style: TextStyle(color: currentTheme.versionTextColor),
                   ),
                 ),
               ),
@@ -733,8 +669,9 @@ class _SolidLoginState extends State<SolidLogin> {
               color: _isDarkMode ? Colors.amber : Colors.blueGrey,
             ),
             onPressed: _toggleTheme,
-            tooltip:
-                _isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+            tooltip: _isDarkMode
+                ? 'Switch to light mode'
+                : 'Switch to dark mode',
           ),
         ),
       ],
@@ -747,8 +684,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
     final loginPanelInset =
         (_isVeryNarrowScreen(context) || !_isNarrowScreen(context))
-            ? 0.05
-            : 0.25;
+        ? 0.05
+        : 0.25;
 
     // Create the actual login panel around the decorated login panel.
 
@@ -761,8 +698,9 @@ class _SolidLoginState extends State<SolidLogin> {
           elevation: 50,
           color: currentTheme.cardColor,
           shadowColor: currentTheme.shadowColor,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           child: loginPanelDecor, //actualChildEventually,
         ),
       ),
@@ -775,29 +713,23 @@ class _SolidLoginState extends State<SolidLogin> {
     return Scaffold(
       // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea
       // HERE. WHAT MOTIVATED ITS USE?
-
       body: SafeArea(
         child: DecoratedBox(
           // The image specified as [loginBoxDecor] is used as the background
           // for a narrow screen or else it is the left panel image as specified
           // shortly, and we create an empty BoxDecoration here in that case.
-
-          decoration:
-              _isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
+          decoration: _isNarrowScreen(context)
+              ? loginBoxDecor
+              : const BoxDecoration(),
           child: Row(
             children: [
               _isNarrowScreen(context)
                   ? Container()
                   : Expanded(
                       flex: 7,
-                      child: Container(
-                        decoration: loginBoxDecor,
-                      ),
+                      child: Container(decoration: loginBoxDecor),
                     ),
-              Expanded(
-                flex: 5,
-                child: loginPanel,
-              ),
+              Expanded(flex: 5, child: loginPanel),
             ],
           ),
         ),
@@ -838,28 +770,20 @@ class PodButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: background,
           foregroundColor: foreground,
-          // Add a solid border to make buttons more visible.
 
-          side: BorderSide(
-            color: Colors.grey.shade400,
-          ),
+          // Add a solid border to make buttons more visible.
+          side: BorderSide(color: Colors.grey.shade400),
 
           // Apply rounded corners consistent with card style.
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
 
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
           // Increase vertical padding.
-
           padding: const EdgeInsets.symmetric(vertical: 12),
-          // Ensure a minimum size of 48px in height as per guidelines.
 
+          // Ensure a minimum size of 48px in height as per guidelines.
           minimumSize: const Size(88, 48),
         ),
-        child: Text(
-          text,
-          style: buttonTextStyle,
-        ),
+        child: Text(text, style: buttonTextStyle),
       ),
     );
   }
