@@ -43,26 +43,35 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 
 /// Read permission given for the [fileName].
 /// Parameters:
-///   [fileName] is the name of the file reading permission from
+///   [fileName] is the name of the file reading permission from. In case where
+///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
 ///   [fileFlag] is the flag to identify if the resources is a file or not
 ///   [child] is the child widget to return to
+///   [isExternalRes] is set to true if reading permissions from an external file
 
 Future<dynamic> readPermission(
   String fileName,
   bool fileFlag,
   BuildContext context,
-  Widget child,
-) async {
+  Widget child, {
+  bool isExternalRes = false,
+}) async {
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
     await getKeyFromUserIfRequired(context, child);
 
-    // Get the file path
-    final filePath = [await getDataDirPath(), fileName].join('/');
+    var resourceUrl = '';
+    if (!isExternalRes) {
+      // Get the file path
+      final filePath = [await getDataDirPath(), fileName].join('/');
 
-    // Get the url of the file
-    final resourceUrl = await getFileUrl(filePath);
+      // Get the url of the file
+      resourceUrl = await getFileUrl(filePath);
+    } else {
+      // Get the url of the file
+      resourceUrl = fileName;
+    }
 
     // Check if file exists
     final resStatus =

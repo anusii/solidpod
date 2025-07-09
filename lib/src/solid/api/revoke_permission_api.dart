@@ -38,7 +38,6 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
@@ -46,6 +45,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 Future<String> removePermissionAcl(
   String resourceName,
   String resourceUrl,
+  String ownerWebId,
   String removerId,
   RecipientType recipientType, [
   bool fileFlag = true,
@@ -56,7 +56,9 @@ Future<String> removePermissionAcl(
   // Extract permission details to a map
   final permMap = extractAclPerm(aclContent);
 
-  final ownerWebId = await AuthDataManager.getWebId();
+  // av: owner webid is now an input parameter for the function to allow other
+  //     owners from external resources.
+  // final ownerWebId = await AuthDataManager.getWebId();
 
   // Updated individual permission map
   final updatedIndPermMap = <String, Set<AccessMode>>{};
@@ -124,6 +126,7 @@ Future<String> removePermissionAcl(
 
   final aclFullContentStr = await genAclTurtle(
     resourceUrl,
+    externalWebId: ownerWebId,
     fileFlag: fileFlag,
     ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
     publicAccess: publicPermSet,

@@ -45,11 +45,13 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
-/// Revoke permissions from [fileName] for a given [removerUrl].
+/// Revoke permissions from [fileName] for a given [removerWebId].
 /// Parameters:
-///   [fileName] is the name of the file revoking permission from
+///   [fileName] is the name of the file revoking permission from. In case where
+///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
 ///   [fileFlag] is the flag to identify if the resources is a file or not
-///   [removerUrl] is the URL of the permission remover
+///   [removerWebId] is the Web ID of the person whose permission gets removed
+///   [ownerWebId] is the Web ID of file owner
 ///   [recipientType] is the type of the recipient
 ///   [child] is the child widget to return to
 
@@ -57,21 +59,29 @@ Future<dynamic> revokePermission(
   String fileName,
   bool fileFlag,
   List<dynamic> permissionList,
-  String removerUrl,
+  String removerWebId,
+  String ownerWebId,
   RecipientType recipientType,
   BuildContext context,
-  Widget child,
-) async {
+  Widget child, {
+  bool isExternalRes = false,
+}) async {
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
     await getKeyFromUserIfRequired(context, child);
 
-    // Get the file path
-    final filePath = [await getDataDirPath(), fileName].join('/');
+    var resourceUrl = '';
 
-    // Get the url of the file
-    final resourceUrl = await getFileUrl(filePath);
+    if (!isExternalRes) {
+      // Get the file path
+      final filePath = [await getDataDirPath(), fileName].join('/');
+
+      // Get the url of the file
+      resourceUrl = await getFileUrl(filePath);
+    } else {
+      resourceUrl = fileName;
+    }
 
     // Check if file exists
     final resStatus =
@@ -84,7 +94,7 @@ Future<dynamic> revokePermission(
       if (recipientType == RecipientType.group) {
         // Read the file that stores group of webIds
         // Get the file path
-        final groupFilePath = [await getDataDirPath(), removerUrl].join('/');
+        final groupFilePath = [await getDataDirPath(), removerWebId].join('/');
 
         // Get the url of the file
         final groupFileUrl = await getFileUrl(groupFilePath);
@@ -92,11 +102,12 @@ Future<dynamic> revokePermission(
         final groupWebIdList = await readGroupTtl(groupFileUrl);
         removerIdList.addAll(groupWebIdList);
       } else {
-        removerIdList.add(removerUrl);
+        removerIdList.add(removerWebId);
       }
 
       // Check if the file is encrypted
-      final fileIsEncrypted = await checkFileEnc(resourceUrl);
+      final fileIsEncrypted =
+          await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
 
       // If the file is encrypted then remove the individual key from relavant
       // users/ user classes
@@ -127,7 +138,8 @@ Future<dynamic> revokePermission(
       await removePermissionAcl(
         resourceName,
         resourceUrl,
-        removerUrl,
+        ownerWebId,
+        removerWebId,
         recipientType,
       );
 
@@ -144,7 +156,7 @@ Future<dynamic> revokePermission(
         final logEntryRes = createPermLogEntry(
           permissionList,
           resourceUrl,
-          userWebId,
+          ownerWebId,
           'revoke',
           userWebId,
           removerId as String,
@@ -152,14 +164,29 @@ Future<dynamic> revokePermission(
 
         // Log file urls of the owner, granter, and receiver
         final logFilePath = await getPermLogFilePath();
-        final ownerLogFileUrl = await getFileUrl(logFilePath);
 
-        // Run log entry insert queries
+        // Owner
+        final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
+
+        // Granter
+        final granterLogFileUrl = await getFileUrl(logFilePath);
+
+        // Run log entry insert query for the granter
         await addPermLogLine(
-          ownerLogFileUrl,
+          granterLogFileUrl,
           logEntryRes[0] as String,
           logEntryRes[1] as String,
         );
+
+        // If owner and the granter is not the same add another log file entry
+        // for the owner
+        if (ownerLogFileUrl != granterLogFileUrl) {
+          await addPermLogLine(
+            ownerLogFileUrl,
+            logEntryRes[0] as String,
+            logEntryRes[1] as String,
+          );
+        }
 
         // Add log entry if the recipient is either an individual or group of WebIDs
         if ([RecipientType.individual, RecipientType.group]

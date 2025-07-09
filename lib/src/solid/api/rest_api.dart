@@ -513,8 +513,10 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 }
 
 /// Check if a file is encrypted
-Future<bool> checkFileEnc(String fileUrl) async =>
-    KeyManager.hasIndividualKey(fileUrl);
+Future<bool> checkFileEnc(String fileUrl, {bool isExternalRes = false}) async =>
+    isExternalRes
+        ? KeyManager.hasSharedIndividualKey(fileUrl)
+        : KeyManager.hasIndividualKey(fileUrl);
 
 /// Update ACL file of a resource by http put request
 ///

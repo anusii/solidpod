@@ -80,17 +80,23 @@ Future<List<dynamic>?> solidAuthenticate(
       final issuerUri = await getIssuer(serverId);
       authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
-      // write authentication data to flutter secure storage
-      await AuthDataManager.saveAuthData(authData);
+      if (!authData.containsKey('error')) {
+        // write authentication data to flutter secure storage
+        await AuthDataManager.saveAuthData(authData);
+      }
     }
 
-    final webId = await AuthDataManager.getWebId();
-    assert(webId != null);
+    if (!authData!.containsKey('error')) {
+      final webId = await AuthDataManager.getWebId();
+      assert(webId != null);
 
-    final profCardUrl = webId!.replaceAll('#me', '');
-    final profData = await fetchPrvFile(profCardUrl);
+      final profCardUrl = webId!.replaceAll('#me', '');
+      final profData = await fetchPrvFile(profCardUrl);
 
-    return [authData, webId, profData];
+      return [authData, webId, profData];
+    } else {
+      return null;
+    }
   } on Exception catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;

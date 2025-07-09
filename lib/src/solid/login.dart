@@ -495,7 +495,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // is much simpler and the user interaction is probably clear enough
           // for now that for some reason we remain on the Login screen. If
           // there are non-obvious scneraiors where we fail to authenticate and
-          // revert to thte login screen then we can capture and report them
+          // revert to the login screen then we can capture and report them
           // later.
 
           if (!context.mounted) return;
