@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Dawei Chen
+/// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang
 
 // ignore_for_file: use_build_context_synchronously
 
@@ -33,6 +33,7 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -60,9 +61,28 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
+  // Normalise the file path to ensure consistency with writePod.
+  // Check if the dataDirPath is already prepended, if not add it.
+
+  final dataDirPath = await getDataDirPath();
+  String normalizedFilePath;
+
+  if (filePath.startsWith(dataDirPath)) {
+    // Data directory path is already prepended.
+
+    normalizedFilePath = filePath;
+  } else {
+    // Prepend data directory path (like writePod does).
+
+    normalizedFilePath = [
+      dataDirPath,
+      filePath.replaceAll(path.separator, '/'),
+    ].join('/');
+  }
+
   // Check if the requested file exists
 
-  final fileUrl = await getFileUrl(filePath);
+  final fileUrl = await getFileUrl(normalizedFilePath);
   final fileExists = await checkResourceStatus(fileUrl);
 
   switch (fileExists) {
@@ -96,7 +116,7 @@ Future<String> readPod(
         rethrow;
       }
     case ResourceStatus.notExist:
-      throw Exception('Resource "$filePath" does not exist.');
+      throw Exception('Resource "$normalizedFilePath" does not exist.');
     default:
       throw Exception('Unknown error.');
   }
