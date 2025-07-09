@@ -32,6 +32,7 @@
 
 library;
 
+import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -215,7 +216,8 @@ Future<void> createResource(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': contentTypeStr,
-      if (put) 'Content-Length': content.length.toString(),
+      if (put)
+        'Content-Length': utf8.encode(content as String).length.toString(),
       if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
       if (!put) 'Slug': name,
       'DPoP': dPopToken,
@@ -371,7 +373,7 @@ Future<void> updateFileByQuery(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'application/sparql-update',
-      'Content-Length': query.length.toString(),
+      'Content-Length': utf8.encode(query).length.toString(),
       'DPoP': dPopToken,
     },
     body: query,
@@ -405,7 +407,7 @@ Future<void> initialProfileUpdate(String profBody) async {
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'text/turtle',
-      'Content-Length': profBody.length.toString(),
+      'Content-Length': utf8.encode(profBody).length.toString(),
       'DPoP': dPopToken,
     },
     body: profBody,
@@ -540,7 +542,7 @@ Future<String> updateAclFileContent(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'text/turtle',
-      'Content-Length': aclFileContent.length.toString(),
+      'Content-Length': utf8.encode(aclFileContent).length.toString(),
       'DPoP': dPopToken,
     },
     body: aclFileContent,
