@@ -1,20 +1,20 @@
-# SolidPod Package Changelog
+# SolidPod Changelog
 
 Recorded here are the high level changes for the SolidPod package.
 
 Guide: Each version update is recorded here with a short user-oriented
-description of the update.
+description of the update. Updates in the 0.6.n series are heading
+toward a 0.7 release. The `[version timestamp user]` string is
+utilised by the flutter version_widget package.
 
-## [0.6.8 20250702]
-* Add options to Access mode and Recipient type in
-  `GrantPermissionUI()` [anushkavidanage]
+Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## [0.6.7 20250613]
-* Error fix when cancelling the authentication process
+## 0.7 Stability
 
-## [0.6.6 20250509]
-
-+ POD initialisation back button goes back usefully [atangser]
++ replace login animation with informative snackbar [0.6.9 20250711 atangster]
++ Add Access and Recipient options in `GrantPermissionUI()` [0.6.8 20250702 anushkavidanage]
++ Fix error when cancelling the authentication process [0.6.7 20250613]
++ POD initialisation back button goes back usefully [0.6.6 20250509 atangser]
 
 ## [0.6.5 20250430]
 
