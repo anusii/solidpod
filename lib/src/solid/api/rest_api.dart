@@ -217,7 +217,9 @@ Future<void> createResource(
       'Connection': 'keep-alive',
       'Content-Type': contentTypeStr,
       if (put)
-        'Content-Length': utf8.encode(content as String).length.toString(),
+        'Content-Length': content is String 
+            ? utf8.encode(content).length.toString()
+            : (content as List<int>).length.toString(),
       if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
       if (!put) 'Slug': name,
       'DPoP': dPopToken,
