@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Wednesday 2025-04-30 15:52:42 +1000 Graham Williams>
+// Time-stamp: <Monday 2025-07-14 09:38:20 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,7 +26,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams, Anushka Vidanage
+/// Authors: Graham Williams, Anushka Vidanage, Ashley Tang
+
 library;
 
 // ignore_for_file: public_member_api_docs
@@ -295,8 +296,7 @@ class _SolidLoginState extends State<SolidLogin> {
         ? widget.themeConfig.darkTheme
         : widget.themeConfig.lightTheme;
 
-    final backgroundColor =
-        widget.snackbarConfig.backgroundColor ??
+    final backgroundColor = widget.snackbarConfig.backgroundColor ??
         (_isDarkMode
             ? currentTheme.backgroundColor.withValues(alpha: 0.9)
             : currentTheme.backgroundColor.withValues(alpha: 0.7));
@@ -424,7 +424,7 @@ class _SolidLoginState extends State<SolidLogin> {
           // Use a longer duration for this snackbar since it's replacing the login animation.
           const loginDuration = Duration(seconds: 30);
           _showSnackbar(
-            'Please complete the login process in your browser',
+            'Please complete the login process in your browser...',
             duration: loginDuration,
           );
         }
@@ -454,7 +454,8 @@ class _SolidLoginState extends State<SolidLogin> {
           // If using a cached session, show snackbar informing about it.
 
           if (isCachedSession) {
-            _showSnackbar('Logged in with your previously saved session');
+            _showSnackbar('Logged in with your previously saved session.',
+                duration: Duration(seconds: 10));
 
             // Short delay to allow snackbar to be visible.
 
@@ -669,9 +670,8 @@ class _SolidLoginState extends State<SolidLogin> {
               color: _isDarkMode ? Colors.amber : Colors.blueGrey,
             ),
             onPressed: _toggleTheme,
-            tooltip: _isDarkMode
-                ? 'Switch to light mode'
-                : 'Switch to dark mode',
+            tooltip:
+                _isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
           ),
         ),
       ],
@@ -684,8 +684,8 @@ class _SolidLoginState extends State<SolidLogin> {
 
     final loginPanelInset =
         (_isVeryNarrowScreen(context) || !_isNarrowScreen(context))
-        ? 0.05
-        : 0.25;
+            ? 0.05
+            : 0.25;
 
     // Create the actual login panel around the decorated login panel.
 
@@ -718,9 +718,8 @@ class _SolidLoginState extends State<SolidLogin> {
           // The image specified as [loginBoxDecor] is used as the background
           // for a narrow screen or else it is the left panel image as specified
           // shortly, and we create an empty BoxDecoration here in that case.
-          decoration: _isNarrowScreen(context)
-              ? loginBoxDecor
-              : const BoxDecoration(),
+          decoration:
+              _isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
           child: Row(
             children: [
               _isNarrowScreen(context)
