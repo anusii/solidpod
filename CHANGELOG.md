@@ -11,7 +11,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.7 Stability
 
-+ replace login animation with informative snackbar [0.6.9 20250711 atangster]
++ Add extra time for the already logged in snackbar [0.6.10 20250714 gjw]
++ Replace login animation with informative snackbar [0.6.9 20250711 atangster]
 + Add Access and Recipient options in `GrantPermissionUI()` [0.6.8 20250702 anushkavidanage]
 + Fix error when cancelling the authentication process [0.6.7 20250613]
 + POD initialisation back button goes back usefully [0.6.6 20250509 atangser]
