@@ -1,6 +1,6 @@
 /// Authenticate against a solid server and return null if authentication fails.
 ///
-// Time-stamp: <Friday 2024-02-16 11:07:50 +1100 Graham Williams>
+// Time-stamp: <Monday 2025-07-14 11:29:39 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -68,7 +68,7 @@ Future<List<dynamic>?> solidAuthenticate(
 ) async {
   try {
     final loggedIn = await checkLoggedIn();
-    debugPrint('solidAuthenticate() => checkLoggedIn() => $loggedIn');
+    //debugPrint('solidAuthenticate() => checkLoggedIn() => $loggedIn');
     Map<dynamic, dynamic>? authData;
     if (loggedIn) {
       authData = await AuthDataManager.loadAuthData();
