@@ -47,13 +47,22 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// Read file content from a POD
 ///
 /// First check if the user is logged in and then
-/// read and parse the file content
+/// read and parse the file content.
+///
+/// [filePath] - The path to the file to read
+/// [context] - The build context
+/// [child] - The child widget
+/// [mode] - The file open mode (default: text)
+/// [path] - Optional base path for the file (default: appname/data)
+///          For backward compatibility, if filePath starts with appname/ prefix,
+///          it will be used as-is regardless of the path parameter
 
 Future<String> readPod(
   String filePath,
   BuildContext context,
   Widget child, {
   FileOpenMode mode = FileOpenMode.text,
+  String? path,
 }) async {
   // Login and initialise PODs if necessary
 
@@ -63,22 +72,29 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to ensure consistency with writePod.  Check if the
-  // dataDirPath is already prepended (for backward compatibilty), if not add
-  // it.
+  // Normalise the file path to ensure consistency with writePod. Check if the
+  // path is already prepended (for backward compatibility), if not add it.
+  
+  // Use provided path or default to appname/data.
 
-  final dataDirPath = await getDataDirPath();
+  final basePath = path ?? await getDataDirPath();
   String normalizedFilePath;
 
-  if (filePath.startsWith(dataDirPath)) {
-    // Data directory path is already prepended.
+  // Check for backward compatibility: if filePath starts with appname/ prefix.
+
+  if (filePath.startsWith('$appDirName/')) {
+    // Path already includes appname prefix, use as is.
+
+    normalizedFilePath = filePath;
+  } else if (filePath.startsWith(basePath)) {
+    // Full path is already prepended.
 
     normalizedFilePath = filePath;
   } else {
-    // Prepend data directory path (like writePod does).
-
+    // Prepend the base path.
+    
     normalizedFilePath = [
-      dataDirPath,
+      basePath,
       filePath.replaceAll(path.separator, '/'),
     ].join('/');
   }
