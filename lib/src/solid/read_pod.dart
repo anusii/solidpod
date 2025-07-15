@@ -1,4 +1,4 @@
-/// SolidPod library to support privacy first data store on Solid Servers
+/// Function to read a private file in PODs.
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -26,8 +26,6 @@
 ///
 /// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang
 
-// TODO 20250709 WHY IGNORE? PLEASE EXPLAIN.
-//
 // ignore_for_file: use_build_context_synchronously
 
 library;
@@ -92,7 +90,7 @@ Future<String> readPod(
     normalizedFilePath = filePath;
   } else {
     // Prepend the base path.
-    
+
     normalizedFilePath = [
       basePath,
       filePath.replaceAll(path.separator, '/'),
