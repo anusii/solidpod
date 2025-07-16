@@ -1,4 +1,4 @@
-/// SolidPod - Dart and Flutter package for interacting with a Solid Server.
+/// SolidPod - Dart and Flutter library for privacy first Solid Server.
 ///
 // Time-stamp: <Wednesday 2025-07-16 11:24:30 +1000 Graham Williams>
 ///
