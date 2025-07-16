@@ -1,4 +1,4 @@
-/// Function to read a private file in PODs.
+/// SolidPod - Dart and Flutter package for interacting with a Solid Server.
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang
+/// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang, Graham Williams
 
 // ignore_for_file: use_build_context_synchronously
 
@@ -42,18 +42,15 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read file content from a POD
+/// Read [filePath] in optional [path] from POD with file [mode] (default is text).
 ///
-/// First check if the user is logged in and then
-/// read and parse the file content.
+/// We first check if the user is logged in and then read and parse the file
+/// content.
 ///
-/// [filePath] - The path to the file to read
-/// [context] - The build context
-/// [child] - The child widget
-/// [mode] - The file open mode (default: text)
-/// [path] - Optional base path for the file (default: appname/data)
-///          For backward compatibility, if filePath starts with appname/ prefix,
-///          it will be used as-is regardless of the path parameter
+/// The optional base path for the file (default: `appname/data`) can be
+/// supplied for [filePath] outside the default `appname/data`.  For backward
+/// compatibility, for now, if [filePath] starts with `appname/` as the prefix,
+/// it will be used as-is regardless of the [path] parameter.
 
 Future<String> readPod(
   String filePath,
@@ -70,18 +67,20 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to ensure consistency with writePod. Check if the
-  // path is already prepended (for backward compatibility), if not add it.
-  
-  // Use provided path or default to appname/data.
+  // We will normalise the [filePath] to ensure consistency with [writePod]. We
+  // also check if the `appname` is already prepended (for backward
+  // compatibility), if not add it.
+
+  // Use the provided path or default to appname/data.
 
   final basePath = path ?? await getDataDirPath();
   String normalizedFilePath;
 
-  // Check for backward compatibility: if filePath starts with appname/ prefix.
+  // Check for backward compatibility: if filePath starts with `appname/` prefix
+  // then do no prepend the [path] or `appname/data`.
 
   if (filePath.startsWith('$appDirName/')) {
-    // Path already includes appname prefix, use as is.
+    // Use [filePath] as is.
 
     normalizedFilePath = filePath;
   } else if (filePath.startsWith(basePath)) {
