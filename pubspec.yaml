@@ -23,6 +23,7 @@ dependencies:
   intl: ^0.20.2
   jwt_decoder: ^2.0.1
   loading_indicator: ^3.1.1
+  markdown_tooltip: ^0.0.2
   mime: ^2.0.0
   package_info_plus: ^8.1.4
   path: ^1.9.0

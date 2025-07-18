@@ -1,6 +1,6 @@
 /// A widget to obtain a Solid token to access the user's POD.
 ///
-// Time-stamp: <Monday 2025-07-14 09:38:20 +1000 Graham Williams>
+// Time-stamp: <Friday 2025-07-18 10:30:49 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,7 +26,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams, Anushka Vidanage, Ashley Tang
+/// Authors: Graham Williams, Anushka Vidanage
 
 library;
 
@@ -35,11 +35,12 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
-import 'package:solidpod/src/widgets/snackbar_config.dart';
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
 // development.
@@ -762,7 +763,7 @@ class PodButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return MarkdownTooltip(
       message: tooltip,
       child: ElevatedButton(
         onPressed: onPressed,
