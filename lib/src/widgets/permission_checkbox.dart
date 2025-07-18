@@ -1,6 +1,6 @@
 /// A checkbox widget for access modes.
 ///
-// Time-stamp: <Sunday 2024-07-11 12:23:00 +1000 Anushka Vidange>
+// Time-stamp: <Friday 2025-07-18 13:49:31 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -28,6 +28,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:markdown_tooltip/markdown_tooltip.dart';
+
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 
 /// Checkbox widget to display different access mode selections. Function call
@@ -36,17 +38,21 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 /// [checkboxChecked] is the boolean controller for the checkbox press
 /// [updateCheckBox] is the function to update the checkbox data when pressed
 ///
-CheckboxListTile permissionCheckbox(
+
+MarkdownTooltip permissionCheckbox(
   AccessMode accessMode,
   bool checkboxChecked,
   Function updateCheckBox,
 ) {
-  return CheckboxListTile(
-    title: Text('${accessMode.mode} (${accessMode.description})'),
-    value: checkboxChecked,
-    onChanged: (newValue) {
-      updateCheckBox(newValue, accessMode);
-    },
-    controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
+  return MarkdownTooltip(
+    message: '${accessMode.description}',
+    child: CheckboxListTile(
+      title: Text('${accessMode.mode}'),
+      value: checkboxChecked,
+      onChanged: (newValue) {
+        updateCheckBox(newValue, accessMode);
+      },
+      controlAffinity: ListTileControlAffinity.leading, //  <-- leading Checkbox
+    ),
   );
 }

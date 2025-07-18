@@ -123,13 +123,19 @@ enum AclPredicate {
 
 enum AccessMode {
   /// Read access
-  read('Read', 'permission to read the content of the shared file'),
+  read('Read', '''
+
+    **Read:** Permission is granted to read the content of the shared file.
+
+    '''),
 
   /// Write access
-  write(
-    'Write',
-    'permission to add/delete/modify content to/from the shared file',
-  ),
+  write('Write', '''
+
+    **Write:** Permission is granted to add/delete/modify the content of the
+    shared file.
+
+    '''),
 
   /// Control access: read and write access to the ACL file
   control(

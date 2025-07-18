@@ -1,6 +1,6 @@
 /// A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Friday 2025-07-18 13:39:12 +1000 Graham Williams>
+// Time-stamp: <Friday 2025-07-18 14:00:30 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -261,7 +261,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     });
   }
 
-  // Update checkbox ticking data
+  // Update checkbox tick data.
+
   void _updateCheckbox(bool newValue, AccessMode accessMode) {
     setState(() {
       if (accessMode == AccessMode.read) {
@@ -429,10 +430,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       child: MarkdownTooltip(
                                         message: '''
 
-                                        **Public** This resource will be
-                                        publicly accessible so that even users
-                                        without a Data Vault can access the
-                                        resource.
+                                        **Public:** This file will be publicly
+                                        accessible so that even users without a
+                                        Data Vault can access the file.
 
                                         ''',
                                         child: ElevatedButton(
@@ -462,11 +462,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       child: MarkdownTooltip(
                                         message: '''
 
-                                        **Authenticated Users** The resouce will
-                                        be available to any user who has
-                                        registered a Data Vault. When they have
-                                        logged into their Data Vault they will
-                                        be able to access the resource.
+                                        **Users:** The file will be available to
+                                        any user who has registered a Data
+                                        Vault. When they have logged into their
+                                        Data Vault they will be able to access
+                                        the file.
 
                                         ''',
                                         child: ElevatedButton(
@@ -497,11 +497,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     child: MarkdownTooltip(
                                       message: '''
 
-                                      **Individual** The resource will be
-                                      available only to the identified individual
-                                      user. A WebID is required to identify the
+                                      **Individual:** The file will be available
+                                      only to the identified individual user. A
+                                      WebID is required to identify the
                                       individual who is gratned access to the
-                                      resource.
+                                      file.
 
                                       ''',
                                       child: ElevatedButton(
@@ -528,9 +528,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     child: MarkdownTooltip(
                                       message: '''
 
-                                      **Group** A collection of WebIDs can be
+                                      **Group:** A collection of WebIDs can be
                                       provided so that as a group they can
-                                      access the resource.
+                                      access the file.
 
                                       ''',
                                       child: ElevatedButton(
