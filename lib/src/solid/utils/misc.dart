@@ -619,9 +619,10 @@ String getDateTime(String dateTimeStr) {
 /// the app directory prefix, and constructs the appropriate normalised path.
 /// 
 /// [filePath] - The input file path
-/// [basePath] - The base path to use (e.g., appname/data or custom path)
+/// [basePath] - The base path to use (e.g. appname/data or custom path)
 /// 
 /// Returns the normalised file path.
+
 Future<String> normalizeFilePath(String filePath, String? basePath) async {
   // Normalise path separators for cross-platform compatibility.
 
@@ -643,7 +644,7 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
     return normalizedInput;
   } else {
     // Prepend the base path.
-    
+
     return [effectiveBasePath, normalizedInput].join('/');
   }
 }

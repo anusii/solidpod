@@ -1,4 +1,4 @@
-/// SolidPod - Dart and Flutter package for interacting with a Solid Server.
+/// Function to write data to a private file in PODs.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -79,7 +79,7 @@ Future<SolidFunctionCallStatus> writePod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
-  // Normalize the file path to ensure consistency with readPod and handle
+  // Normalise the file path to ensure consistency with readPod and handle
   // cross-platform path separators properly.
   
   final normalizedFilePath = await normalizeFilePath(fileName, path);

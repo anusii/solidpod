@@ -1,4 +1,4 @@
-/// SolidPod - Dart and Flutter package for interacting with a Solid Server.
+/// Function to read a private file in PODs.
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -67,9 +67,9 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalize the file path to ensure consistency with writePod and handle
+  // Normalise the file path to ensure consistency with writePod and handle
   // cross-platform path separators properly.
-  
+
   final normalizedFilePath = await normalizeFilePath(filePath, path);
 
   // Check if the requested file exists

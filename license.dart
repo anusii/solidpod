@@ -1,8 +1,8 @@
-/// SolidPod - Dart and Flutter library for privacy first Solid Server.
+/// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Wednesday 2025-07-16 11:24:30 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-07-09 15:41:34 +1000 Graham Williams>
 ///
-/// Copyright (C) 2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
