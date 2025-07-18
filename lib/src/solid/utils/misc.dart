@@ -35,6 +35,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypt/encrypt.dart';
+import 'package:path/path.dart' as path;
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -610,4 +611,39 @@ String getDateTime(String dateTimeStr) {
   final dateFormat = DateFormat('dd/MM/yyyy hh:mm:ss a');
 
   return dateFormat.format(dateTime);
+}
+
+/// Normalise file path for readPod/writePod operations.
+/// 
+/// Handles backward compatibility by checking if the filePath already includes
+/// the app directory prefix, and constructs the appropriate normalised path.
+/// 
+/// [filePath] - The input file path
+/// [basePath] - The base path to use (e.g., appname/data or custom path)
+/// 
+/// Returns the normalised file path.
+Future<String> normalizeFilePath(String filePath, String? basePath) async {
+  // Normalise path separators for cross-platform compatibility.
+
+  final normalizedInput = filePath.replaceAll(path.separator, '/');
+  
+  // Use provided path or default to appname/data.
+
+  final effectiveBasePath = basePath ?? await getDataDirPath();
+  
+  // Check for backward compatibility: if filePath starts with appname/ prefix.
+
+  if (normalizedInput.startsWith('$appDirName/')) {
+    // Path already includes appname prefix, use as is
+
+    return normalizedInput;
+  } else if (normalizedInput.startsWith(effectiveBasePath)) {
+    // Full path is already prepended.
+
+    return normalizedInput;
+  } else {
+    // Prepend the base path.
+    
+    return [effectiveBasePath, normalizedInput].join('/');
+  }
 }

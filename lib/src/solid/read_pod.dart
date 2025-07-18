@@ -70,32 +70,10 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to ensure consistency with writePod. Check if the
-  // path is already prepended (for backward compatibility), if not add it.
+  // Normalize the file path to ensure consistency with writePod and handle
+  // cross-platform path separators properly.
   
-  // Use provided path or default to appname/data.
-
-  final basePath = path ?? await getDataDirPath();
-  String normalizedFilePath;
-
-  // Check for backward compatibility: if filePath starts with appname/ prefix.
-
-  if (filePath.startsWith('$appDirName/')) {
-    // Path already includes appname prefix, use as is.
-
-    normalizedFilePath = filePath;
-  } else if (filePath.startsWith(basePath)) {
-    // Full path is already prepended.
-
-    normalizedFilePath = filePath;
-  } else {
-    // Prepend the base path.
-
-    normalizedFilePath = [
-      basePath,
-      filePath.replaceAll(path.separator, '/'),
-    ].join('/');
-  }
+  final normalizedFilePath = await normalizeFilePath(filePath, path);
 
   // Check if the requested file exists
 
@@ -103,7 +81,7 @@ Future<String> readPod(
   final fileExists = await checkResourceStatus(fileUrl);
 
   switch (fileExists) {
-    case ResourceStatus.exist:
+  case ResourceStatus.exist:
       try {
         final fileContent = await fetchPrvFile(fileUrl);
 

@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:path/path.dart' as path;
@@ -45,6 +47,15 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// Write file [fileName] with content [fileContent] to PODs in the
 /// data directory (within potential subdirectories encoded in [fileName]).
 /// The content will be encrypted if [encrypted] is true.
+///
+/// [fileName] - The name of the file to write
+/// [fileContent] - The content to write to the file
+/// [context] - The build context
+/// [child] - The child widget
+/// [encrypted] - Whether to encrypt the file content (default: true)
+/// [path] - Optional base path for the file (default: appname/data)
+///          For backward compatibility, if fileName starts with appname/ prefix,
+///          it will be used as-is regardless of the path parameter
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -52,10 +63,11 @@ Future<SolidFunctionCallStatus> writePod(
   BuildContext context,
   Widget child, {
   bool encrypted = true,
+  String? path,
 }) async {
   // Sanity check
 
-  assert(!fileName.endsWith(path.separator));
+  assert(!fileName.endsWith(Platform.pathSeparator));
   assert(!fileName.endsWith('/'));
 
   final loggedIn = await loginIfRequired(context);
@@ -67,11 +79,11 @@ Future<SolidFunctionCallStatus> writePod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
-  final filePath = [
-    await getDataDirPath(),
-    fileName.replaceAll(path.separator, '/'),
-  ].join('/');
-  final fileUrl = await getFileUrl(filePath);
+  // Normalize the file path to ensure consistency with readPod and handle
+  // cross-platform path separators properly.
+  
+  final normalizedFilePath = await normalizeFilePath(fileName, path);
+  final fileUrl = await getFileUrl(normalizedFilePath);
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
   switch (await checkResourceStatus(fileUrl)) {
@@ -119,20 +131,20 @@ Future<SolidFunctionCallStatus> writePod(
 
         if (!overwrite) {
           throw Exception(
-            'Not overwriting file "$filePath", writePod() aborted',
+            'Not overwriting file "$normalizedFilePath", writePod() aborted',
           );
         } else {
-          debugPrint('Overwrite file "$filePath"');
+          debugPrint('Overwrite file "$normalizedFilePath"');
         }
       }
 
     case ResourceStatus.unknown:
       throw Exception(
-        'Unable to determine if file "$filePath" exists, writePod() aborted',
+        'Unable to determine if file "$normalizedFilePath" exists, writePod() aborted',
       );
 
     case ResourceStatus.notExist: // Empty case falls through.
-      debugPrint('File "$filePath" does not exist');
+      debugPrint('File "$normalizedFilePath" does not exist');
   }
 
   var content = fileContent;
@@ -146,11 +158,11 @@ Future<SolidFunctionCallStatus> writePod(
     // otherwise, generate a random key and add it to the individual key file.
 
     if (!existingFileEncrypted) {
-      await KeyManager.addIndividualKey(filePath, genRandIndividualKey());
+      await KeyManager.addIndividualKey(normalizedFilePath, genRandIndividualKey());
     }
 
     content = await getEncTTLStr(
-      filePath,
+      normalizedFilePath,
       fileContent,
       await KeyManager.getIndividualKey(fileUrl),
       genRandIV(),
@@ -164,7 +176,7 @@ Future<SolidFunctionCallStatus> writePod(
     // Delete existing (encrypted) file if the new content is unencrypted
 
     if (existingFileEncrypted) {
-      await deleteFile(filePath);
+      await deleteFile(normalizedFilePath);
     }
 
     // If the filename does not end with `.ttl', set content type to plain text
