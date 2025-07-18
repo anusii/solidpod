@@ -188,9 +188,9 @@ class AuthDataManager {
     try {
       var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
       if (JwtDecoder.isExpired(tokenResponse.accessToken!)) {
-        debugPrint(
-          'AuthDataManager => _getTokenResponse() refreshing expired token',
-        );
+        // debugPrint(
+        //   'AuthDataManager => _getTokenResponse() refreshing expired token',
+        // );
         assert(_rsaInfo != null);
         final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
         final publicKeyJwk = _rsaInfo!['pubKeyJwk'];

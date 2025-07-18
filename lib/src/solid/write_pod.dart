@@ -1,4 +1,4 @@
-/// Function to write data to a private file in PODs.
+/// SolidPod - Dart and Flutter package for interacting with a Solid Server.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -44,7 +44,7 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
-/// Write file [fileName] with content [fileContent] to PODs in the
+/// Write [fileName] to contain [fileContent] to PODs in the
 /// data directory (within potential subdirectories encoded in [fileName]).
 /// The content will be encrypted if [encrypted] is true.
 ///
