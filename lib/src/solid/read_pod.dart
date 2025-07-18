@@ -50,13 +50,10 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 ///
 /// Examples:
 /// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
-/// - `readPod('xyz/abc.ttl')` reads from `appname/data/xyz/abc.ttl`
+/// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
 /// - `readPod('appname/data/file.ttl')` reads from `appname/data/file.ttl` (already correct path)
-/// - `readPod('appname/encryption/keys.ttl')` reads from `appname/encryption/keys.ttl` (backward compatibility)
 ///
-/// Note: Previous support for broader `appname/` paths has been removed except for
-/// `appname/encryption/` (backward compatibility for encryption keys).
-/// All other readPod operations now only support `appname/data/`.
+/// Note: Only `appname/data/` paths are supported for readPod operations.
 
 Future<String> readPod(
   String filePath,

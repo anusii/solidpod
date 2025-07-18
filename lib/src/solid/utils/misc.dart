@@ -111,6 +111,27 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
   }
 }
 
+/// Read the encryption key file content for display purposes.
+/// 
+/// This function directly reads the encryption key file without using readPod,
+/// making it suitable for accessing files outside the appname/data directory.
+/// 
+/// Returns the raw TTL content of the encryption key file.
+Future<String> readEncryptionKeyContent() async {
+  final encKeyPath = await getEncKeyPath();
+  final encKeyUrl = await getFileUrl(encKeyPath);
+  
+  try {
+    if (await checkResourceStatus(encKeyUrl) == ResourceStatus.exist) {
+      return await fetchPrvFile(encKeyUrl);
+    } else {
+      throw Exception('Encryption key file does not exist at: $encKeyPath');
+    }
+  } on Exception catch (e) {
+    throw Exception('Failed to read encryption key file: $e');
+  }
+}
+
 /// Generates a public key block from a given key content.
 String genPubKeyStr(String pubKeyContent) =>
     '''-----BEGIN RSA PUBLIC KEY-----\n$pubKeyContent\n-----END RSA PUBLIC KEY-----''';
@@ -627,13 +648,10 @@ String getDateTime(String dateTimeStr) {
 ///
 /// Examples:
 /// - `normalizeFilePath('abc.ttl', null)` returns `appname/data/abc.ttl`
-/// - `normalizeFilePath('xyz/abc.ttl', null)` returns `appname/data/xyz/abc.ttl`
-/// - `normalizeFilePath('appname/data/keys.ttl', null)` returns `appname/data/keys.ttl` 
-/// - `normalizeFilePath('appname/encryption/keys.ttl', null)` returns `appname/encryption/keys.ttl` (backward compatibility)
+/// - `normalizeFilePath('movies/abc.ttl', null)` returns `appname/data/movies/abc.ttl`
+/// - `normalizeFilePath('appname/data/keys.ttl', null)` returns `appname/data/keys.ttl`
 ///
-/// Note: Previous support for broader `appname/` paths has been removed except for
-/// `appname/encryption/` (backward compatibility for encryption keys).
-/// All other readPod/writePod operations now only support `appname/data/`.
+/// Note: Only `appname/data/` paths are supported for readPod/writePod operations.
 
 Future<String> normalizeFilePath(String filePath, String? basePath) async {
   // Normalise path separators for cross-platform compatibility.
@@ -644,13 +662,9 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
 
   final effectiveBasePath = basePath ?? await getDataDirPath();
   
-  // Check for backward compatibility: allow appname/encryption/ paths.
-  
-  if (normalizedInput.startsWith('$appDirName/encryption/')) {
-    // Backward compatibility for encryption keys.
-    
-    return normalizedInput;
-  } else if (normalizedInput.startsWith(effectiveBasePath)) {
+  // Check if path already starts with the correct base path (appname/data/).
+
+  if (normalizedInput.startsWith(effectiveBasePath)) {
     // Full path is already prepended (appname/data/).
 
     return normalizedInput;

@@ -50,13 +50,10 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 ///
 /// Examples:
 /// - `writePod('abc.ttl', content)` writes to `appname/data/abc.ttl`
-/// - `writePod('xyz/abc.ttl', content)` writes to `appname/data/xyz/abc.ttl`
+/// - `writePod('movies/abc.ttl', content)` writes to `appname/data/movies/abc.ttl`
 /// - `writePod('appname/data/file.ttl', content)` writes to `appname/data/file.ttl` (already correct path)
-/// - `writePod('appname/encryption/keys.ttl', content)` writes to `appname/encryption/keys.ttl` (backward compatibility)
 ///
-/// Note: Previous support for broader `appname/` paths has been removed except for
-/// `appname/encryption/` (backward compatibility for encryption keys).
-/// All other writePod operations now only support `appname/data/`.
+/// Note: Only `appname/data/` paths are supported for writePod operations.
 ///
 /// [fileName] - The name of the file to write
 /// [fileContent] - The content to write to the file
