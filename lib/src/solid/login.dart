@@ -40,6 +40,7 @@ import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/widgets/snackbar_config.dart';
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
@@ -402,8 +403,15 @@ class _SolidLoginState extends State<SolidLogin> {
         // of a BuildContext across asynchronous gaps, without referencing the
         // BuildContext after the async gap.
 
-        // We're replacing the busy animation with a persistent snackbar
-        // showBusyAnimation();
+        void showBusyAnimation() {
+          showAnimationDialog(
+            context,
+            7,
+            'Logging in...',
+            false,
+            updateState,
+          );
+        }
 
         if (_isDialogCanceled) return;
 
@@ -428,6 +436,11 @@ class _SolidLoginState extends State<SolidLogin> {
             'Please complete the login process in your browser...',
             duration: loginDuration,
           );
+          
+          // Show the animation after the snackbar.
+
+          await Future.delayed(const Duration(milliseconds: 500));
+          showBusyAnimation();
         }
 
         // Perform the actual authentication by contacting the server at
@@ -447,6 +460,12 @@ class _SolidLoginState extends State<SolidLogin> {
 
         if (authResult != null && authResult.isNotEmpty) {
           if (!context.mounted) return;
+
+          // Close the animation dialog before proceeding.
+          
+          if (!wasAlreadyLoggedIn) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
 
           // Dismiss the login process snackbar.
 
@@ -496,11 +515,16 @@ class _SolidLoginState extends State<SolidLogin> {
           // following Navigator. We probably don't need a popup and so the code
           // is much simpler and the user interaction is probably clear enough
           // for now that for some reason we remain on the Login screen. If
-          // there are non-obvious scneraiors where we fail to authenticate and
+          // there are non-obvious scnerairos where we fail to authenticate and
           // revert to the login screen then we can capture and report them
           // later.
 
           if (!context.mounted) return;
+
+          // Close the animation dialog before navigating back to login.
+          if (!wasAlreadyLoggedIn) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
 
           // Navigate back to the login screen after authentication failed.
 
