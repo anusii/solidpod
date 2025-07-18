@@ -618,10 +618,22 @@ String getDateTime(String dateTimeStr) {
 /// Handles backward compatibility by checking if the filePath already includes
 /// the app directory prefix, and constructs the appropriate normalised path.
 /// 
+/// When basePath is null (default for readPod/writePod), uses appname/data as base path.
+/// 
 /// [filePath] - The input file path
-/// [basePath] - The base path to use (e.g. appname/data or custom path)
+/// [basePath] - The base path to use (defaults to appname/data when null)
 /// 
 /// Returns the normalised file path.
+///
+/// Examples:
+/// - `normalizeFilePath('abc.ttl', null)` returns `appname/data/abc.ttl`
+/// - `normalizeFilePath('xyz/abc.ttl', null)` returns `appname/data/xyz/abc.ttl`
+/// - `normalizeFilePath('appname/data/keys.ttl', null)` returns `appname/data/keys.ttl` (already correct)
+/// - `normalizeFilePath('appname/encryption/keys.ttl', null)` returns `appname/encryption/keys.ttl` (backward compatibility)
+///
+/// Note: Previous support for broader `appname/` paths has been removed except for
+/// `appname/encryption/` (backward compatibility for encryption keys).
+/// All other readPod/writePod operations now only support `appname/data/`.
 
 Future<String> normalizeFilePath(String filePath, String? basePath) async {
   // Normalise path separators for cross-platform compatibility.
@@ -632,14 +644,14 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
 
   final effectiveBasePath = basePath ?? await getDataDirPath();
   
-  // Check for backward compatibility: if filePath starts with appname/ prefix.
-
-  if (normalizedInput.startsWith('$appDirName/')) {
-    // Path already includes appname prefix, use as is
-
+  // Check for backward compatibility: allow appname/encryption/ paths.
+  
+  if (normalizedInput.startsWith('$appDirName/encryption/')) {
+    // Backward compatibility for encryption keys
+    
     return normalizedInput;
   } else if (normalizedInput.startsWith(effectiveBasePath)) {
-    // Full path is already prepended.
+    // Full path is already prepended (appname/data/).
 
     return normalizedInput;
   } else {

@@ -33,7 +33,6 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -42,22 +41,28 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read [filePath] in optional [path] from POD with file [mode] (default is text).
+/// Read [filePath] from POD with file [mode] (default is text).
 ///
 /// We first check if the user is logged in and then read and parse the file
 /// content.
 ///
-/// The optional base path for the file (default: `appname/data`) can be
-/// supplied for [filePath] outside the default `appname/data`.  For backward
-/// compatibility, for now, if [filePath] starts with `appname/` as the prefix,
-/// it will be used as-is regardless of the [path] parameter.
+/// The file will be read from the `appname/data` directory. 
+///
+/// Examples:
+/// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
+/// - `readPod('xyz/abc.ttl')` reads from `appname/data/xyz/abc.ttl`
+/// - `readPod('appname/data/file.ttl')` reads from `appname/data/file.ttl` (already correct path)
+/// - `readPod('appname/encryption/keys.ttl')` reads from `appname/encryption/keys.ttl` (backward compatibility)
+///
+/// Note: Previous support for broader `appname/` paths has been removed except for
+/// `appname/encryption/` (backward compatibility for encryption keys).
+/// All other readPod operations now only support `appname/data/`.
 
 Future<String> readPod(
   String filePath,
   BuildContext context,
   Widget child, {
   FileOpenMode mode = FileOpenMode.text,
-  String? path,
 }) async {
   // Login and initialise PODs if necessary
 
@@ -67,10 +72,10 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to ensure consistency with writePod and handle
-  // cross-platform path separators properly.
+  // Normalise the file path to use appname/data as base path
+  // and handle cross-platform path separators properly.
 
-  final normalizedFilePath = await normalizeFilePath(filePath, path);
+  final normalizedFilePath = await normalizeFilePath(filePath, null);
 
   // Check if the requested file exists
 

@@ -34,8 +34,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart' hide Key;
 
-import 'package:path/path.dart' as path;
-
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -48,14 +46,23 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// data directory (within potential subdirectories encoded in [fileName]).
 /// The content will be encrypted if [encrypted] is true.
 ///
+/// The file will be written to the `appname/data` directory.
+///
+/// Examples:
+/// - `writePod('abc.ttl', content)` writes to `appname/data/abc.ttl`
+/// - `writePod('xyz/abc.ttl', content)` writes to `appname/data/xyz/abc.ttl`
+/// - `writePod('appname/data/file.ttl', content)` writes to `appname/data/file.ttl` (already correct path)
+/// - `writePod('appname/encryption/keys.ttl', content)` writes to `appname/encryption/keys.ttl` (backward compatibility)
+///
+/// Note: Previous support for broader `appname/` paths has been removed except for
+/// `appname/encryption/` (backward compatibility for encryption keys).
+/// All other writePod operations now only support `appname/data/`.
+///
 /// [fileName] - The name of the file to write
 /// [fileContent] - The content to write to the file
 /// [context] - The build context
 /// [child] - The child widget
 /// [encrypted] - Whether to encrypt the file content (default: true)
-/// [path] - Optional base path for the file (default: appname/data)
-///          For backward compatibility, if fileName starts with appname/ prefix,
-///          it will be used as-is regardless of the path parameter
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -63,7 +70,6 @@ Future<SolidFunctionCallStatus> writePod(
   BuildContext context,
   Widget child, {
   bool encrypted = true,
-  String? path,
 }) async {
   // Sanity check
 
@@ -79,10 +85,10 @@ Future<SolidFunctionCallStatus> writePod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
-  // Normalise the file path to ensure consistency with readPod and handle
-  // cross-platform path separators properly.
+  // Normalise the file path to use appname/data as base path
+  // and handle cross-platform path separators properly.
   
-  final normalizedFilePath = await normalizeFilePath(fileName, path);
+  final normalizedFilePath = await normalizeFilePath(fileName, null);
   final fileUrl = await getFileUrl(normalizedFilePath);
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
