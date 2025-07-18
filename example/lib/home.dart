@@ -110,7 +110,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
 
     try {
-      // Use the new readEncryptionKeyContent function instead of readPod
+      // Use the new readEncryptionKeyContent function instead of readPod.
+      
       final fileContent = await readEncryptionKeyContent();
 
       //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
