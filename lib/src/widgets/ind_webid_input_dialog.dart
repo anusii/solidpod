@@ -56,8 +56,7 @@ Future<dynamic> indWebIdInputDialog(
             TextFormField(
               controller: formControllerWebId,
               decoration: const InputDecoration(
-                hintText:
-                    'Eg: https://pods.solidcommunity.au/john-doe/profile/card#me',
+                hintText: 'Eg: $demoWebID',
               ),
             ),
           ],
