@@ -54,8 +54,9 @@ class AuthDataManager {
   /// The URL for logging out
   static String? _logoutUrl;
 
-  /// The RSA keypair and their JWK format
-  /// It seems Map<String, dynamic> does not work
+  /// The RSA keypair and their JWK format.
+  //
+  // It seems [String] as the first between the angle brackets does not work
   static Map<dynamic, dynamic>? _rsaInfo;
 
   /// The authentication response
@@ -65,7 +66,8 @@ class AuthDataManager {
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
   /// Save the auth data returned by solid-auth authenticate in secure storage
-  /// It seems Map<String, dynamic> does not work
+  //
+  // It seems [String] as the first between the angle brackets does not work
   static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
     const keys = [
       'client',
@@ -111,7 +113,8 @@ class AuthDataManager {
   }
 
   /// Retrieve (and reconstruct) auth data from secure storage
-  /// It seems Map<String, dynamic> does not work
+  //
+  // It seems [String] as the first between the angle brackets does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
     if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
       final loaded = await _loadData();

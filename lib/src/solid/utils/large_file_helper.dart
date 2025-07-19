@@ -309,7 +309,7 @@ Stream<List<int>> fetch({
 
   Encrypter? encrypter;
   IV? iv;
-  bool encrypted = false;
+  var encrypted = false;
   final keyPred = SIIPredicate.encryptionKey.uriRef.value;
   final ivPred = SIIPredicate.ivB64.uriRef.value;
 

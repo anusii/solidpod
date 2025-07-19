@@ -1,6 +1,6 @@
 /// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Friday 2025-07-18 12:02:12 +1000 Graham Williams>
+// Time-stamp: <Saturday 2025-07-19 09:56:29 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -455,8 +455,10 @@ class _SolidLoginState extends State<SolidLogin> {
           // If using a cached session, show snackbar informing about it.
 
           if (isCachedSession) {
-            _showSnackbar('Logged in with your previously saved session.',
-                duration: Duration(seconds: 10));
+            _showSnackbar(
+              'Logged in with your previously saved session.',
+              duration: Duration(seconds: 10),
+            );
 
             // Short delay to allow snackbar to be visible.
 
@@ -916,10 +918,6 @@ class SolidLoginTheme {
       shadowColor: Colors.black87,
       titleColor: Colors.white,
       textColor: Colors.white,
-      hintColor: Colors.grey,
-      dividerColor: Colors.grey,
-      inputBorderColor: Colors.grey,
-      versionTextColor: Colors.grey,
     ),
   });
 

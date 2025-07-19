@@ -1,6 +1,6 @@
 /// A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Friday 2025-07-18 14:00:30 +1000 Graham Williams>
+// Time-stamp: <Saturday 2025-07-19 09:55:18 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -442,7 +442,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                                   RecipientType.public;
                                               selectedRecipientDetails = '';
                                               finalWebIdList = [
-                                                publicAgent.value
+                                                publicAgent.value,
                                               ];
                                             });
                                           },

@@ -1,6 +1,6 @@
 /// A checkbox widget for access modes.
 ///
-// Time-stamp: <Friday 2025-07-18 13:49:31 +1000 Graham Williams>
+// Time-stamp: <Saturday 2025-07-19 10:31:43 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -45,9 +45,9 @@ MarkdownTooltip permissionCheckbox(
   Function updateCheckBox,
 ) {
   return MarkdownTooltip(
-    message: '${accessMode.description}',
+    message: accessMode.description,
     child: CheckboxListTile(
-      title: Text('${accessMode.mode}'),
+      title: Text(accessMode.mode),
       value: checkboxChecked,
       onChanged: (newValue) {
         updateCheckBox(newValue, accessMode);
