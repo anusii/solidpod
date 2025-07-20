@@ -9,7 +9,11 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## 0.7 Stability
+## 0.8 Updated API for readPod/writePod
+
++ Unify readPod and writePod API [0.7.0 20250721 atangster]
+
+## 0.7 Stability.
 
 + Restore login animation [0.6.12 20250719 atangster]
 + Utilise MarkdownTooltip in place of Tooltip in LOGIN [0.6.11 20250718 gjw]
