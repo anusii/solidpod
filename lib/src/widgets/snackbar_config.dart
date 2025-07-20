@@ -52,12 +52,12 @@ class SnackbarConfig {
   });
 
   /// Text color for snackbar content.
-  /// 
+  ///
   final Color textColor;
 
   /// Background color for snackbar.
   /// If null, will default to theme-based colors.
-  
+
   final Color? backgroundColor;
 
   /// Text color for action buttons in snackbar.
@@ -65,10 +65,10 @@ class SnackbarConfig {
   final Color actionTextColor;
 
   /// Duration to show the snackbar.
-  
+
   final Duration duration;
 
   /// Border radius for snackbar corners.
-  
+
   final double borderRadius;
 }

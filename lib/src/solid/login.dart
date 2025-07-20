@@ -436,7 +436,7 @@ class _SolidLoginState extends State<SolidLogin> {
             'Please complete the login process in your browser...',
             duration: loginDuration,
           );
-          
+
           // Show the animation after the snackbar.
 
           await Future.delayed(const Duration(milliseconds: 500));
@@ -462,7 +462,7 @@ class _SolidLoginState extends State<SolidLogin> {
           if (!context.mounted) return;
 
           // Close the animation dialog before proceeding.
-          
+
           if (!wasAlreadyLoggedIn) {
             Navigator.of(context, rootNavigator: true).pop();
           }
