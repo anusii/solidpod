@@ -1,6 +1,6 @@
 /// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Saturday 2025-07-19 09:56:29 +1000 Graham Williams>
+// Time-stamp: <Sunday 2025-07-20 17:57:47 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -446,6 +446,7 @@ class _SolidLoginState extends State<SolidLogin> {
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
+        if (!context.mounted) return;
         final authResult = await solidAuthenticate(podServer, context);
 
         // If authentication succeeded and the user was already logged in,

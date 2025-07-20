@@ -8,12 +8,11 @@ environment:
   flutter: '>=1.17.0'
 
 dependencies:
-  flutter:
-    sdk: flutter
-
   crypto: ^3.0.6
   encrypt: ^5.0.3
   fast_rsa: ^3.7.1
+  flutter:
+    sdk: flutter
   flutter_form_builder: ^10.0.1
   flutter_secure_storage: ^10.0.0-beta.4
   flutter_secure_storage_linux: ^2.0.1
@@ -33,12 +32,11 @@ dependencies:
   url_launcher: ^6.3.1
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
   build_runner: ^2.4.14
   custom_lint: ^0.7.0
   flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
   import_order_lint: ^0.1.2
   lints: ^5.1.1
   ubuntu_lints: ^0.4.1
