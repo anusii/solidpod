@@ -1,6 +1,6 @@
 /// Function to read a private file in PODs.
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Dawei Chen
+/// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang, Graham Williams
 
 // ignore_for_file: use_build_context_synchronously
 
@@ -41,10 +41,19 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read file content from a POD
+/// Read [filePath] from POD with file [mode] (default is text).
 ///
-/// First check if the user is logged in and then
-/// read and parse the file content
+/// We first check if the user is logged in and then read and parse the file
+/// content.
+///
+/// The file will be read from the `appname/data` directory. 
+///
+/// Examples:
+/// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
+/// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
+/// - `readPod('appname/data/file.ttl')` reads from `appname/data/file.ttl` (already correct path)
+///
+/// Note: Only `appname/data/` paths are supported for readPod operations.
 
 Future<String> readPod(
   String filePath,
@@ -60,13 +69,18 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
+  // Normalise the file path to use appname/data as base path
+  // and handle cross-platform path separators properly.
+
+  final normalizedFilePath = await normalizeFilePath(filePath, null);
+
   // Check if the requested file exists
 
-  final fileUrl = await getFileUrl(filePath);
+  final fileUrl = await getFileUrl(normalizedFilePath);
   final fileExists = await checkResourceStatus(fileUrl);
 
   switch (fileExists) {
-    case ResourceStatus.exist:
+  case ResourceStatus.exist:
       try {
         final fileContent = await fetchPrvFile(fileUrl);
 
@@ -96,7 +110,7 @@ Future<String> readPod(
         rethrow;
       }
     case ResourceStatus.notExist:
-      throw Exception('Resource "$filePath" does not exist.');
+      throw Exception('Resource "$normalizedFilePath" does not exist.');
     default:
       throw Exception('Unknown error.');
   }
