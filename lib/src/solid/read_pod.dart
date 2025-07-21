@@ -46,7 +46,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// We first check if the user is logged in and then read and parse the file
 /// content.
 ///
-/// The file will be read from the `appname/data` directory. 
+/// The file will be read from the `appname/data` directory.
 ///
 /// Examples:
 /// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
@@ -80,7 +80,7 @@ Future<String> readPod(
   final fileExists = await checkResourceStatus(fileUrl);
 
   switch (fileExists) {
-  case ResourceStatus.exist:
+    case ResourceStatus.exist:
       try {
         final fileContent = await fetchPrvFile(fileUrl);
 

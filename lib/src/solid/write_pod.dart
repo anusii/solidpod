@@ -84,7 +84,7 @@ Future<SolidFunctionCallStatus> writePod(
 
   // Normalise the file path to use appname/data as base path
   // and handle cross-platform path separators properly.
-  
+
   final normalizedFilePath = await normalizeFilePath(fileName, null);
   final fileUrl = await getFileUrl(normalizedFilePath);
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
@@ -161,7 +161,8 @@ Future<SolidFunctionCallStatus> writePod(
     // otherwise, generate a random key and add it to the individual key file.
 
     if (!existingFileEncrypted) {
-      await KeyManager.addIndividualKey(normalizedFilePath, genRandIndividualKey());
+      await KeyManager.addIndividualKey(
+          normalizedFilePath, genRandIndividualKey());
     }
 
     content = await getEncTTLStr(

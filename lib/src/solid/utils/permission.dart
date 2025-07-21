@@ -27,8 +27,8 @@
 library;
 
 import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
-import 'package:solidpod/src/solid/api/rest_api.dart';
 
+import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
