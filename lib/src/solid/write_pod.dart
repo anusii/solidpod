@@ -162,7 +162,9 @@ Future<SolidFunctionCallStatus> writePod(
 
     if (!existingFileEncrypted) {
       await KeyManager.addIndividualKey(
-          normalizedFilePath, genRandIndividualKey());
+        normalizedFilePath,
+        genRandIndividualKey(),
+      );
     }
 
     content = await getEncTTLStr(
