@@ -7,29 +7,22 @@ environment:
   sdk: '>=3.4.3 <4.0.0'
 
 dependencies:
+  editable: ^2.0.0
+  file_picker: ^10.1.2
   flutter:
     sdk: flutter
-
+  intl: any
+  rdflib: ^0.2.11
+  #
   # In testing the package in the context of the github clone we get
   # the solidpod package from the parent folder. Otherwise if this is
   # a standalone copy of the example folder, then obtain solidpod
   # from the dart repository. (gjw 20250429)
   #
-  # solidpod: ^0.1.23
-
+  # solidpod: ^0.7.0
+  #
   solidpod:
     path: ..
-
-  editable: ^2.0.0
-  file_picker: ^10.1.2
-  #
-  # Is this actually required? If not then remove this for
-  # release. (gjw 20250429)
-  #
-  #  flutter_localizations:
-  #    sdk: flutter
-  intl: ">=0.19.0"
-  rdflib: ^0.2.11
   universal_io: ^2.2.2
   window_manager: ^0.4.3
 
@@ -38,13 +31,6 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
-
-# Are these still required and why? Update this for release. (gjw
-# 20250429)
-#
-# dependency_overrides:
-#   flutter_secure_storage_linux: ^2.0.1
-#   flutter_secure_storage_platform_interface: ^2.0.0
 
 flutter:
   uses-material-design: true

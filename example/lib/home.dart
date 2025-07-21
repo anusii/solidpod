@@ -32,8 +32,15 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/dialogs/about.dart';
+import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/features/edit_keyvalue.dart';
+import 'package:demopod/features/file_service.dart';
+import 'package:demopod/features/view_keys.dart';
+import 'package:demopod/main.dart';
+import 'package:demopod/utils/rdf.dart';
 import 'package:intl/intl.dart';
-
 import 'package:solidpod/solidpod.dart'
     show
         AppInfo,
@@ -50,20 +57,7 @@ import 'package:solidpod/solidpod.dart'
         readPod,
         readEncryptionKeyContent,
         getKeyFromUserIfRequired;
-
-// Import the setup wizard components directly for demonstration.
-
-// ignore: implementation_imports
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
-
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/dialogs/about.dart';
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/features/edit_keyvalue.dart';
-import 'package:demopod/features/file_service.dart';
-import 'package:demopod/features/view_keys.dart';
-import 'package:demopod/main.dart';
-import 'package:demopod/utils/rdf.dart';
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
