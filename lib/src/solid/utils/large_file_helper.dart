@@ -34,14 +34,13 @@ import 'dart:async';
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
-import 'package:encrypt/encrypt.dart';
 import 'package:flutter/widgets.dart' hide Key;
+
+import 'package:encrypt/encrypt.dart';
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show createResource, checkResourceStatus, getResource, deleteResource;
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show deleteAclForResource, deleteFile;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
@@ -49,6 +48,8 @@ import 'package:solidpod/src/solid/constants/schema.dart'
 import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show deleteAclForResource, deleteFile;
 import 'package:solidpod/src/solid/utils/misc.dart'
     show getDataDirPath, getDirUrl, getFileUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;

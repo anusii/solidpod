@@ -31,6 +31,7 @@
 library;
 
 import 'package:flutter/material.dart';
+
 import 'package:loading_indicator/loading_indicator.dart';
 
 // The following are the constant default values, mostly for colors

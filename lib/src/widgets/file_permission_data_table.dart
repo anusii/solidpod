@@ -22,7 +22,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Jess Moore
 
 library;
 
@@ -65,114 +65,118 @@ Widget buildPermDataTable(
     );
   }
 
-  return DataTable(
-    columns: [
-      buildDataColumn('Receiver', 'WebID of the POD receiving permissions'),
-      buildDataColumn('Receiver type', 'Type of the receiver'),
-      buildDataColumn('Permissions', 'List of permissions given'),
-      buildDataColumn('Actions', 'Delete permission'),
-    ],
-    rows: permDataMap.keys.map((index) {
-      return DataRow(
-        cells: [
-          DataCell(
-            Container(
-              padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-              //width: cWidth,
-              child: Column(
-                children: <Widget>[
-                  SelectableText(
-                    (index.replaceAll('.ttl', '')) as String,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          DataCell(
-            Text(
-              getRecipientType(
-                permDataMap[index][agentStr] as String,
-                index as String,
-              ).type,
-            ),
-          ),
-          DataCell(
-            Text(
-              (permDataMap[index][permStr] as List).join(', '),
-            ),
-          ),
-          if (ownerWebId != index) ...[
+  // Make wide permission table horizontally scrollable
+  return SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    child: DataTable(
+      columns: [
+        buildDataColumn('Receiver', 'WebID of the POD receiving permissions'),
+        buildDataColumn('Receiver type', 'Type of the receiver'),
+        buildDataColumn('Permissions', 'List of permissions given'),
+        buildDataColumn('Actions', 'Delete permission'),
+      ],
+      rows: permDataMap.keys.map((index) {
+        return DataRow(
+          cells: [
             DataCell(
-              IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  size: 24.0,
-                  color: Colors.red,
+              Container(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                //width: cWidth,
+                child: Column(
+                  children: <Widget>[
+                    SelectableText(
+                      (index.replaceAll('.ttl', '')) as String,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
                 ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        title: const Text('Please Confirm'),
-                        content: Text(
-                          'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from ${index.replaceAll('.ttl', '')}?',
-                        ),
-                        actions: [
-                          // The "Yes" button
-                          TextButton(
-                            onPressed: () async {
-                              await revokePermission(
-                                permDataFile,
-                                true,
-                                permDataMap[index][permStr] as List,
-                                index,
-                                ownerWebId,
-                                getRecipientType(
-                                  permDataMap[index][agentStr] as String,
-                                  index,
-                                ),
-                                context,
-                                parentWidget,
-                                isExternalRes: isExternalRes,
-                              );
-
-                              if (ctx.mounted) {
-                                Navigator.pop(ctx);
-                              }
-                              if (context.mounted) {
-                                showSnackBar(
-                                  context,
-                                  'Permission revoked successfully!',
-                                  Colors.red,
-                                );
-                              }
-                              await onDeleteFuncion(permDataFile);
-                            },
-                            child: const Text('Yes'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // Close the dialog
-                              Navigator.of(ctx).pop();
-                            },
-                            child: const Text('No'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
               ),
             ),
-          ] else ...[
-            const DataCell(
-              Text(''),
+            DataCell(
+              Text(
+                getRecipientType(
+                  permDataMap[index][agentStr] as String,
+                  index as String,
+                ).type,
+              ),
             ),
+            DataCell(
+              Text(
+                (permDataMap[index][permStr] as List).join(', '),
+              ),
+            ),
+            if (ownerWebId != index) ...[
+              DataCell(
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete,
+                    size: 24.0,
+                    color: Colors.red,
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) {
+                        return AlertDialog(
+                          title: const Text('Please Confirm'),
+                          content: Text(
+                            'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from ${index.replaceAll('.ttl', '')}?',
+                          ),
+                          actions: [
+                            // The "Yes" button
+                            TextButton(
+                              onPressed: () async {
+                                await revokePermission(
+                                  permDataFile,
+                                  true,
+                                  permDataMap[index][permStr] as List,
+                                  index,
+                                  ownerWebId,
+                                  getRecipientType(
+                                    permDataMap[index][agentStr] as String,
+                                    index,
+                                  ),
+                                  context,
+                                  parentWidget,
+                                  isExternalRes: isExternalRes,
+                                );
+
+                                if (ctx.mounted) {
+                                  Navigator.pop(ctx);
+                                }
+                                if (context.mounted) {
+                                  showSnackBar(
+                                    context,
+                                    'Permission revoked successfully!',
+                                    Colors.red,
+                                  );
+                                }
+                                await onDeleteFuncion(permDataFile);
+                              },
+                              child: const Text('Yes'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                // Close the dialog
+                                Navigator.of(ctx).pop();
+                              },
+                              child: const Text('No'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ] else ...[
+              const DataCell(
+                Text(''),
+              ),
+            ],
           ],
-        ],
-      );
-    }).toList(),
+        );
+      }).toList(),
+    ),
   );
 }
