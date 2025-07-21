@@ -217,7 +217,7 @@ Future<void> createResource(
       'Connection': 'keep-alive',
       'Content-Type': contentTypeStr,
       if (put)
-        'Content-Length': content is String 
+        'Content-Length': content is String
             ? utf8.encode(content).length.toString()
             : (content as List<int>).length.toString(),
       if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,

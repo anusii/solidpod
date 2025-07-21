@@ -11,6 +11,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.7 Stability
 
++ Restore login animation [0.6.12 20250719 atangster]
++ Utilise MarkdownTooltip in place of Tooltip in LOGIN [0.6.11 20250718 gjw]
 + Add extra time for the already logged in snackbar [0.6.10 20250714 gjw]
 + Replace login animation with informative snackbar [0.6.9 20250711 atangster]
 + Add Access and Recipient options in `GrantPermissionUI()` [0.6.8 20250702 anushkavidanage]

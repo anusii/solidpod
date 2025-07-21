@@ -1,8 +1,8 @@
-/// A widget to obtain a Solid token to access the user's POD.
+/// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Monday 2025-07-14 09:38:20 +1000 Graham Williams>
+// Time-stamp: <Sunday 2025-07-20 17:57:47 +1000 Graham Williams>
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -35,10 +35,12 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/widgets/snackbar_config.dart';
 
 // TODO 20240515 gjw Eventually remove the show - using for now to support API
@@ -401,8 +403,15 @@ class _SolidLoginState extends State<SolidLogin> {
         // of a BuildContext across asynchronous gaps, without referencing the
         // BuildContext after the async gap.
 
-        // We're replacing the busy animation with a persistent snackbar
-        // showBusyAnimation();
+        void showBusyAnimation() {
+          showAnimationDialog(
+            context,
+            7,
+            'Logging in...',
+            false,
+            updateState,
+          );
+        }
 
         if (_isDialogCanceled) return;
 
@@ -427,11 +436,17 @@ class _SolidLoginState extends State<SolidLogin> {
             'Please complete the login process in your browser...',
             duration: loginDuration,
           );
+
+          // Show the animation after the snackbar.
+
+          await Future.delayed(const Duration(milliseconds: 500));
+          showBusyAnimation();
         }
 
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
+        if (!context.mounted) return;
         final authResult = await solidAuthenticate(podServer, context);
 
         // If authentication succeeded and the user was already logged in,
@@ -447,6 +462,12 @@ class _SolidLoginState extends State<SolidLogin> {
         if (authResult != null && authResult.isNotEmpty) {
           if (!context.mounted) return;
 
+          // Close the animation dialog before proceeding.
+
+          if (!wasAlreadyLoggedIn) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
           // Dismiss the login process snackbar.
 
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -454,8 +475,10 @@ class _SolidLoginState extends State<SolidLogin> {
           // If using a cached session, show snackbar informing about it.
 
           if (isCachedSession) {
-            _showSnackbar('Logged in with your previously saved session.',
-                duration: Duration(seconds: 10));
+            _showSnackbar(
+              'Logged in with your previously saved session.',
+              duration: Duration(seconds: 10),
+            );
 
             // Short delay to allow snackbar to be visible.
 
@@ -495,11 +518,16 @@ class _SolidLoginState extends State<SolidLogin> {
           // following Navigator. We probably don't need a popup and so the code
           // is much simpler and the user interaction is probably clear enough
           // for now that for some reason we remain on the Login screen. If
-          // there are non-obvious scneraiors where we fail to authenticate and
+          // there are non-obvious scnerairos where we fail to authenticate and
           // revert to the login screen then we can capture and report them
           // later.
 
           if (!context.mounted) return;
+
+          // Close the animation dialog before navigating back to login.
+          if (!wasAlreadyLoggedIn) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
 
           // Navigate back to the login screen after authentication failed.
 
@@ -762,7 +790,7 @@ class PodButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return MarkdownTooltip(
       message: tooltip,
       child: ElevatedButton(
         onPressed: onPressed,
@@ -915,10 +943,6 @@ class SolidLoginTheme {
       shadowColor: Colors.black87,
       titleColor: Colors.white,
       textColor: Colors.white,
-      hintColor: Colors.grey,
-      dividerColor: Colors.grey,
-      inputBorderColor: Colors.grey,
-      versionTextColor: Colors.grey,
     ),
   });
 

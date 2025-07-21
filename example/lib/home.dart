@@ -44,11 +44,11 @@ import 'package:solidpod/solidpod.dart'
         deleteDataFile,
         deleteLogIn,
         getDataDirPath,
-        getEncKeyPath,
         getWebId,
         loginIfRequired,
         logoutPopup,
         readPod,
+        readEncryptionKeyContent,
         getKeyFromUserIfRequired;
 
 // Import the setup wizard components directly for demonstration.
@@ -109,15 +109,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       _isLoading = true;
     });
 
-    // final appName = await getAppName();
     try {
-      // final filePath = '$appName/encryption/enc-keys.ttl';
-      final filePath = await getEncKeyPath();
-      final fileContent = await readPod(
-        filePath,
-        context,
-        widget,
-      );
+      // Use the new readEncryptionKeyContent function instead of readPod.
+      
+      final fileContent = await readEncryptionKeyContent();
 
       //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
       await Navigator.push(

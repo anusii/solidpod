@@ -565,12 +565,17 @@ class KeyManager {
       assert(record != null);
 
       // Delete shared key from shared keys file
-      await _delSharedIndKey(resUniqueId, record!.encKey, record.encFilePath,
-          record.encAccessList);
+      await _delSharedIndKey(
+        resUniqueId,
+        record!.encKey,
+        record.encFilePath,
+        record.encAccessList,
+      );
       debugPrint('Deleted $record');
     } else {
       debugPrint(
-          'Individual key for "$resourceUrl" does not exist, do nothing.');
+        'Individual key for "$resourceUrl" does not exist, do nothing.',
+      );
     }
   }
 

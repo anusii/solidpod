@@ -147,6 +147,21 @@ to start using the package. -->
 If the package is being used to build either a `macos` or `web` app, the following
 changes are required in order to make the package fully functional.
 
+## Android
+
+For a release be sure to update
+`android/app/src/main/AndroidManifest.xml` to include within the
+`queries` section of the `manifest`:
+
+```
+	<!-- If your app opens https URLs -->
+	<intent>
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="https" />
+	</intent>
+```
+
 ### macos
 Inside the app directory go to the directory `/macos/Runner/`. Inside there are two files named `DebugProfile.entitlements` and `Release.entitlements`. Add the following lines inside the `<dict> </dict>` tag in both files.
 

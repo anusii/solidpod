@@ -1,6 +1,6 @@
 /// A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Sunday 2024-06-24 11:26:00 +1000 Anushka Vidange>
+// Time-stamp: <Saturday 2025-07-19 09:55:18 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,6 +27,8 @@
 library;
 
 import 'package:flutter/material.dart';
+
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
@@ -259,7 +261,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     });
   }
 
-  // Update checkbox ticking data
+  // Update checkbox tick data.
+
   void _updateCheckbox(bool newValue, AccessMode accessMode) {
     setState(() {
       if (accessMode == AccessMode.read) {
@@ -424,18 +427,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   Expanded(
                                     child: SizedBox(
                                       height: 50,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedRecipient =
-                                                RecipientType.public;
-                                            selectedRecipientDetails = '';
-                                            finalWebIdList = [
-                                              publicAgent.value
-                                            ];
-                                          });
-                                        },
-                                        child: Text(RecipientType.public.type),
+                                      child: MarkdownTooltip(
+                                        message: '''
+
+                                        **Public:** This file will be publicly
+                                        accessible so that even users without a
+                                        Data Vault can access the file.
+
+                                        ''',
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              selectedRecipient =
+                                                  RecipientType.public;
+                                              selectedRecipientDetails = '';
+                                              finalWebIdList = [
+                                                publicAgent.value,
+                                              ];
+                                            });
+                                          },
+                                          child:
+                                              Text(RecipientType.public.type),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -446,19 +459,30 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     child: Container(
                                       padding: const EdgeInsets.only(left: 8.0),
                                       height: 50,
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedRecipient =
-                                                RecipientType.authUser;
-                                            selectedRecipientDetails = '';
-                                            finalWebIdList = [
-                                              authenticatedAgent.value,
-                                            ];
-                                          });
-                                        },
-                                        child:
-                                            Text(RecipientType.authUser.type),
+                                      child: MarkdownTooltip(
+                                        message: '''
+
+                                        **Users:** The file will be available to
+                                        any user who has registered a Data
+                                        Vault. When they have logged into their
+                                        Data Vault they will be able to access
+                                        the file.
+
+                                        ''',
+                                        child: ElevatedButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              selectedRecipient =
+                                                  RecipientType.authUser;
+                                              selectedRecipientDetails = '';
+                                              finalWebIdList = [
+                                                authenticatedAgent.value,
+                                              ];
+                                            });
+                                          },
+                                          child:
+                                              Text(RecipientType.authUser.type),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -470,16 +494,27 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   child: Container(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     height: 50,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        await indWebIdInputDialog(
-                                          context,
-                                          formControllerWebId,
-                                          _updateIndWebIdInput,
-                                        );
-                                      },
-                                      child:
-                                          Text(RecipientType.individual.type),
+                                    child: MarkdownTooltip(
+                                      message: '''
+
+                                      **Individual:** The file will be available
+                                      only to the identified individual user. A
+                                      WebID is required to identify the
+                                      individual who is gratned access to the
+                                      file.
+
+                                      ''',
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          await indWebIdInputDialog(
+                                            context,
+                                            formControllerWebId,
+                                            _updateIndWebIdInput,
+                                          );
+                                        },
+                                        child:
+                                            Text(RecipientType.individual.type),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -490,16 +525,25 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   child: Container(
                                     padding: const EdgeInsets.only(left: 8.0),
                                     height: 50,
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        await groupWebIdInputDialog(
-                                          context,
-                                          formControllerGroupName,
-                                          formControllerGroupWebIds,
-                                          _updateGroupWebIdInput,
-                                        );
-                                      },
-                                      child: Text(RecipientType.group.type),
+                                    child: MarkdownTooltip(
+                                      message: '''
+
+                                      **Group:** A collection of WebIDs can be
+                                      provided so that as a group they can
+                                      access the file.
+
+                                      ''',
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          await groupWebIdInputDialog(
+                                            context,
+                                            formControllerGroupName,
+                                            formControllerGroupWebIds,
+                                            _updateGroupWebIdInput,
+                                          );
+                                        },
+                                        child: Text(RecipientType.group.type),
+                                      ),
                                     ),
                                   ),
                                 ),

@@ -1,6 +1,6 @@
 /// Initial loading widget set up page.
 ///
-// Time-stamp: <Friday 2024-02-16 11:06:48 +1100 Graham Williams>
+// Time-stamp: <Saturday 2025-07-19 09:53:23 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -71,9 +71,9 @@ class InitialSetupScreen extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
-  
+
   /// The original SolidLogin widget to return to when back is pressed
-  
+
   final SolidLogin? originalLogin;
 
   @override
@@ -98,8 +98,8 @@ class _InitialSetupScreenState extends State<InitialSetupScreen> {
           Expanded(
             child: InitialSetupScreenBody(
               resNeedToCreate: resNeedToCreate,
-              child: widget.child,
               originalLogin: widget.originalLogin,
+              child: widget.child,
             ),
           ),
         ],
