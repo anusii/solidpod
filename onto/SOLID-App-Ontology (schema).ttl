@@ -1,4 +1,4 @@
-@prefix : <https://w3id.org/solid/pod#> .
+@prefix : <https://solidcommunity.au/solid/pod#> .
 @prefix acl: <http://www.w3.org/ns/auth/acl#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
@@ -9,19 +9,19 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix vann: <http://purl.org/vocab/vann/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix sp-onto: <https://w3id.org/solid/pod#> .
-@base <https://w3id.org/solid/pod> .
+@prefix solidpod: <https://solidcommunity.au/solid/pod#> .
+@base <https://solidcommunity.au/solid/pod#> .
 
-<https://w3id.org/solid/pod> rdf:type owl:Ontology ;
-                              owl:versionIRI <https://w3id.org/solid/pod/0.0.1> ;
-                              dcterms:created "2024-08-16T20:38:00"^^xsd:dateTime ;
-                              dcterms:creator <https://w3id.org/people/sergio> ;
-                              dcterms:modified "2024-09-18T14:49:00"@en ;
-                              vann:preferredNamespacePrefix "sp-onto"@en ;
-                              vann:preferredNamespaceUri "https://w3id.org/solid/pod#"^^xsd:anyURI ;
-                              rdfs:comment "SOLID-POD ontology" ;
-                              rdfs:label "SOLID-POD ontology"@en ;
-                              owl:versionInfo "0.0.1"@en .
+<https://solidcommunity.au/solid/pod> rdf:type owl:Ontology ;
+                                       owl:versionIRI <https://solidcommunity.au/solid/pod/0.0.1> ;
+                                       dcterms:created "2024-08-16T20:38:00"^^xsd:dateTime ;
+                                       dcterms:creator <https://w3id.org/people/sergio> ;
+                                       dcterms:modified "2025-07-21T23:18:00"@en ;
+                                       vann:preferredNamespacePrefix "solidpod"@en ;
+                                       vann:preferredNamespaceUri "https://solidcommunity.au/solid/pod#"^^xsd:anyURI ;
+                                       rdfs:comment "SOLID-POD ontology"@en ;
+                                       rdfs:label "SOLID-POD ontology"@en ;
+                                       owl:versionInfo "0.0.1"@en .
 
 #################################################################
 #    Annotation properties
@@ -57,39 +57,39 @@ acl:agent rdf:type owl:ObjectProperty ;
           rdfs:range foaf:Agent .
 
 
-###  https://w3id.org/solid/pod#hasAccessList
-sp-onto:hasAccessList rdf:type owl:ObjectProperty ;
-                      rdfs:range acl:ACLFile .
+###  https://solidcommunity.au/solid/pod#hasAccessList
+solidpod:hasAccessList rdf:type owl:ObjectProperty ;
+                       rdfs:range acl:ACLFile .
 
 
-###  https://w3id.org/solid/pod#hasFile
-sp-onto:hasFile rdf:type owl:ObjectProperty ;
-                rdfs:domain sp-onto:App ;
-                rdfs:range sp-onto:File .
+###  https://solidcommunity.au/solid/pod#hasFile
+solidpod:hasFile rdf:type owl:ObjectProperty ;
+                 rdfs:domain solidpod:App ;
+                 rdfs:range solidpod:File .
 
 
-###  https://w3id.org/solid/pod#hasPOD
-sp-onto:hasPOD rdf:type owl:ObjectProperty ;
-               rdfs:domain sp-onto:Person ;
-               rdfs:range sp-onto:POD .
+###  https://solidcommunity.au/solid/pod#hasPOD
+solidpod:hasPOD rdf:type owl:ObjectProperty ;
+                rdfs:domain solidpod:Person ;
+                rdfs:range solidpod:POD .
 
 
-###  https://w3id.org/solid/pod#hasSharedKey
-sp-onto:hasSharedKey rdf:type owl:ObjectProperty ;
-                     rdfs:domain sp-onto:App ;
-                     rdfs:range sp-onto:SharedKey .
+###  https://solidcommunity.au/solid/pod#hasSharedKey
+solidpod:hasSharedKey rdf:type owl:ObjectProperty ;
+                      rdfs:domain solidpod:App ;
+                      rdfs:range solidpod:SharedKey .
 
 
-###  https://w3id.org/solid/pod#ofFile
-sp-onto:ofFile rdf:type owl:ObjectProperty ;
-               rdfs:domain sp-onto:SharedKey ;
-               rdfs:range sp-onto:EncryptedFile .
+###  https://solidcommunity.au/solid/pod#ofFile
+solidpod:ofFile rdf:type owl:ObjectProperty ;
+                rdfs:domain solidpod:SharedKey ;
+                rdfs:range solidpod:EncryptedFile .
 
 
-###  https://w3id.org/solid/pod#uses
-sp-onto:uses rdf:type owl:ObjectProperty ;
-             rdfs:domain sp-onto:App ;
-             rdfs:range sp-onto:POD .
+###  https://solidcommunity.au/solid/pod#uses
+solidpod:uses rdf:type owl:ObjectProperty ;
+              rdfs:domain solidpod:App ;
+              rdfs:range solidpod:POD .
 
 
 #################################################################
@@ -107,119 +107,119 @@ foaf:primaryTopic rdf:type owl:DatatypeProperty ;
                   rdfs:range xsd:string .
 
 
-###  https://w3id.org/solid/pod#ciphertext
-sp-onto:ciphertext rdf:type owl:DatatypeProperty ,
-                            owl:FunctionalProperty ;
-                   rdfs:domain sp-onto:EncryptedFile ;
-                   rdfs:range xsd:string ;
-                   rdfs:comment "Encrypted data.  Encrypted plaintext."@en .
+###  https://solidcommunity.au/solid/pod#ciphertext
+solidpod:ciphertext rdf:type owl:DatatypeProperty ,
+                             owl:FunctionalProperty ;
+                    rdfs:domain solidpod:EncryptedFile ;
+                    rdfs:range xsd:string ;
+                    rdfs:comment "Encrypted data.  Encrypted plaintext."@en .
 
 
-###  https://w3id.org/solid/pod#encryptionKey
-sp-onto:encryptionKey rdf:type owl:DatatypeProperty ,
-                               owl:FunctionalProperty ;
-                      rdfs:domain sp-onto:EncryptedFile ;
-                      rdfs:range xsd:string ;
-                      rdfs:comment "Unique for each *EncryptedFile* (random symmetric key).  This key is used for encypting the content of an individual *EncryptedFile*."@en .
+###  https://solidcommunity.au/solid/pod#encryptionKey
+solidpod:encryptionKey rdf:type owl:DatatypeProperty ,
+                                owl:FunctionalProperty ;
+                       rdfs:domain solidpod:EncryptedFile ;
+                       rdfs:range xsd:string ;
+                       rdfs:comment "Unique for each *EncryptedFile* (random symmetric key).  This key is used for encypting the content of an individual *EncryptedFile*."@en .
 
 
-###  https://w3id.org/solid/pod#filename
-sp-onto:filename rdf:type owl:DatatypeProperty ,
-                          owl:FunctionalProperty ;
-                 rdfs:domain sp-onto:File ;
-                 rdfs:range xsd:string .
-
-
-###  https://w3id.org/solid/pod#ivB64
-sp-onto:ivB64 rdf:type owl:DatatypeProperty ,
-                       owl:FunctionalProperty ;
-              rdfs:range xsd:string ;
-              rdfs:comment "Holds the AES initialisation vector value in base64 used for any encrypted data/key."@en .
-
-
-###  https://w3id.org/solid/pod#logEntry
-sp-onto:logEntry rdf:type owl:DatatypeProperty ,
-                          owl:FunctionalProperty ;
-                 rdfs:domain sp-onto:LogFile ;
-                 rdfs:range xsd:string ;
-                 rdfs:comment "Log for anything.  Event description."@en .
-
-
-###  https://w3id.org/solid/pod#logID
-sp-onto:logID rdf:type owl:DatatypeProperty ,
-                       owl:FunctionalProperty ;
-              rdfs:domain sp-onto:LogFile ;
-              rdfs:range xsd:dateTimeStamp ;
-              rdfs:comment """ID for the log entry (a timestamp).
-Format: \"YYYYMMDDThhmmssms\"."""@en .
-
-
-###  https://w3id.org/solid/pod#path
-sp-onto:path rdf:type owl:DatatypeProperty ,
-                      owl:FunctionalProperty ;
-             rdfs:domain sp-onto:File ;
-             rdfs:range xsd:string ;
-             rdfs:comment "Path of a file in the App."@en .
-
-
-###  https://w3id.org/solid/pod#permissionSet
-sp-onto:permissionSet rdf:type owl:DatatypeProperty ,
-                               owl:FunctionalProperty ;
-                      rdfs:range [ rdf:type rdfs:Datatype ;
-                                   owl:oneOf [ rdf:type rdf:List ;
-                                               rdf:first "Append"^^xsd:string ;
-                                               rdf:rest [ rdf:type rdf:List ;
-                                                          rdf:first "Control"^^xsd:string ;
-                                                          rdf:rest [ rdf:type rdf:List ;
-                                                                     rdf:first "Read"^^xsd:string ;
-                                                                     rdf:rest [ rdf:type rdf:List ;
-                                                                                rdf:first "Write"^^xsd:string ;
-                                                                                rdf:rest rdf:nil
-                                                                              ]
-                                                                   ]
-                                                        ]
-                                             ]
-                                 ] ;
-                      rdfs:comment "Set of permissions for a shared resource.  Informative message to the user."@en .
-
-
-###  https://w3id.org/solid/pod#privateKey
-sp-onto:privateKey rdf:type owl:DatatypeProperty ,
-                            owl:FunctionalProperty ;
-                   rdfs:domain sp-onto:App ;
-                   rdfs:range xsd:string ;
-                   rdfs:comment "Private key for sharing resources."@en .
-
-
-###  https://w3id.org/solid/pod#publicKey
-sp-onto:publicKey rdf:type owl:DatatypeProperty ,
+###  https://solidcommunity.au/solid/pod#filename
+solidpod:filename rdf:type owl:DatatypeProperty ,
                            owl:FunctionalProperty ;
-                  rdfs:domain sp-onto:App ;
-                  rdfs:range xsd:string ;
-                  rdfs:comment "Public key for sharing resources."@en .
-
-
-###  https://w3id.org/solid/pod#securityKeyCheck
-sp-onto:securityKeyCheck rdf:type owl:DatatypeProperty ,
-                                  owl:FunctionalProperty ;
-                         rdfs:domain sp-onto:App ;
-                         rdfs:range xsd:string ;
-                         rdfs:comment """- securityKey: Master security key only known by the user.  It's not stored.
-- securityKeyCheck: Verification code for security key."""@en .
-
-
-###  https://w3id.org/solid/pod#sharedKey
-sp-onto:sharedKey rdf:type owl:DatatypeProperty ,
-                           owl:FunctionalProperty ;
-                  rdfs:domain sp-onto:SharedKey ;
+                  rdfs:domain solidpod:File ;
                   rdfs:range xsd:string .
 
 
-###  https://w3id.org/solid/pod#webID
-sp-onto:webID rdf:type owl:DatatypeProperty ,
+###  https://solidcommunity.au/solid/pod#ivB64
+solidpod:ivB64 rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:range xsd:string ;
+               rdfs:comment "Holds the AES initialisation vector value in base64 used for any encrypted data/key."@en .
+
+
+###  https://solidcommunity.au/solid/pod#logEntry
+solidpod:logEntry rdf:type owl:DatatypeProperty ,
+                           owl:FunctionalProperty ;
+                  rdfs:domain solidpod:LogFile ;
+                  rdfs:range xsd:string ;
+                  rdfs:comment "Log for anything.  Event description."@en .
+
+
+###  https://solidcommunity.au/solid/pod#logID
+solidpod:logID rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain solidpod:LogFile ;
+               rdfs:range xsd:dateTimeStamp ;
+               rdfs:comment """ID for the log entry (a timestamp).
+Format: \"YYYYMMDDThhmmssms\"."""@en .
+
+
+###  https://solidcommunity.au/solid/pod#path
+solidpod:path rdf:type owl:DatatypeProperty ,
                        owl:FunctionalProperty ;
-              rdfs:domain sp-onto:Person ;
-              rdfs:range xsd:anyURI .
+              rdfs:domain solidpod:File ;
+              rdfs:range xsd:string ;
+              rdfs:comment "Path of a file in the App."@en .
+
+
+###  https://solidcommunity.au/solid/pod#permissionSet
+solidpod:permissionSet rdf:type owl:DatatypeProperty ,
+                                owl:FunctionalProperty ;
+                       rdfs:range [ rdf:type rdfs:Datatype ;
+                                    owl:oneOf [ rdf:type rdf:List ;
+                                                rdf:first "Append" ;
+                                                rdf:rest [ rdf:type rdf:List ;
+                                                           rdf:first "Control" ;
+                                                           rdf:rest [ rdf:type rdf:List ;
+                                                                      rdf:first "Read" ;
+                                                                      rdf:rest [ rdf:type rdf:List ;
+                                                                                 rdf:first "Write" ;
+                                                                                 rdf:rest rdf:nil
+                                                                               ]
+                                                                    ]
+                                                         ]
+                                              ]
+                                  ] ;
+                       rdfs:comment "Set of permissions for a shared resource.  Informative message to the user."@en .
+
+
+###  https://solidcommunity.au/solid/pod#privateKey
+solidpod:privateKey rdf:type owl:DatatypeProperty ,
+                             owl:FunctionalProperty ;
+                    rdfs:domain solidpod:App ;
+                    rdfs:range xsd:string ;
+                    rdfs:comment "Private key for sharing resources."@en .
+
+
+###  https://solidcommunity.au/solid/pod#publicKey
+solidpod:publicKey rdf:type owl:DatatypeProperty ,
+                            owl:FunctionalProperty ;
+                   rdfs:domain solidpod:App ;
+                   rdfs:range xsd:string ;
+                   rdfs:comment "Public key for sharing resources."@en .
+
+
+###  https://solidcommunity.au/solid/pod#securityKeyCheck
+solidpod:securityKeyCheck rdf:type owl:DatatypeProperty ,
+                                   owl:FunctionalProperty ;
+                          rdfs:domain solidpod:App ;
+                          rdfs:range xsd:string ;
+                          rdfs:comment """- securityKey: Master security key only known by the user.  It's not stored.
+- securityKeyCheck: Verification code for security key."""@en .
+
+
+###  https://solidcommunity.au/solid/pod#sharedKey
+solidpod:sharedKey rdf:type owl:DatatypeProperty ,
+                            owl:FunctionalProperty ;
+                   rdfs:domain solidpod:SharedKey ;
+                   rdfs:range xsd:string .
+
+
+###  https://solidcommunity.au/solid/pod#webID
+solidpod:webID rdf:type owl:DatatypeProperty ,
+                        owl:FunctionalProperty ;
+               rdfs:domain solidpod:Person ;
+               rdfs:range xsd:anyURI .
 
 
 #################################################################
@@ -244,50 +244,50 @@ foaf:Agent rdf:type owl:Class .
 foaf:Document rdf:type owl:Class .
 
 
-###  https://w3id.org/solid/pod#App
-sp-onto:App rdf:type owl:Class ;
-            rdfs:subClassOf foaf:Agent ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:hasFile ;
-                              owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                              owl:onClass sp-onto:File
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:hasSharedKey ;
-                              owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                              owl:onClass sp-onto:SharedKey
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:uses ;
-                              owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onClass sp-onto:POD
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty dcterms:title ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:string
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:ivB64 ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:string
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:privateKey ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:string
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:publicKey ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:string
-                            ] ,
-                            [ rdf:type owl:Restriction ;
-                              owl:onProperty sp-onto:securityKeyCheck ;
-                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                              owl:onDataRange xsd:string
-                            ] ;
-            rdfs:comment """The IRI of an *App* instance MUST be in the following format:
+###  https://solidcommunity.au/solid/pod#App
+solidpod:App rdf:type owl:Class ;
+             rdfs:subClassOf foaf:Agent ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:hasFile ;
+                               owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                               owl:onClass solidpod:File
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:hasSharedKey ;
+                               owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                               owl:onClass solidpod:SharedKey
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:uses ;
+                               owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                               owl:onClass solidpod:POD
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty dcterms:title ;
+                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                               owl:onDataRange xsd:string
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:ivB64 ;
+                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                               owl:onDataRange xsd:string
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:privateKey ;
+                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                               owl:onDataRange xsd:string
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:publicKey ;
+                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                               owl:onDataRange xsd:string
+                             ] ,
+                             [ rdf:type owl:Restriction ;
+                               owl:onProperty solidpod:securityKeyCheck ;
+                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                               owl:onDataRange xsd:string
+                             ] ;
+             rdfs:comment """The IRI of an *App* instance MUST be in the following format:
 - [https://]  # with an HTTPS scheme.
 - {server URL}/{POD name given by the user (*Person*)}/{APP name}/
 
@@ -298,55 +298,55 @@ https://pods.solidcommunity.au/user123-POD/appName/, where
 {APP name} = \"appName\""""@en .
 
 
-###  https://w3id.org/solid/pod#EncryptedFile
-sp-onto:EncryptedFile rdf:type owl:Class ;
-                      rdfs:subClassOf sp-onto:File ,
-                                      [ rdf:type owl:Restriction ;
-                                        owl:onProperty sp-onto:ciphertext ;
-                                        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                        owl:onDataRange xsd:string
-                                      ] ,
-                                      [ rdf:type owl:Restriction ;
-                                        owl:onProperty sp-onto:encryptionKey ;
-                                        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                        owl:onDataRange xsd:string
-                                      ] ,
-                                      [ rdf:type owl:Restriction ;
-                                        owl:onProperty sp-onto:ivB64 ;
-                                        owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                        owl:onDataRange xsd:string
-                                      ] .
+###  https://solidcommunity.au/solid/pod#EncryptedFile
+solidpod:EncryptedFile rdf:type owl:Class ;
+                       rdfs:subClassOf solidpod:File ,
+                                       [ rdf:type owl:Restriction ;
+                                         owl:onProperty solidpod:ciphertext ;
+                                         owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                         owl:onDataRange xsd:string
+                                       ] ,
+                                       [ rdf:type owl:Restriction ;
+                                         owl:onProperty solidpod:encryptionKey ;
+                                         owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                         owl:onDataRange xsd:string
+                                       ] ,
+                                       [ rdf:type owl:Restriction ;
+                                         owl:onProperty solidpod:ivB64 ;
+                                         owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                         owl:onDataRange xsd:string
+                                       ] .
 
 
-###  https://w3id.org/solid/pod#File
-sp-onto:File rdf:type owl:Class ;
-             rdfs:subClassOf foaf:Document ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty sp-onto:hasAccessList ;
-                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onClass acl:ACLFile
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty sp-onto:filename ;
-                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty sp-onto:path ;
-                               owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty dcterms:title ;
-                               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:string
-                             ] ,
-                             [ rdf:type owl:Restriction ;
-                               owl:onProperty foaf:primaryTopic ;
-                               owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                               owl:onDataRange xsd:string
-                             ] ;
-             rdfs:comment """The IRI of a *File* instance MUST be in the following format:
+###  https://solidcommunity.au/solid/pod#File
+solidpod:File rdf:type owl:Class ;
+              rdfs:subClassOf foaf:Document ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty solidpod:hasAccessList ;
+                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                owl:onClass acl:ACLFile
+                              ] ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty solidpod:filename ;
+                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                owl:onDataRange xsd:string
+                              ] ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty solidpod:path ;
+                                owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                owl:onDataRange xsd:string
+                              ] ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty dcterms:title ;
+                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                owl:onDataRange xsd:string
+                              ] ,
+                              [ rdf:type owl:Restriction ;
+                                owl:onProperty foaf:primaryTopic ;
+                                owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                owl:onDataRange xsd:string
+                              ] ;
+              rdfs:comment """The IRI of a *File* instance MUST be in the following format:
 - [https://]  # with an HTTPS scheme.
 - {server URL}/{POD name given by the user (*Person*)}/{APP name}/{folder}/{path}/{filename with extension}
 - folder := \"encryption\" | \"sharing\" | \"shared\" | \"data\" | \"log\"  # internal app structure.
@@ -361,24 +361,24 @@ https://pods.solidcommunity.au/user123-POD/appName/data/img/logo.png, where
 {filename with extension} = \"logo.png\""""@en .
 
 
-###  https://w3id.org/solid/pod#LogFile
-sp-onto:LogFile rdf:type owl:Class ;
-                rdfs:subClassOf sp-onto:File ,
-                                [ rdf:type owl:Restriction ;
-                                  owl:onProperty sp-onto:logEntry ;
-                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                  owl:onDataRange xsd:string
-                                ] ,
-                                [ rdf:type owl:Restriction ;
-                                  owl:onProperty sp-onto:logID ;
-                                  owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                  owl:onDataRange xsd:dateTimeStamp
-                                ] .
+###  https://solidcommunity.au/solid/pod#LogFile
+solidpod:LogFile rdf:type owl:Class ;
+                 rdfs:subClassOf solidpod:File ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty solidpod:logEntry ;
+                                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                   owl:onDataRange xsd:string
+                                 ] ,
+                                 [ rdf:type owl:Restriction ;
+                                   owl:onProperty solidpod:logID ;
+                                   owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                   owl:onDataRange xsd:dateTimeStamp
+                                 ] .
 
 
-###  https://w3id.org/solid/pod#POD
-sp-onto:POD rdf:type owl:Class ;
-            rdfs:comment """Personal Online Datastore as defined by the SOLID protocol.  A *Person* owns many PODs.
+###  https://solidcommunity.au/solid/pod#POD
+solidpod:POD rdf:type owl:Class ;
+             rdfs:comment """Personal Online Datastore as defined by the SOLID protocol.  A *Person* owns many PODs.
 
 The IRI of a *POD* instance MUST be in the following format:
 - [https://]  # with an HTTPS scheme.
@@ -390,43 +390,43 @@ https://pods.solidcommunity.au/user123-POD/appName/, where
 {POD name given by the user (*Person*)} = \"user123-POD\""""@en .
 
 
-###  https://w3id.org/solid/pod#Person
-sp-onto:Person rdf:type owl:Class ;
-               rdfs:subClassOf foaf:Agent ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty sp-onto:hasPOD ;
-                                 owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass sp-onto:POD
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty sp-onto:webID ;
-                                 owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onDataRange xsd:anyURI
-                               ] ;
-               rdfs:comment """Defines a user of the system.  For simplicity a *Person* (user) SHOULD HAVE ONLY ONE *web ID*.
+###  https://solidcommunity.au/solid/pod#Person
+solidpod:Person rdf:type owl:Class ;
+                rdfs:subClassOf foaf:Agent ,
+                                [ rdf:type owl:Restriction ;
+                                  owl:onProperty solidpod:hasPOD ;
+                                  owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                  owl:onClass solidpod:POD
+                                ] ,
+                                [ rdf:type owl:Restriction ;
+                                  owl:onProperty solidpod:webID ;
+                                  owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                  owl:onDataRange xsd:anyURI
+                                ] ;
+                rdfs:comment """Defines a user of the system.  For simplicity a *Person* (user) SHOULD HAVE ONLY ONE *web ID*.
 
 Example:
 https://pods.solidcommunity.au/user123-POD/profile/card#me"""@en .
 
 
-###  https://w3id.org/solid/pod#SharedKey
-sp-onto:SharedKey rdf:type owl:Class ;
-                  rdfs:subClassOf sp-onto:File ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty sp-onto:ofFile ;
-                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onClass sp-onto:EncryptedFile
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty sp-onto:permissionSet ;
-                                    owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-                                    owl:onDataRange xsd:string
-                                  ] ,
-                                  [ rdf:type owl:Restriction ;
-                                    owl:onProperty sp-onto:sharedKey ;
-                                    owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                    owl:onDataRange xsd:string
-                                  ] .
+###  https://solidcommunity.au/solid/pod#SharedKey
+solidpod:SharedKey rdf:type owl:Class ;
+                   rdfs:subClassOf solidpod:File ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty solidpod:ofFile ;
+                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onClass solidpod:EncryptedFile
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty solidpod:permissionSet ;
+                                     owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
+                                     owl:onDataRange xsd:string
+                                   ] ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty solidpod:sharedKey ;
+                                     owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                     owl:onDataRange xsd:string
+                                   ] .
 
 
 #################################################################
@@ -435,35 +435,35 @@ sp-onto:SharedKey rdf:type owl:Class ;
 
 ###  https://pods.solidcommunity.au/user123-POD/
 <https://pods.solidcommunity.au/user123-POD/> rdf:type owl:NamedIndividual ,
-                                                       sp-onto:POD .
+                                                       solidpod:POD .
 
 
 ###  https://pods.solidcommunity.au/user123-POD/appName/
 <https://pods.solidcommunity.au/user123-POD/appName/> rdf:type owl:NamedIndividual ,
-                                                               sp-onto:App ;
-                                                      sp-onto:hasFile <https://pods.solidcommunity.au/user123-POD/appName/data/some-internal-path-of-the-app/document.ttl> ;
-                                                      sp-onto:uses <https://pods.solidcommunity.au/user123-POD/> ;
-                                                      dcterms:title "appName"^^xsd:string ;
-                                                      sp-onto:ivB64 "<ivB64>"^^xsd:string ;
-                                                      sp-onto:privateKey "<privateKey>"^^xsd:string ;
-                                                      sp-onto:publicKey "<publicKey>"^^xsd:string ;
-                                                      sp-onto:securityKeyCheck "<securityKeyCheck>"^^xsd:string .
+                                                               solidpod:App ;
+                                                      solidpod:hasFile <https://pods.solidcommunity.au/user123-POD/appName/data/some-internal-path-of-the-app/document.ttl> ;
+                                                      solidpod:uses <https://pods.solidcommunity.au/user123-POD/> ;
+                                                      dcterms:title "appName" ;
+                                                      solidpod:ivB64 "<ivB64>" ;
+                                                      solidpod:privateKey "<privateKey>" ;
+                                                      solidpod:publicKey "<publicKey>" ;
+                                                      solidpod:securityKeyCheck "<securityKeyCheck>" .
 
 
 ###  https://pods.solidcommunity.au/user123-POD/appName/data/some-internal-path-of-the-app/document.ttl
 <https://pods.solidcommunity.au/user123-POD/appName/data/some-internal-path-of-the-app/document.ttl> rdf:type owl:NamedIndividual ,
-                                                                                                              sp-onto:File ;
-                                                                                                     dcterms:title "\"An example\""^^xsd:string ;
-                                                                                                     foaf:primaryTopic "Example"^^xsd:string ;
-                                                                                                     sp-onto:filename "document.ttl"^^xsd:string ;
-                                                                                                     sp-onto:path "/data/some-internal-path-of-the-app/"^^xsd:string .
+                                                                                                              solidpod:File ;
+                                                                                                     dcterms:title "\"An example\"" ;
+                                                                                                     foaf:primaryTopic "Example" ;
+                                                                                                     solidpod:filename "document.ttl" ;
+                                                                                                     solidpod:path "/data/some-internal-path-of-the-app/" .
 
 
 ###  https://pods.solidcommunity.au/user123-POD/profile/card#me
 <https://pods.solidcommunity.au/user123-POD/profile/card#me> rdf:type owl:NamedIndividual ,
-                                                                      sp-onto:Person ;
-                                                             sp-onto:hasPOD <https://pods.solidcommunity.au/user123-POD/> ;
-                                                             sp-onto:webID "https://pods.solidcommunity.au/user123-POD/profile/card#me"^^xsd:anyURI .
+                                                                      solidpod:Person ;
+                                                             solidpod:hasPOD <https://pods.solidcommunity.au/user123-POD/> ;
+                                                             solidpod:webID "https://pods.solidcommunity.au/user123-POD/profile/card#me"^^xsd:anyURI .
 
 
-###  Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi
