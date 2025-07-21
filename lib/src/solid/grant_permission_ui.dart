@@ -45,7 +45,7 @@ import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
-/// A widget for the demonstration screen of the application.
+/// A widget for the granting access permission to data.
 
 class GrantPermissionUi extends StatefulWidget {
   /// Initialise widget variables.
@@ -137,9 +137,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Form controller
   final formKey = GlobalKey<FormState>();
-
-  /// WebId text controller
-  final formControllerWebId = TextEditingController();
 
   /// Filename text controller
   final formControllerFileName = TextEditingController();
@@ -506,9 +503,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       ''',
                                       child: ElevatedButton(
                                         onPressed: () async {
+                                          // Open dialog for WebId entry
                                           await indWebIdInputDialog(
                                             context,
-                                            formControllerWebId,
                                             _updateIndWebIdInput,
                                           );
                                         },

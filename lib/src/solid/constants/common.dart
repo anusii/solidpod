@@ -140,6 +140,8 @@ const String logFileTitle = 'Permissions Log';
 
 /// String variable for WebIDs
 
+const String WhatIsWebID =
+    'A WebID is an Internationalised Resource Identifier that identifies a POD owner.';
 const String demoWebID =
     'https://pods.solidcommunity.au/john-doe/profile/card#me';
 
