@@ -124,7 +124,7 @@ linux_config:
 	flutter config --enable-linux-desktop
 
 .PHONY: prep
-prep: analyze fix import_order_fix format ignore license todo
+prep: analyze fix import_order_fix format ignore license todo depend
 	@echo "ADVISORY: make tests docs"
 	@echo $(SEPARATOR)
 
