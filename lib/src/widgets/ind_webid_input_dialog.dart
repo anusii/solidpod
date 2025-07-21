@@ -112,7 +112,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
         children: [
           // Provide info on what a WebId is
           const Text(
-            WhatIsWebID,
+            whatIsWebID,
           ),
           // Show an example WebId that remains visible once user is typing
           const Text('Eg: $demoWebID'),
