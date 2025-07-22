@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ Support user typing a WebID in SHARE [0.7.2 20250722 jesscmoore]
 + Add scrolling of the SHARE table [0.7.1 20250722 jesscmoore]
 + Unify readPod and writePod API [0.7.0 20250721 atangster]
 
