@@ -179,3 +179,19 @@ class SecurityStrings {
 
   static const cancel = 'Cancel';
 }
+
+/// Layout constants for scrollbars.
+
+class ScrollbarLayout {
+  /// Vertical gap between edge widget and scrollbar to avoid
+  /// horizontal scrollbar overlapping bottom edge of wrapped
+  /// content.
+
+  static const verticalGap = SizedBox(height: 30);
+
+  /// Horizontal gap between edge widget and scrollbar to avoid
+  /// vertical scrollbar overlapping the right edge of wrapped
+  /// content
+  ///
+  static const horizontalGap = SizedBox(width: 10);
+}
