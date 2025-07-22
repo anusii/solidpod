@@ -1,6 +1,6 @@
 /// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Sunday 2025-07-20 17:57:47 +1000 Graham Williams>
+// Time-stamp: <Tuesday 2025-07-22 11:12:42 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -473,7 +473,7 @@ class _SolidLoginState extends State<SolidLogin> {
           if (isCachedSession) {
             _showSnackbar(
               'Logged in with your previously saved session.',
-              duration: Duration(seconds: 10),
+              duration: Duration(seconds: 2),
             );
 
             // Short delay to allow snackbar to be visible.
