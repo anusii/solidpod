@@ -141,13 +141,23 @@ enum AccessMode {
   /// Control access: read and write access to the ACL file
   control(
     'Control',
-    'permission to alter the access permission to the shared file',
+    '''
+
+    **Control:** Permission is granted to alter the access permission to the
+    shared file
+
+    ''',
   ),
 
   /// Append data (a type of write)
   append(
     'Append',
-    'permission to add content but not remove or modify content from the shared file',
+    '''
+
+    **Append:** Permission is granted to add content but not remove or modify
+    content from the shared file.
+
+    ''',
   );
 
   /// Constructor
