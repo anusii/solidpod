@@ -1,6 +1,6 @@
 /// A dialog to input Group of WebIDs.
 ///
-// Time-stamp: <Sunday 2024-07-11 12:28:00 +1000 Anushka Vidange>
+// Time-stamp: <Tuesday 2025-07-22 13:59:21 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -75,13 +75,12 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
       return 'Must start with https://';
     }
     // Check WebID contains host followed by '/'
-    debugPrint('host: ${uri.host}');
+
     if (!uri.path.contains('/')) {
       return 'Must have form https://[POD server host]/[their username]/profile/card#me';
     }
     // Check for WebID path with profile suffix
     if (!uri.path.toLowerCase().contains('/profile/card')) {
-      debugPrint('host: ${uri.path}');
       return 'Must end with \'/[their username]/profile/card#me\'';
     }
     // Check ends in #me
