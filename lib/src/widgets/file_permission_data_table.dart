@@ -22,7 +22,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Jess Moore
 
 library;
 
@@ -65,9 +65,14 @@ Widget buildPermDataTable(
     );
   }
 
+  // Make wide permission table horizontally scrollable
+  // Shows when content exceeds display width
   return DataTable(
     columns: [
-      buildDataColumn('Receiver', 'WebID of the POD receiving permissions'),
+      buildDataColumn(
+        'Receiver',
+        'WebID of the POD receiving permissions',
+      ),
       buildDataColumn('Receiver type', 'Type of the receiver'),
       buildDataColumn('Permissions', 'List of permissions given'),
       buildDataColumn('Actions', 'Delete permission'),

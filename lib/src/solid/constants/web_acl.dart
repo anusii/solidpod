@@ -30,6 +30,7 @@
 library;
 
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
+
 import 'package:solidpod/src/solid/constants/common.dart'
     show
         acl,

@@ -40,10 +40,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
-import 'package:pointycastle/asymmetric/api.dart';
-//import 'package:encrypt/encrypt.dart' hide RSA;
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
+import 'package:pointycastle/asymmetric/api.dart';
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';

@@ -34,14 +34,14 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
-import 'package:crypto/crypto.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -112,15 +112,15 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
 }
 
 /// Read the encryption key file content for display purposes.
-/// 
+///
 /// This function directly reads the encryption key file without using readPod,
 /// making it suitable for accessing files outside the appname/data directory.
-/// 
+///
 /// Returns the raw TTL content of the encryption key file.
 Future<String> readEncryptionKeyContent() async {
   final encKeyPath = await getEncKeyPath();
   final encKeyUrl = await getFileUrl(encKeyPath);
-  
+
   try {
     if (await checkResourceStatus(encKeyUrl) == ResourceStatus.exist) {
       return await fetchPrvFile(encKeyUrl);
@@ -635,15 +635,15 @@ String getDateTime(String dateTimeStr) {
 }
 
 /// Normalise file path for readPod/writePod operations.
-/// 
+///
 /// Handles backward compatibility by checking if the filePath already includes
 /// the app directory prefix, and constructs the appropriate normalised path.
-/// 
+///
 /// When basePath is null (default for readPod/writePod), uses appname/data as base path.
-/// 
+///
 /// [filePath] - The input file path
 /// [basePath] - The base path to use (defaults to appname/data when null)
-/// 
+///
 /// Returns the normalised file path.
 ///
 /// Examples:
@@ -657,11 +657,11 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
   // Normalise path separators for cross-platform compatibility.
 
   final normalizedInput = filePath.replaceAll(path.separator, '/');
-  
+
   // Use provided path or default to appname/data.
 
   final effectiveBasePath = basePath ?? await getDataDirPath();
-  
+
   // Check if path already starts with the correct base path (appname/data/).
 
   if (normalizedInput.startsWith(effectiveBasePath)) {

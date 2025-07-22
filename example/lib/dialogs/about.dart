@@ -25,9 +25,9 @@
 
 library;
 
-import 'package:solidpod/solidpod.dart';
-
 import 'package:flutter/material.dart';
+
+import 'package:solidpod/solidpod.dart';
 
 Future<void> aboutDialog(BuildContext context) async {
   final appInfo = await getAppNameVersion();

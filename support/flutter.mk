@@ -34,9 +34,12 @@ flutter:
   import_order      Run import order checking.
   import_order_fix  Run import order fixing.
 
+  pubspec         Choose actual/local pubspec using meld.
+
   fix             Run `dart fix --apply`.
   format          Run `dart format`.
-  analyze         Run flutter analyze.
+  analyze         Run `flutter analyze`.
+  depend	  Run `dart run dependency_validator`.
   ignore          Look for usage of ignore directives.
   license	  Look for missing top license in source code.
 
@@ -121,7 +124,7 @@ linux_config:
 	flutter config --enable-linux-desktop
 
 .PHONY: prep
-prep: analyze fix import_order_fix format ignore license todo
+prep: analyze fix import_order_fix format ignore license todo depend
 	@echo "ADVISORY: make tests docs"
 	@echo $(SEPARATOR)
 
@@ -131,6 +134,10 @@ docs::
 	chmod -R go+rX doc
 
 SEPARATOR="------------------------------------------------------------------------"
+
+.PHONY: pubspec
+pubspec:
+	meld pubspec.yaml.actual pubspec.yaml pubspec.yaml.local
 
 .PHONY: fix
 fix:
@@ -158,8 +165,16 @@ tests:: test qtest
 .PHONY: analyze
 analyze:
 	@echo "Futter ANALYZE"
-	-flutter analyze
+	-flutter analyze lib
 #	dart run custom_lint
+	@echo $(SEPARATOR)
+
+# dart pub global activate dependency_validator
+
+.PHONY: depend
+depend:
+	@echo "Review pubspec.yaml dependencies."
+	-dependency_validator
 	@echo $(SEPARATOR)
 
 .PHONY: ignore
@@ -351,6 +366,8 @@ endif
 publish:
 	dart pub publish
 
+# dart pub global activate import_order_lint
+
 .PHONY: import_order
 import_order:
 	@echo "Dart: CHECK IMPORT ORDER"
@@ -360,7 +377,7 @@ import_order:
 .PHONY: import_order_fix
 import_order_fix:
 	@echo "Dart: FIX IMPORT ORDER"
-	dart run import_order_lint:fix_imports --project-name=$(APP) -r lib
+	fix_imports --project-name=$(APP) -r lib
 	@echo $(SEPARATOR)
 
 ### TODO THESE SHOULD BE CHECKED AND CLEANED UP
@@ -377,8 +394,8 @@ versions:
 
 .PHONY: wc
 wc: lib/*.dart
-	@cat lib/*.dart lib/*/*.dart lib/*/*/*.dart \
-	| egrep -v '^/' \
+	@cat $(shell find lib -name '*.dart') \
+	| egrep -v '^ */' \
 	| egrep -v '^ *$$' \
 	| wc -l
 
