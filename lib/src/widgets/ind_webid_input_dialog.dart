@@ -70,12 +70,8 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
     final text = formControllerWebId.value.text.trim();
     final uri = Uri.parse(text);
 
-    // Check for https scheme
-    if (!uri.isScheme('HTTPS')) {
-      return 'Must start with https://';
-    }
-    // Check for ://
-    if (!uri.toString().contains('://')) {
+    // Check for https scheme and ://
+    if (!uri.isScheme('HTTPS') || !uri.toString().contains('://')) {
       return 'Must start with https://';
     }
     // Check WebID contains host followed by '/'
@@ -90,7 +86,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
     }
     // Check ends in #me
     if (!(uri.fragment.toLowerCase() == 'me')) {
-      return 'Must end with /profile/card#me';
+      return 'Must end with URL fragment #me after /profile/card';
     }
     // Check fully qualified web address
     // 20250721 jm Retaining this check, may not be needed
