@@ -525,7 +525,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                             );
                                           },
                                           child: Text(
-                                              RecipientType.individual.type),
+                                            RecipientType.individual.type,
+                                          ),
                                         ),
                                       ),
                                     ),
