@@ -495,7 +495,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                               });
                                             },
                                             child: Text(
-                                                RecipientType.authUser.type),
+                                              RecipientType.authUser.type,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -527,7 +528,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                             );
                                           },
                                           child: Text(
-                                              RecipientType.individual.type),
+                                            RecipientType.individual.type,
+                                          ),
                                         ),
                                       ),
                                     ),
