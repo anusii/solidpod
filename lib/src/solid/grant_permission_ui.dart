@@ -389,7 +389,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ],
                           largeGapV,
                           buildHeading(
-                            'Select the permission recipient',
+                            'Select the recipient/s of file access permissions',
                             17.0,
                             Colors.blueGrey,
                             8,
@@ -566,7 +566,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                           smallGapV,
                           buildHeading(
-                            'Select the list of permissions',
+                            'Select the list of file access permissions',
                             17.0,
                             Colors.blueGrey,
                             8,
@@ -632,7 +632,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         if (!context.mounted) return;
                                         showSnackBar(
                                           context,
-                                          'Permission granted successfully!',
+                                          'File access permissions granted successfully!',
                                           Colors.green,
                                         );
                                         await _updatePermissions(dataFile);
@@ -650,22 +650,22 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         if (!context.mounted) return;
                                         showSnackBar(
                                           context,
-                                          'One or more WebIds you entered have not initialised their PODs yet!',
+                                          'The owner of one or more WebIds you entered have not initialised their PODs yet!',
                                           const Color.fromARGB(255, 204, 99, 1),
                                         );
                                       } else {
                                         await _alert(
-                                          'Please login first to update permission',
+                                          'Please login first to update file access permission',
                                         );
                                       }
                                     } else {
                                       await _alert(
-                                        'Please select one or more permissions',
+                                        'Please select one or more file access permissions',
                                       );
                                     }
                                   } else {
                                     await _alert(
-                                      'Please select a recipient',
+                                      'Please select a type of recipient',
                                     );
                                   }
                                 }
@@ -674,7 +674,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                           largeGapV,
                           buildHeading(
-                            'Granted permissions',
+                            'Granted file access permissions',
                             17.0,
                             Colors.blueGrey,
                             8,
