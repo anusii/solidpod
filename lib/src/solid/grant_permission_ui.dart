@@ -58,7 +58,7 @@ class GrantPermissionUi extends StatefulWidget {
     this.showAppBar = true,
     this.isExternalRes = false,
     this.accessModeList = const ['read', 'write', 'append', 'control'],
-    this.recipientList = const ['public', 'indi', 'auth', 'group'],
+    this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
     this.fileName,
     this.customAppBar,
@@ -85,9 +85,9 @@ class GrantPermissionUi extends StatefulWidget {
   /// access mode are listed.
   final List<String> accessModeList;
 
-  /// The list of permission recipients to be displayed. By default all four
-  /// types of recipient types are listed.
-  final List<String> recipientList;
+  /// The list of types of recipients receiving permission to access the resource. By default all four
+  /// types of recipient are listed.
+  final List<String> recipientTypeList;
 
   /// String to assign the external webId of the resource owner. Must be set
   /// if [isExternalRes] is set to true.
@@ -134,7 +134,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   List<AccessMode> acessModeList = [];
 
   /// Define recipient type list
-  List<RecipientType> recipientList = [];
+  List<RecipientType> recipientTypeList = [];
 
   /// Form controller
   final formKey = GlobalKey<FormState>();
@@ -209,8 +209,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
 
     // Load recipient list to be displayed
-    for (final recipient in widget.recipientList) {
-      recipientList.add(getRecType(recipient));
+    for (final recipient in widget.recipientTypeList) {
+      recipientTypeList.add(getRecType(recipient));
     }
   }
 
@@ -432,7 +432,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 // external resources is not yet implemented in
                                 // [grantPermission()] function.
                                 if (!widget.isExternalRes) ...[
-                                  if (recipientList
+                                  if (recipientTypeList
                                       .contains(RecipientType.public)) ...[
                                     Expanded(
                                       child: SizedBox(
@@ -463,7 +463,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       ),
                                     ),
                                   ],
-                                  if (recipientList
+                                  if (recipientTypeList
                                       .contains(RecipientType.authUser)) ...[
                                     Expanded(
                                       child: Container(
@@ -500,7 +500,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     ),
                                   ],
                                 ],
-                                if (recipientList
+                                if (recipientTypeList
                                     .contains(RecipientType.individual)) ...[
                                   Expanded(
                                     child: Container(
@@ -532,7 +532,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     ),
                                   ),
                                 ],
-                                if (recipientList
+                                if (recipientTypeList
                                     .contains(RecipientType.group)) ...[
                                   Expanded(
                                     child: Container(
