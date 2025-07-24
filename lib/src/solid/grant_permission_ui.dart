@@ -158,7 +158,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   String permDataFile = '';
 
   /// Selected recipient
-  RecipientType selectedRecipient = RecipientType.none;
+  RecipientType selectedRecipientType = RecipientType.none;
 
   /// Selected recipient details
   String selectedRecipientDetails = '';
@@ -209,8 +209,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
 
     // Load recipient list to be displayed
-    for (final recipient in widget.recipientTypeList) {
-      recipientTypeList.add(getRecType(recipient));
+    for (final recTypeStr in widget.recipientTypeList) {
+      recipientTypeList.add(getRecType(recTypeStr));
     }
   }
 
@@ -286,7 +286,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   // Update individual webid input data
   void _updateIndWebIdInput(String receiverWebId) {
     setState(() {
-      selectedRecipient = RecipientType.individual;
+      selectedRecipientType = RecipientType.individual;
       selectedRecipientDetails = receiverWebId;
       finalWebIdList = [receiverWebId];
     });
@@ -295,7 +295,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   // Update group of webids input data
   void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) {
     setState(() {
-      selectedRecipient = RecipientType.group;
+      selectedRecipientType = RecipientType.group;
       selectedRecipientDetails =
           '$groupName with WebIDs ${webIdList.join(', ')}';
       finalWebIdList = webIdList;
@@ -408,8 +408,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 Flexible(
                                   child: Text(
                                     selectedRecipientDetails.isNotEmpty
-                                        ? '${selectedRecipient.type} ($selectedRecipientDetails)'
-                                        : selectedRecipient.type,
+                                        ? '${selectedRecipientType.type} ($selectedRecipientDetails)'
+                                        : selectedRecipientType.type,
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -448,7 +448,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           child: ElevatedButton(
                                             onPressed: () {
                                               setState(() {
-                                                selectedRecipient =
+                                                selectedRecipientType =
                                                     RecipientType.public;
                                                 selectedRecipientDetails = '';
                                                 finalWebIdList = [
@@ -483,7 +483,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           child: ElevatedButton(
                                             onPressed: () {
                                               setState(() {
-                                                selectedRecipient =
+                                                selectedRecipientType =
                                                     RecipientType.authUser;
                                                 selectedRecipientDetails = '';
                                                 finalWebIdList = [
@@ -605,7 +605,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               child: const Text('Grant Permission'),
                               onPressed: () async {
                                 if (formKey.currentState!.validate()) {
-                                  if (selectedRecipient.type.isNotEmpty) {
+                                  if (selectedRecipientType.type.isNotEmpty) {
                                     if (selectedPermList.isNotEmpty) {
                                       final dataFile = widget.fileName ??
                                           formControllerFileName.text;
@@ -614,13 +614,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         dataFile,
                                         true,
                                         selectedPermList,
-                                        selectedRecipient,
+                                        selectedRecipientType,
                                         finalWebIdList as List,
                                         ownerWebId,
                                         context,
                                         widget.child,
                                         isExternalRes: widget.isExternalRes,
-                                        groupName: selectedRecipient ==
+                                        groupName: selectedRecipientType ==
                                                 RecipientType.group
                                             ? formControllerGroupName.text
                                                 .trim()
@@ -754,8 +754,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 }
 
 /// Return recipient type based on a given String value
-RecipientType getRecType(String recipient) {
-  switch (recipient.toLowerCase()) {
+RecipientType getRecType(String recTypeStr) {
+  switch (recTypeStr.toLowerCase()) {
     case 'public':
       return RecipientType.public;
     case 'indi':
@@ -766,6 +766,6 @@ RecipientType getRecType(String recipient) {
       return RecipientType.group;
     default:
       throw Exception('Wrong recipient type given'
-          '\nRecipient: $recipient');
+          '\nRecipient: $recTypeStr');
   }
 }
