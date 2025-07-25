@@ -17,6 +17,18 @@ This package is currently under development and some API may
 change. The SolidLogin() and SolidLoginPopup() are used in a number
 of apps now and are more stable. -->
 
+# Solid Pod
+
+**An ANU Software Innovation Institute package for your Data Vault**.
+
+*Time-stamp: <Tuesday 2025-07-22 21:12:19 +1000 Graham Williams>*
+
+*Authors: Anushka Vidanage, Graham Williams, Jessica Moore*
+
+*[ANU Software Innovation Institute](https://sii.anu.edu.au)*
+
+*License: MIT*
+
 [![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
 
@@ -27,9 +39,9 @@ of apps now and are more stable. -->
 [![GitHub Commit Activity (main)](https://img.shields.io/github/commit-activity/w/anusii/solidpod/main)](https://github.com/anusii/solidpod/commits/dev/)
 [![GitHub Issues](https://img.shields.io/github/issues/anusii/solidpod)](https://github.com/anusii/solidpod/issues)
 
-# Solid Pod
+## Introduction
 
-Solid Pod package provides functionality to manage a Solid
+The SolidPod package provides functionality to manage a Solid
 personal online data stores (Pods) via a Flutter application.
 It supports high level access for an application to
 authenticate users to their Pods, access the users' data from
