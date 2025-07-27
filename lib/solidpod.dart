@@ -126,3 +126,6 @@ export 'src/solid/read_external_pod.dart' show readExternalPod;
 
 // Write to encrypted/non-encrypted files in an external POD
 export 'src/solid/write_external_pod.dart' show writeExternalPod;
+
+// Turtle string to triple map and triple map to turtle string functions
+export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
