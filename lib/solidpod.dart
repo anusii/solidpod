@@ -52,10 +52,11 @@ export 'src/solid/shared_resources_ui.dart' show SharedResourcesUi;
 export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 
 // Includes common functions that are useful such as,
-// - Deleting an encrypted file
+// - A dialog for deleting an encrypted file
 // - Check whether login tokens are expired and if they are ridirect to login
-// - Check whether initialisation is required
-export 'src/solid/common_func.dart';
+// - Input key from user when required
+export 'src/solid/common_func.dart'
+    show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
 
 // Includes the AppInfo class which stores app specific information
 // such as name, version, canonical name, package name, build number.
@@ -66,8 +67,24 @@ export 'src/solid/utils/app_info.dart' show AppInfo;
 export 'src/solid/utils/key_helper.dart' show KeyManager;
 
 // Includes common functions that could be useful for an app such as
-// get web id of the user, get path of a directory or file,
-export 'src/solid/utils/misc.dart';
+// - get web id of the user
+// - get path of a directory or file
+// - check whether user is logged in or not
+export 'src/solid/utils/misc.dart'
+    show
+        checkLoggedIn,
+        deleteExternalFile,
+        deleteFile,
+        deleteLogIn,
+        getWebId,
+        getDataDirPath,
+        getAppNameVersion,
+        getFileUrl,
+        getDirUrl,
+        getTokensForResource,
+        getDateTime,
+        getEncKeyPath,
+        readEncryptionKeyContent;
 
 // Change security key popup widget
 export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
