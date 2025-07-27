@@ -48,7 +48,7 @@ import 'package:solidpod/solidpod.dart'
         KeyManager,
         SharedResourcesUi,
         changeKeyPopup,
-        deleteDataFile,
+        deleteDataFileDialog,
         deleteLogIn,
         getDataDirPath,
         getWebId,
@@ -368,7 +368,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         // SolidPod API: deleteDataFile()
                         ElevatedButton(
                             onPressed: () async =>
-                                deleteDataFile(dataFile, context),
+                                deleteDataFileDialog(dataFile, context),
                             child: const Text('Delete Pod Data File')),
                         smallGapV,
 
