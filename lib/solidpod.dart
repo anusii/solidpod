@@ -118,7 +118,8 @@ export 'src/solid/shared_resources.dart' show sharedResources;
 export 'src/solid/api/rest_api.dart' show getResourcesInContainer;
 
 // Function to get the latest log enties
-export 'src/solid/api/common_permission.dart' show getLatestLog;
+export 'src/solid/api/common_permission.dart'
+    show PermissionLogLiteral, getLatestLog;
 
 // Read encrypted/non-encrypted files stored in an external POD
 export 'src/solid/read_external_pod.dart' show readExternalPod;
