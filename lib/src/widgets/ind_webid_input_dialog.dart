@@ -31,21 +31,28 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
-/// Function call requires the following inputs
-/// [onSubmitFunction] is the function to be called on submit
+/// Function call requires the following inputs.
+/// [onSubmitFunction] is the function to be called on submit.
+/// [webIdList] is a list of the webIds of unique recipients of the
+/// owner's data.
 ///
 class IndWebIdTextInput extends StatefulWidget {
   /// Initialise widget variables.
 
   const IndWebIdTextInput({
     required this.onSubmitFunction,
+    this.uniqRecipWebIdList,
     super.key,
   });
 
   /// Function run on Submit button press.
   final Function onSubmitFunction;
+
+  /// List of unique recipient webIds
+  final List<String>? uniqRecipWebIdList;
 
   @override
   State<IndWebIdTextInput> createState() => _IndWebIdTextInputState();
@@ -193,7 +200,9 @@ Future<dynamic> indWebIdInputDialog(
   return showDialog(
     context: context,
     builder: (context) {
-      return IndWebIdTextInput(onSubmitFunction: onSubmitFunction);
+      return IndWebIdInputScreen(
+        onSubmitFunction: onSubmitFunction,
+      );
     },
   );
 }
