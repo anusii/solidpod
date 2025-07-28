@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 ///
-/// Authors: Kevin Wang
+/// Authors: Kevin Wang, Jess Moore
 
 library;
 
@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/common_func.dart' show initPodsIfRequired;
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A widget to pop up the login prompt if the user is not logged in
@@ -69,7 +70,7 @@ class _SolidPopupLoginState extends State<SolidPopupLogin> {
           if (snapshot.connectionState == ConnectionState.done) {
             return _loadedScreen(snapshot.data!);
           }
-          return loadingScreen(200);
+          return loadingScreen(normalLoadingScreenHeight);
         },
       ),
     );

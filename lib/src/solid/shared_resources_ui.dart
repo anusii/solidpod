@@ -28,6 +28,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/shared_resources.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
@@ -181,7 +182,7 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
             return _buildSharedResourcePage(context, snapshot.data);
           }
         } else {
-          return Scaffold(body: loadingScreen(200));
+          return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
         }
       },
     );

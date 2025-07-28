@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Ashley Tang
+/// Authors: Ashley Tang, Jess Moore
 
 library;
 
@@ -195,3 +195,6 @@ class ScrollbarLayout {
   ///
   static const horizontalGap = SizedBox(width: 10);
 }
+
+/// Normal height for data loading screens
+const double normalLoadingScreenHeight = 200.0;
