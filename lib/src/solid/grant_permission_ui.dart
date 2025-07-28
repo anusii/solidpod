@@ -743,7 +743,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
               return _buildPermPage(context, snapshot.data);
             }
           } else {
-            return Scaffold(body: loadingScreen(200));
+            return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
           }
         },
       );
