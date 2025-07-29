@@ -175,54 +175,32 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
               if (suggestionList.isNotEmpty ||
                   formControllerWebId.text.isNotEmpty) ...[
                 // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
-                SizedBox(
-                  width: MediaQuery.of(context).size.width *
-                      0.6, // or double.maxFinite
-                  height: 120,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(10),
-                    itemCount: suggestionList.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(suggestionList[index]),
-                        focusColor: SecurityColors.primary,
-                        hoverColor: DropdownColors.accent,
-                        splashColor: DropdownColors.primary,
-                        onTap: () => setState(() {
-                          // User has started entering text
-                          _textEntered = true;
-                          formControllerWebId.text = suggestionList[index];
-                        }),
-                      );
-                    },
-                  ),
-                  // ),
-                ),
+                boxedSuggestionList(context, suggestionList),
               ] else ...[
-                SizedBox(
-                  width: MediaQuery.of(context).size.width *
-                      0.6, // or double.maxFinite
-                  height: 120,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(10),
-                    itemCount: webIdList.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(webIdList[index]),
-                        hoverColor: DropdownColors.accent,
-                        splashColor: DropdownColors.primary,
-                        onTap: () => setState(() {
-                          // User has started entering text
-                          _textEntered = true;
-                          formControllerWebId.text = webIdList[index];
-                        }),
-                      );
-                    },
-                  ),
-                  // ),
-                ),
+                boxedSuggestionList(context, webIdList),
+                // SizedBox(
+                //   width: MediaQuery.of(context).size.width *
+                //       0.6, // or double.maxFinite
+                //   height: 120,
+                //   child: ListView.separated(
+                //     padding: const EdgeInsets.all(10),
+                //     itemCount: webIdList.length,
+                //     separatorBuilder: (context, index) => const Divider(),
+                //     itemBuilder: (context, index) {
+                //       return ListTile(
+                //         title: Text(webIdList[index]),
+                //         hoverColor: DropdownColors.accent,
+                //         splashColor: DropdownColors.primary,
+                //         onTap: () => setState(() {
+                //           // User has started entering text
+                //           _textEntered = true;
+                //           formControllerWebId.text = webIdList[index];
+                //         }),
+                //       );
+                //     },
+                //   ),
+                //   // ),
+                // ),
               ],
             ],
           ],
@@ -278,6 +256,32 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
           child: const Text('Cancel'),
         ),
       ],
+    );
+  }
+
+  SizedBox boxedSuggestionList(BuildContext context, List<String> idList) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width * 0.6, // or double.maxFinite
+      height: 120,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(10),
+        itemCount: idList.length,
+        separatorBuilder: (context, index) => const Divider(),
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(idList[index]),
+            focusColor: SecurityColors.primary,
+            hoverColor: DropdownColors.accent,
+            splashColor: DropdownColors.primary,
+            onTap: () => setState(() {
+              // User has started entering text
+              _textEntered = true;
+              formControllerWebId.text = idList[index];
+            }),
+          );
+        },
+      ),
+      // ),
     );
   }
 }
