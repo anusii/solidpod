@@ -198,3 +198,15 @@ class ScrollbarLayout {
 
 /// Normal height for data loading screens
 const double normalLoadingScreenHeight = 200.0;
+
+/// Colours used across dropdown dialogs and prompts.
+
+class DropdownColors {
+  /// Primary colour (Forest Green) used for dropdown elements
+
+  static const primary = Color(0xFF2E7D32);
+
+  /// Accent colour (Lighter Green) used for dividers and secondary elements.
+
+  static const accent = Color(0xFF4CAF50);
+}

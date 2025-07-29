@@ -30,13 +30,14 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
 /// Function call requires the following inputs.
 /// [onSubmitFunction] is the function to be called on submit.
-/// [webIdList] is a list of the webIds of unique recipients of the
+/// [uniqRecipWebIdList] is a list of the webIds of unique recipients of the
 /// owner's data.
 ///
 class IndWebIdTextInput extends StatefulWidget {
@@ -65,11 +66,25 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   /// Capture whether user has started to enter text
   bool _textEntered = false;
 
+  /// WebId list
+  List<String> webIdList = [];
+
+  /// Initialise the matching suggestions list
+  List<String> suggestionList = [];
+  String hint = '';
+
   // dispose text controller when the widget is unmounted
   @override
   void dispose() {
     formControllerWebId.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    webIdList = widget.uniqRecipWebIdList ?? [];
+    debugPrint('INSIDE WEBID INPUT DIALOG initState()');
+    super.initState();
   }
 
   /// Generate advice to help user enter valid WebID
@@ -103,43 +118,121 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
     return null;
   }
 
+  /// Generate suggestions for users based on input matches to
+  /// current complete recipient list of user
+  void filterSuggestions(String value) {
+    suggestionList.clear();
+
+    if (value.isEmpty) {
+      setState(() {});
+      return;
+    }
+    suggestionList =
+        webIdList.where((e) => e.contains(value.toLowerCase())).toList();
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 50),
       title: const Text('WebID of the individual recipient'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Provide info on what a WebId is
-          const Text(
-            whatIsWebID,
-          ),
-          // Show an example WebId that remains visible once user is typing
-          const Text('Eg: $demoWebID'),
-          const SizedBox(height: 20),
-          // Web ID text field
-          TextFormField(
-            controller: formControllerWebId,
-            decoration: InputDecoration(
-              labelText: 'Individual\'s webID',
-              // Once user has started entering text, use formfield
-              // error message to advise user how to specify
-              // valid webId
-              errorText: _textEntered ? _helpText : null,
+      content: SizedBox(
+        height: MediaQuery.of(context).size.width * 0.6,
+        width: MediaQuery.of(context).size.width * 0.8, // or double.maxFinite
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Provide info on what a WebId is
+            const Text(
+              whatIsWebID,
             ),
-            onChanged: (_) => setState(() {
-              // User has started entering text
-              _textEntered = true;
-            }),
-          ),
-        ],
+            // Show an example WebId that remains visible once user is typing
+            const Text('Eg: $demoWebID'),
+            const SizedBox(height: 20),
+            // Web ID text field
+            TextFormField(
+              controller: formControllerWebId,
+              decoration: InputDecoration(
+                labelText: 'Individual\'s webID',
+                // Once user has started entering text, use formfield
+                // error message to advise user how to specify
+                // valid webId
+                errorText: _textEntered ? _helpText : null,
+              ),
+              onFieldSubmitted: (value) {},
+              onChanged: (value) => setState(() {
+                // User has started entering text
+                _textEntered = true;
+                // Filter suggestions
+                filterSuggestions(value);
+              }),
+            ),
+            const SizedBox(height: 10),
+            if (webIdList.isNotEmpty) ...[
+              if (suggestionList.isNotEmpty ||
+                  formControllerWebId.text.isNotEmpty) ...[
+                // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
+                SizedBox(
+                  width: MediaQuery.of(context).size.width *
+                      0.6, // or double.maxFinite
+                  height: 120,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(10),
+                    itemCount: suggestionList.length,
+                    separatorBuilder: (context, index) => const Divider(),
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(suggestionList[index]),
+                        focusColor: SecurityColors.primary,
+                        hoverColor: DropdownColors.accent,
+                        splashColor: DropdownColors.primary,
+                        onTap: () => setState(() {
+                          // User has started entering text
+                          _textEntered = true;
+                          formControllerWebId.text = suggestionList[index];
+                        }),
+                      );
+                    },
+                  ),
+                  // ),
+                ),
+              ] else ...[
+                SizedBox(
+                  width: MediaQuery.of(context).size.width *
+                      0.6, // or double.maxFinite
+                  height: 120,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(10),
+                    itemCount: webIdList.length,
+                    separatorBuilder: (context, index) => const Divider(),
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(webIdList[index]),
+                        hoverColor: DropdownColors.accent,
+                        splashColor: DropdownColors.primary,
+                        onTap: () => setState(() {
+                          // User has started entering text
+                          _textEntered = true;
+                          formControllerWebId.text = webIdList[index];
+                        }),
+                      );
+                    },
+                  ),
+                  // ),
+                ),
+              ],
+            ],
+          ],
+        ),
       ),
       actions: <Widget>[
         TextButton(
           onPressed: () async {
             final receiverWebId = formControllerWebId.text.trim();
+            debugPrint('Submitted: receiverWebId for onSubmit checks');
 
             // User has entered WebId text that satisfies error checks
             if (receiverWebId.isNotEmpty && _helpText == null) {
