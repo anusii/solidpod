@@ -58,7 +58,7 @@ class GrantPermissionUi extends StatefulWidget {
     this.showAppBar = true,
     this.isExternalRes = false,
     this.accessModeList = const ['read', 'write', 'append', 'control'],
-    this.recipientList = const ['public', 'indi', 'auth', 'group'],
+    this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
     this.fileName,
     this.dataFilesMap = const {},
@@ -86,9 +86,9 @@ class GrantPermissionUi extends StatefulWidget {
   /// access mode are listed.
   final List<String> accessModeList;
 
-  /// The list of permission recipients to be displayed. By default all four
-  /// types of recipient types are listed.
-  final List<String> recipientList;
+  /// The list of types of recipients receiving permission to access the resource. By default all four
+  /// types of recipient are listed.
+  final List<String> recipientTypeList;
 
   /// String to assign the external webId of the resource owner. Must be set
   /// if [isExternalRes] is set to true.
@@ -142,7 +142,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   List<AccessMode> acessModeList = [];
 
   /// Define recipient type list
-  List<RecipientType> recipientList = [];
+  List<RecipientType> recipientTypeList = [];
 
   /// Form controller
   final formKey = GlobalKey<FormState>();
@@ -166,7 +166,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   String permDataFile = '';
 
   /// Selected recipient
-  RecipientType selectedRecipient = RecipientType.none;
+  RecipientType selectedRecipientType = RecipientType.none;
 
   /// Selected recipient details
   String selectedRecipientDetails = '';
@@ -217,8 +217,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
 
     // Load recipient list to be displayed
-    for (final recipient in widget.recipientList) {
-      recipientList.add(getRecType(recipient));
+    for (final recTypeStr in widget.recipientTypeList) {
+      recipientTypeList.add(getRecType(recTypeStr));
     }
   }
 
@@ -294,7 +294,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   // Update individual webid input data
   void _updateIndWebIdInput(String receiverWebId) {
     setState(() {
-      selectedRecipient = RecipientType.individual;
+      selectedRecipientType = RecipientType.individual;
       selectedRecipientDetails = receiverWebId;
       finalWebIdList = [receiverWebId];
     });
@@ -303,7 +303,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   // Update group of webids input data
   void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) {
     setState(() {
-      selectedRecipient = RecipientType.group;
+      selectedRecipientType = RecipientType.group;
       selectedRecipientDetails =
           '$groupName with WebIDs ${webIdList.join(', ')}';
       finalWebIdList = webIdList;
@@ -397,7 +397,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ],
                           largeGapV,
                           buildHeading(
-                            'Select the permission recipient',
+                            'Select the recipient/s of file access permissions',
                             17.0,
                             Colors.blueGrey,
                             8,
@@ -416,8 +416,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 Flexible(
                                   child: Text(
                                     selectedRecipientDetails.isNotEmpty
-                                        ? '${selectedRecipient.type} ($selectedRecipientDetails)'
-                                        : selectedRecipient.type,
+                                        ? '${selectedRecipientType.type} ($selectedRecipientDetails)'
+                                        : selectedRecipientType.type,
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -440,7 +440,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 // external resources is not yet implemented in
                                 // [grantPermission()] function.
                                 if (!widget.isExternalRes) ...[
-                                  if (recipientList
+                                  if (recipientTypeList
                                       .contains(RecipientType.public)) ...[
                                     Expanded(
                                       child: SizedBox(
@@ -456,7 +456,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           child: ElevatedButton(
                                             onPressed: () {
                                               setState(() {
-                                                selectedRecipient =
+                                                selectedRecipientType =
                                                     RecipientType.public;
                                                 selectedRecipientDetails = '';
                                                 finalWebIdList = [
@@ -471,7 +471,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       ),
                                     ),
                                   ],
-                                  if (recipientList
+                                  if (recipientTypeList
                                       .contains(RecipientType.authUser)) ...[
                                     Expanded(
                                       child: Container(
@@ -491,7 +491,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           child: ElevatedButton(
                                             onPressed: () {
                                               setState(() {
-                                                selectedRecipient =
+                                                selectedRecipientType =
                                                     RecipientType.authUser;
                                                 selectedRecipientDetails = '';
                                                 finalWebIdList = [
@@ -508,7 +508,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     ),
                                   ],
                                 ],
-                                if (recipientList
+                                if (recipientTypeList
                                     .contains(RecipientType.individual)) ...[
                                   Expanded(
                                     child: Container(
@@ -541,7 +541,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     ),
                                   ),
                                 ],
-                                if (recipientList
+                                if (recipientTypeList
                                     .contains(RecipientType.group)) ...[
                                   Expanded(
                                     child: Container(
@@ -575,7 +575,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                           smallGapV,
                           buildHeading(
-                            'Select the list of permissions',
+                            'Select the list of file access permissions',
                             17.0,
                             Colors.blueGrey,
                             8,
@@ -614,7 +614,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               child: const Text('Grant Permission'),
                               onPressed: () async {
                                 if (formKey.currentState!.validate()) {
-                                  if (selectedRecipient.type.isNotEmpty) {
+                                  if (selectedRecipientType.type.isNotEmpty) {
                                     if (selectedPermList.isNotEmpty) {
                                       final dataFile = widget.fileName ??
                                           formControllerFileName.text;
@@ -623,13 +623,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         dataFile,
                                         true,
                                         selectedPermList,
-                                        selectedRecipient,
+                                        selectedRecipientType,
                                         finalWebIdList as List,
                                         ownerWebId,
                                         context,
                                         widget.child,
                                         isExternalRes: widget.isExternalRes,
-                                        groupName: selectedRecipient ==
+                                        groupName: selectedRecipientType ==
                                                 RecipientType.group
                                             ? formControllerGroupName.text
                                                 .trim()
@@ -641,7 +641,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         if (!context.mounted) return;
                                         showSnackBar(
                                           context,
-                                          'Permission granted successfully!',
+                                          'File access permissions granted successfully!',
                                           Colors.green,
                                         );
                                         await _updatePermissions(dataFile);
@@ -659,22 +659,22 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         if (!context.mounted) return;
                                         showSnackBar(
                                           context,
-                                          'One or more WebIds you entered have not initialised their PODs yet!',
+                                          'The owner of one or more WebIds you entered have not initialised their PODs yet!',
                                           const Color.fromARGB(255, 204, 99, 1),
                                         );
                                       } else {
                                         await _alert(
-                                          'Please login first to update permission',
+                                          'Please login first to update file access permission',
                                         );
                                       }
                                     } else {
                                       await _alert(
-                                        'Please select one or more permissions',
+                                        'Please select one or more file access permissions',
                                       );
                                     }
                                   } else {
                                     await _alert(
-                                      'Please select a recipient',
+                                      'Please select a type of recipient',
                                     );
                                   }
                                 }
@@ -683,7 +683,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           ),
                           largeGapV,
                           buildHeading(
-                            'Granted permissions',
+                            'Granted file access permissions',
                             17.0,
                             Colors.blueGrey,
                             8,
@@ -763,8 +763,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 }
 
 /// Return recipient type based on a given String value
-RecipientType getRecType(String recipient) {
-  switch (recipient.toLowerCase()) {
+RecipientType getRecType(String recTypeStr) {
+  switch (recTypeStr.toLowerCase()) {
     case 'public':
       return RecipientType.public;
     case 'indi':
@@ -775,6 +775,6 @@ RecipientType getRecType(String recipient) {
       return RecipientType.group;
     default:
       throw Exception('Wrong recipient type given'
-          '\nRecipient: $recipient');
+          '\nRecipient: $recTypeStr');
   }
 }

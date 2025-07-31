@@ -196,7 +196,7 @@ AccessMode getAccessMode(String mode) {
   }
 }
 
-/// Type of access recipient to a resource
+/// Type of recipient receiving access to a resource
 
 enum RecipientType {
   /// Public
@@ -211,7 +211,7 @@ enum RecipientType {
   /// Group of WebIDs
   group('Group'),
 
-  /// No recipient
+  /// No recipient type
   none('');
 
   /// Constructor
