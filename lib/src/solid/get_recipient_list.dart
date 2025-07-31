@@ -53,10 +53,6 @@ Future<List<String>> getRecipientList(
   // Initialise the resource list and data
   final List<String> fileList;
   final dataMap = <String, dynamic>{};
-
-  // Initialise webID list
-  final webIdList = <String>[];
-  final List<String> uniqWebIdList;
   final Map<String, dynamic> tempMap;
 
   try {
@@ -72,22 +68,9 @@ Future<List<String>> getRecipientList(
         fileList: fileList,
       );
 
-      // Extract webIDs to list
-      for (final fileName in fileList) {
-        tempMap[fileName][authUserPred].keys.forEach((key) {
-          webIdList.add(key.toString());
-        });
-      }
-
-      // Derive unique WebIds
-      uniqWebIdList = webIdList.toSet().toList();
-      // debugPrint('Unique webIDs: $uniqWebIdList');
-
-      // Recipients = unique WebIds minus user
-      final uniqRecipWebIdList = uniqWebIdList;
-      uniqRecipWebIdList.removeAt(0);
-
-      // debugPrint('Unique webIDs (excl user): $uniqRecipWebIdList');
+      // Extract recipient webIDs to list
+      final uniqRecipWebIdList =
+          extractRecipWebIdList(tempMap, fileList: fileList);
 
       return uniqRecipWebIdList;
     } else {
@@ -99,4 +82,45 @@ Future<List<String>> getRecipientList(
     debugPrint(e.toString());
     rethrow;
   }
+}
+
+/// Extract the list of unique WebIds of recipients of the Pod user's
+/// files from the [dataFilesMap] containing acccess control lists for
+/// each file in the app data folder of the user's Pod.
+/// Where the first webId, on the unique WebId list aggregated
+/// across all their files, is assumed to be the user.
+///
+/// Parameters:
+///   [dataFilesMap] is the map of file names and access data.
+///   [fileList] is the list of files in the [dataFilesMap].
+List<String> extractRecipWebIdList(
+  Map<String, dynamic> dataFilesMap, {
+  List<String>? fileList,
+}) {
+  // Initialise webID list
+  final webIdList = <String>[];
+  final List<String> uniqWebIdList;
+
+  // If not supplied, extract fileList
+  fileList ??= dataFilesMap.keys.toList();
+
+  // Extract webIDs to list
+  for (final fileName in fileList) {
+    dataFilesMap[fileName][authUserPred].keys.forEach((key) {
+      webIdList.add(key.toString());
+    });
+  }
+
+  // Derive unique WebIds
+  uniqWebIdList = webIdList.toSet().toList();
+  // debugPrint('Unique webIDs: $uniqWebIdList');
+
+  // Recipients = unique WebIds minus user
+  // Assumes the first WebId is the user
+  final uniqRecipWebIdList = uniqWebIdList;
+  uniqRecipWebIdList.removeAt(0);
+
+  // debugPrint('Unique webIDs (excl user): $uniqRecipWebIdList');
+
+  return uniqRecipWebIdList;
 }

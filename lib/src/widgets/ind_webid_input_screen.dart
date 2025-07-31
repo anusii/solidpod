@@ -40,10 +40,20 @@ import 'package:solidpod/src/widgets/loading_screen.dart';
 ///
 class IndWebIdInputScreen extends StatefulWidget {
   /// Initialise widget variables.
-  const IndWebIdInputScreen({required this.onSubmitFunction, super.key});
+  const IndWebIdInputScreen({
+    required this.onSubmitFunction,
+    this.dataFilesMap = const {},
+    super.key,
+  });
 
   /// Function run on Submit button press.
   final Function onSubmitFunction;
+
+  /// Map of data files on a user's POD used to extract the
+  /// user's recipient list by the WebIdTextInputScreen.
+  /// If not provided, the file list must be read to obtain
+  /// the user's recipient list used in the WebIdTextInputScreen.
+  final Map<String, dynamic> dataFilesMap;
 
   @override
   State<IndWebIdInputScreen> createState() => _IndWebIdInputScreenState();
@@ -52,17 +62,26 @@ class IndWebIdInputScreen extends StatefulWidget {
 class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  /// Future comprising the unique recipient list of the user's Pod data
+  /// Future comprising the unique recipient WebId list of the user's Pod data.
   static Future<List<String>>? _asyncGetRecipList;
+
+  /// List of unique recipient WebId list of the user's Pod data.
+  List<String> uniqRecipWebIdList = [];
 
   @override
   void initState() {
-    _asyncGetRecipList = getRecipientList(
-      context,
-      IndWebIdInputScreen(
-        onSubmitFunction: widget.onSubmitFunction,
-      ),
-    );
+    // Retrieve files and derive unique recipient WebId list.
+    if (widget.dataFilesMap.isEmpty) {
+      _asyncGetRecipList = getRecipientList(
+        context,
+        IndWebIdInputScreen(
+          onSubmitFunction: widget.onSubmitFunction,
+        ),
+      );
+    } else {
+      // Extract unique recipient WebId list if file data provided.
+      uniqRecipWebIdList = extractRecipWebIdList(widget.dataFilesMap);
+    }
     super.initState();
   }
 
@@ -87,27 +106,33 @@ class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
     return Scaffold(
       key: _scaffoldKey,
       body: SafeArea(
-        child: FutureBuilder(
-          future: _asyncGetRecipList,
-          builder: (context, snapshot) {
-            Widget returnVal;
-            if (snapshot.connectionState == ConnectionState.done) {
-              return snapshot.data == null ||
-                      snapshot.data.toString() == 'null' ||
-                      snapshot.data == []
-                  // Load Individual WebId Input Dialog Screen without recipient list
-                  ? returnVal = _loadIndWebIdTextInput(widget.onSubmitFunction)
-                  // Load Individual WebId Input Dialog Screen with recipient list
-                  : returnVal = _loadIndWebIdTextInput(
-                      widget.onSubmitFunction,
-                      snapshot.data!,
-                    );
-            } else {
-              returnVal = loadingScreen(normalLoadingScreenHeight);
-            }
-            return returnVal;
-          },
-        ),
+        child: (widget.dataFilesMap.isNotEmpty)
+            ? _loadIndWebIdTextInput(
+                widget.onSubmitFunction,
+                uniqRecipWebIdList,
+              )
+            : FutureBuilder(
+                future: _asyncGetRecipList,
+                builder: (context, snapshot) {
+                  Widget returnVal;
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return snapshot.data == null ||
+                            snapshot.data.toString() == 'null' ||
+                            snapshot.data == []
+                        // Load Individual WebId Input Dialog Screen without recipient list
+                        ? returnVal =
+                            _loadIndWebIdTextInput(widget.onSubmitFunction)
+                        // Load Individual WebId Input Dialog Screen with recipient list
+                        : returnVal = _loadIndWebIdTextInput(
+                            widget.onSubmitFunction,
+                            snapshot.data!,
+                          );
+                  } else {
+                    returnVal = loadingScreen(normalLoadingScreenHeight);
+                  }
+                  return returnVal;
+                },
+              ),
       ),
     );
   }

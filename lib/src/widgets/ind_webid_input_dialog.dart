@@ -83,7 +83,6 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   @override
   void initState() {
     webIdList = widget.uniqRecipWebIdList ?? [];
-    debugPrint('INSIDE WEBID INPUT DIALOG initState()');
     super.initState();
   }
 
@@ -293,12 +292,14 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
 Future<dynamic> indWebIdInputDialog(
   BuildContext context,
   Function onSubmitFunction,
+  Map<String, dynamic> dataFilesMap,
 ) {
   return showDialog(
     context: context,
     builder: (context) {
       return IndWebIdInputScreen(
         onSubmitFunction: onSubmitFunction,
+        dataFilesMap: dataFilesMap,
       );
     },
   );
