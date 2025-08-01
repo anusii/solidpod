@@ -39,7 +39,7 @@ import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:path/path.dart' as path;
+
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
@@ -655,8 +655,9 @@ String getDateTime(String dateTimeStr) {
 
 Future<String> normalizeFilePath(String filePath, String? basePath) async {
   // Normalise path separators for cross-platform compatibility.
+  // Always use forward slash for consistency in URLs.
 
-  final normalizedInput = filePath.replaceAll(path.separator, '/');
+  final normalizedInput = filePath.replaceAll('\\', '/');
 
   // Use provided path or default to appname/data.
 

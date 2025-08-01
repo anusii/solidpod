@@ -30,7 +30,7 @@
 
 library;
 
-import 'dart:io' show Platform;
+
 
 import 'package:flutter/material.dart' hide Key;
 
@@ -68,10 +68,11 @@ Future<SolidFunctionCallStatus> writePod(
   Widget child, {
   bool encrypted = true,
 }) async {
-  // Sanity check
+  // Sanity check - ensure fileName doesn't end with path separators
+  // The normalizeFilePath function will handle path separator normalization
 
-  assert(!fileName.endsWith(Platform.pathSeparator));
   assert(!fileName.endsWith('/'));
+  assert(!fileName.endsWith('\\'));
 
   final loggedIn = await loginIfRequired(context);
 
