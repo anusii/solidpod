@@ -32,6 +32,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/is_phone.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
@@ -138,7 +139,8 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
       insetPadding: WebIdLayout.contentPadding,
       title: const Text('WebID of the individual recipient'),
       content: SizedBox(
-        // width: WebIdLayout.dialogWidth,
+        // Use full width on phones, else use a preset narrower width
+        width: (!isPhone()) ? WebIdLayout.dialogWidth : double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
