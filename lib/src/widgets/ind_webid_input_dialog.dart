@@ -134,15 +134,11 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('Dialog width: ${MediaQuery.of(context).size.width}');
-    debugPrint('Dialog heigth: ${MediaQuery.of(context).size.height}');
-
     return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 50),
+      insetPadding: WebIdLayout.contentPadding,
       title: const Text('WebID of the individual recipient'),
       content: SizedBox(
-        height: 400,
-        width: 500, // or double.maxFinite
+        // width: WebIdLayout.dialogWidth,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,7 +149,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
             ),
             // Show an example WebId that remains visible once user is typing
             const Text('Eg: $demoWebID'),
-            const SizedBox(height: 10),
+            WebIdLayout.paraVertGap,
             const Text('Type their WebId or select a recently used WebId.'),
             const SizedBox(height: 20),
             // Web ID text field
@@ -174,7 +170,8 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
                 filterSuggestions(value);
               }),
             ),
-            const SizedBox(height: 10),
+            // const SizedBox(height: 10),
+            WebIdLayout.paraVertGap,
             if (webIdList.isNotEmpty) ...[
               if (suggestionList.isNotEmpty ||
                   formControllerWebId.text.isNotEmpty) ...[
@@ -191,7 +188,6 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
         TextButton(
           onPressed: () async {
             final receiverWebId = formControllerWebId.text.trim();
-            debugPrint('Submitted: receiverWebId for onSubmit checks');
 
             // User has entered WebId text that satisfies error checks
             if (receiverWebId.isNotEmpty && _helpText == null) {
@@ -241,20 +237,15 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   }
 
   SizedBox boxedSuggestionList(BuildContext context, List<String> idList) {
-    debugPrint('Suggestions width: ${MediaQuery.of(context).size.width * 0.6}');
-    debugPrint('Suggestions height: 120');
-
     return SizedBox(
-      // width: MediaQuery.of(context).size.width * 0.6, // or double.
-      // maxFinite
       width: double.maxFinite,
-      height: 120,
+      height: WebIdLayout.dropdownHeight,
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+        padding: WebIdLayout.listPadding,
         itemCount: idList.length,
         itemBuilder: (context, index) {
           return Card(
-            elevation: 5,
+            elevation: WebIdLayout.dropdownElevation,
             child: ListTile(
               title: Text(idList[index]),
               focusColor: SecurityColors.primary,
