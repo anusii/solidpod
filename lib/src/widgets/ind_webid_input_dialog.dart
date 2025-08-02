@@ -141,8 +141,8 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
       insetPadding: const EdgeInsets.symmetric(horizontal: 50),
       title: const Text('WebID of the individual recipient'),
       content: SizedBox(
-        height: MediaQuery.of(context).size.width * 0.6,
-        width: MediaQuery.of(context).size.width * 0.8, // or double.maxFinite
+        height: 400,
+        width: 500, // or double.maxFinite
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -153,6 +153,8 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
             ),
             // Show an example WebId that remains visible once user is typing
             const Text('Eg: $demoWebID'),
+            const SizedBox(height: 10),
+            const Text('Type their WebId or select a recently used WebId.'),
             const SizedBox(height: 20),
             // Web ID text field
             TextFormField(
@@ -239,11 +241,13 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   }
 
   SizedBox boxedSuggestionList(BuildContext context, List<String> idList) {
-    debugPrint('Suggestions width: ${MediaQuery.of(context).size.width}');
-    debugPrint('Suggestions height: ${MediaQuery.of(context).size.height}');
+    debugPrint('Suggestions width: ${MediaQuery.of(context).size.width * 0.6}');
+    debugPrint('Suggestions height: 120');
 
     return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.6, // or double.maxFinite
+      // width: MediaQuery.of(context).size.width * 0.6, // or double.
+      // maxFinite
+      width: double.maxFinite,
       height: 120,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
