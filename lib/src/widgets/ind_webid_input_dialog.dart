@@ -246,7 +246,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
       width: MediaQuery.of(context).size.width * 0.6, // or double.maxFinite
       height: 120,
       child: ListView.builder(
-        padding: const EdgeInsets.all(10),
+        padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
         itemCount: idList.length,
         itemBuilder: (context, index) {
           return Card(
