@@ -134,6 +134,9 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('Dialog width: ${MediaQuery.of(context).size.width}');
+    debugPrint('Dialog heigth: ${MediaQuery.of(context).size.height}');
+
     return AlertDialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 50),
       title: const Text('WebID of the individual recipient'),
@@ -177,29 +180,6 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
                 boxedSuggestionList(context, suggestionList),
               ] else ...[
                 boxedSuggestionList(context, webIdList),
-                // SizedBox(
-                //   width: MediaQuery.of(context).size.width *
-                //       0.6, // or double.maxFinite
-                //   height: 120,
-                //   child: ListView.separated(
-                //     padding: const EdgeInsets.all(10),
-                //     itemCount: webIdList.length,
-                //     separatorBuilder: (context, index) => const Divider(),
-                //     itemBuilder: (context, index) {
-                //       return ListTile(
-                //         title: Text(webIdList[index]),
-                //         hoverColor: DropdownColors.accent,
-                //         splashColor: DropdownColors.primary,
-                //         onTap: () => setState(() {
-                //           // User has started entering text
-                //           _textEntered = true;
-                //           formControllerWebId.text = webIdList[index];
-                //         }),
-                //       );
-                //     },
-                //   ),
-                //   // ),
-                // ),
               ],
             ],
           ],
@@ -259,24 +239,29 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   }
 
   SizedBox boxedSuggestionList(BuildContext context, List<String> idList) {
+    debugPrint('Suggestions width: ${MediaQuery.of(context).size.width}');
+    debugPrint('Suggestions height: ${MediaQuery.of(context).size.height}');
+
     return SizedBox(
       width: MediaQuery.of(context).size.width * 0.6, // or double.maxFinite
       height: 120,
-      child: ListView.separated(
+      child: ListView.builder(
         padding: const EdgeInsets.all(10),
         itemCount: idList.length,
-        separatorBuilder: (context, index) => const Divider(),
         itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(idList[index]),
-            focusColor: SecurityColors.primary,
-            hoverColor: DropdownColors.accent,
-            splashColor: DropdownColors.primary,
-            onTap: () => setState(() {
-              // User has started entering text
-              _textEntered = true;
-              formControllerWebId.text = idList[index];
-            }),
+          return Card(
+            elevation: 5,
+            child: ListTile(
+              title: Text(idList[index]),
+              focusColor: SecurityColors.primary,
+              hoverColor: DropdownColors.accent,
+              splashColor: DropdownColors.primary,
+              onTap: () => setState(() {
+                // User has started entering text
+                _textEntered = true;
+                formControllerWebId.text = idList[index];
+              }),
+            ),
           );
         },
       ),
