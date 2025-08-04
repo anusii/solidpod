@@ -30,8 +30,6 @@
 
 library;
 
-
-
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';

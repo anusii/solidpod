@@ -35,9 +35,9 @@ import 'package:window_manager/window_manager.dart';
 void main() async {
   // Remove [debugPrint] messages from production code.
 
-  // debugPrint = (String? message, {int? wrapWidth}) {
-  //   null;
-  // };
+  debugPrint = (String? message, {int? wrapWidth}) {
+    null;
+  };
 
   // Suport window size and top placement for desktop apps.
 
