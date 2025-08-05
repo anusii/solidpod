@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ WEB: Bug fix for utf8 char [0.7.5 20250805 atangster]
 + API deleteDataFile() -> deleteDataFileDialog() [0.7.4 20250728 anushkavidanage]
 + API GrantPermissionUI recipientList -> recipientTypeList [0.7.3 20250725 jesscmoore]
 + Support user typing a WebID in SHARE [0.7.2 20250722 jesscmoore]

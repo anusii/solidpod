@@ -2,7 +2,7 @@
 #
 # Makefile template for Flutter
 #
-# Copyright 2021 (c) Graham.Williams@togaware.com
+# Copyright 2021-2025 (c) Graham.Williams@togaware.com
 #
 # License: Creative Commons Attribution-ShareAlike 4.0 International.
 #
@@ -14,7 +14,7 @@
 #   Trivial update or bug fix
 
 ifeq ($(VER),)
-  VER = $(shell egrep '^version:' pubspec.yaml | cut -d' ' -f2)
+  VER = $(if $(wildcard pubspec.yaml),$(shell egrep '^version:' pubspec.yaml | cut -d' ' -f2),)
 endif
 
 define FLUTTER_HELP
@@ -35,6 +35,8 @@ flutter:
   import_order_fix  Run import order fixing.
 
   pubspec         Choose actual/local pubspec using meld.
+  pubspec.local   Overwrite with local pubspec.
+  pubspec.actual  Overwrite with actual pubspec.
 
   fix             Run `dart fix --apply`.
   format          Run `dart format`.
@@ -124,7 +126,7 @@ linux_config:
 	flutter config --enable-linux-desktop
 
 .PHONY: prep
-prep: analyze fix import_order_fix format ignore license todo depend
+prep: analyze fix import_order_fix format ignore license todo depend bakfind
 	@echo "ADVISORY: make tests docs"
 	@echo $(SEPARATOR)
 
@@ -139,6 +141,14 @@ SEPARATOR="---------------------------------------------------------------------
 pubspec:
 	meld pubspec.yaml.actual pubspec.yaml pubspec.yaml.local
 
+.PHONY: pubspec.local
+pubspec.local:
+	cp --backup pubspec.yaml.local pubspec.yaml
+
+.PHONY: pubspec.actual
+pubspec.actual:
+	cp --backup pubspec.yaml.actual pubspec.yaml
+
 .PHONY: fix
 fix:
 	@echo "Dart: FIX"
@@ -152,6 +162,12 @@ format:
 	@echo $(SEPARATOR)
 
 # My emacs IDE is starting to add imports of backups automagically!
+
+.PHONY: bakfind
+bakfind:
+	@echo "Find imports of backups.\n"
+	@-! find lib -type f -name '*.dart' -exec grep '\.dart\.~\([0-9]\)~' {} +
+	@echo $(SEPARATOR)
 
 .PHONY: bakfix
 bakfix:
@@ -173,7 +189,7 @@ analyze:
 
 .PHONY: depend
 depend:
-	@echo "Review pubspec.yaml dependencies."
+	@echo "Dart: REVIEW DEPENDENCIES."
 	-dependency_validator
 	@echo $(SEPARATOR)
 
@@ -192,7 +208,8 @@ todo:
 .PHONY: license
 license:
 	@echo "Files without a LICENSE:\n"
-	@-find lib -type f -not -name '*~' ! -exec grep -qE '^(/// .*|/// Copyright|/// Licensed)' {} \; -print | xargs printf "\t%s\n"
+	@-find lib -type f -not -name '*~' -not -name 'README*' \
+	! -exec grep -qE '^(/// .*|/// Copyright|/// Licensed)' {} \; -print | xargs printf "\t%s\n"
 	@echo $(SEPARATOR)
 
 .PHONY: riverpod
@@ -371,13 +388,13 @@ publish:
 .PHONY: import_order
 import_order:
 	@echo "Dart: CHECK IMPORT ORDER"
-	dart run custom_lint
+	import_order --check
 	@echo $(SEPARATOR)
 
 .PHONY: import_order_fix
 import_order_fix:
 	@echo "Dart: FIX IMPORT ORDER"
-	fix_imports --project-name=$(APP) -r lib
+	import_order
 	@echo $(SEPARATOR)
 
 ### TODO THESE SHOULD BE CHECKED AND CLEANED UP
@@ -392,11 +409,12 @@ versions:
 	perl -pi -e 's|applicationVersion = ".*";|applicationVersion = "$(VER)";|' \
 	lib/constants/app.dart
 
-.PHONY: wc
-wc: lib/*.dart
+.PHONY: loc
+loc: lib/*.dart
 	@cat $(shell find lib -name '*.dart') \
 	| egrep -v '^ */' \
 	| egrep -v '^ *$$' \
+	| egrep -v '^ *[)},]+, *$$' \
 	| wc -l
 
 #
