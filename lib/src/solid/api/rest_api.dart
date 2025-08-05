@@ -35,7 +35,7 @@ library;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:http/http.dart' as http;
 import 'package:mime/mime.dart' as mime;
@@ -224,7 +224,7 @@ Future<void> createResource(
       if (!put) 'Slug': name,
       'DPoP': dPopToken,
     },
-    body: kIsWeb && content is String ? utf8.encode(content) : content,
+    body: content is String ? utf8.encode(content) : content,
   );
 
   if ([200, 201, 205].contains(response.statusCode)) {
@@ -378,7 +378,7 @@ Future<void> updateFileByQuery(
       'Content-Length': utf8.encode(query).length.toString(),
       'DPoP': dPopToken,
     },
-    body: kIsWeb ? utf8.encode(query) : query,
+    body: utf8.encode(query),
   );
 
   if (editResponse.statusCode != 200 && editResponse.statusCode != 205) {
@@ -412,7 +412,7 @@ Future<void> initialProfileUpdate(String profBody) async {
       'Content-Length': utf8.encode(profBody).length.toString(),
       'DPoP': dPopToken,
     },
-    body: kIsWeb ? utf8.encode(profBody) : profBody,
+    body: utf8.encode(profBody),
   );
 
   if (updateResponse.statusCode != 200 && updateResponse.statusCode != 205) {
@@ -547,7 +547,7 @@ Future<String> updateAclFileContent(
       'Content-Length': utf8.encode(aclFileContent).length.toString(),
       'DPoP': dPopToken,
     },
-    body: kIsWeb ? utf8.encode(aclFileContent) : aclFileContent,
+    body: utf8.encode(aclFileContent),
   );
 
   if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {
