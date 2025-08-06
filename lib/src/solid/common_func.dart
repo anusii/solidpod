@@ -149,7 +149,7 @@ Future<void> getKeyFromUserIfRequired(
 /// Delete a data file (and its ACL file if exist), remove its individual key
 /// and the corresponding IV from the ind-key-file
 
-Future<void> deleteDataFile(
+Future<void> deleteDataFileDialog(
   String fileName,
   BuildContext context, {
   ResourceContentType contentType = ResourceContentType.turtleText,

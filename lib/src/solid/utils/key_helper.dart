@@ -40,10 +40,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
-import 'package:pointycastle/asymmetric/api.dart';
-//import 'package:encrypt/encrypt.dart' hide RSA;
 import 'package:encrypt/encrypt.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
+import 'package:pointycastle/asymmetric/api.dart';
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -565,12 +564,17 @@ class KeyManager {
       assert(record != null);
 
       // Delete shared key from shared keys file
-      await _delSharedIndKey(resUniqueId, record!.encKey, record.encFilePath,
-          record.encAccessList);
+      await _delSharedIndKey(
+        resUniqueId,
+        record!.encKey,
+        record.encFilePath,
+        record.encAccessList,
+      );
       debugPrint('Deleted $record');
     } else {
       debugPrint(
-          'Individual key for "$resourceUrl" does not exist, do nothing.');
+        'Individual key for "$resourceUrl" does not exist, do nothing.',
+      );
     }
   }
 

@@ -32,30 +32,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:intl/intl.dart';
-
-import 'package:solidpod/solidpod.dart'
-    show
-        AppInfo,
-        GrantPermissionUi,
-        KeyManager,
-        SharedResourcesUi,
-        changeKeyPopup,
-        deleteDataFile,
-        deleteLogIn,
-        getDataDirPath,
-        getEncKeyPath,
-        getWebId,
-        loginIfRequired,
-        logoutPopup,
-        readPod,
-        getKeyFromUserIfRequired;
-
-// Import the setup wizard components directly for demonstration.
-
-// ignore: implementation_imports
-import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
-
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
@@ -64,6 +40,24 @@ import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
+import 'package:intl/intl.dart';
+import 'package:solidpod/solidpod.dart'
+    show
+        AppInfo,
+        GrantPermissionUi,
+        KeyManager,
+        SharedResourcesUi,
+        changeKeyPopup,
+        deleteDataFileDialog,
+        deleteLogIn,
+        getDataDirPath,
+        getWebId,
+        loginIfRequired,
+        logoutPopup,
+        readPod,
+        readEncryptionKeyContent,
+        getKeyFromUserIfRequired;
+import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -109,15 +103,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       _isLoading = true;
     });
 
-    // final appName = await getAppName();
     try {
-      // final filePath = '$appName/encryption/enc-keys.ttl';
-      final filePath = await getEncKeyPath();
-      final fileContent = await readPod(
-        filePath,
-        context,
-        widget,
-      );
+      // Use the new readEncryptionKeyContent function instead of readPod.
+
+      final fileContent = await readEncryptionKeyContent();
 
       //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
       await Navigator.push(
@@ -379,7 +368,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         // SolidPod API: deleteDataFile()
                         ElevatedButton(
                             onPressed: () async =>
-                                deleteDataFile(dataFile, context),
+                                deleteDataFileDialog(dataFile, context),
                             child: const Text('Delete Pod Data File')),
                         smallGapV,
 
@@ -550,7 +539,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 backgroundColor: titleBackgroundColor,
                                 fileName: 'key-value.ttl',
                                 // accessModeList: ['read', 'write'],
-                                // recipientList: ['indi', 'group'],
+                                // recipientTypeList: ['indi', 'group'],
                                 child: Home(),
                               ),
                             ),

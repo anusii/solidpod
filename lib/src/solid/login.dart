@@ -1,8 +1,8 @@
-/// A widget to obtain a Solid token to access the user's POD.
+/// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Wednesday 2025-04-30 15:52:42 +1000 Graham Williams>
+// Time-stamp: <Tuesday 2025-07-22 11:12:42 +1000 Graham Williams>
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -26,29 +26,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Graham Williams, Anushka Vidanage
+/// Authors: Graham Williams, Anushka Vidanage, Ashley Tang
+
 library;
 
 // ignore_for_file: public_member_api_docs
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:solidpod/src/solid/authenticate.dart';
-import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart';
-
-// TODO 20240515 gjw Eventually remove the show - using for now to support API
-// development.
-
+import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
+import 'package:solidpod/src/solid/authenticate.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
     show
         generateDefaultFiles,
         generateDefaultFolders,
         getAppNameVersion,
-        setAppDirName;
+        setAppDirName,
+        checkLoggedIn;
+import 'package:solidpod/src/widgets/show_animation_dialog.dart';
+import 'package:solidpod/src/widgets/snackbar_config.dart';
 
 // Screen size support functions to identify narrow and very narrow screens. The
 // width dictates whether the Login panel is laid out on the right with the app
@@ -110,14 +110,17 @@ class SolidLogin extends StatefulWidget {
 
   const SolidLogin({
     // Include the literals here so that they are exposed through the docs.
-
     required this.child,
     this.required = true,
     this.appDirectory = '',
-    this.image =
-        const AssetImage('assets/images/default_image.jpg', package: 'solid'),
-    this.logo =
-        const AssetImage('assets/images/default_logo.png', package: 'solid'),
+    this.image = const AssetImage(
+      'assets/images/default_image.jpg',
+      package: 'solid',
+    ),
+    this.logo = const AssetImage(
+      'assets/images/default_logo.png',
+      package: 'solid',
+    ),
     this.title = 'Log in to your Solid Pod',
     this.webID = 'https://pods.solidcommunity.au',
     this.link = 'https://solidproject.org',
@@ -127,7 +130,7 @@ class SolidLogin extends StatefulWidget {
     this.registerButtonStyle = const RegisterButtonStyle(),
     this.changeKeyButtonStyle = const ChangeKeyButtonStyle(),
     this.themeConfig = const SolidLoginTheme(),
-    // this.secureKeyObject = const SecureKey('', ''),
+    this.snackbarConfig = const SnackbarConfig(),
     super.key,
   });
 
@@ -197,6 +200,10 @@ class SolidLogin extends StatefulWidget {
 
   final SolidLoginTheme themeConfig;
 
+  /// Snackbar configuration for login notifications.
+
+  final SnackbarConfig snackbarConfig;
+
   @override
   State<SolidLogin> createState() => _SolidLoginState();
 }
@@ -234,9 +241,20 @@ class _SolidLoginState extends State<SolidLogin> {
   // Fetch the package information.
 
   Future<void> _initPackageInfo() async {
+    // Check if widget is still mounted before starting any async operations.
+    // This prevents unnecessary work if the widget has been disposed.
+
+    if (!mounted) return;
+
     await setAppDirName(widget.appDirectory);
     final folders = await generateDefaultFolders();
     final files = await generateDefaultFiles();
+
+    // Check if widget is still mounted after async operations and before setState.
+    // This prevents "setState() called after dispose()" errors that can occur
+    // if the widget was disposed while async operations were running.
+
+    if (!mounted) return;
 
     setState(() {
       defaultFolders = folders;
@@ -246,6 +264,13 @@ class _SolidLoginState extends State<SolidLogin> {
     // Fetch the app information.
 
     final appInfo = await getAppNameVersion();
+
+    // Check if widget is still mounted after final async operation and before setState.
+    // This ensures we don't call setState on a disposed widget, which would throw
+    // a FlutterError and potentially crash the app.
+
+    if (!mounted) return;
+
     setState(() {
       appName = appInfo.name;
       appVersion = appInfo.version;
@@ -260,6 +285,49 @@ class _SolidLoginState extends State<SolidLogin> {
         _isDialogCanceled = true;
       });
     }
+  }
+
+  // Helper method to create and show a snackbar with consistent theming.
+
+  void _showSnackbar(String message, {Duration? duration}) {
+    final currentTheme = _isDarkMode
+        ? widget.themeConfig.darkTheme
+        : widget.themeConfig.lightTheme;
+
+    final backgroundColor = widget.snackbarConfig.backgroundColor ??
+        (_isDarkMode
+            ? currentTheme.backgroundColor.withValues(alpha: 0.9)
+            : currentTheme.backgroundColor.withValues(alpha: 0.7));
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: TextStyle(
+            color: widget.snackbarConfig.textColor != Colors.black
+                ? widget.snackbarConfig.textColor
+                : currentTheme.textColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        duration: duration ?? widget.snackbarConfig.duration,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: backgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            widget.snackbarConfig.borderRadius,
+          ),
+          side: BorderSide(color: currentTheme.dividerColor, width: 0.5),
+        ),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: widget.snackbarConfig.actionTextColor != Colors.black
+              ? widget.snackbarConfig.actionTextColor
+              : currentTheme.titleColor,
+          onPressed: () {},
+        ),
+      ),
+    );
   }
 
   // Toggle between light and dark mode.
@@ -282,10 +350,7 @@ class _SolidLoginState extends State<SolidLogin> {
     // depending on screen width.
 
     final loginBoxDecor = BoxDecoration(
-      image: DecorationImage(
-        image: widget.image,
-        fit: BoxFit.cover,
-      ),
+      image: DecorationImage(image: widget.image, fit: BoxFit.cover),
     );
 
     // Text controller for the URI of the solid server to which an authenticate
@@ -344,8 +409,6 @@ class _SolidLoginState extends State<SolidLogin> {
           );
         }
 
-        showBusyAnimation();
-
         if (_isDialogCanceled) return;
 
         // Get webId from the textfield or assign a default one.
@@ -354,87 +417,120 @@ class _SolidLoginState extends State<SolidLogin> {
             ? webIdController.text
             : widget.webID;
 
+        // Check if user is already logged in before attempting authentication.
+
+        final wasAlreadyLoggedIn = await checkLoggedIn();
+
+        if (!context.mounted) return;
+
+        // Only show the browser login instructions if user is not already logged in.
+
+        if (!wasAlreadyLoggedIn) {
+          // Use a longer duration for this snackbar since it's replacing the login animation.
+          const loginDuration = Duration(seconds: 30);
+          _showSnackbar(
+            'Please complete the login process in your browser...',
+            duration: loginDuration,
+          );
+
+          // Show the animation after the snackbar.
+
+          await Future.delayed(const Duration(milliseconds: 500));
+          showBusyAnimation();
+        }
+
         // Perform the actual authentication by contacting the server at
         // [WebID].
 
+        if (!context.mounted) return;
         final authResult = await solidAuthenticate(podServer, context);
 
-        // Navigates to the Initial Setup Screen using the provided authentication data.
+        // If authentication succeeded and the user was already logged in,
+        // it means they are using a cached session.
 
-        Future<void> navInitialSetupScreen(List<dynamic> resCheckList) async {
-          // Close the animation dialog before navigating away.
-
-          Navigator.of(context, rootNavigator: true).pop();
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => InitialSetupScreen(
-                resCheckList: resCheckList,
-                child: widget.child,
-                originalLogin: widget,
-              ),
-            ),
-          );
-        }
-
-        // Navigates to the Home Screen if the account exits.
-
-        Future<void> navHomeScreen() async {
-          // Close the animation dialog before navigating away.
-
-          Navigator.of(context, rootNavigator: true).pop();
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget.child),
-          );
-        }
-
-        // Method to navigate to the child widget, requiring BuildContext, and
-        // so avoiding the "don't use BuildContext across async gaps" warning.
-
-        Future<void> navigateToApp() async {
-          final resCheckList =
-              await initialStructureTest(defaultFolders, defaultFiles);
-          final allExists = resCheckList.first as bool;
-
-          // if (context.mounted) {
-          //   Navigator.of(context, rootNavigator: true).pop();
-          // }
-
-          if (!allExists) {
-            await navInitialSetupScreen(resCheckList);
-          } else {
-            await navHomeScreen();
-          }
-        }
-
-        // Method to navigate back to the login widget, requiring BuildContext,
-        // and so avoiding the "don't use BuildContext across async gaps"
-        // warning.
-
-        void navigateToLogin() {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget),
-          );
-        }
+        final isCachedSession =
+            wasAlreadyLoggedIn && authResult != null && authResult.isNotEmpty;
 
         // Check that the authentication succeeded, and if so navigate to the
         // app itself. If it failed then notify the user and stay on the
         // SolidLogin page.
 
         if (authResult != null && authResult.isNotEmpty) {
-          await navigateToApp();
+          if (!context.mounted) return;
+
+          // Close the animation dialog before proceeding.
+
+          if (!wasAlreadyLoggedIn) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          // Dismiss the login process snackbar.
+
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+          // If using a cached session, show snackbar informing about it.
+
+          if (isCachedSession) {
+            _showSnackbar(
+              'Logged in with your previously saved session.',
+              duration: Duration(seconds: 2),
+            );
+
+            // Short delay to allow snackbar to be visible.
+
+            await Future.delayed(const Duration(milliseconds: 300));
+          }
+
+          // Navigate to the appropriate screen based on structure test.
+
+          final resCheckList = await initialStructureTest(
+            defaultFolders,
+            defaultFiles,
+          );
+          final allExists = resCheckList.first as bool;
+
+          if (!context.mounted) return;
+
+          if (!allExists) {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InitialSetupScreen(
+                  resCheckList: resCheckList,
+                  originalLogin: widget,
+                  child: widget.child,
+                ),
+              ),
+            );
+          } else {
+            await Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => widget.child),
+            );
+          }
         } else {
           // On moving to using navigateToLogin() the previously implemented
           // asynchronous showAuthFailedPopup() is lost due to the immediately
           // following Navigator. We probably don't need a popup and so the code
           // is much simpler and the user interaction is probably clear enough
           // for now that for some reason we remain on the Login screen. If
-          // there are non-obvious scneraiors where we fail to authenticate and
+          // there are non-obvious scnerairos where we fail to authenticate and
           // revert to the login screen then we can capture and report them
           // later.
-          navigateToLogin();
+
+          if (!context.mounted) return;
+
+          // Close the animation dialog before navigating back to login.
+          if (!wasAlreadyLoggedIn) {
+            Navigator.of(context, rootNavigator: true).pop();
+          }
+
+          // Navigate back to the login screen after authentication failed.
+
+          await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget),
+          );
         }
       },
     );
@@ -499,21 +595,10 @@ class _SolidLoginState extends State<SolidLogin> {
       color: currentTheme.backgroundColor,
       child: Column(
         children: [
-          Image(
-            image: widget.logo,
-            width: 200,
-          ),
-          const SizedBox(
-            height: 0.0,
-          ),
-          Divider(
-            height: 15,
-            thickness: 2,
-            color: currentTheme.dividerColor,
-          ),
-          const SizedBox(
-            height: 50.0,
-          ),
+          Image(image: widget.logo, width: 200),
+          const SizedBox(height: 0.0),
+          Divider(height: 15, thickness: 2, color: currentTheme.dividerColor),
+          const SizedBox(height: 50.0),
           Text(
             widget.title,
             textAlign: TextAlign.center,
@@ -523,9 +608,7 @@ class _SolidLoginState extends State<SolidLogin> {
               color: currentTheme.titleColor,
             ),
           ),
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
           TextFormField(
             controller: webIdController,
             style: TextStyle(color: currentTheme.textColor),
@@ -541,35 +624,24 @@ class _SolidLoginState extends State<SolidLogin> {
               ),
             ),
           ),
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
 
           Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: loginButton,
-                  ),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
+                  Expanded(child: loginButton),
+                  const SizedBox(width: 15.0),
                   Expanded(
                     child: widget.required ? registerButton : continueButton,
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 15.0,
-              ),
+              const SizedBox(height: 15.0),
               Row(
                 children: [
-                  if (!widget.required)
-                    Expanded(
-                      child: registerButton,
-                    ),
+                  if (!widget.required) Expanded(child: registerButton),
                   if (widget.required)
                     Expanded(
                       child: SizedBox(
@@ -577,28 +649,19 @@ class _SolidLoginState extends State<SolidLogin> {
                         child: infoButton,
                       ),
                     ),
-                  const SizedBox(
-                    width: 15.0,
-                  ),
+                  const SizedBox(width: 15.0),
                   widget.required
                       ? const Spacer()
-                      : Expanded(
-                          child: infoButton,
-                        ),
+                      : Expanded(child: infoButton),
                 ],
               ),
-              const SizedBox(
-                height: 15.0,
-              ),
+              const SizedBox(height: 15.0),
             ],
           ),
 
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
 
           // Expand to the bottom of the login panel.
-
           Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -607,9 +670,7 @@ class _SolidLoginState extends State<SolidLogin> {
                 child: Center(
                   child: SelectableText(
                     'Version $appVersion',
-                    style: TextStyle(
-                      color: currentTheme.versionTextColor,
-                    ),
+                    style: TextStyle(color: currentTheme.versionTextColor),
                   ),
                 ),
               ),
@@ -661,8 +722,9 @@ class _SolidLoginState extends State<SolidLogin> {
           elevation: 50,
           color: currentTheme.cardColor,
           shadowColor: currentTheme.shadowColor,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
           child: loginPanelDecor, //actualChildEventually,
         ),
       ),
@@ -675,13 +737,11 @@ class _SolidLoginState extends State<SolidLogin> {
     return Scaffold(
       // TODO 20231228 gjw SOMEONE PLEASE EXPLAIN WHY USING A SafeArea
       // HERE. WHAT MOTIVATED ITS USE?
-
       body: SafeArea(
         child: DecoratedBox(
           // The image specified as [loginBoxDecor] is used as the background
           // for a narrow screen or else it is the left panel image as specified
           // shortly, and we create an empty BoxDecoration here in that case.
-
           decoration:
               _isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
           child: Row(
@@ -690,14 +750,9 @@ class _SolidLoginState extends State<SolidLogin> {
                   ? Container()
                   : Expanded(
                       flex: 7,
-                      child: Container(
-                        decoration: loginBoxDecor,
-                      ),
+                      child: Container(decoration: loginBoxDecor),
                     ),
-              Expanded(
-                flex: 5,
-                child: loginPanel,
-              ),
+              Expanded(flex: 5, child: loginPanel),
             ],
           ),
         ),
@@ -731,35 +786,27 @@ class PodButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
+    return MarkdownTooltip(
       message: tooltip,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: background,
           foregroundColor: foreground,
-          // Add a solid border to make buttons more visible.
 
-          side: BorderSide(
-            color: Colors.grey.shade400,
-          ),
+          // Add a solid border to make buttons more visible.
+          side: BorderSide(color: Colors.grey.shade400),
 
           // Apply rounded corners consistent with card style.
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
 
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
           // Increase vertical padding.
-
           padding: const EdgeInsets.symmetric(vertical: 12),
-          // Ensure a minimum size of 48px in height as per guidelines.
 
+          // Ensure a minimum size of 48px in height as per guidelines.
           minimumSize: const Size(88, 48),
         ),
-        child: Text(
-          text,
-          style: buttonTextStyle,
-        ),
+        child: Text(text, style: buttonTextStyle),
       ),
     );
   }
@@ -892,10 +939,6 @@ class SolidLoginTheme {
       shadowColor: Colors.black87,
       titleColor: Colors.white,
       textColor: Colors.white,
-      hintColor: Colors.grey,
-      dividerColor: Colors.grey,
-      inputBorderColor: Colors.grey,
-      versionTextColor: Colors.grey,
     ),
   });
 

@@ -33,7 +33,6 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:solid_auth/solid_auth.dart' show genDpopToken;
-// ignore: implementation_imports
 import 'package:solid_auth/src/openid/openid_client.dart'
     show Credential, TokenResponse;
 
@@ -54,8 +53,9 @@ class AuthDataManager {
   /// The URL for logging out
   static String? _logoutUrl;
 
-  /// The RSA keypair and their JWK format
-  /// It seems Map<String, dynamic> does not work
+  /// The RSA keypair and their JWK format.
+  //
+  // It seems [String] as the first between the angle brackets does not work
   static Map<dynamic, dynamic>? _rsaInfo;
 
   /// The authentication response
@@ -65,7 +65,8 @@ class AuthDataManager {
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
   /// Save the auth data returned by solid-auth authenticate in secure storage
-  /// It seems Map<String, dynamic> does not work
+  //
+  // It seems [String] as the first between the angle brackets does not work
   static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
     const keys = [
       'client',
@@ -111,7 +112,8 @@ class AuthDataManager {
   }
 
   /// Retrieve (and reconstruct) auth data from secure storage
-  /// It seems Map<String, dynamic> does not work
+  //
+  // It seems [String] as the first between the angle brackets does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
     if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
       final loaded = await _loadData();
@@ -188,9 +190,9 @@ class AuthDataManager {
     try {
       var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
       if (JwtDecoder.isExpired(tokenResponse.accessToken!)) {
-        debugPrint(
-          'AuthDataManager => _getTokenResponse() refreshing expired token',
-        );
+        // debugPrint(
+        //   'AuthDataManager => _getTokenResponse() refreshing expired token',
+        // );
         assert(_rsaInfo != null);
         final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
         final publicKeyJwk = _rsaInfo!['pubKeyJwk'];

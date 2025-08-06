@@ -1,6 +1,6 @@
 /// Function to read a private file in PODs.
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang
+/// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang, Graham Williams
 
 // ignore_for_file: use_build_context_synchronously
 
@@ -33,7 +33,6 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypt/encrypt.dart';
-import 'package:path/path.dart' as path;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -42,10 +41,19 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read file content from a POD
+/// Read [filePath] from POD with file [mode] (default is text).
 ///
-/// First check if the user is logged in and then
-/// read and parse the file content
+/// We first check if the user is logged in and then read and parse the file
+/// content.
+///
+/// The file will be read from the `appname/data` directory.
+///
+/// Examples:
+/// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
+/// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
+/// - `readPod('appname/data/file.ttl')` reads from `appname/data/file.ttl` (already correct path)
+///
+/// Note: Only `appname/data/` paths are supported for readPod operations.
 
 Future<String> readPod(
   String filePath,
@@ -61,24 +69,10 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to ensure consistency with writePod.
-  // Check if the dataDirPath is already prepended, if not add it.
+  // Normalise the file path to use appname/data as base path
+  // and handle cross-platform path separators properly.
 
-  final dataDirPath = await getDataDirPath();
-  String normalizedFilePath;
-
-  if (filePath.startsWith(dataDirPath)) {
-    // Data directory path is already prepended.
-
-    normalizedFilePath = filePath;
-  } else {
-    // Prepend data directory path (like writePod does).
-
-    normalizedFilePath = [
-      dataDirPath,
-      filePath.replaceAll(path.separator, '/'),
-    ].join('/');
-  }
+  final normalizedFilePath = await normalizeFilePath(filePath, null);
 
   // Check if the requested file exists
 

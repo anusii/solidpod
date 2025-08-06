@@ -17,9 +17,31 @@ This package is currently under development and some API may
 change. The SolidLogin() and SolidLoginPopup() are used in a number
 of apps now and are more stable. -->
 
+[![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+
+[![GitHub License](https://img.shields.io/github/license/anusii/solidpod)](https://raw.githubusercontent.com/anusii/solidpod/dev/LICENSE)
+[![GitHub Version](https://img.shields.io/badge/dynamic/yaml?url=https://raw.githubusercontent.com/anusii/solidpod/master/pubspec.yaml&query=$.version&label=version&logo=github)](https://github.com/anusii/solidpod/blob/dev/CHANGELOG.md)
+[![Pub Version](https://img.shields.io/pub/v/solidpod?label=pub.dev&labelColor=333940&logo=flutter)](https://pub.dev/packages/solidpod)
+[![GitHub Last Updated](https://img.shields.io/github/last-commit/anusii/solidpod?label=last%20updated)](https://github.com/anusii/solidpod/commits/dev/)
+[![GitHub Commit Activity (main)](https://img.shields.io/github/commit-activity/w/anusii/solidpod/main)](https://github.com/anusii/solidpod/commits/dev/)
+[![GitHub Issues](https://img.shields.io/github/issues/anusii/solidpod)](https://github.com/anusii/solidpod/issues)
+
 # Solid Pod
 
-Solid Pod package provides functionality to manage a Solid
+**An ANU Software Innovation Institute package for your Data Vault**.
+
+*Time-stamp: <Tuesday 2025-07-22 21:12:19 +1000 Graham Williams>*
+
+*Authors: Anushka Vidanage, Graham Williams, Jessica Moore*
+
+*[ANU Software Innovation Institute](https://sii.anu.edu.au)*
+
+*License: MIT*
+
+## Introduction
+
+The SolidPod package provides functionality to manage a Solid
 personal online data stores (Pods) via a Flutter application.
 It supports high level access for an application to
 authenticate users to their Pods, access the users' data from
@@ -28,14 +50,13 @@ other Pods through Flutter Widgets.
 
 ## What is Solid?
 
-Solid (https://solidproject.org/) is an open standard for a server
+Solid (<https://solidproject.org/>) is an open standard for a server
 to host personal online data stores (Pods). Numerous providers of
 Solid Server hosting are emerging allowing users to host and migrate
 their Pods on any such servers (or to run their own server).
 
 To know more about our work relatd to Solid Pods
-visit https://solidcommunity.au
-
+visit <https://solidcommunity.au>
 
 ## Features
 
@@ -44,41 +65,41 @@ visit https://solidcommunity.au
 Default style:
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/solid_login.png"
-	alt="Solid Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/solid_login.png"
+ alt="Solid Login" width="400">
 </div>
 
 Optional version and visit link:
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/podnotes_login.png"
-	alt="Solid Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/podnotes_login.png"
+ alt="Solid Login" width="400">
 </div>
 
 Changing the image, logo, login text, colour scheme:
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/tomy_login.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/tomy_login.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 Change the image, logo, login text, button style, colour scheme:
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/keypod_login.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/keypod_login.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 Fine tune to suit the theme of the app:
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/innerpod_login.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/innerpod_login.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 + `SolidPopupLogin` widget supports authentication within an application. The widget will
@@ -87,9 +108,9 @@ Fine tune to suit the theme of the app:
 + [changeKeyPopup](#change-security-key-example) widget supports changing the security key (used to make your data private through encryption):
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/change_security_key.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/change_security_key.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 + [readPod()](#read-pod-file-example) function reads file content (either encrypted or plaintext) from a Pod.
@@ -97,34 +118,33 @@ Fine tune to suit the theme of the app:
 + [writePod()](#write-to-pod-file-example) function writes content (either encrypted or plaintext) to a file in a Pod.
 
 + [GrantPermissionUi](#grant-permission-ui-example) widget supports permission granting/revoking for resources:
-  + For defining specific access mode types or recipient types, use optional parameters `accessModeList` and `recipientList`.
+  + For defining specific access mode types or recipient types, use optional parameters `accessModeList` and `recipientTypeList`.
 
 Granting permission:
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/grant_permission.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/grant_permission.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 Revoking permission:
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/revoke_permission.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/revoke_permission.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 + [SharedResourcesUi](#view-permission-ui-example) widget displays resources shared with a Pod by others:
 
 <div align="center">
-	<img
-	src="https://raw.githubusercontent.com/anusii/solidpod/main/images/view_permission.png"
-	alt="KeyPod Login" width="400">
+ <img
+ src="https://raw.githubusercontent.com/anusii/solidpod/main/images/view_permission.png"
+ alt="KeyPod Login" width="400">
 </div>
 
 <!-- TODO dc: This is pending as we are checking if the latest CCS server natively supports write large files -->
 [`sendLargeFile()`, `getLargeFile()`, and `deleteLargeFile()`](#large-file-manager-example) functions
   uploads, downloads, and deletes large files from a Solid server, respectively.
-
 
 ## Getting started
 
@@ -147,26 +167,44 @@ to start using the package. -->
 If the package is being used to build either a `macos` or `web` app, the following
 changes are required in order to make the package fully functional.
 
+## Android
+
+For a release be sure to update
+`android/app/src/main/AndroidManifest.xml` to include within the
+`queries` section of the `manifest`:
+
+```
+ <!-- If your app opens https URLs -->
+ <intent>
+          <action android:name="android.intent.action.VIEW" />
+          <category android:name="android.intent.category.BROWSABLE" />
+          <data android:scheme="https" />
+ </intent>
+```
+
 ### macos
+
 Inside the app directory go to the directory `/macos/Runner/`. Inside there are two files named `DebugProfile.entitlements` and `Release.entitlements`. Add the following lines inside the `<dict> </dict>` tag in both files.
 
 ```
-	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.cs.allow-jit</key>
-	<true/>
-	<key>com.apple.security.network.server</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
+ <key>com.apple.security.app-sandbox</key>
+ <true/>
+ <key>com.apple.security.cs.allow-jit</key>
+ <true/>
+ <key>com.apple.security.network.server</key>
+ <true/>
+ <key>com.apple.security.network.client</key>
     <true/>
-	<key>keychain-access-groups</key>
+ <key>keychain-access-groups</key>
     <array/>
-	<key>com.apple.security.keychain</key>
+ <key>com.apple.security.keychain</key>
     <true/>
 ```
+
 *Note: You may already have some of the above lines in those files. If so fill the missing.*
 
 ### web
+
 Inside the app directory go to the directory `/web/`. Inside create a file called `callback.html`. Add the following piece of code into that file.
 
 ```
@@ -202,7 +240,6 @@ Inside the app directory go to the directory `/web/`. Inside create a file calle
 </html>
 ```
 
-
 ## Usage
 
 Following are the usage of main functionalities supported
@@ -234,10 +271,10 @@ after changing the key.
 
 ```dart
 ElevatedButton(
-	onPressed: () {
-		changeKeyPopup(context, ReturnPage());
-	},
-	child: const Text('Change Security Key on Pod')
+ onPressed: () {
+  changeKeyPopup(context, ReturnPage());
+ },
+ child: const Text('Change Security Key on Pod')
 )
 ```
 
@@ -245,7 +282,6 @@ ElevatedButton(
 
 Read data from the file `data/myfiles/my-data-file.ttl` and return to the
 widget `ReturnPage()`.
-
 
 ```dart
 final fileContent = await readPod(
@@ -266,11 +302,11 @@ final turtleString = '@prefix somePrefix: <http://www.perceive.net/schemas/relat
 <http://example.org/#green-goblin> somePrefix:enemyOf <http://example.org/#spiderman> .';
 
 await writePod(
-	'myfiles/my-data-file.ttl',
-	turtleString,
-	context,
-	ReturnPage(),
-	encrypted: false // non-required parameter. By default set to true
+ 'myfiles/my-data-file.ttl',
+ turtleString,
+ context,
+ ReturnPage(),
+ encrypted: false // non-required parameter. By default set to true
 );
 ```
 
@@ -281,33 +317,34 @@ the grant permission page.
 
 ```dart
 ElevatedButton(
-	child: const Text(
-		'Add/Delete Permissions'),
-	onPressed: () => Navigator.push(
-	context,
-	MaterialPageRoute(
-		builder: (context) => const GrantPermissionUi(
-		child: ReturnPage(),
-		),
-	),
-	),
+ child: const Text(
+  'Add/Delete Permissions'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const GrantPermissionUi(
+  child: ReturnPage(),
+  ),
+ ),
+ ),
 )
 ```
+
 To add/delete permissions to a specific resource use:
 
 ```dart
 ElevatedButton(
-	child: const Text(
-		'Add/Delete Permissions from a Specific Resource'),
-	onPressed: () => Navigator.push(
-	context,
-	MaterialPageRoute(
-		builder: (context) => const GrantPermissionUi(
-		fileName: 'my-data-file.ttl',
-		child: ReturnPage(),
-		),
-	),
-	),
+ child: const Text(
+  'Add/Delete Permissions from a Specific Resource'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const GrantPermissionUi(
+  fileName: 'my-data-file.ttl',
+  child: ReturnPage(),
+  ),
+ ),
+ ),
 )
 ```
 
@@ -318,16 +355,16 @@ the view permission page.
 
 ```dart
 ElevatedButton(
-	child: const Text(
-		'View Resources your WebID have access to'),
-	onPressed: () => Navigator.push(
-	context,
-	MaterialPageRoute(
-		builder: (context) => const SharedResourcesUi(
-		child: ReturnPage(),
-		),
-	),
-	),
+ child: const Text(
+  'View Resources your WebID have access to'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const SharedResourcesUi(
+  child: ReturnPage(),
+  ),
+ ),
+ ),
 )
 ```
 
@@ -335,55 +372,57 @@ To view permissions to a specific resource from a specific webID use:
 
 ```dart
 ElevatedButton(
-	child: const Text(
-		'View access to specific Resource'),
-	onPressed: () => Navigator.push(
-	context,
-	MaterialPageRoute(
-		builder: (context) => const SharedResourcesUi(
-		fileName: 'my-data-file.ttl',
-		sourceWebId: 'https://pods.solidcommunity.au/john-doe/profile/card#me',
-		child: ReturnPage(),
-		),
-	),
-	),
+ child: const Text(
+  'View access to specific Resource'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const SharedResourcesUi(
+  fileName: 'my-data-file.ttl',
+  sourceWebId: 'https://pods.solidcommunity.au/john-doe/profile/card#me',
+  child: ReturnPage(),
+  ),
+ ),
+ ),
 )
 ```
+
 ### Large File Manager Example
+
 To upload a large file use:
 
 ```dart
 await sendLargeFile(
-	remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file
-	localFilePath: 'D:/my-large-file.bin', // Path of the file where it is locally stored
+ remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file
+ localFilePath: 'D:/my-large-file.bin', // Path of the file where it is locally stored
 )
 ```
+
 To download a large file use:
 
 ```dart
 await getLargeFile(
-	remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file
-	localFilePath: 'D:/my-large-file.bin', // Path of the file where it will be locally downloaded
+ remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file
+ localFilePath: 'D:/my-large-file.bin', // Path of the file where it will be locally downloaded
 )
 ```
+
 To delete a large file use:
 
 ```dart
 await deleteLargeFile(
-	remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file,
+ remoteFileUrl: 'https://pods.solidcommunity.au/john-doe/myapp/data/my-large-file.bin', // Solid server URL of the file,
 )
 ```
-
 
 ## Ontology
 
 *Solid Pod*'s internal storage structure consists of [turtle](https://www.w3.org/TR/turtle/) files containing security information about the pod's content (data files) and their access.  The internal structure is based on the following [ontology](onto), which captures essential concepts about the app's security information, data files, encryption, shared resources, and access control lists.
 <div align="center">
-	<img
-	src="https://github.com/anusii/solidpod/blob/dev/onto/SOLID-App-Ontology%20(schema).png"
-	alt="Ontology's concept map">
+ <img
+ src="https://github.com/anusii/solidpod/blob/dev/onto/SOLID-App-Ontology%20(schema).png"
+ alt="Ontology's concept map">
 </div>
-
 
 ## Additional information
 

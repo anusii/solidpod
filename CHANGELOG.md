@@ -1,20 +1,32 @@
-# SolidPod Package Changelog
+# SolidPod Changelog
 
 Recorded here are the high level changes for the SolidPod package.
 
 Guide: Each version update is recorded here with a short user-oriented
-description of the update.
+description of the update. Updates in the 0.6.n series are heading
+toward a 0.7 release. The `[version timestamp user]` string is
+utilised by the flutter version_widget package.
 
-## [0.6.8 20250702]
-* Add options to Access mode and Recipient type in
-  `GrantPermissionUI()` [anushkavidanage]
+Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## [0.6.7 20250613]
-* Error fix when cancelling the authentication process
+## 0.8 Updated API for readPod/writePod
 
-## [0.6.6 20250509]
++ WEB: Bug fix for utf8 char [0.7.5 20250805 atangster]
++ API deleteDataFile() -> deleteDataFileDialog() [0.7.4 20250728 anushkavidanage]
++ API GrantPermissionUI recipientList -> recipientTypeList [0.7.3 20250725 jesscmoore]
++ Support user typing a WebID in SHARE [0.7.2 20250722 jesscmoore]
++ Add scrolling of the SHARE table [0.7.1 20250722 jesscmoore]
++ Unify readPod and writePod API [0.7.0 20250721 atangster]
 
-+ POD initialisation back button goes back usefully [atangser]
+## 0.7 Stability.
+
++ Restore login animation [0.6.12 20250719 atangster]
++ Utilise MarkdownTooltip in place of Tooltip in LOGIN [0.6.11 20250718 gjw]
++ Add extra time for the already logged in snackbar [0.6.10 20250714 gjw]
++ Replace login animation with informative snackbar [0.6.9 20250711 atangster]
++ Add Access and Recipient options in `GrantPermissionUI()` [0.6.8 20250702 anushkavidanage]
++ Fix error when cancelling the authentication process [0.6.7 20250613]
++ POD initialisation back button goes back usefully [0.6.6 20250509 atangser]
 
 ## [0.6.5 20250430]
 

@@ -28,11 +28,11 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/api/common_permission.dart';
 
 /// Build the permission table widget. Function call requires the
 /// following inputs

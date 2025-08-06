@@ -34,14 +34,13 @@ library;
 
 import 'package:encrypt/encrypt.dart';
 import 'package:rdflib/rdflib.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart';
 
+import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-// import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 
 /// Sets the permission for a specific resource.
 ///
@@ -122,22 +121,22 @@ Future<String> setPermissionAcl(
     newPermSet.add(getAccessMode(permStr as String));
   }
 
-  // if the permission recipient is public
+  // if the recipient type of the permission is the public
   if (recipientType == RecipientType.public) {
     publicPermSet = newPermSet;
   }
 
-  // if the permission recipient is authenticated users
+  // if the recipient type of the permission is authenticated users
   if (recipientType == RecipientType.authUser) {
     authUserPermSet = newPermSet;
   }
 
-  // if the permission recipient is a single WebID
+  // if the recipient type of the permission is an individual WebID
   if (recipientType == RecipientType.individual) {
     updatedIndPermMap[recipientWebIdList.first as String] = newPermSet;
   }
 
-  // if the permission recipient is a group of WebIDs
+  // if the recipient type of the permission is a group of WebIDs
   if (recipientType == RecipientType.group) {
     final groupFileName = '${groupName!.replaceAll(' ', '-')}.ttl';
     updatedGroupPermMap[groupFileName] = newPermSet;

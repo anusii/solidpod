@@ -32,6 +32,7 @@
 
 library;
 
+import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/foundation.dart' show debugPrint;
@@ -215,12 +216,15 @@ Future<void> createResource(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': contentTypeStr,
-      if (put) 'Content-Length': content.length.toString(),
+      if (put)
+        'Content-Length': content is String
+            ? utf8.encode(content).length.toString()
+            : (content as List<int>).length.toString(),
       if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
       if (!put) 'Slug': name,
       'DPoP': dPopToken,
     },
-    body: content,
+    body: content is String ? utf8.encode(content) : content,
   );
 
   if ([200, 201, 205].contains(response.statusCode)) {
@@ -371,10 +375,10 @@ Future<void> updateFileByQuery(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'application/sparql-update',
-      'Content-Length': query.length.toString(),
+      'Content-Length': utf8.encode(query).length.toString(),
       'DPoP': dPopToken,
     },
-    body: query,
+    body: utf8.encode(query),
   );
 
   if (editResponse.statusCode != 200 && editResponse.statusCode != 205) {
@@ -405,10 +409,10 @@ Future<void> initialProfileUpdate(String profBody) async {
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'text/turtle',
-      'Content-Length': profBody.length.toString(),
+      'Content-Length': utf8.encode(profBody).length.toString(),
       'DPoP': dPopToken,
     },
-    body: profBody,
+    body: utf8.encode(profBody),
   );
 
   if (updateResponse.statusCode != 200 && updateResponse.statusCode != 205) {
@@ -540,10 +544,10 @@ Future<String> updateAclFileContent(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'Content-Type': 'text/turtle',
-      'Content-Length': aclFileContent.length.toString(),
+      'Content-Length': utf8.encode(aclFileContent).length.toString(),
       'DPoP': dPopToken,
     },
-    body: aclFileContent,
+    body: utf8.encode(aclFileContent),
   );
 
   if (editResponse.statusCode == 201 || editResponse.statusCode == 205) {

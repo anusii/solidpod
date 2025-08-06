@@ -1,6 +1,6 @@
 /// A template app to begin a Solid Pod project.
 ///
-// Time-stamp: <Thursday 2024-06-27 09:43:38 +1000 Graham Williams>
+// Time-stamp: <Monday 2025-07-14 11:46:50 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,13 +27,18 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:demopod/home.dart';
+import 'package:demopod/utils/is_desktop.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'package:demopod/home.dart';
-import 'package:demopod/utils/is_desktop.dart';
-
 void main() async {
+  // Remove [debugPrint] messages from production code.
+
+  debugPrint = (String? message, {int? wrapWidth}) {
+    null;
+  };
+
   // Suport window size and top placement for desktop apps.
 
   if (isDesktop(PlatformWrapper())) {

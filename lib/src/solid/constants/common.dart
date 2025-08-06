@@ -138,6 +138,13 @@ const String pubKeyFileTitle = 'Public key';
 
 const String logFileTitle = 'Permissions Log';
 
+/// String variable for WebIDs
+
+const String whatIsWebID =
+    'A WebID is an Internationalised Resource Identifier that identifies a POD owner.';
+const String demoWebID =
+    'https://pods.solidcommunity.au/john-doe/profile/card#me';
+
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
 /// This instance provides encrypted storage to securely store key-value pairs.
 

@@ -30,6 +30,7 @@
 library;
 
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
+
 import 'package:solidpod/src/solid/constants/common.dart'
     show
         acl,
@@ -123,24 +124,40 @@ enum AclPredicate {
 
 enum AccessMode {
   /// Read access
-  read('Read', 'permission to read the content of the shared file'),
+  read('Read', '''
+
+    **Read:** Permission is granted to read the content of the shared file.
+
+    '''),
 
   /// Write access
-  write(
-    'Write',
-    'permission to add/delete/modify content to/from the shared file',
-  ),
+  write('Write', '''
+
+    **Write:** Permission is granted to add/delete/modify the content of the
+    shared file.
+
+    '''),
 
   /// Control access: read and write access to the ACL file
   control(
     'Control',
-    'permission to alter the access permission to the shared file',
+    '''
+
+    **Control:** Permission is granted to alter the access permission to the
+    shared file
+
+    ''',
   ),
 
   /// Append data (a type of write)
   append(
     'Append',
-    'permission to add content but not remove or modify content from the shared file',
+    '''
+
+    **Append:** Permission is granted to add content but not remove or modify
+    content from the shared file.
+
+    ''',
   );
 
   /// Constructor
@@ -179,7 +196,7 @@ AccessMode getAccessMode(String mode) {
   }
 }
 
-/// Type of access recipient to a resource
+/// Type of recipient receiving access to a resource
 
 enum RecipientType {
   /// Public
@@ -194,7 +211,7 @@ enum RecipientType {
   /// Group of WebIDs
   group('Group'),
 
-  /// No recipient
+  /// No recipient type
   none('');
 
   /// Constructor
