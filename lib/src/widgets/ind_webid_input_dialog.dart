@@ -127,8 +127,9 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
       setState(() {});
       return;
     }
-    suggestionList =
-        webIdList.where((e) => e.contains(value.toLowerCase())).toList();
+    suggestionList = webIdList
+        .where((e) => e.toLowerCase().contains(value.toLowerCase()))
+        .toList();
 
     setState(() {});
   }
