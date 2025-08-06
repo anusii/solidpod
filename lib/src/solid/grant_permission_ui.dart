@@ -180,7 +180,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Selected list of permissions
   List<String> selectedPermList = [];
 
-  /// Flag to track if permissions were granted successfully
+  /// Flag to track if permissions were granted successfully.
+  
   bool permissionsGrantedSuccessfully = false;
 
   /// Small vertical spacing for the widget.
