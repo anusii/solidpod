@@ -71,9 +71,9 @@ class InitialSetupScreen extends StatefulWidget {
   /// The child widget after logging in.
 
   final Widget child;
-  
+
   /// The original SolidLogin widget to return to when back is pressed
-  
+
   final SolidLogin? originalLogin;
 
   @override

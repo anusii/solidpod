@@ -59,6 +59,8 @@ class GrantPermissionUi extends StatefulWidget {
     this.externalWebId,
     this.fileName,
     this.customAppBar,
+    this.onPermissionGranted,
+    this.onNavigateBack,
     super.key,
   });
 
@@ -98,6 +100,12 @@ class GrantPermissionUi extends StatefulWidget {
 
   /// App specific app bar
   final PreferredSizeWidget? customAppBar;
+
+  /// Callback function called when permissions are granted successfully
+  final VoidCallback? onPermissionGranted;
+
+  /// Callback function called when navigating back from the screen
+  final VoidCallback? onNavigateBack;
 
   @override
   GrantPermissionUiState createState() => GrantPermissionUiState();
@@ -168,6 +176,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Selected list of permissions
   List<String> selectedPermList = [];
+
+  /// Flag to track if permissions were granted successfully
+  bool permissionsGrantedSuccessfully = false;
 
   /// Small vertical spacing for the widget.
   final smallGapV = const SizedBox(height: 10.0);
@@ -327,6 +338,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   widget.title,
                   widget.backgroundColor,
                   widget.child,
+                  onNavigateBack: () {
+                    widget.onNavigateBack?.call();
+                  },
+                  getResult: () => permissionsGrantedSuccessfully,
                 ),
       body: SingleChildScrollView(
         child: Column(
@@ -578,6 +593,20 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         Colors.green,
                                       );
                                       await _updatePermissions(dataFile);
+
+                                      // Set success flag and call the callback
+                                      permissionsGrantedSuccessfully = true;
+                                      widget.onPermissionGranted?.call();
+
+                                      // Auto-navigate back after a short delay if we're in pop mode
+                                      if (widget.onNavigateBack != null) {
+                                        Future.delayed(
+                                            const Duration(seconds: 1), () {
+                                          if (context.mounted) {
+                                            Navigator.pop(context, true);
+                                          }
+                                        });
+                                      }
                                     } else if (result ==
                                         SolidFunctionCallStatus.fail) {
                                       if (!context.mounted) return;
