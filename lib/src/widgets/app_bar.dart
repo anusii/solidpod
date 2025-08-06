@@ -22,7 +22,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Ashley Tang
 
 library;
 
@@ -42,14 +42,17 @@ PreferredSizeWidget defaultAppBar(
     leading: IconButton(
       icon: const Icon(Icons.arrow_back, color: Colors.black),
       onPressed: () {
-        // Call the callback if provided
+        // Call the callback if provided.
+
         onNavigateBack?.call();
 
         if (getResult != null) {
-          // Pop with result from callback
+          // Pop with result from callback.
+
           Navigator.pop(context, getResult());
         } else {
-          // Use the original pushReplacement behavior
+          // Use the original pushReplacement behaviour.
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => child),

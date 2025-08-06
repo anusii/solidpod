@@ -129,7 +129,7 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
     ];
 
     // Use the unified SecurityKeyUI widget in dialog mode.
-
+    
     final changeKeyForm = SecurityKeyUI(
       webId: webId,
       title: 'Change Security Key',

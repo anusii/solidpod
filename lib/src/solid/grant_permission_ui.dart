@@ -22,7 +22,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Ashley Tang
 
 library;
 
@@ -101,10 +101,12 @@ class GrantPermissionUi extends StatefulWidget {
   /// App specific app bar
   final PreferredSizeWidget? customAppBar;
 
-  /// Callback function called when permissions are granted successfully
+  /// Callback function called when permissions are granted successfully.
+  
   final VoidCallback? onPermissionGranted;
 
-  /// Callback function called when navigating back from the screen
+  /// Callback function called when navigating back from the screen.
+  
   final VoidCallback? onNavigateBack;
 
   @override
@@ -132,7 +134,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// WebId textfield enable/disable flag
   bool webIdTextFieldEnabled = true;
 
-  /// Flag to check whether page is initialised
+  /// Flag to check whether page is initialised.
+  
   bool pageInitialied = false;
 
   /// Define access mode list
@@ -594,11 +597,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       );
                                       await _updatePermissions(dataFile);
 
-                                      // Set success flag and call the callback
+                                      // Set success flag and call the callback.
+
                                       permissionsGrantedSuccessfully = true;
                                       widget.onPermissionGranted?.call();
 
-                                      // Auto-navigate back after a short delay if we're in pop mode
+                                      // Auto-navigate back after a short delay if we're in pop mode.
+                                      
                                       if (widget.onNavigateBack != null) {
                                         Future.delayed(
                                             const Duration(seconds: 1), () {
