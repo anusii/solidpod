@@ -67,6 +67,7 @@ const String pubKeyPred = 'pubKey';
 const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String accessListPred = 'accessList';
+const String authUserPred = 'authUserList';
 const String sharedKeyPred = 'sharedKey';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';

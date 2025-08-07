@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Ashley Tang
+/// Authors: Ashley Tang, Jess Moore
 
 library;
 
@@ -194,4 +194,47 @@ class ScrollbarLayout {
   /// content
   ///
   static const horizontalGap = SizedBox(width: 10);
+}
+
+/// Normal height for data loading screens
+const double normalLoadingScreenHeight = 200.0;
+
+/// Colours used across dropdown dialogs and prompts.
+
+class DropdownColors {
+  /// Primary colour (Forest Green) used for dropdown elements
+
+  static const primary = Color(0xFF2E7D32);
+
+  /// Accent colour (Lighter Green) used for dividers and secondary elements.
+
+  static const accent = Color(0xFF4CAF50);
+}
+
+/// Layout constants used for WebId dialogs
+
+class WebIdLayout {
+  /// Vertical gap between paragraphs
+
+  static const paraVertGap = SizedBox(height: 10);
+
+  /// Standard padding for dialog content.
+
+  static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
+
+  /// Standard width for security dialogs.
+
+  static const dialogWidth = 480.0;
+
+  /// Height of dropdown suggestion box.
+
+  static const dropdownHeight = 120.0;
+
+  /// Elevation of dropdown suggestion cards.
+
+  static double dropdownElevation = 5;
+
+  /// Padding of dropdown suggestion list.
+
+  static const listPadding = EdgeInsets.fromLTRB(0, 5, 0, 5);
 }

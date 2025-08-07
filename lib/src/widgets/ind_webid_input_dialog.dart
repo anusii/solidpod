@@ -30,22 +30,31 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/is_phone.dart';
+import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
-/// Function call requires the following inputs
-/// [onSubmitFunction] is the function to be called on submit
+/// Function call requires the following inputs.
+/// [onSubmitFunction] is the function to be called on submit.
+/// [uniqRecipWebIdList] is a list of the webIds of unique recipients of the
+/// owner's data.
 ///
 class IndWebIdTextInput extends StatefulWidget {
   /// Initialise widget variables.
 
   const IndWebIdTextInput({
     required this.onSubmitFunction,
+    this.uniqRecipWebIdList,
     super.key,
   });
 
   /// Function run on Submit button press.
   final Function onSubmitFunction;
+
+  /// List of unique recipient webIds
+  final List<String>? uniqRecipWebIdList;
 
   @override
   State<IndWebIdTextInput> createState() => _IndWebIdTextInputState();
@@ -58,11 +67,24 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   /// Capture whether user has started to enter text
   bool _textEntered = false;
 
+  /// WebId list
+  List<String> webIdList = [];
+
+  /// Initialise the matching suggestions list
+  List<String> suggestionList = [];
+  String hint = '';
+
   // dispose text controller when the widget is unmounted
   @override
   void dispose() {
     formControllerWebId.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    webIdList = widget.uniqRecipWebIdList ?? [];
+    super.initState();
   }
 
   /// Generate advice to help user enter valid WebID
@@ -96,38 +118,74 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
     return null;
   }
 
+  /// Generate suggestions for users based on input matches to
+  /// current complete recipient list of user
+  void filterSuggestions(String value) {
+    suggestionList.clear();
+
+    if (value.isEmpty) {
+      setState(() {});
+      return;
+    }
+    suggestionList = webIdList
+        .where((e) => e.toLowerCase().contains(value.toLowerCase()))
+        .toList();
+
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 50),
+      insetPadding: WebIdLayout.contentPadding,
       title: const Text('WebID of the individual recipient'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Provide info on what a WebId is
-          const Text(
-            whatIsWebID,
-          ),
-          // Show an example WebId that remains visible once user is typing
-          const Text('Eg: $demoWebID'),
-          const SizedBox(height: 20),
-          // Web ID text field
-          TextFormField(
-            controller: formControllerWebId,
-            decoration: InputDecoration(
-              labelText: 'Individual\'s webID',
-              // Once user has started entering text, use formfield
-              // error message to advise user how to specify
-              // valid webId
-              errorText: _textEntered ? _helpText : null,
+      content: SizedBox(
+        // Use full width on phones, else use a preset narrower width
+        width: (!isPhone()) ? WebIdLayout.dialogWidth : double.maxFinite,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Provide info on what a WebId is
+            const Text(
+              whatIsWebID,
             ),
-            onChanged: (_) => setState(() {
-              // User has started entering text
-              _textEntered = true;
-            }),
-          ),
-        ],
+            // Show an example WebId that remains visible once user is typing
+            const Text('Eg: $demoWebID'),
+            WebIdLayout.paraVertGap,
+            const Text('Type their WebId or select a recently used WebId.'),
+            const SizedBox(height: 20),
+            // Web ID text field
+            TextFormField(
+              controller: formControllerWebId,
+              decoration: InputDecoration(
+                labelText: 'Individual\'s webID',
+                // Once user has started entering text, use formfield
+                // error message to advise user how to specify
+                // valid webId
+                errorText: _textEntered ? _helpText : null,
+              ),
+              onFieldSubmitted: (value) {},
+              onChanged: (value) => setState(() {
+                // User has started entering text
+                _textEntered = true;
+                // Filter suggestions
+                filterSuggestions(value);
+              }),
+            ),
+            // const SizedBox(height: 10),
+            WebIdLayout.paraVertGap,
+            if (webIdList.isNotEmpty) ...[
+              if (suggestionList.isNotEmpty ||
+                  formControllerWebId.text.isNotEmpty) ...[
+                // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
+                boxedSuggestionList(context, suggestionList),
+              ] else ...[
+                boxedSuggestionList(context, webIdList),
+              ],
+            ],
+          ],
+        ),
       ),
       actions: <Widget>[
         TextButton(
@@ -180,6 +238,34 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
       ],
     );
   }
+
+  SizedBox boxedSuggestionList(BuildContext context, List<String> idList) {
+    return SizedBox(
+      width: double.maxFinite,
+      height: WebIdLayout.dropdownHeight,
+      child: ListView.builder(
+        padding: WebIdLayout.listPadding,
+        itemCount: idList.length,
+        itemBuilder: (context, index) {
+          return Card(
+            elevation: WebIdLayout.dropdownElevation,
+            child: ListTile(
+              title: Text(idList[index]),
+              focusColor: SecurityColors.primary,
+              hoverColor: DropdownColors.accent,
+              splashColor: DropdownColors.primary,
+              onTap: () => setState(() {
+                // User has started entering text
+                _textEntered = true;
+                formControllerWebId.text = idList[index];
+              }),
+            ),
+          );
+        },
+      ),
+      // ),
+    );
+  }
 }
 
 /// A dialog for adding an individual webId. Function call requires the
@@ -189,11 +275,15 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
 Future<dynamic> indWebIdInputDialog(
   BuildContext context,
   Function onSubmitFunction,
+  Map<String, dynamic> dataFilesMap,
 ) {
   return showDialog(
     context: context,
     builder: (context) {
-      return IndWebIdTextInput(onSubmitFunction: onSubmitFunction);
+      return IndWebIdInputScreen(
+        onSubmitFunction: onSubmitFunction,
+        dataFilesMap: dataFilesMap,
+      );
     },
   );
 }

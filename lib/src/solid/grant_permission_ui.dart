@@ -61,6 +61,7 @@ class GrantPermissionUi extends StatefulWidget {
     this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
     this.fileName,
+    this.dataFilesMap = const {},
     this.customAppBar,
     super.key,
   });
@@ -98,6 +99,13 @@ class GrantPermissionUi extends StatefulWidget {
   /// If [isExternalRes] is set to true this must be set and the value should
   /// be the url of the resource
   final String? fileName;
+
+  /// Map of data files on a user's POD used to extract the
+  /// user's recipient list by the WebIdTextInputScreen.
+  /// If not provided, the WebIdTextInputScreen will read the
+  /// user's files in their app data folder on their Pod to
+  /// fetch the ACLs needed to derive the user's recipient list.
+  final Map<String, dynamic> dataFilesMap;
 
   /// App specific app bar
   final PreferredSizeWidget? customAppBar;
@@ -522,6 +530,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                             await indWebIdInputDialog(
                                               context,
                                               _updateIndWebIdInput,
+                                              widget.dataFilesMap,
                                             );
                                           },
                                           child: Text(
@@ -743,7 +752,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
               return _buildPermPage(context, snapshot.data);
             }
           } else {
-            return Scaffold(body: loadingScreen(200));
+            return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
           }
         },
       );
