@@ -25,8 +25,6 @@
 
 library;
 
-import 'package:flutter/material.dart';
-
 import 'package:universal_io/io.dart' show Platform;
 
 /// Checks the platform type to determine whether running on
