@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ Improve solid login widget tooltips [0.7.7 20250811 gjw]
 + SHARE: Improve the webid entry experience [0.7.6 20250807 jesscmoore]
 + WEB: Bug fix for utf8 char [0.7.5 20250805 atangster]
 + API deleteDataFile() -> deleteDataFileDialog() [0.7.4 20250728 anushkavidanage]
