@@ -1,6 +1,6 @@
 /// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Tuesday 2025-07-22 11:12:42 +1000 Graham Williams>
+// Time-stamp: <Monday 2025-08-11 08:53:33 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -81,11 +81,48 @@ const String defaultInfoButtonText = 'Info';
 const String defaultContinueButtonText = 'Continue';
 const String defaultChangeKeyButtonText = 'Change Key';
 
-const String defaultLoginTooltip = 'Login to your Solid Pod.';
-const String defaultRegisterTooltip = 'Get a Solid Pod.';
-// TODO 20240515 gjw replace `project` with the appname.
-const String defaultInfoTooltip = 'Visit the project documentation.';
-const String defaultContinueTooltip = 'Continue with no Solid Pod login.';
+const String defaultServerTooltip = '''
+
+**Solid Server:** This text field contains the Solid server you will connect to
+where your data is hosted. It is also used as the base of the URI (Uniform
+Resource Identifier) that will be used for your WebID. A WebID is a
+decentralized identity that allows you to have a globally unique identifier for
+your data store.
+
+''';
+
+const String defaultLoginTooltip = '''
+
+**Login:** Tap here to log in to a Solid server to access you private data. You
+will be connected to the specified Solid server and you can then log in with
+your username and password. This app does not know your username/password. The
+app will will use a token from the server to establish your secure conenction.
+
+''';
+const String defaultRegisterTooltip = '''
+
+**Register:** Tap here to connect to your Solid server to register for an
+account. Once you have an account you will be able to save data onto your host
+server. You can connect to a Solid server of your choice, including your own, a
+free community supported server, a commercial server, or a government run
+server.
+
+''';
+
+const String defaultInfoTooltip = '''
+
+**Support:** Tap here to be taken to the app help and support documentation.
+
+''';
+
+const String defaultContinueTooltip = '''
+
+**Continue:** Tap here to continue on to the app without logging into your Solid
+server. The app will generally be able to save data locally or else prompt to
+log in to a Solid server when needed. No data will be shared beyond you local
+device until you connect to a SOlid server hosting your data.
+
+''';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -609,18 +646,22 @@ class _SolidLoginState extends State<SolidLogin> {
             ),
           ),
           const SizedBox(height: 20.0),
-          TextFormField(
-            controller: webIdController,
-            style: TextStyle(color: currentTheme.textColor),
-            decoration: InputDecoration(
-              border: const UnderlineInputBorder(),
-              hintText: 'WebID or Solid server URL',
-              hintStyle: TextStyle(color: currentTheme.hintColor),
-              enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: currentTheme.inputBorderColor),
-              ),
-              focusedBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: currentTheme.inputBorderColor),
+          MarkdownTooltip(
+            message: defaultServerTooltip,
+            child: TextFormField(
+              controller: webIdController,
+              style: TextStyle(color: currentTheme.textColor),
+              decoration: InputDecoration(
+                border: const UnderlineInputBorder(),
+                labelText: 'Solid Server',
+                hintText: 'Solid server URL (or WebID)',
+                hintStyle: TextStyle(color: currentTheme.hintColor),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: currentTheme.inputBorderColor),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: currentTheme.inputBorderColor),
+                ),
               ),
             ),
           ),
