@@ -1,6 +1,6 @@
 /// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Monday 2025-08-11 08:53:33 +1000 Graham Williams>
+// Time-stamp: <Monday 2025-08-11 09:38:44 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -729,14 +729,16 @@ class _SolidLoginState extends State<SolidLogin> {
         Positioned(
           top: 10,
           right: 10,
-          child: IconButton(
-            icon: Icon(
-              _isDarkMode ? Icons.wb_sunny_outlined : Icons.nightlight_round,
-              color: _isDarkMode ? Colors.amber : Colors.blueGrey,
-            ),
-            onPressed: _toggleTheme,
-            tooltip:
+          child: MarkdownTooltip(
+            message:
                 _isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+            child: IconButton(
+              icon: Icon(
+                _isDarkMode ? Icons.wb_sunny_outlined : Icons.nightlight_round,
+                color: _isDarkMode ? Colors.amber : Colors.blueGrey,
+              ),
+              onPressed: _toggleTheme,
+            ),
           ),
         ),
       ],
