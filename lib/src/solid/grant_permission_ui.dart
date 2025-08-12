@@ -105,11 +105,11 @@ class GrantPermissionUi extends StatefulWidget {
   final PreferredSizeWidget? customAppBar;
 
   /// Callback function called when permissions are granted successfully.
-  
+
   final VoidCallback? onPermissionGranted;
 
   /// Callback function called when navigating back from the screen.
-  
+
   final VoidCallback? onNavigateBack;
 
   @override
@@ -138,7 +138,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   bool webIdTextFieldEnabled = true;
 
   /// Flag to check whether page is initialised.
-  
+
   bool pageInitialied = false;
 
   /// Define access mode list
@@ -181,7 +181,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   List<String> selectedPermList = [];
 
   /// Flag to track if permissions were granted successfully.
-  
+
   bool permissionsGrantedSuccessfully = false;
 
   /// Small vertical spacing for the widget.
@@ -629,22 +629,29 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       final dataFile = widget.fileName ??
                                           formControllerFileName.text;
 
-                                      final result = await grantPermission(
-                                        dataFile,
-                                        true,
-                                        selectedPermList,
-                                        selectedRecipientType,
-                                        finalWebIdList as List,
-                                        ownerWebId,
-                                        context,
-                                        widget.child,
-                                        isExternalRes: widget.isExternalRes,
-                                        groupName: selectedRecipientType ==
-                                                RecipientType.group
-                                            ? formControllerGroupName.text
-                                                .trim()
-                                            : null,
-                                      );
+                                      SolidFunctionCallStatus? result;
+                                      try {
+                                        result = await grantPermission(
+                                          dataFile,
+                                          true,
+                                          selectedPermList,
+                                          selectedRecipientType,
+                                          finalWebIdList as List,
+                                          ownerWebId,
+                                          context,
+                                          widget.child,
+                                          isExternalRes: widget.isExternalRes,
+                                          groupName: selectedRecipientType ==
+                                                  RecipientType.group
+                                              ? formControllerGroupName.text
+                                                  .trim()
+                                              : null,
+                                        ) as SolidFunctionCallStatus?;
+                                      } catch (e, stackTrace) {
+                                        debugPrint('💥 [GrantPermissionUI] Exception in grantPermission: $e');
+                                        debugPrint('📚 [GrantPermissionUI] Stack trace: $stackTrace');
+                                        result = SolidFunctionCallStatus.fail;
+                                      }
 
                                       if (result ==
                                           SolidFunctionCallStatus.success) {
@@ -655,21 +662,37 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           Colors.green,
                                         );
                                         await _updatePermissions(dataFile);
+                                        
+                                        // Mark permissions as granted successfully for callback tracking
+                                        setState(() {
+                                          permissionsGrantedSuccessfully = true;
+                                        });
+                                        
+                                        // Trigger the onPermissionGranted callback if provided
+                                        widget.onPermissionGranted?.call();
                                       } else if (result ==
                                           SolidFunctionCallStatus.fail) {
                                         if (!context.mounted) return;
+                                        
+                                        // More detailed error message with troubleshooting tips
                                         showSnackBar(
                                           context,
-                                          'Error occured. Please try again!',
+                                          'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.',
                                           Colors.red,
                                         );
+                                        
+                                        // Also log to console for debugging
+                                        debugPrint('❌ [GrantPermissionUI] Permission granting failed for file: $dataFile');
+                                        debugPrint('🎯 [GrantPermissionUI] Recipients: $finalWebIdList');
+                                        debugPrint('🔐 [GrantPermissionUI] Permissions: $selectedPermList');
+                                        
                                       } else if (result ==
                                           SolidFunctionCallStatus
                                               .notInitialised) {
                                         if (!context.mounted) return;
                                         showSnackBar(
                                           context,
-                                          'The owner of one or more WebIds you entered have not initialised their PODs yet!',
+                                          'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.',
                                           const Color.fromARGB(255, 204, 99, 1),
                                         );
                                       } else {

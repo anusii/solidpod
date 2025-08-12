@@ -73,44 +73,46 @@ Future<dynamic> grantPermission(
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
-    await getKeyFromUserIfRequired(context, child);
+    try {
+      await getKeyFromUserIfRequired(context, child);
 
-    var resourceUrl = '';
+      var resourceUrl = '';
 
-    if (!isExternalRes) {
-      // Get the file path
-      final filePath = [await getDataDirPath(), fileName].join('/');
+      if (!isExternalRes) {
+        // Get the file path
+        final filePath = [await getDataDirPath(), fileName].join('/');
 
-      // Get the url of the file
-      resourceUrl = await getFileUrl(filePath);
-    } else {
-      resourceUrl = fileName;
-    }
-
-    // Check if file exists
-    final resStatus =
-        await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
-
-    // Check if recipient/s have initialised their pods with the correct
-    // directory structure
-    var allRecipientsInitialised = true;
-    for (final recipientWebId in recipientWebIdList) {
-      if (!(await checkPodInitialised(recipientWebId as String))) {
-        allRecipientsInitialised = false;
+        // Get the url of the file
+        resourceUrl = await getFileUrl(filePath);
+      } else {
+        resourceUrl = fileName;
       }
-    }
 
-    if (allRecipientsInitialised) {
-      if (resStatus == ResourceStatus.exist) {
-        // Add the permission line to the relevant ACL file
-        await setPermissionAcl(
-          resourceUrl,
-          ownerWebId,
-          recipientType,
-          recipientWebIdList,
-          permissionList,
-          groupName,
-        );
+      // Check if file exists
+      final resStatus =
+          await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
+
+      // Check if recipient/s have initialised their pods with the correct
+      // directory structure
+      var allRecipientsInitialised = true;
+      for (final recipientWebId in recipientWebIdList) {
+        final isInitialised = await checkPodInitialised(recipientWebId as String);
+        if (!isInitialised) {
+          allRecipientsInitialised = false;
+        }
+      }
+
+      if (allRecipientsInitialised) {
+        if (resStatus == ResourceStatus.exist) {
+          // Add the permission line to the relevant ACL file
+          await setPermissionAcl(
+            resourceUrl,
+            ownerWebId,
+            recipientType,
+            recipientWebIdList,
+            permissionList,
+            groupName,
+          );
 
         // Check if the file is encrypted
         final fileIsEncrypted =
@@ -224,12 +226,18 @@ Future<dynamic> grantPermission(
             );
           }
         }
-        return SolidFunctionCallStatus.success;
+          return SolidFunctionCallStatus.success;
+        } else {
+          return SolidFunctionCallStatus.fail;
+        }
+      } else {
+        return SolidFunctionCallStatus.notInitialised;
       }
-    } else {
-      return SolidFunctionCallStatus.notInitialised;
+    } catch (e, stackTrace) {
+      debugPrint('💥 [GrantPermission] Exception occurred: $e');
+      debugPrint('📚 [GrantPermission] Stack trace: $stackTrace');
+      return SolidFunctionCallStatus.fail;
     }
-    return SolidFunctionCallStatus.fail;
   } else {
     return SolidFunctionCallStatus.notLoggedIn;
   }
