@@ -152,11 +152,11 @@ class SolidLogin extends StatefulWidget {
     this.appDirectory = '',
     this.image = const AssetImage(
       'assets/images/default_image.jpg',
-      package: 'solid',
+      package: 'solidpod',
     ),
     this.logo = const AssetImage(
       'assets/images/default_logo.png',
-      package: 'solid',
+      package: 'solidpod',
     ),
     this.title = 'Log in to your Solid Pod',
     this.webID = 'https://pods.solidcommunity.au',
