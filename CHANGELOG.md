@@ -11,7 +11,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
-+ Bug fix for default logo/splash images ][0.7.8 20250813 anushkavidanage]
++ Bug fix in key manager [0.7.9 20250815 atangster]
++ Bug fix for default logo/splash images [0.7.8 20250813 anushkavidanage]
 + Improve solid login widget tooltips [0.7.7 20250811 gjw]
 + SHARE: Improve the webid entry experience [0.7.6 20250807 jesscmoore]
 + WEB: Bug fix for utf8 char [0.7.5 20250805 atangster]
