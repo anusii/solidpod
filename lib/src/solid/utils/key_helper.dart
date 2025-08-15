@@ -645,7 +645,7 @@ class KeyManager {
           errMsg: 'ERROR: Duplicated path for resource "$k"',
         );
 
-        _indKeyMap![k] = _IndKeyRecord(
+        _indKeyMap![await getFileUrl(v[pathPred] as String)] = _IndKeyRecord(
           encKeyBase64: v[sessionKeyPred] as String,
           ivBase64: v[ivPred] as String,
           filePath: v[pathPred] as String,
