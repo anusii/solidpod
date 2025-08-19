@@ -37,6 +37,7 @@ import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
+import 'package:demopod/features/permission_callback_demo.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
@@ -346,8 +347,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 onChanged: (val) {
                                   setState(() {
                                     _writeEncrypted = val;
-                                    debugPrint(
-                                        '_writeEncrypted = $_writeEncrypted');
                                   });
                                 },
                               )
@@ -540,6 +539,18 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 fileName: 'key-value.ttl',
                                 // accessModeList: ['read', 'write'],
                                 // recipientTypeList: ['indi', 'group'],
+                                child: Home(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text('Permission Callback Demo'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PermissionCallbackDemo(
                                 child: Home(),
                               ),
                             ),
