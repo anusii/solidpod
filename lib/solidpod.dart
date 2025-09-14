@@ -1,8 +1,8 @@
 /// Support for flutter apps accessing solid PODs.
 ///
-// Time-stamp: <Saturday 2025-07-19 09:52:50 +1000 Graham Williams>
+// Time-stamp: <Monday 2025-09-15 08:46:54 +1000 Graham Williams>
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -30,7 +30,13 @@
 
 library;
 
+// 20250915 TODO These constants should be inside a constants structure to avoid
+// name conflicts?
+
+export 'src/solid/constants/common.dart' show foaf, terms;
+
 // Solid server login UI class and its corresponding button style classes
+
 export 'src/solid/login.dart'
     show
         SolidLogin,
