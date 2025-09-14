@@ -658,9 +658,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         ) as SolidFunctionCallStatus?;
                                       } on Object catch (e, stackTrace) {
                                         debugPrint(
-                                            '💥 [GrantPermissionUI] Exception in grantPermission: $e');
+                                          '💥 [GrantPermissionUI] Exception in grantPermission: $e',
+                                        );
                                         debugPrint(
-                                            '📚 [GrantPermissionUI] Stack trace: $stackTrace');
+                                          '📚 [GrantPermissionUI] Stack trace: $stackTrace',
+                                        );
                                         result = SolidFunctionCallStatus.fail;
                                       }
 
@@ -694,11 +696,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                                         // Also log to console for debugging
                                         debugPrint(
-                                            '❌ [GrantPermissionUI] Permission granting failed for file: $dataFile');
+                                          '❌ [GrantPermissionUI] Permission granting failed for file: $dataFile',
+                                        );
                                         debugPrint(
-                                            '🎯 [GrantPermissionUI] Recipients: $finalWebIdList');
+                                          '🎯 [GrantPermissionUI] Recipients: $finalWebIdList',
+                                        );
                                         debugPrint(
-                                            '🔐 [GrantPermissionUI] Permissions: $selectedPermList');
+                                          '🔐 [GrantPermissionUI] Permissions: $selectedPermList',
+                                        );
                                       } else if (result ==
                                           SolidFunctionCallStatus
                                               .notInitialised) {
