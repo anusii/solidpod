@@ -1,6 +1,6 @@
 /// A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Tuesday 2025-07-22 14:11:13 +1000 Graham Williams>
+// Time-stamp: <Monday 2025-09-15 08:58:53 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -656,9 +656,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                                   .trim()
                                               : null,
                                         ) as SolidFunctionCallStatus?;
-                                      } catch (e, stackTrace) {
-                                        debugPrint('💥 [GrantPermissionUI] Exception in grantPermission: $e');
-                                        debugPrint('📚 [GrantPermissionUI] Stack trace: $stackTrace');
+                                      } on Object catch (e, stackTrace) {
+                                        debugPrint(
+                                            '💥 [GrantPermissionUI] Exception in grantPermission: $e');
+                                        debugPrint(
+                                            '📚 [GrantPermissionUI] Stack trace: $stackTrace');
                                         result = SolidFunctionCallStatus.fail;
                                       }
 
@@ -671,30 +673,32 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           Colors.green,
                                         );
                                         await _updatePermissions(dataFile);
-                                        
+
                                         // Mark permissions as granted successfully for callback tracking
                                         setState(() {
                                           permissionsGrantedSuccessfully = true;
                                         });
-                                        
+
                                         // Trigger the onPermissionGranted callback if provided
                                         widget.onPermissionGranted?.call();
                                       } else if (result ==
                                           SolidFunctionCallStatus.fail) {
                                         if (!context.mounted) return;
-                                        
+
                                         // More detailed error message with troubleshooting tips
                                         showSnackBar(
                                           context,
                                           'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.',
                                           Colors.red,
                                         );
-                                        
+
                                         // Also log to console for debugging
-                                        debugPrint('❌ [GrantPermissionUI] Permission granting failed for file: $dataFile');
-                                        debugPrint('🎯 [GrantPermissionUI] Recipients: $finalWebIdList');
-                                        debugPrint('🔐 [GrantPermissionUI] Permissions: $selectedPermList');
-                                        
+                                        debugPrint(
+                                            '❌ [GrantPermissionUI] Permission granting failed for file: $dataFile');
+                                        debugPrint(
+                                            '🎯 [GrantPermissionUI] Recipients: $finalWebIdList');
+                                        debugPrint(
+                                            '🔐 [GrantPermissionUI] Permissions: $selectedPermList');
                                       } else if (result ==
                                           SolidFunctionCallStatus
                                               .notInitialised) {
