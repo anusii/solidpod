@@ -1,6 +1,6 @@
 /// Support for flutter apps accessing solid PODs.
 ///
-// Time-stamp: <Wednesday 2025-09-17 05:36:34 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-09-17 05:42:20 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -138,5 +138,5 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 // 20250917 gjw Extras that were required for notepod. Not yet documented.
 
-export 'src/solid/constants/common.dart' show profCard;
+export 'src/solid/constants/common.dart' show profCard, authUserPred;
 export 'src/solid/get_resources.dart' show getResources;
