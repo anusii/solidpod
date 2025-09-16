@@ -1,6 +1,6 @@
 /// A screen to demonstrate various capabilities of solidlogin.
 ///
-// Time-stamp: <Thursday 2024-06-27 13:13:12 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-09-17 08:21:42 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -58,7 +58,7 @@ import 'package:solidpod/solidpod.dart'
         readPod,
         readEncryptionKeyContent,
         getKeyFromUserIfRequired;
-import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
+//import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
 
 // TODO 20240515 gjw For now we will list all the imports so we can manage the
 // API evolution. Eventually we will simply just import the package.
@@ -550,7 +550,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const PermissionCallbackDemo(
+                              builder: (context) =>
+                                  const PermissionCallbackDemo(
                                 child: Home(),
                               ),
                             ),

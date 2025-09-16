@@ -1,6 +1,6 @@
 /// Support for flutter apps accessing solid PODs.
 ///
-// Time-stamp: <Wednesday 2025-09-17 05:48:12 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-09-17 08:20:43 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -35,7 +35,7 @@ library;
 
 export 'src/solid/constants/common.dart' show foaf, terms;
 
-// Solid server login UI class and its corresponding button style classes
+/// Solid server login UI class and its corresponding button style classes
 
 export 'src/solid/login.dart'
     show
@@ -45,37 +45,44 @@ export 'src/solid/login.dart'
         RegisterButtonStyle,
         InfoButtonStyle;
 
-// Solid server login popup class
-export 'src/solid/popup_login.dart' show SolidPopupLogin;
+/// Solid server login popup class
 
-// UI class to grant permission for a resource
-export 'src/solid/grant_permission_ui.dart' show GrantPermissionUi;
+export 'src/solid/popup_login.dart';
 
-// UI class to read permission given to the user webID by others
-export 'src/solid/shared_resources_ui.dart' show SharedResourcesUi;
+/// UI class to grant permission for a resource
 
-// Status class to represent different function outputs
+export 'src/solid/grant_permission_ui.dart';
+
+/// UI class to read permission given to the user webID by others
+
+export 'src/solid/shared_resources_ui.dart';
+
+/// Status class to represent different function outputs
+
 export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 
-// Includes common functions that are useful such as,
-// - A dialog for deleting an encrypted file
-// - Check whether login tokens are expired and if they are ridirect to login
-// - Input key from user when required
+/// Includes common functions that are useful such as,
+/// - A dialog for deleting an encrypted file
+/// - Check whether login tokens are expired and if they are ridirect to login
+/// - Input key from user when required
 export 'src/solid/common_func.dart'
     show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
 
-// Includes the AppInfo class which stores app specific information
-// such as name, version, canonical name, package name, build number.
-export 'src/solid/utils/app_info.dart' show AppInfo;
+/// Includes the AppInfo class which stores app specific information
+/// such as name, version, canonical name, package name, build number.
 
-// Includes the KeyManager class which stores all keys and their parameters
-// such as Security key, Public key, Private key, and Individual keys.
+export 'src/solid/utils/app_info.dart';
+
+/// Includes the KeyManager class which stores all keys and their parameters
+/// such as Security key, Public key, Private key, and Individual keys.
+
 export 'src/solid/utils/key_helper.dart' show KeyManager;
 
-// Includes common functions that could be useful for an app such as
-// - get web id of the user
-// - get path of a directory or file
-// - check whether user is logged in or not
+/// Includes common functions that could be useful for an app such as
+/// - get web id of the user
+/// - get path of a directory or file
+/// - check whether user is logged in or not
+
 export 'src/solid/utils/misc.dart'
     show
         checkLoggedIn,
@@ -92,52 +99,70 @@ export 'src/solid/utils/misc.dart'
         getEncKeyPath,
         readEncryptionKeyContent;
 
-// Change security key popup widget
-export 'src/widgets/change_key_dialog.dart' show changeKeyPopup;
+/// Change security key popup widget
 
-// Read encrypted/non-encrypted files stored in a POD
-export 'src/solid/read_pod.dart' show readPod;
+export 'src/widgets/change_key_dialog.dart';
 
-// Write to encrypted/non-encrypted files in a POD
-export 'src/solid/write_pod.dart' show writePod;
+/// Read encrypted/non-encrypted files stored in a POD
 
-// Popup widget for logging out from a POD
+export 'src/solid/read_pod.dart';
+
+/// Write to encrypted/non-encrypted files in a POD
+
+export 'src/solid/write_pod.dart';
+
+/// Popup widget for logging out from a POD
+
 export 'src/widgets/logout_dialog.dart' show logoutPopup;
 
-// The function to grant permission to a resource
-export 'src/solid/grant_permission.dart' show grantPermission;
+/// The function to grant permission to a resource
 
-// The function to read permissions given to a resource
-export 'src/solid/read_permission.dart' show readPermission;
+export 'src/solid/grant_permission.dart';
 
-// The function to revoke permission from a given resource
-export 'src/solid/revoke_permission.dart' show revokePermission;
+/// The function to read permissions given to a resource
 
-// Functions to upload, download, and delete large file from a Solid server
+export 'src/solid/read_permission.dart';
+
+/// The function to revoke permission from a given resource
+
+export 'src/solid/revoke_permission.dart';
+
+/// Functions to upload, download, and delete large file from a Solid server
+
 export 'src/solid/utils/large_file_helper.dart'
     show sendLargeFile, getLargeFile, deleteLargeFile;
 
-// Function to read permission given to the user webID by others
-export 'src/solid/shared_resources.dart' show sharedResources;
+/// Function to read permission given to the user webID by others
 
-// Function to get resources in a container
+export 'src/solid/shared_resources.dart';
+
+/// Function to get resources in a container
+
 export 'src/solid/api/rest_api.dart' show getResourcesInContainer;
 
-// Function to get the latest log enties
+/// Function to get the latest log enties
+
 export 'src/solid/api/common_permission.dart'
     show PermissionLogLiteral, getLatestLog;
 
-// Read encrypted/non-encrypted files stored in an external POD
-export 'src/solid/read_external_pod.dart' show readExternalPod;
+/// Read encrypted/non-encrypted files stored in an external POD
 
-// Write to encrypted/non-encrypted files in an external POD
-export 'src/solid/write_external_pod.dart' show writeExternalPod;
+export 'src/solid/read_external_pod.dart';
 
-// Turtle string to triple map and triple map to turtle string functions
+/// Write to encrypted/non-encrypted files in an external POD
+
+export 'src/solid/write_external_pod.dart';
+
+/// Turtle string to triple map and triple map to turtle string functions
+
 export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
-// 20250917 gjw Extras that were required for notepod. Not yet documented.
+/// 20250917 gjw Extras that were required for notepod. Not yet documented.
 
 export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
-export 'src/solid/get_access_lists.dart' show getAccessLists;
-export 'src/solid/get_resources.dart' show getResources;
+export 'src/solid/get_access_lists.dart';
+export 'src/solid/get_resources.dart';
+
+/// 20250917 gjw Extras that were required for the example app! Not yet documented.
+
+export 'src/screens/initial_setup/initial_setup_screen_body.dart';
