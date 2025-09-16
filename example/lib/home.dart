@@ -1,6 +1,6 @@
 /// A screen to demonstrate various capabilities of solidlogin.
 ///
-// Time-stamp: <Wednesday 2025-09-17 08:21:42 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-09-17 08:23:30 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -42,26 +42,7 @@ import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
 import 'package:intl/intl.dart';
-import 'package:solidpod/solidpod.dart'
-    show
-        AppInfo,
-        GrantPermissionUi,
-        KeyManager,
-        SharedResourcesUi,
-        changeKeyPopup,
-        deleteDataFileDialog,
-        deleteLogIn,
-        getDataDirPath,
-        getWebId,
-        loginIfRequired,
-        logoutPopup,
-        readPod,
-        readEncryptionKeyContent,
-        getKeyFromUserIfRequired;
-//import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
-
-// TODO 20240515 gjw For now we will list all the imports so we can manage the
-// API evolution. Eventually we will simply just import the package.
+import 'package:solidpod/solidpod.dart';
 
 /// A widget for the demonstration screen of the application.
 
