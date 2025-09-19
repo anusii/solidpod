@@ -66,10 +66,11 @@ Future<dynamic> readExternalPod(
       try {
         final fileContent = await fetchPrvFile(fileUrl);
 
+        // Get master key from the user if required
+        await getKeyFromUserIfRequired(context, child);
+
         // Decrypt if reading an encrypted file
         if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-          await getKeyFromUserIfRequired(context, child);
-
           // Get the individual key for the file
           final indKey = await KeyManager.getSharedIndividualKey(fileUrl);
 
