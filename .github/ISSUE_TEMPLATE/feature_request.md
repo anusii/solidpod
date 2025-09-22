@@ -12,8 +12,13 @@ assignees: ''
 
 ## Why
 
-As a [user] I would like to [clear and concise description of what you
-want to happen.]
+So that as a user I can [clear and concise benefit].
+
+## Closing Crieria
+
+Checklist for closing the issue:
+
+- [ ] All tests pass
 
 ## Alternatives
 

@@ -44,20 +44,21 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// data directory (within potential subdirectories encoded in [fileName]).
 /// The content will be encrypted if [encrypted] is true.
 ///
-/// The file will be written to the `appname/data` directory.
+/// The file will be written to the `appname/data` directory by default, unless
+/// [basePath] is specified to override the default base path.
 ///
 /// Examples:
 /// - `writePod('abc.ttl', content)` writes to `appname/data/abc.ttl`
 /// - `writePod('movies/abc.ttl', content)` writes to `appname/data/movies/abc.ttl`
 /// - `writePod('appname/data/file.ttl', content)` writes to `appname/data/file.ttl` (already correct path)
-///
-/// Note: Only `appname/data/` paths are supported for writePod operations.
+/// - `writePod('file.ttl', content, basePath: 'appname/custom')` writes to `appname/custom/file.ttl`
 ///
 /// [fileName] - The name of the file to write
 /// [fileContent] - The content to write to the file
 /// [context] - The build context
 /// [child] - The child widget
 /// [encrypted] - Whether to encrypt the file content (default: true)
+/// [basePath] - Optional base path to override the default `appname/data` directory
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -65,6 +66,7 @@ Future<SolidFunctionCallStatus> writePod(
   BuildContext context,
   Widget child, {
   bool encrypted = true,
+  String? basePath,
 }) async {
   // Sanity check - ensure fileName doesn't end with path separators
   // The normalizeFilePath function will handle path separator normalization
@@ -81,10 +83,10 @@ Future<SolidFunctionCallStatus> writePod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
-  // Normalise the file path to use appname/data as base path
-  // and handle cross-platform path separators properly.
+  // Normalise the file path using the specified base path
+  // or default to appname/data, and handle cross-platform path separators properly.
 
-  final normalizedFilePath = await normalizeFilePath(fileName, null);
+  final normalizedFilePath = await normalizeFilePath(fileName, basePath);
   final fileUrl = await getFileUrl(normalizedFilePath);
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 

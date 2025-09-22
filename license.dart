@@ -1,8 +1,8 @@
 /// SolidPod library to support privacy first data store on Solid Servers
 ///
-// Time-stamp: <Wednesday 2025-07-09 15:41:34 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-09-17 09:19:35 +1000 Graham Williams>
 ///
-/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2025, Software Innovation Institute ANU
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -27,5 +27,8 @@
 // SOFTWARE.
 ///
 /// Authors: AUTHORS
+
+// Add the library directive as we have doc entries above. We publish the above
+// meta doc lines in the docs.
 
 library;

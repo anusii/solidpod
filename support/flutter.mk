@@ -73,9 +73,16 @@ export FLUTTER_HELP
 help::
 	@echo "$$FLUTTER_HELP"
 
+TICK=\033[0;32m✔\033[0m
+CROSS=\033[31m❌\033[0m
+
+DART_CODE=lib \
+	$(if $(wildcard test/),test) \
+	$(if $(wildcard integration_test/),integration_test)
+
 .PHONY: chrome
 chrome:
-	flutter run -d chrome
+	flutter run -d chrome --release
 
 # 20220503 gjw The following fails if the target files already exist -
 # just needs to be run once.
@@ -126,7 +133,7 @@ linux_config:
 	flutter config --enable-linux-desktop
 
 .PHONY: prep
-prep: analyze fix import_order_fix format ignore license todo depend bakfind
+prep: analyze fix import_order_fix format dcm ignore license todo locmax markdown depend bakfind test
 	@echo "ADVISORY: make tests docs"
 	@echo $(SEPARATOR)
 
@@ -143,6 +150,7 @@ pubspec:
 
 .PHONY: pubspec.local
 pubspec.local:
+	cp --backup pubspec.yaml pubspec.yaml.actual
 	cp --backup pubspec.yaml.local pubspec.yaml
 
 .PHONY: pubspec.actual
@@ -181,7 +189,7 @@ tests:: test qtest
 .PHONY: analyze
 analyze:
 	@echo "Futter ANALYZE"
-	-flutter analyze lib
+	-flutter analyze
 #	dart run custom_lint
 	@echo $(SEPARATOR)
 
@@ -193,23 +201,98 @@ depend:
 	-dependency_validator
 	@echo $(SEPARATOR)
 
+LINES ?= 300
+
+.PHONY: locmax
+locmax:
+	@echo "Files with EXCESS LINES OF CODE:\n"
+	@-loc=$$(cat $(shell find lib -name '*.dart') \
+		| egrep -v '^ */' \
+		| egrep -v '^ *$$' \
+		| egrep -v '^ *[)},]+, *$$' \
+		| wc -l \
+		| numfmt --grouping); \
+	numf=$$(find lib -name "*.dart" -type f | wc -l); \
+	output=$$(find lib -name "*.dart" -exec sh -c ' \
+		lines=$$(bash support/loc.sh "$$1"); \
+		if [ $$lines -gt $(LINES) ]; then \
+			printf "%4d %s\n" $$lines "$$1"; \
+		fi \
+	' _ {} \; | sort -nr); \
+	locm=$$(echo $$output | wc -w | awk '{print $$1/2}'); \
+	if [ -n "$$output" ]; then \
+		echo "$$output"; \
+		echo "\nTotal $$loc lines of code across $$numf files."; \
+		echo "\n$(CROSS) Error: Found $$locm files with more than $(LINES) lines of code."; \
+		exit 1; \
+	else \
+		echo "Total $$loc lines of code across $$numf files."; \
+		echo "\n$(TICK) All files are under $(LINES) lines."; \
+	fi
+	@echo $(SEPARATOR)
+
+# Check and fail if any files exceed limit
+
+PHONY: locmax-enforce
+locmax-enforce:
+	@loc=$$(cat $(shell find lib -name '*.dart') \
+		| egrep -v '^ */' \
+		| egrep -v '^ *$$' \
+		| egrep -v '^ *[)},]+, *$$' \
+		| wc -l \
+		| numfmt --grouping); \
+	numf=$$(find lib -name "*.dart" -type f | wc -l); \
+	output=$$(find lib -name "*.dart" -exec sh -c ' \
+		lines=$$(bash support/loc.sh "$$1"); \
+		if [ $$lines -gt $(LINES) ]; then \
+			printf "%4d %s\n" $$lines "$$1"; \
+		fi \
+	' _ {} \; | sort -nr); \
+	locm=$$(echo $$output | wc -w | awk '{print $$1/2}'); \
+	if [ -n "$$output" ]; then \
+		echo "$$output"; \
+		echo "Total $$loc lines of code across $$numf files."; \
+		echo "$(CROSS) Error: Found $$locm files with more than $(LINES) lines of code."; \
+		exit 1; \
+	else \
+		echo "Total $$loc lines of code across $$numf files."; \
+		echo "$(TICK) All files are under $(LINES) lines"; \
+	fi
+
+
+# dart pub global activate dependency_validator
+
+.PHONY: markdown
+markdown:
+	@echo "Markdown: MARKDOWN FORMAT CHECK."
+	-markdownlint --disable MD036 -- *.md lib assets installers
+	@echo
+	@echo $(SEPARATOR)
+
 .PHONY: ignore
 ignore:
 	@echo "Files that override lint checks with IGNORE:\n"
-	@-if grep -r -n ignore: lib; then exit 1; else exit 0; fi
+	@-if grep -r -n 'ignore: ' lib; then exit 1; else exit 0; fi
 	@echo $(SEPARATOR)
 
 .PHONY: todo
 todo:
 	@echo "Files that include TODO items to be resolved:\n"
-	@-if grep -r -n ' TODO ' lib; then exit 1; else exit 0; fi
+	@-if grep -r -n ' TODO ' lib; then echo; exit 1; else exit 0; fi
 	@echo $(SEPARATOR)
 
 .PHONY: license
 license:
 	@echo "Files without a LICENSE:\n"
-	@-find lib -type f -not -name '*~' -not -name 'README*' \
-	! -exec grep -qE '^(/// .*|/// Copyright|/// Licensed)' {} \; -print | xargs printf "\t%s\n"
+	@-output=$$(find lib -type f -not -name '*~' -not -name 'README*' -not -name '*.g.dart' \
+	! -exec grep -qE '^(/// Copyright|/// Licensed)' {} \; -print | xargs printf "\t%s\n"); \
+	if [ $$(echo "$$output" | wc -w) -ne 0 ]; then \
+		echo "$$output"; \
+		echo "\n$(CROSS) Error: Files with no license found."; \
+		exit 1; \
+	else \
+		echo "$(TICK) All source files contain a license."; \
+	fi
 	@echo $(SEPARATOR)
 
 .PHONY: riverpod
@@ -245,7 +328,7 @@ desktops:
 .PHONY: test
 test:
 	@echo "Unit TEST:"
-	-flutter test test
+	@-if [ -d test ]; then flutter test test; else echo "\nNo test folder found."; fi
 	@echo $(SEPARATOR)
 
 # For a specific interactive test we think of it as providing a
@@ -388,17 +471,36 @@ publish:
 .PHONY: import_order
 import_order:
 	@echo "Dart: CHECK IMPORT ORDER"
-	import_order --check
+	@which import_order > /dev/null 2>&1 \
+	|| { echo "Error: Install with 'dart pub global activate import_order_lint'."; exit 1; }
+	import_order --check $(DART_CODE)
 	@echo $(SEPARATOR)
 
 .PHONY: import_order_fix
 import_order_fix:
 	@echo "Dart: FIX IMPORT ORDER"
-	import_order
+	@import_order --check $(DART_CODE) \
+	|| import_order lib $(DART_CODE)
+	@echo $(SEPARATOR)
+
+# dart pub global activate dart_code_metrics
+
+.PHONY: dcm
+dcm: unused_code unused_files
+
+.PHONY: unused_code
+unused_code:
+	@echo "Dart Code Metrics: UNUSED CODE"
+	-metrics check-unused-code --disable-sunset-warning lib
+	@echo $(SEPARATOR)
+
+.PHONY: unused_files
+unused_files:
+	@echo "Dart Code Metrics: UNUSED FILES"
+	-metrics check-unused-files --disable-sunset-warning lib
 	@echo $(SEPARATOR)
 
 ### TODO THESE SHOULD BE CHECKED AND CLEANED UP
-
 
 .PHONY: docs
 docs::
