@@ -33,6 +33,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:solid_auth/solid_auth.dart' show genDpopToken;
+// ignore: implementation_imports
 import 'package:solid_auth/src/openid/openid_client.dart'
     show Credential, TokenResponse;
 
