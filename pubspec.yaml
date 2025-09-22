@@ -29,7 +29,9 @@ dependencies:
   rdflib: ^0.2.11
   # solid_auth: ^0.1.27
   solid_auth:
-    path: ../solid-auth
+    git:
+      url: https://github.com/anusii/solid_auth
+      ref: av/28_lint_issues
   universal_io: ^2.2.2
   url_launcher: ^6.3.1
 
