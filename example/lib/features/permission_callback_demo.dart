@@ -97,9 +97,9 @@ demo:exampleData$fileNumber
 
         // Always create/overwrite the demo file for consistency.
 
-        if (mounted) {
-          await writePod(filePath, demoContent, context, widget.child);
-        }
+        if (!mounted) return;
+
+        await writePod(filePath, demoContent, context, widget.child);
       }
     } catch (e) {
       debugPrint('❌ [CallbackDemo] Error creating demo files: $e');

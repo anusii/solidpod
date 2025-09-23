@@ -46,10 +46,16 @@ dependencies:
   url_launcher: ^6.3.1
 
 dev_dependencies:
-  build_runner: ^2.4.14
-  custom_lint: ^0.7.0
-  import_order_lint: ^0.1.2
-  ubuntu_lints: ^0.4.1
+  editable: ^2.0.0
+  file_picker: ^10.3.3
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter
+  window_manager: ^0.5.1
+  build_runner: ^2.8.0
+  custom_lint: ^0.8.1
+  import_order_lint: ^0.2.2
+  ubuntu_lints: ^0.4.1+1
 
 flutter:
   assets:

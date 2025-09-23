@@ -9,15 +9,21 @@ assignees: ''
 
 ## Describe the Bug
 
-[A clear and concise description of what the bug is.]
+[A clear and concise description of the bug.]
 
 ## To Reproduce
 
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
 4. See error
+
+```bash
+$ commands
+...
+```
 
 ## Expected Behaviour
 
@@ -27,12 +33,25 @@ Steps to reproduce the behavior:
 
 [If applicable, add screenshots to help explain your problem.]
 
-## Desktop (please complete the following information):
+## Context
 
- - [ ] Linux
- - [ ] macOS
- - [ ] Windows
+Where has the issue been observed:
 
-## Additional Context
+- [ ] Android
+- [ ] Chrome
+- [ ] iOS
+- [ ] Linux
+- [ ] macOS
+- [ ] Web
+- [ ] Windows
 
 [Add any other context about the problem here.]
+
+App Version:
+Flutter Version:
+
+## Closing Criteria
+
+Checklist for closing the issue:
+
+- [ ] All tests pass

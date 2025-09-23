@@ -46,20 +46,27 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// We first check if the user is logged in and then read and parse the file
 /// content.
 ///
-/// The file will be read from the `appname/data` directory.
+/// The file will be read from the `appname/data` directory by default, unless
+/// [basePath] is specified to override the default base path.
 ///
 /// Examples:
 /// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
 /// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
 /// - `readPod('appname/data/file.ttl')` reads from `appname/data/file.ttl` (already correct path)
+/// - `readPod('file.ttl', basePath: 'appname/custom')` reads from `appname/custom/file.ttl`
 ///
-/// Note: Only `appname/data/` paths are supported for readPod operations.
+/// [filePath] - The path to the file to read
+/// [context] - The build context
+/// [child] - The child widget
+/// [mode] - The file open mode (default: text)
+/// [basePath] - Optional base path to override the default `appname/data` directory
 
 Future<String> readPod(
   String filePath,
   BuildContext context,
   Widget child, {
   FileOpenMode mode = FileOpenMode.text,
+  String? basePath,
 }) async {
   // Login and initialise PODs if necessary
 
@@ -69,10 +76,11 @@ Future<String> readPod(
     throw Exception('User has not logged in.');
   }
 
-  // Normalise the file path to use appname/data as base path
-  // and handle cross-platform path separators properly.
+  // Normalise the file path using the specified base path
+  // or default to appname/data, and handle cross-platform path separators
+  // properly.
 
-  final normalizedFilePath = await normalizeFilePath(filePath, null);
+  final normalizedFilePath = await normalizeFilePath(filePath, basePath);
 
   // Check if the requested file exists
 

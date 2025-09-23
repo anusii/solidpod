@@ -96,7 +96,8 @@ Future<dynamic> grantPermission(
       // directory structure
       var allRecipientsInitialised = true;
       for (final recipientWebId in recipientWebIdList) {
-        final isInitialised = await checkPodInitialised(recipientWebId as String);
+        final isInitialised =
+            await checkPodInitialised(recipientWebId as String);
         if (!isInitialised) {
           allRecipientsInitialised = false;
         }
@@ -114,118 +115,118 @@ Future<dynamic> grantPermission(
             groupName,
           );
 
-        // Check if the file is encrypted
-        final fileIsEncrypted =
-            await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
+          // Check if the file is encrypted
+          final fileIsEncrypted =
+              await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
 
-        // If the file is encrypted then share the individual encryption key
-        // with the receiver
-        if (fileIsEncrypted) {
-          // Get the individual encryption key for the file
-          final indKey = isExternalRes
-              ? await KeyManager.getSharedIndividualKey(resourceUrl)
-              : await KeyManager.getIndividualKey(resourceUrl);
+          // If the file is encrypted then share the individual encryption key
+          // with the receiver
+          if (fileIsEncrypted) {
+            // Get the individual encryption key for the file
+            final indKey = isExternalRes
+                ? await KeyManager.getSharedIndividualKey(resourceUrl)
+                : await KeyManager.getIndividualKey(resourceUrl);
 
-          if ([RecipientType.individual, RecipientType.group]
-              .contains(recipientType)) {
-            // For each recipient share the individual encryption key
+            if ([RecipientType.individual, RecipientType.group]
+                .contains(recipientType)) {
+              // For each recipient share the individual encryption key
 
-            for (final recipientWebId in recipientWebIdList) {
-              // Setup recipient's public key
-              final recipientPubKey =
-                  RecipientPubKey(recipientWebId: recipientWebId as String);
+              for (final recipientWebId in recipientWebIdList) {
+                // Setup recipient's public key
+                final recipientPubKey =
+                    RecipientPubKey(recipientWebId: recipientWebId as String);
 
-              // Encrypt individual key
-              final sharedIndKey =
-                  await recipientPubKey.encryptData(indKey.base64);
+                // Encrypt individual key
+                final sharedIndKey =
+                    await recipientPubKey.encryptData(indKey.base64);
 
-              // Encrypt resource URL
-              final sharedResPath =
-                  await recipientPubKey.encryptData(resourceUrl);
+                // Encrypt resource URL
+                final sharedResPath =
+                    await recipientPubKey.encryptData(resourceUrl);
 
-              // Encrypt the list of permissions
-              permissionList.sort();
-              final sharedAccessList =
-                  await recipientPubKey.encryptData(permissionList.join(','));
+                // Encrypt the list of permissions
+                permissionList.sort();
+                final sharedAccessList =
+                    await recipientPubKey.encryptData(permissionList.join(','));
 
-              // Generate unique ID for the resource being shared
-              final resUniqueId =
-                  getUniqueIdResUrl(resourceUrl, recipientWebId);
+                // Generate unique ID for the resource being shared
+                final resUniqueId =
+                    getUniqueIdResUrl(resourceUrl, recipientWebId);
 
-              // Copy shared content to recipient's POD
-              await copySharedKey(
-                recipientWebId,
-                resUniqueId,
-                sharedIndKey,
-                sharedResPath,
-                sharedAccessList,
+                // Copy shared content to recipient's POD
+                await copySharedKey(
+                  recipientWebId,
+                  resUniqueId,
+                  sharedIndKey,
+                  sharedResPath,
+                  sharedAccessList,
+                );
+              }
+            } else {
+              // if the recipient type is either public or authenticated agent
+              // Copy the key to a publicly available or authenticated user accessible file
+              await copySharedKeyUserClass(
+                indKey,
+                resourceUrl,
+                permissionList,
+                recipientType,
               );
             }
-          } else {
-            // if the recipient type is either public or authenticated agent
-            // Copy the key to a publicly available or authenticated user accessible file
-            await copySharedKeyUserClass(
-              indKey,
-              resourceUrl,
+          }
+
+          // Add log entry to owner, granter, and receiver permission log files
+
+          // Get user webID
+          final userWebId = await AuthDataManager.getWebId() as String;
+
+          for (final recipientWebId in recipientWebIdList) {
+            final logEntryRes = createPermLogEntry(
               permissionList,
-              recipientType,
+              resourceUrl,
+              ownerWebId,
+              'grant',
+              userWebId,
+              recipientWebId as String,
             );
-          }
-        }
 
-        // Add log entry to owner, granter, and receiver permission log files
+            // Log file urls of the owner, granter, and receiver
+            final logFilePath = await getPermLogFilePath();
 
-        // Get user webID
-        final userWebId = await AuthDataManager.getWebId() as String;
+            // Owner
+            final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
 
-        for (final recipientWebId in recipientWebIdList) {
-          final logEntryRes = createPermLogEntry(
-            permissionList,
-            resourceUrl,
-            ownerWebId,
-            'grant',
-            userWebId,
-            recipientWebId as String,
-          );
+            // Granter
+            final granterLogFileUrl = await getFileUrl(logFilePath);
 
-          // Log file urls of the owner, granter, and receiver
-          final logFilePath = await getPermLogFilePath();
-
-          // Owner
-          final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
-
-          // Granter
-          final granterLogFileUrl = await getFileUrl(logFilePath);
-
-          // Run log entry insert query for the granter
-          await addPermLogLine(
-            granterLogFileUrl,
-            logEntryRes[0] as String,
-            logEntryRes[1] as String,
-          );
-
-          // If owner and the granter is not the same add another log file entry
-          // for the owner
-          if (ownerLogFileUrl != granterLogFileUrl) {
+            // Run log entry insert query for the granter
             await addPermLogLine(
-              ownerLogFileUrl,
+              granterLogFileUrl,
               logEntryRes[0] as String,
               logEntryRes[1] as String,
             );
-          }
 
-          // Add log entry if the recipient is either an individual or group of WebIDs
-          if ([RecipientType.individual, RecipientType.group]
-              .contains(recipientType)) {
-            final receiverLogFileUrl =
-                await getFileUrl(logFilePath, recipientWebId);
-            await addPermLogLine(
-              receiverLogFileUrl,
-              logEntryRes[0] as String,
-              logEntryRes[1] as String,
-            );
+            // If owner and the granter is not the same add another log file entry
+            // for the owner
+            if (ownerLogFileUrl != granterLogFileUrl) {
+              await addPermLogLine(
+                ownerLogFileUrl,
+                logEntryRes[0] as String,
+                logEntryRes[1] as String,
+              );
+            }
+
+            // Add log entry if the recipient is either an individual or group of WebIDs
+            if ([RecipientType.individual, RecipientType.group]
+                .contains(recipientType)) {
+              final receiverLogFileUrl =
+                  await getFileUrl(logFilePath, recipientWebId);
+              await addPermLogLine(
+                receiverLogFileUrl,
+                logEntryRes[0] as String,
+                logEntryRes[1] as String,
+              );
+            }
           }
-        }
           return SolidFunctionCallStatus.success;
         } else {
           return SolidFunctionCallStatus.fail;
@@ -233,7 +234,7 @@ Future<dynamic> grantPermission(
       } else {
         return SolidFunctionCallStatus.notInitialised;
       }
-    } catch (e, stackTrace) {
+    } on Object catch (e, stackTrace) {
       debugPrint('💥 [GrantPermission] Exception occurred: $e');
       debugPrint('📚 [GrantPermission] Stack trace: $stackTrace');
       return SolidFunctionCallStatus.fail;
