@@ -193,15 +193,14 @@ class AuthDataManager {
         //   'AuthDataManager => _getTokenResponse() refreshing expired token',
         // );
         assert(_rsaInfo != null);
-        // final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
-        // final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
-        // final tokenEndpoint =
-        //     _authResponse!.client.issuer.metadata['token_endpoint'] as String;
-        // final dPopToken =
-        //     genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
-        // tokenResponse = await _authResponse!
-        //     .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
-        tokenResponse = await _authResponse!.getTokenResponse(true);
+        final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
+        final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
+        final tokenEndpoint =
+            _authResponse!.client.issuer.metadata['token_endpoint'] as String;
+        final dPopToken =
+            genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
+        tokenResponse = await _authResponse!
+            .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
       }
       return tokenResponse;
     } on Object catch (e) {
