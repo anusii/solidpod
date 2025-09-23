@@ -32,6 +32,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
+import 'package:openid_client/openid_client.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;
@@ -192,14 +193,15 @@ class AuthDataManager {
         //   'AuthDataManager => _getTokenResponse() refreshing expired token',
         // );
         assert(_rsaInfo != null);
-        final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
-        final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
-        final tokenEndpoint =
-            _authResponse!.client.issuer.metadata['token_endpoint'] as String;
-        final dPopToken =
-            genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
-        tokenResponse = await _authResponse!
-            .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+        // final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
+        // final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
+        // final tokenEndpoint =
+        //     _authResponse!.client.issuer.metadata['token_endpoint'] as String;
+        // final dPopToken =
+        //     genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
+        // tokenResponse = await _authResponse!
+        //     .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+        tokenResponse = await _authResponse!.getTokenResponse(true);
       }
       return tokenResponse;
     } on Object catch (e) {
