@@ -31,7 +31,7 @@ dependencies:
   solid_auth:
     git:
       url: https://github.com/anusii/solid_auth
-      ref: av/28_lint_issues
+      ref: dev
   universal_io: ^2.2.2
   url_launcher: ^6.3.1
 
