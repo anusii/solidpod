@@ -1,6 +1,6 @@
 name: solidpod
 description: Support access to private data from PODs on Solid servers.
-version: 0.7.10
+version: 0.7.11
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   crypto: ^3.0.6
-  encrypt: ^5.0.3
+  encrypter_plus: ^5.1.0
   fast_rsa: ^3.7.1
   flutter:
     sdk: flutter
@@ -26,12 +26,19 @@ dependencies:
   mime: ^2.0.0
   package_info_plus: ^8.1.4
   path: ^1.9.0
+  pointycastle: ^4.0.0
   rdflib: ^0.2.11
   # solid_auth: ^0.1.27
   solid_auth:
+    # path: ../solid-auth
     git:
       url: https://github.com/anusii/solid_auth
-      ref: dev
+      ref: av/minor_issue_fix
+  openid_client:
+    # path: ../openid_client
+    git:
+      url: https://github.com/anusii/openid_client
+      ref: av/custom_edits_for_solid_auth
   universal_io: ^2.2.2
   url_launcher: ^6.3.1
 
@@ -46,9 +53,6 @@ dev_dependencies:
   custom_lint: ^0.8.1
   import_order_lint: ^0.2.2
   ubuntu_lints: ^0.4.1+1
-
-dependency_overrides:
-  pointycastle: ^4.0.0
 
 flutter:
   assets:

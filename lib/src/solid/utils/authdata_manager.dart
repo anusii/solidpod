@@ -32,6 +32,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
+import 'package:openid_client/openid_client.dart';
 import 'package:solid_auth/solid_auth.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;

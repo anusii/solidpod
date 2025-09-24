@@ -35,7 +35,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
