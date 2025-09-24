@@ -286,6 +286,8 @@ Future<ResourceStatus> checkResourceStatus(
 
   if (response.statusCode == 200 || response.statusCode == 204) {
     return ResourceStatus.exist;
+  } else if (response.statusCode == 403) {
+    return ResourceStatus.forbidden;
   } else if (response.statusCode == 404) {
     return ResourceStatus.notExist;
   } else {
