@@ -40,7 +40,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
-import 'package:encrypt/encrypt.dart';
+import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:rdflib/rdflib.dart';
