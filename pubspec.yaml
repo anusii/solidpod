@@ -9,10 +9,7 @@ environment:
 
 dependencies:
   crypto: ^3.0.6
-  encrypt:
-    git:
-      url: https://github.com/anusii/encrypt
-      ref: 5.x
+  encrypter_plus: ^5.1.0
   fast_rsa: ^3.7.1
   flutter:
     sdk: flutter
