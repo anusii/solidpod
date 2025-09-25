@@ -583,7 +583,8 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 
     case ResourceStatus.forbidden:
       debugPrint(
-          'Access to ACL file "$aclUrl" for "$resourceUrl" is forbidden.');
+        'Access to ACL file "$aclUrl" for "$resourceUrl" is forbidden.',
+      );
 
     case ResourceStatus.notExist:
       debugPrint('ACL file "$aclUrl" for "$resourceUrl" does not exist.');
