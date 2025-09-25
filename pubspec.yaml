@@ -33,7 +33,7 @@ dependencies:
     # path: ../solid-auth
     git:
       url: https://github.com/anusii/solid_auth
-      ref: av/minor_issue_fix
+      ref: dev
   openid_client:
     # path: ../openid_client
     git:
