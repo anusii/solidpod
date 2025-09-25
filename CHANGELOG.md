@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ Support ACL with 403 return messages [0.7.12 20250926 jesscmoore]
 + AuthManager compatible solid-auth changes [0.7.11 20250924 anushkavidanage]
 + Shared key reading bug fix [0.7.10 20250916 anushkavidanage]
 + Bug fix in key manager [0.7.9 20250815 atangster]
