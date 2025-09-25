@@ -102,10 +102,17 @@ Future<SolidFunctionCallStatus> writeExternalPod(
         }
       }
       break;
+
+    case ResourceStatus.forbidden:
+      throw Exception(
+        'Access to file "$fileUrl" is forbidden, writePod() aborted',
+      );
+
     case ResourceStatus.unknown:
       throw Exception(
         'Unable to determine if file "$fileUrl" exists, writePod() aborted',
       );
+
     case ResourceStatus.notExist: // Empty case falls through.
       debugPrint('File "$fileUrl" does not exist');
   }

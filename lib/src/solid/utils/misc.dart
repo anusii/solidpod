@@ -581,12 +581,16 @@ Future<void> deleteAclForResource(String resourceUrl) async {
     case ResourceStatus.exist:
       await deleteResource(aclUrl, ResourceContentType.turtleText);
 
+    case ResourceStatus.forbidden:
+      debugPrint(
+          'Access to ACL file "$aclUrl" for "$resourceUrl" is forbidden.');
+
     case ResourceStatus.notExist:
-      debugPrint('ACL file for "$resourceUrl" does not exist.');
+      debugPrint('ACL file "$aclUrl" for "$resourceUrl" does not exist.');
 
     case ResourceStatus.unknown:
       throw Exception(
-        'Error occurred when checking status of ACL file for "$resourceUrl"',
+        'Error occurred when checking status of ACL file "$aclUrl" for "$resourceUrl"',
       );
   }
 }

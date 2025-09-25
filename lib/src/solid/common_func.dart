@@ -208,6 +208,9 @@ Future<void> deleteDataFileDialog(
         }
         return;
 
+      case ResourceStatus.forbidden:
+        msg = 'Access to data file "$fileName" is forbidden.';
+
       case ResourceStatus.notExist:
         msg = 'Data file "$fileName" does not exist.';
 

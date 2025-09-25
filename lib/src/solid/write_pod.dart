@@ -147,6 +147,11 @@ Future<SolidFunctionCallStatus> writePod(
         'Unable to determine if file "$normalizedFilePath" exists, writePod() aborted',
       );
 
+    case ResourceStatus.forbidden:
+      throw Exception(
+        'Access to file "$normalizedFilePath" is forbidden, writePod() aborted',
+      );
+
     case ResourceStatus.notExist: // Empty case falls through.
       debugPrint('File "$normalizedFilePath" does not exist');
   }
