@@ -27,10 +27,11 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:demopod/home.dart';
-import 'package:demopod/utils/is_desktop.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:window_manager/window_manager.dart';
+
+import 'package:demopod/home.dart';
+import 'package:demopod/utils/is_desktop.dart';
 
 void main() async {
   // Remove [debugPrint] messages from production code.
