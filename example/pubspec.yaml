@@ -13,26 +13,15 @@ dependencies:
     sdk: flutter
   intl: any
   rdflib: ^0.2.11
-  #
-  # 20250429 gjw In testing the package in the context of the github
-  # clone we get the solidpod package from the parent
-  # folder. Otherwise if this is a standalone copy of the example
-  # folder, then obtain solidpod from the dart repository.
-  #
   # solidpod: ^0.7.0
-  #
   solidpod:
     path: ..
   universal_io: ^2.2.2
-  window_manager: ^0.4.3
+  window_manager: ^0.5.1
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
   flutter_lints: ^5.0.0
 
 flutter:
-  uses-material-design: true
-
   assets:
     - assets/images/
