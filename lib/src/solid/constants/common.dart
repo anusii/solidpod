@@ -161,7 +161,10 @@ enum ResourceStatus {
   notExist,
 
   /// Do not know if the resource exist (e.g. error occurred when checking the status)
-  unknown
+  unknown,
+
+  /// Resource access is forbidden
+  forbidden,
 }
 
 /// Types of the content of resources

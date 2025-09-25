@@ -77,7 +77,14 @@ Future<dynamic> readPermission(
     final resStatus =
         await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
 
-    if (resStatus == ResourceStatus.exist) {
+    if (resStatus == ResourceStatus.exist ||
+        resStatus == ResourceStatus.forbidden) {
+      if (resStatus == ResourceStatus.forbidden) {
+        debugPrint(
+          '[read_permission] Allowing resource\'s ACL to be read when the resource is access forbidden',
+        );
+      }
+
       // Read ACL file content
       final aclContentMap = await readAcl(resourceUrl);
 
