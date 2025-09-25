@@ -28,12 +28,7 @@ dependencies:
   path: ^1.9.0
   pointycastle: ^4.0.0
   rdflib: ^0.2.11
-  # solid_auth: ^0.1.27
-  solid_auth:
-    # path: ../solid-auth
-    git:
-      url: https://github.com/anusii/solid_auth
-      ref: dev
+  solid_auth: ^0.1.28
   openid_client:
     # path: ../openid_client
     git:
