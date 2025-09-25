@@ -15,8 +15,6 @@ dependencies:
     sdk: flutter
   flutter_form_builder: ^10.0.1
   flutter_secure_storage: ^10.0.0-beta.4
-  #flutter_secure_storage_linux: ^2.0.1
-  #flutter_svg: ^2.0.17
   form_builder_validators: ^11.1.2
   http: ^1.3.0
   intl: ^0.20.2
@@ -29,38 +27,23 @@ dependencies:
   pointycastle: ^4.0.0
   rdflib: ^0.2.11
   solid_auth: ^0.1.28
-  openid_client:
-    # path: ../openid_client
-    git:
-      url: https://github.com/anusii/openid_client
-      ref: av/custom_edits_for_solid_auth
   universal_io: ^2.2.2
   url_launcher: ^6.3.1
 
 dev_dependencies:
-  editable: ^2.0.0
-  file_picker: ^10.3.3
-  flutter_lints: ^5.0.0
-  flutter_test:
-    sdk: flutter
-  window_manager: ^0.5.1
   build_runner: ^2.8.0
   custom_lint: ^0.8.1
-  import_order_lint: ^0.2.2
-  ubuntu_lints: ^0.4.1+1
   # Keep dependency checker quiet.
   demopod:
     path: example
+  editable: ^2.0.0
+  file_picker: ^10.3.3
+  flutter_lints: ^5.0.0
+  import_order_lint: ^0.2.2
+  ubuntu_lints: ^0.4.1+1
+  window_manager: ^0.5.1
 
 flutter:
   assets:
     - assets/images/default_image.jpg
     - assets/images/default_logo.png
-
-platforms:
-  android:
-  ios:
-  linux:
-  macos:
-  web:
-  windows:
