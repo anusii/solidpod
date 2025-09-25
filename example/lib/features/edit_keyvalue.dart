@@ -27,12 +27,13 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/utils/rdf.dart';
 import 'package:editable/editable.dart';
 import 'package:solidpod/solidpod.dart'
     show SolidFunctionCallStatus, loginIfRequired, writePod;
+
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/utils/rdf.dart';
 
 class KeyValueEdit extends StatefulWidget {
   /// Constructor
