@@ -54,6 +54,14 @@ Future<Map<String, dynamic>> getAccessLists(
   List<String>? fileList,
 }) async {
   fileList = fileList ?? dataMap.keys.toList();
+  final bool isExternalRes;
+
+  // File path
+  if (isFilePath) {
+    isExternalRes = true;
+  } else {
+    isExternalRes = false;
+  }
 
   // Read recipients for each file
   for (final fileName in fileList) {
@@ -65,7 +73,7 @@ Future<Map<String, dynamic>> getAccessLists(
       fileFlag,
       context,
       child,
-      isExternalRes: true,
+      isExternalRes: isExternalRes,
     );
     // Create empty map for each file if dataMap lacks file data
     if (!dataMap.containsKey(fileName)) {
