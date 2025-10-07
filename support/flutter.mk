@@ -138,7 +138,7 @@ linux_config:
 	flutter config --enable-linux-desktop
 
 .PHONY: prep
-prep: analyze fix import_order_fix format dcm ignore license todo locmax markdown depend bakfind test
+prep: analyze fix import_order_fix format dcm ignore license todo locmax markdown lychee depend bakfind
 	@echo "ADVISORY: make tests docs"
 	@echo $(SEPARATOR)
 
@@ -441,8 +441,11 @@ apk::
 	cp build/app/outputs/flutter-apk/app-release.apk installers/$(APP).apk
 	cp build/app/outputs/flutter-apk/app-release.apk installers/$(APP)-$(VER).apk
 
-appbundle:
+appbundle::
+	flutter clean
 	flutter build appbundle --release
+	cp build/app/outputs/bundle/release/app-release.aab installers/$(APP).aab
+	cp build/app/outputs/bundle/release/app-release.aab installers/$(APP)-$(VER).aab
 
 realclean::
 	flutter clean
@@ -505,6 +508,12 @@ unused_files:
 	-metrics check-unused-files --disable-sunset-warning lib
 	@echo $(SEPARATOR)
 
+.PHONY: lychee
+lychee:
+	@echo "Lychee: CHECK LINKS."
+	-lychee --no-progress --format compact 'assets/**/*.md' 'assets/**/*.html' 'lib/**/*.dart'
+	@echo $(SEPARATOR)
+
 ### TODO THESE SHOULD BE CHECKED AND CLEANED UP
 
 .PHONY: docs
@@ -513,8 +522,7 @@ docs::
 
 .PHONY: versions
 versions:
-	perl -pi -e 's|applicationVersion = ".*";|applicationVersion = "$(VER)";|' \
-	lib/constants/app.dart
+	perl -pi -e 's|^version:.*|version: "$(VER)"|' snap/snapcraft.yaml
 
 .PHONY: loc
 loc: lib/*.dart
