@@ -14,13 +14,13 @@
 
 **An ANU Software Innovation Institute package for your Data Vault**.
 
-*Time-stamp: <Tuesday 2025-07-22 21:12:19 +1000 Graham Williams>*
+Time-stamp: <Tuesday 2025-07-22 21:12:19 +1000 Graham Williams>
 
-*Authors: Anushka Vidanage, Graham Williams, Jessica Moore*
+Authors: Anushka Vidanage, Graham Williams, Jessica Moore
 
-*[ANU Software Innovation Institute](https://sii.anu.edu.au)*
+[ANU Software Innovation Institute](https://sii.anu.edu.au)
 
-*License: MIT*
+License: MIT
 
 ## Introduction
 
