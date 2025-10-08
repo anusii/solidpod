@@ -1,6 +1,6 @@
 /// A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Monday 2025-09-15 08:58:53 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2025-10-08 15:39:39 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -440,7 +440,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                     style: const TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.deepOrangeAccent,
+                                      // 20251008 gjw Choose blue rather than
+                                      // orange which looks red. The red looks
+                                      // like it is an error. Blue is more
+                                      // neutral.
+                                      color: Colors.blueAccent,
                                     ),
                                   ),
                                 ),
