@@ -131,9 +131,9 @@ Future<void> _updateInheritedKey(
 ) async {
   final sub = await getDirUrl(dirPath);
 
-  final prefix1 = '${xsdNS.prefix}: <${xsdNS.ns}>';
-  final prefix2 = '${solidTermsNS.prefix}: <${solidTermsNS.ns}>';
-  final prefix3 = '${termsNS.prefix}: <${termsNS.ns}>';
+  final prefix1 = '${xsdNS.prefix}: <${xsdNS.ns.uriRef!.value}>';
+  final prefix2 = '${solidTermsNS.prefix}: <${solidTermsNS.ns.uriRef!.value}>';
+  final prefix3 = '${termsNS.prefix}: <${termsNS.ns.uriRef!.value}>';
 
   final q = '''PREFIX $prefix1
   PREFIX $prefix2
@@ -615,7 +615,6 @@ class KeyManager {
 
     assert(_inheritedKeyMap != null);
     assert(_inheritedFileMap != null);
-    print(_inheritedFileMap);
 
     return _inheritedFileMap![resourcePath];
   }
