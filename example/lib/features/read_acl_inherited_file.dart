@@ -84,7 +84,7 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create a resource with ACL inheritance'),
+        title: const Text('Read a resource with ACL inheritance'),
       ),
       body: SingleChildScrollView(
         child: Padding(
