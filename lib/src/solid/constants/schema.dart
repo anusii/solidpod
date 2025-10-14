@@ -31,7 +31,7 @@ library;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart'
-    show acl, foaf, rdf, terms, vcard;
+    show acl, foaf, rdf, terms, vcard, xsd;
 
 // /// Predicates schema.
 
@@ -99,10 +99,6 @@ import 'package:solidpod/src/solid/constants/common.dart'
 // /// Http Solid schema.
 
 // const String httpSolidTerms = 'http://www.w3.org/ns/solid/terms#';
-
-// /// Http XMLS schema.
-
-// const String httpXMLSchema = 'http://www.w3.org/2001/XMLSchema#';
 
 // /// Http Pim schema.
 
@@ -175,7 +171,7 @@ final NS vcardNS = (prefix: 'vcard', ns: Namespace(ns: vcard));
 
 ///
 
-// final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
+final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
 
 ///
 final NS solidTermsNS = (prefix: 'solidTerms', ns: Namespace(ns: appsTerms));
@@ -215,6 +211,10 @@ const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 /// Data predicate
 
 const String appsData = 'https://solidcommunity.au/predicates/data#';
+
+// /// Http XMLS schema.
+
+// const String httpXMLSchema = 'http://www.w3.org/2001/XMLSchema#';
 
 /// Placeholder of namespace for SII customised predicates
 const String sii = 'https://solidproject.au/sii/';

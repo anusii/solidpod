@@ -93,25 +93,13 @@ Future<String> readPod(
         final fileContent = await fetchPrvFile(fileUrl);
 
         // Decrypt if reading an encrypted file
-        Key? indKey;
 
         if (await KeyManager.hasIndividualKey(fileUrl)) {
           await getKeyFromUserIfRequired(context, child);
 
           // Get the individual key for the file
-          indKey = await KeyManager.getIndividualKey(fileUrl);
-        } else if (await KeyManager.hasInheritedKey(
-          normalizedFilePath,
-        )) {
-          await getKeyFromUserIfRequired(context, child);
+          final indKey = await KeyManager.getIndividualKey(fileUrl);
 
-          // Get the individual key for the file
-          final parentDirUrl =
-              await KeyManager.getParentDir(normalizedFilePath);
-          indKey = await KeyManager.getInheritedKey(parentDirUrl!);
-        }
-
-        if (indKey != null) {
           // Decrypt the file content
 
           final dataMap = parseTTL(fileContent);
