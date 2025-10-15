@@ -58,6 +58,8 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// [context] - The build context
 /// [child] - The child widget
 /// [encrypted] - Whether to encrypt the file content (default: true)
+/// [inheritedFrom] - URL of resource whose encryption key and ACL is inherited by the file,
+///                   it overrides [encrypted] if not null.
 /// [basePath] - Optional base path to override the default `appname/data` directory
 
 Future<SolidFunctionCallStatus> writePod(
@@ -66,6 +68,7 @@ Future<SolidFunctionCallStatus> writePod(
   BuildContext context,
   Widget child, {
   bool encrypted = true,
+  String? inheritedFrom,
   String? basePath,
 }) async {
   // Sanity check - ensure fileName doesn't end with path separators
