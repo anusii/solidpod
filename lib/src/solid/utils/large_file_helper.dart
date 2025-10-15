@@ -116,7 +116,7 @@ Uint8List _decryptBytes(Uint8List encData, Encrypter encrypter, IV iv) =>
 /// Send a large local file with path [localFilePath] to a remote server
 /// using name [remoteFileName],
 /// encrypt the file content if [encrypted] is true.
-Future<void> sendLargeFile({
+Future<void> writeLargeFile({
   required String localFilePath,
   required String remoteFileName,
   required BuildContext context,
@@ -251,7 +251,7 @@ Future<void> send({
 
 /// Get a large file previously sent using [sendLargeFile] with name
 /// [remoteFileName] and save it to a local file with path [localFilePath]
-Future<void> getLargeFile({
+Future<void> readLargeFile({
   required String remoteFileName,
   required String localFilePath,
   required BuildContext context,

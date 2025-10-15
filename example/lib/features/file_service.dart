@@ -124,7 +124,7 @@ class _FileServiceState extends State<FileService> {
                 setState(() {
                   uploadInProgress = true;
                 });
-                await sendLargeFile(
+                await writeLargeFile(
                     localFilePath: uploadFile!,
                     remoteFileName: remoteFileName,
                     context: context,
@@ -175,7 +175,7 @@ class _FileServiceState extends State<FileService> {
                     downloadInProgress = true;
                   });
                   if (context.mounted) {
-                    await getLargeFile(
+                    await readLargeFile(
                         remoteFileName: remoteFileName,
                         localFilePath: outputFile,
                         context: context,
