@@ -313,11 +313,22 @@ Stream<List<int>> fetch({
   var encrypted = false;
   final keyPred = SIIPredicate.encryptionKey.uriRef.value;
   final ivPred = SIIPredicate.ivB64.uriRef.value;
+  final inheritedKeyPred = SIIPredicate.inheritedKey.uriRef.value;
 
-  if (map!.containsKey(keyPred)) {
-    assert(map.containsKey(ivPred));
+  if (map!.containsKey(ivPred)) {
+    String? keyStr;
+    if (map.containsKey(keyPred)) {
+      keyStr = map[keyPred]!.first as String;
+    } else if (map.containsKey(inheritedKeyPred)) {
+      keyStr = map[inheritedKeyPred]!.first as String;
+    } else {
+      assert(
+        false,
+        'Expected predicate ($keyPred or $inheritedKeyPred) not found',
+      );
+    }
     encrypted = true;
-    encrypter = _getEncrypter(Key.fromBase64(map[keyPred]!.first as String));
+    encrypter = _getEncrypter(Key.fromBase64(keyStr!));
     iv = IV.fromBase64(map[ivPred]!.first as String);
   }
 
