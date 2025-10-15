@@ -121,6 +121,7 @@ Future<void> writeLargeFile({
   required String remoteFileName,
   required BuildContext context,
   required Widget child,
+  String? inheritedFrom,
   void Function(int, int)? onProgress,
   bool encrypted = true,
 }) async {
@@ -132,6 +133,7 @@ Future<void> writeLargeFile({
     context: context,
     child: child,
     totalBytes: totalBytes,
+    inheritedFrom: inheritedFrom,
     onProgress: (sent, total) {
       if (onProgress != null) {
         onProgress(sent, total!);
@@ -150,6 +152,7 @@ Future<void> send({
   required BuildContext context,
   required Widget child,
   int? totalBytes,
+  String? inheritedFrom,
   void Function(int, int?)? onProgress,
   bool encrypted = true,
 }) async {
@@ -160,8 +163,6 @@ Future<void> send({
 
   if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
-    // throw Exception('Failed to send file $localFilePath.\n'
-    //    '$remoteFileName already exists.');
     throw Exception('ERROR: $remoteFileName already exists.');
   }
 
@@ -172,13 +173,15 @@ Future<void> send({
     contentType: ResourceContentType.directory,
   );
 
-  // Create ACL of the directory
-  await createResource(
-    '$chunkDirUrl.acl',
-    content: await genAclTurtle(chunkDirUrl, fileFlag: false),
-  );
+  // Create ACL of the directory if ACL is not inherited
+  if (inheritedFrom == null) {
+    await createResource(
+      '$chunkDirUrl.acl',
+      content: await genAclTurtle(chunkDirUrl, fileFlag: false),
+    );
+  }
 
-  // Encryption key and IV
+  // Encryption key and IV for data chunks
   Key? encKey;
   Encrypter? encrypter;
   IV? iv;
@@ -190,9 +193,7 @@ Future<void> send({
 
   var chunkId = 0;
   final chunkUrls = <String>[];
-  // final totalBytes = await file.length();
   var sentBytes = 0;
-  // final chunks = _getChunkStream(file.openRead());
   final chunks = _getChunkStream(dataStream);
   await for (final chunk in chunks) {
     final chunkUrl = '$chunkDirUrl${_getChunkName(chunkId)}';
@@ -205,11 +206,13 @@ Future<void> send({
       contentType: ResourceContentType.binary,
     );
 
-    // Create ACL of the chunk file
-    await createResource(
-      '$chunkUrl.acl',
-      content: await genAclTurtle(chunkUrl),
-    );
+    // Create ACL of the chunk file if ACL is not inherited
+    if (inheritedFrom == null) {
+      await createResource(
+        '$chunkUrl.acl',
+        content: await genAclTurtle(chunkUrl),
+      );
+    }
 
     sentBytes += chunk.lengthInBytes;
     if (onProgress != null) {
@@ -223,7 +226,6 @@ Future<void> send({
 
   final triples = {
     URIRef(fileUrl): {
-      // SIIPredicate.dataSize.uriRef: Literal(file.lengthSync().toString()),
       SIIPredicate.dataSize.uriRef: Literal(sentBytes.toString()),
       SIIPredicate.dataChunk.uriRef: {for (final url in chunkUrls) URIRef(url)},
       if (encrypted) ...{
@@ -243,14 +245,16 @@ Future<void> send({
     tripleMapToTurtle(triples, bindNamespaces: bindNS),
     context,
     child,
+    encrypted: encrypted,
+    inheritedFrom: inheritedFrom,
   );
 
   // Create ACL of the Turtle file
   await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
 }
 
-/// Get a large file previously sent using [sendLargeFile] with name
-/// [remoteFileName] and save it to a local file with path [localFilePath]
+/// Get a large file previously sent using [writeLargeFile] with name
+/// [remoteFileName] and save it to a local file with path [localFilePath].
 Future<void> readLargeFile({
   required String remoteFileName,
   required String localFilePath,
@@ -272,7 +276,7 @@ Future<void> readLargeFile({
   await sink.close();
 }
 
-/// Get a large file previously sent using [sendLargeFile] with name
+/// Get a large file previously sent using [writeLargeFile] with name
 /// [remoteFileName] and return a stream of bytes.
 Stream<List<int>> fetch({
   required String remoteFileName,
@@ -313,22 +317,11 @@ Stream<List<int>> fetch({
   var encrypted = false;
   final keyPred = SIIPredicate.encryptionKey.uriRef.value;
   final ivPred = SIIPredicate.ivB64.uriRef.value;
-  final inheritedKeyPred = SIIPredicate.inheritedKey.uriRef.value;
 
-  if (map!.containsKey(ivPred)) {
-    String? keyStr;
-    if (map.containsKey(keyPred)) {
-      keyStr = map[keyPred]!.first as String;
-    } else if (map.containsKey(inheritedKeyPred)) {
-      keyStr = map[inheritedKeyPred]!.first as String;
-    } else {
-      assert(
-        false,
-        'Expected predicate ($keyPred or $inheritedKeyPred) not found',
-      );
-    }
+  if (map!.containsKey(keyPred)) {
+    assert(map.containsKey(ivPred));
     encrypted = true;
-    encrypter = _getEncrypter(Key.fromBase64(keyStr!));
+    encrypter = _getEncrypter(Key.fromBase64(map[keyPred]!.first as String));
     iv = IV.fromBase64(map[ivPred]!.first as String);
   }
 
