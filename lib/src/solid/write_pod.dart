@@ -228,10 +228,6 @@ Future<SolidFunctionCallStatus> writePod(
         genRandIV(),
         inheritedFrom: normalizedDirPath,
       );
-      // av:remove
-      // // Add inherited file to the corresponding map and update the individual
-      // // key file
-      // KeyManager.addInheritedKeyFile(normalizedDirPath, normalizedFilePath);
     } else {
       // Reuse the individual key if the key already exists,
       // otherwise, generate a random key and add it to the individual key file.
