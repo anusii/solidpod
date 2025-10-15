@@ -49,7 +49,8 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
+import 'package:solidpod/src/solid/utils/rdf.dart'
+    show tripleMapToTurtle, parseTTLMap;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
@@ -89,9 +90,15 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
 Future<void> _addIndKey(
   String filePath,
   String encIndKey,
-  String ivBase64,
-) async {
-  final sub = await getFileUrl(filePath);
+  String ivBase64, {
+  bool fileFlag = true,
+}) async {
+  String sub;
+  if (fileFlag) {
+    sub = await getFileUrl(filePath);
+  } else {
+    sub = await getDirUrl(filePath);
+  }
 
   final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
       '<$appsTerms$ivPred> "$ivBase64"; '
@@ -100,61 +107,6 @@ Future<void> _addIndKey(
   final fileUrl = await getFileUrl(await getIndKeyPath());
 
   await updateFileByQuery(fileUrl, query);
-}
-
-/// Add the encrypted inherited key string [encInheritedKey] and
-/// the corresponding IV string [ivBase64] for directory with path [dirPath]
-Future<void> _addInheritedKey(
-  String dirPath,
-  String encInheritedKey,
-  String ivBase64,
-  String fileListStr,
-) async {
-  final sub = await getDirUrl(dirPath);
-
-  final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$dirPath"; '
-      '<$appsTerms$ivPred> "$ivBase64"; '
-      '<$appsTerms$sessionKeyPred> "$encInheritedKey";'
-      '<$appsTerms$filePathListPred> "$fileListStr".};';
-
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-
-  await updateFileByQuery(fileUrl, query);
-}
-
-/// Update the inherited key entry with new list of files
-Future<void> _updateInheritedKey(
-  String dirPath,
-  String encInheritedKey,
-  String ivBase64,
-  String fileListStr,
-) async {
-  final sub = await getDirUrl(dirPath);
-
-  final prefix1 = '${xsdNS.prefix}: <${xsdNS.ns.uriRef!.value}>';
-  final prefix2 = '${solidTermsNS.prefix}: <${solidTermsNS.ns.uriRef!.value}>';
-  final prefix3 = '${termsNS.prefix}: <${termsNS.ns.uriRef!.value}>';
-
-  final q = '''PREFIX $prefix1
-  PREFIX $prefix2
-  PREFIX $prefix3
-  DELETE {
-    <$sub> 
-        solidTerms:$filePathListPred ?anyValue .
-  }
-  INSERT {
-    <$sub> 
-        solidTerms:$filePathListPred "$fileListStr" .
-  }
-  WHERE {
-    <$sub> 
-        solidTerms:$filePathListPred ?anyValue .
-  }
-''';
-
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-
-  await updateFileByQuery(fileUrl, q);
 }
 
 /// Delete the encrypted individual/session key string [encIndKey] and
@@ -169,26 +121,6 @@ Future<void> _delIndKey(
   final query = 'DELETE DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
       '<$appsTerms$ivPred> "$ivBase64"; '
       '<$appsTerms$sessionKeyPred> "$encIndKey".};';
-
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-
-  await updateFileByQuery(fileUrl, query);
-}
-
-/// Delete the encrypted inherited key string [encInheritedKey] and
-/// the corresponding IV string [ivBase64] for directory with path [dirPath]
-Future<void> _delInheritedKey(
-  String dirPath,
-  String encInheritedKey,
-  String ivBase64,
-  String fileListStr,
-) async {
-  final sub = await getDirUrl(dirPath);
-
-  final query = 'DELETE DATA {<$sub> <$appsTerms$pathPred> "$dirPath"; '
-      '<$appsTerms$ivPred> "$ivBase64"; '
-      '<$appsTerms$sessionKeyPred> "$encInheritedKey";'
-      '<$appsTerms$filePathListPred> "$fileListStr".};';
 
   final fileUrl = await getFileUrl(await getIndKeyPath());
 
@@ -273,13 +205,6 @@ class KeyManager {
 
   /// The encrypted (and decrypted) individual keys
   static Map<String, _IndKeyRecord>? _indKeyMap;
-
-  /// The encrypted (and decrypted) inherited keys
-  static Map<String, _InheritedKeyRecord>? _inheritedKeyMap;
-
-  /// Inverted index of [_inheritedKeyMap] where keys are
-  /// file paths and value is the parent directory url
-  static Map<String, String>? _inheritedFileMap;
 
   /// The decrypted shared individual keys
   static Map<String, _SharedIndKeyRecord>? _sharedIndKeyMap;
@@ -538,15 +463,16 @@ class KeyManager {
   }
 
   /// Returns true if there is an individual key for a given resource
-  static Future<bool> hasInheritedKey(
-    String resourceUrl,
-  ) async {
-    if (_inheritedFileMap == null) {
-      await _loadIndKeyFile();
+  static bool hasInheritedKey(
+    String fileContent,
+    String fileUrl,
+  ) {
+    final dataMap = parseTTLMap(fileContent);
+    if (dataMap.containsKey(fileUrl)) {
+      return dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
+    } else {
+      return false;
     }
-    assert(_inheritedFileMap != null);
-
-    return _inheritedFileMap!.containsKey(resourceUrl);
   }
 
   /// Return the (decrypted) individual key for an existing resource
@@ -578,50 +504,29 @@ class KeyManager {
     return record.key!;
   }
 
-  /// Return the (decrypted) inherited key for an existing directory
-  static Future<Key> getInheritedKey(String dirUrl) async {
-    if (_inheritedKeyMap == null) {
-      await _loadIndKeyFile();
-    }
-
-    assert(_inheritedKeyMap != null);
-    if (!_inheritedKeyMap!.containsKey(dirUrl)) {
-      throw Exception(
-        'Unable to locate the inherited key for directory:\n$dirUrl',
-      );
-    }
-
-    final record = _inheritedKeyMap![dirUrl];
-    assert(record != null);
-
-    if (record!.key == null) {
-      record.key = Key.fromBase64(
-        decryptData(
-          record.encKeyBase64,
-          await getMasterKey(),
-          IV.fromBase64(record.ivBase64),
-        ),
-      );
-      _inheritedKeyMap![dirUrl] = record;
-    }
-    return record.key!;
-  }
-
   /// Get inherited resource parent directory url
-  static Future<String?> getParentDir(String resourcePath) async {
-    if (_inheritedKeyMap == null) {
-      await _loadIndKeyFile();
-    }
+  static String getParentDir(
+    String fileContent,
+    String fileUrl,
+  ) {
+    final dataMap = parseTTLMap(fileContent);
 
-    assert(_inheritedKeyMap != null);
-    assert(_inheritedFileMap != null);
-
-    return _inheritedFileMap![resourcePath];
+    return dataMap[fileUrl]['$appsTerms$inheritancePred'].first;
   }
 
   /// Add the (encrypted) individual key for file
-  static Future<void> addIndividualKey(String filePath, Key indKey) async {
-    final fileUrl = await getFileUrl(filePath);
+  static Future<void> addIndividualKey(
+    String filePath,
+    Key indKey, {
+    bool fileFlag = true,
+  }) async {
+    String fileUrl;
+    if (fileFlag) {
+      fileUrl = await getFileUrl(filePath);
+    } else {
+      fileUrl = await getDirUrl(filePath);
+    }
+
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
     }
@@ -635,56 +540,7 @@ class KeyManager {
       ivBase64: iv.base64,
     );
 
-    await _addIndKey(filePath, encIndKey, iv.base64);
-  }
-
-  /// Add the (encrypted) inherited key for directory
-  static Future<void> addInheritedKey(String dirPath, Key inheritedKey) async {
-    final dirUrl = await getDirUrl(dirPath);
-    if (_inheritedKeyMap == null) {
-      await _loadIndKeyFile();
-    }
-    assert(_inheritedKeyMap != null);
-
-    final iv = genRandIV();
-    final encInheritedKey =
-        encryptData(inheritedKey.base64, await getMasterKey(), iv);
-    _inheritedKeyMap![dirUrl] = _InheritedKeyRecord(
-      dirPath: dirPath,
-      encKeyBase64: encInheritedKey,
-      ivBase64: iv.base64,
-      fileList: [],
-    );
-
-    await _addInheritedKey(dirPath, encInheritedKey, iv.base64, '');
-  }
-
-  /// Add a file path to the inherited key record
-  static Future<void> addInheritedKeyFile(
-    String dirPath,
-    String filePath,
-  ) async {
-    final dirUrl = await getDirUrl(dirPath);
-    if (_inheritedKeyMap == null) {
-      await _loadIndKeyFile();
-    }
-    assert(_inheritedKeyMap != null);
-
-    // Check if the key exists
-    assert(_inheritedKeyMap!.containsKey(dirUrl));
-
-    // Add new file path to the map
-    _inheritedKeyMap![dirUrl]!.fileList.add(filePath);
-
-    // Update inverted index map
-    _inheritedFileMap![filePath] = dirUrl;
-
-    await _updateInheritedKey(
-      dirPath,
-      _inheritedKeyMap![dirUrl]!.encKeyBase64,
-      _inheritedKeyMap![dirUrl]!.ivBase64,
-      _inheritedKeyMap![dirUrl]!.fileList.join(','),
-    );
+    await _addIndKey(filePath, encIndKey, iv.base64, fileFlag: fileFlag);
   }
 
   /// Remove the (encrypted) individual key for file
@@ -702,36 +558,6 @@ class KeyManager {
       debugPrint('Deleted $record');
     } else {
       debugPrint('Individual key for "$filePath" does not exist, do nothing.');
-    }
-  }
-
-  /// Remove the (encrypted) inherited key for directory
-  static Future<void> removeInheritedKey(String dirPath) async {
-    final dirUrl = await getDirUrl(dirPath);
-    if (_inheritedKeyMap == null) {
-      await _loadIndKeyFile();
-    }
-    assert(_inheritedKeyMap != null);
-
-    if (_inheritedKeyMap!.containsKey(dirUrl)) {
-      final record = _inheritedKeyMap!.remove(dirUrl);
-      assert(record != null);
-
-      // Delete entried from the inverted index map
-      for (final filePath in record!.fileList) {
-        _inheritedFileMap!.remove(filePath);
-      }
-
-      // Solid server call function to delete the entry from server file
-      await _delInheritedKey(
-        dirPath,
-        record.encKeyBase64,
-        record.ivBase64,
-        record.fileList.join(','),
-      );
-      debugPrint('Deleted $record');
-    } else {
-      debugPrint('Inherited key for "$dirPath" does not exist, do nothing.');
     }
   }
 
@@ -832,17 +658,13 @@ class KeyManager {
 
   /// Load the file with encrypted individual keys
   static Future<void> _loadIndKeyFile({bool forceReload = false}) async {
-    if (_indKeyMap != null && _inheritedKeyMap != null && !forceReload) {
+    if (_indKeyMap != null && !forceReload) {
       return;
     }
 
     _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
 
     _indKeyMap ??= <String, _IndKeyRecord>{};
-
-    _inheritedKeyMap ??= <String, _InheritedKeyRecord>{};
-
-    _inheritedFileMap ??= <String, String>{};
 
     final map = await loadPrvTTL(_indKeyUrl!);
 
@@ -863,34 +685,7 @@ class KeyManager {
           errMsg: 'ERROR: Duplicated path for resource "$k"',
         );
 
-        // If entry is about a key of directory for inherited resources add the
-        // key to _inheritedKeyMap. Otherwise add to _indKeyMap
-        if (v.containsKey(filePathListPred)) {
-          List filePathList = (v[filePathListPred] as String)
-              .split(',')
-              .map((item) => item.trim())
-              .toList();
-          _inheritedKeyMap![await getDirUrl(v[pathPred] as String)] =
-              _InheritedKeyRecord(
-            encKeyBase64: v[sessionKeyPred] as String,
-            ivBase64: v[ivPred] as String,
-            dirPath: v[pathPred] as String,
-            fileList: filePathList,
-          );
-
-          // Loop through all the file paths and add to _inheritedFileMap
-          for (final filePath in filePathList) {
-            _inheritedFileMap![filePath] =
-                await getDirUrl(v[pathPred] as String);
-          }
-        } else {
-          _indKeyMap![await getFileUrl(v[pathPred] as String)] = _IndKeyRecord(
-            encKeyBase64: v[sessionKeyPred] as String,
-            ivBase64: v[ivPred] as String,
-            filePath: v[pathPred] as String,
-          );
-        }
-
+        // Add to _indKeyMap
         _indKeyMap![await getFileUrl(v[pathPred] as String)] = _IndKeyRecord(
           encKeyBase64: v[sessionKeyPred] as String,
           ivBase64: v[ivPred] as String,
@@ -1079,44 +874,6 @@ class _IndKeyRecord {
         '    filePath: $filePath,\n'
         '    encIndKey: $encKeyBase64,\n'
         '    iv: $ivBase64\n'
-        '}';
-  }
-}
-
-/// [_InheritedKeyRecord] is a simple class to store encrypted and decrypted AES keys
-/// of directories which conatain inherited resources.
-
-class _InheritedKeyRecord {
-  /// Constructor
-  _InheritedKeyRecord({
-    required this.dirPath,
-    required this.encKeyBase64,
-    required this.ivBase64,
-    required this.fileList,
-  });
-
-  /// The path of file corresponds to the key
-  final String dirPath;
-
-  /// The base64 string of the encrypted key
-  String encKeyBase64;
-
-  /// The base64 string of the IV
-  String ivBase64;
-
-  /// The list of file paths encrypted using the key
-  List fileList;
-
-  /// The corresponding decrypted key
-  Key? key;
-
-  @override
-  String toString() {
-    return 'InheritedKeyRecord {\n'
-        '    dirPath: $dirPath,\n'
-        '    encIndKey: $encKeyBase64,\n'
-        '    iv: $ivBase64\n'
-        '    fileList: $fileList\n'
         '}';
   }
 }
