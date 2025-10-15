@@ -245,6 +245,12 @@ enum SIIPredicate {
   /// Trimed RSA public key
   publicKey('publicKey'),
 
+  /// URL of a resource whose individual encryption key is inherited
+  inheritedKey('inheritedKey'),
+
+  /// URL of a resource whose ACL is inherited
+  inheritedAcl('inheritedAcl'),
+
   /// Data chunk
   dataChunk('dataChunk'),
 
