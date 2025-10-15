@@ -197,9 +197,10 @@ Future<String> getEncTTLStr(
   String filePath,
   String fileContent,
   Key key,
-  IV iv, [
+  IV iv, {
   String? extWebId,
-]) async {
+  String? inheritedFrom,
+}) async {
   final triples = {
     URIRef(await getFileUrl(filePath, extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
@@ -207,6 +208,11 @@ Future<String> getEncTTLStr(
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     },
   };
+
+  if (inheritedFrom != null) {
+    triples[URIRef(await getFileUrl(filePath, extWebId))]![
+        solidTermsNS.ns.withAttr(inheritancePred)] = inheritedFrom;
+  }
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);

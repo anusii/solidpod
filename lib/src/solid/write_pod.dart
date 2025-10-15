@@ -87,7 +87,12 @@ Future<SolidFunctionCallStatus> writePod(
   // If file is inherited then check if parent directory exists. If not create
   // parent directory
   if (inheritedFrom != null) {
-    final normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
+    String normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
+    // Following addition is to make sure that the path value added to the
+    // ind-keys.ttl contains / so that can be recognised as a directory
+    if (!normalizedDirPath.endsWith('/')) {
+      normalizedDirPath += '/';
+    }
     final parentDirUrl = await getDirUrl(normalizedDirPath);
 
     switch (await checkResourceStatus(parentDirUrl, fileFlag: false)) {
@@ -108,9 +113,10 @@ Future<SolidFunctionCallStatus> writePod(
 
         // Also create an individual AES key for the parent directory. This key will
         // be used to encrypt all the resources inside the parent directory
-        await KeyManager.addInheritedKey(
+        await KeyManager.addIndividualKey(
           normalizedDirPath,
           genRandIndividualKey(),
+          fileFlag: false,
         );
       case ResourceStatus.exist:
         debugPrint(
@@ -218,12 +224,14 @@ Future<SolidFunctionCallStatus> writePod(
       content = await getEncTTLStr(
         normalizedFilePath,
         fileContent,
-        await KeyManager.getInheritedKey(parentDirUrl),
+        await KeyManager.getIndividualKey(parentDirUrl),
         genRandIV(),
+        inheritedFrom: normalizedDirPath,
       );
-      // Add inherited file to the corresponding map and update the individual
-      // key file
-      KeyManager.addInheritedKeyFile(normalizedDirPath, normalizedFilePath);
+      // av:remove
+      // // Add inherited file to the corresponding map and update the individual
+      // // key file
+      // KeyManager.addInheritedKeyFile(normalizedDirPath, normalizedFilePath);
     } else {
       // Reuse the individual key if the key already exists,
       // otherwise, generate a random key and add it to the individual key file.

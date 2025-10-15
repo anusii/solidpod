@@ -72,6 +72,7 @@ const String authUserPred = 'authUserList';
 const String sharedKeyPred = 'sharedKey';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';
+const String inheritancePred = 'inheritedFrom';
 const String typePred = 'type';
 // const String accessToPred = 'accessTo';
 const String agentPred = 'agent';
