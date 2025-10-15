@@ -78,9 +78,9 @@ export 'src/solid/utils/app_info.dart';
 
 export 'src/solid/utils/key_helper.dart' show KeyManager;
 
-/// Includes common TTL conversion functions such as parseTTLMap.
+/// Turtle string to triple map and triple map to turtle string functions
 
-export 'src/solid/utils/rdf.dart' show parseTTLMap;
+export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 /// Includes common functions that could be useful for an app such as
 /// - get web id of the user
@@ -142,7 +142,8 @@ export 'src/solid/shared_resources.dart';
 
 /// Function to get resources in a container
 
-export 'src/solid/api/rest_api.dart' show getResourcesInContainer;
+export 'src/solid/api/rest_api.dart'
+    show getResourcesInContainer, updateFileByQuery;
 
 /// Function to get the latest log enties
 
@@ -156,10 +157,6 @@ export 'src/solid/read_external_pod.dart';
 /// Write to encrypted/non-encrypted files in an external POD
 
 export 'src/solid/write_external_pod.dart';
-
-/// Turtle string to triple map and triple map to turtle string functions
-
-export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 /// 20250917 gjw Extras that were required for notepod. Not yet documented.
 
