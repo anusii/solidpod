@@ -43,6 +43,7 @@ import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/permission_callback_demo.dart';
 import 'package:demopod/features/read_acl_inherited_file.dart';
+import 'package:demopod/features/share_acl_inherited_file.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
@@ -327,6 +328,24 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         },
         child: const Text('Read Resource with ACL Inheritance'));
 
+    final inheritanceShareButton = ElevatedButton(
+        onPressed: () async {
+          final loggedIn = await loginIfRequired(context);
+          if (loggedIn) {
+            final webId = await getWebId();
+            setState(() {
+              _webId = webId;
+            });
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ShareAclInheritedFile()));
+          } else {
+            await alert(context, 'Please login to continue');
+          }
+        },
+        child: const Text('Share Resource with ACL Inheritance'));
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -413,6 +432,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         smallGapV,
 
                         inheritanceReadButton,
+
+                        smallGapV,
+
+                        inheritanceShareButton,
 
                         largeGapV,
 

@@ -1,4 +1,4 @@
-/// A page to read resources with ACL inheritance
+/// A page to share resources with ACL inheritance
 ///
 /// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
@@ -25,7 +25,10 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/solidpod.dart' show readPod;
+import 'package:solidpod/solidpod.dart' show GrantPermissionUi;
+
+import 'package:demopod/constants/app.dart';
+import 'package:demopod/home.dart';
 
 // A widget to create a resource with inherited ACL.
 //
@@ -34,21 +37,18 @@ import 'package:solidpod/solidpod.dart' show readPod;
 //
 // If resource need to be encrypted, a single encryption key assigned to the
 // parent directory will be used for the encryption.
-class ReadAclInheritedFile extends StatefulWidget {
-  const ReadAclInheritedFile({super.key});
+class ShareAclInheritedFile extends StatefulWidget {
+  const ShareAclInheritedFile({super.key});
 
   @override
-  ReadAclInheritedFileState createState() => ReadAclInheritedFileState();
+  ShareAclInheritedFileState createState() => ShareAclInheritedFileState();
 }
 
-class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
+class ShareAclInheritedFileState extends State<ShareAclInheritedFile> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers for the text fields
   final TextEditingController _resourcePathController = TextEditingController();
-
-  // File content
-  String _fileContent = '';
 
   @override
   void dispose() {
@@ -62,21 +62,18 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
       // Retrieve entered values
       String resourcePath = _resourcePathController.text.trim();
 
-      try {
-        String fileContent = await readPod(
-          resourcePath,
-          context,
-          widget,
-        );
-
-        setState(() {
-          _fileContent = fileContent;
-        });
-      } catch (e) {
-        setState(() {
-          _fileContent = 'Error reading file: $e';
-        });
-      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GrantPermissionUi(
+            backgroundColor: titleBackgroundColor,
+            fileName: resourcePath,
+            // accessModeList: ['read', 'write'],
+            // recipientTypeList: ['indi', 'group'],
+            child: Home(),
+          ),
+        ),
+      );
     }
   }
 
@@ -84,7 +81,7 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Read a resource with ACL inheritance'),
+        title: const Text('Share a resource with ACL inheritance'),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -95,9 +92,9 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
               children: [
                 // Instruction paragraph
                 const Text(
-                  'The "Resource Path" field should contain the path '
-                  'to the resource itself including the actual resource name '
-                  'and extention. An example would be "parentDir/sampleRes.ttl".',
+                  'The "Parent Dir Path" field should contain the path '
+                  'to the parent directory including the directory name. '
+                  'An example would be "parentDir".',
                   style: TextStyle(fontSize: 16.0, height: 1.5),
                 ),
                 const SizedBox(height: 24),
@@ -106,12 +103,12 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
                 TextFormField(
                   controller: _resourcePathController,
                   decoration: const InputDecoration(
-                    labelText: 'Resource Path',
+                    labelText: 'Parent Dir Path',
                     border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a resource path';
+                      return 'Please enter a parent directory path';
                     }
                     return null;
                   },
@@ -122,24 +119,8 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
                 // Submit Button
                 ElevatedButton(
                   onPressed: _submitForm,
-                  child: const Text('read resource'),
+                  child: const Text('Share directory'),
                 ),
-
-                const SizedBox(height: 10),
-                // Display file content if available
-                if (_fileContent.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _fileContent,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ),
               ],
             ),
           ),
