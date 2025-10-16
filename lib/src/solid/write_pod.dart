@@ -84,16 +84,20 @@ Future<SolidFunctionCallStatus> writePod(
     return SolidFunctionCallStatus.notLoggedIn;
   }
 
+  String? normalizedDirPath;
+  String? parentDirUrl;
+
   // If file is inherited then check if parent directory exists. If not create
   // parent directory
+
   if (inheritedFrom != null) {
-    String normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
+    normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
     // Following addition is to make sure that the path value added to the
     // ind-keys.ttl contains / so that can be recognised as a directory
-    if (!normalizedDirPath.endsWith('/')) {
-      normalizedDirPath += '/';
-    }
-    final parentDirUrl = await getDirUrl(normalizedDirPath);
+    // if (!normalizedDirPath.endsWith('/')) {
+    //   normalizedDirPath += '/';  // dc: not necessary as getDirUrl() below will do it anyway
+    // }
+    parentDirUrl = await getDirUrl(normalizedDirPath);
 
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
@@ -105,9 +109,9 @@ Future<SolidFunctionCallStatus> writePod(
         );
 
         // Create the corresponding acl file
-        final aclFileUrl = '$parentDirUrl/.acl';
+        // final aclFileUrl = '$parentDirUrl/.acl';  // dc: parentDirUrl returned by getDirUrl() already has a trailing forward slash /
         await createResource(
-          aclFileUrl,
+          '$parentDirUrl.acl',
           content: await genAclTurtle(parentDirUrl, isFile: false),
         );
 
@@ -122,7 +126,6 @@ Future<SolidFunctionCallStatus> writePod(
         debugPrint(
           'Directory "$parentDirUrl" exists. Continuing the process...',
         );
-        break;
       case ResourceStatus.unknown:
         throw Exception(
           'Unable to determine if directory "$parentDirUrl" exists, writePod() aborted',
@@ -217,35 +220,27 @@ Future<SolidFunctionCallStatus> writePod(
     // Get the security key (and cache it in KeyManager)
     await getKeyFromUserIfRequired(context, child);
 
-    if (inheritedFrom != null) {
-      final normalizedDirPath =
-          await normalizeFilePath(inheritedFrom, basePath);
-      final parentDirUrl = await getDirUrl(normalizedDirPath);
-      content = await getEncTTLStr(
-        normalizedFilePath,
-        fileContent,
-        await KeyManager.getIndividualKey(parentDirUrl),
-        genRandIV(),
-        inheritedFrom: normalizedDirPath,
-      );
-    } else {
-      // Reuse the individual key if the key already exists,
-      // otherwise, generate a random key and add it to the individual key file.
+    // Reuse the individual key if the key already exists,
+    // otherwise, generate a random key and add it to the individual key file.
 
-      if (!existingFileEncrypted) {
-        await KeyManager.addIndividualKey(
-          normalizedFilePath,
-          genRandIndividualKey(),
-        );
-      }
-
-      content = await getEncTTLStr(
+    if (inheritedFrom == null && !existingFileEncrypted) {
+      await KeyManager.addIndividualKey(
         normalizedFilePath,
-        fileContent,
-        await KeyManager.getIndividualKey(fileUrl),
-        genRandIV(),
+        genRandIndividualKey(),
       );
     }
+
+    final encKey = await KeyManager.getIndividualKey(
+      inheritedFrom == null ? fileUrl : parentDirUrl!,
+    );
+
+    content = await getEncTTLStr(
+      normalizedFilePath,
+      fileContent,
+      encKey,
+      genRandIV(),
+      inheritedFrom: normalizedDirPath,
+    );
 
     if (!fileUrl.endsWith('.ttl')) {
       debugPrint('WARN: Encrypted text file should be in turtle format, '
