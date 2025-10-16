@@ -163,16 +163,13 @@ Future<String> _getResourceUrl(
   bool isContainer, [
   String? extWebId,
 ]) async {
-  String? webId = '';
   // Check if resource url is needed for an external webId
-  if (extWebId != null) {
-    webId = extWebId;
-  } else {
-    webId = await AuthDataManager.getWebId();
-  }
+  final webId = extWebId ?? await AuthDataManager.getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
+
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+
   if (isContainer && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
   }
@@ -182,15 +179,11 @@ Future<String> _getResourceUrl(
 
 /// Create the URL for a file
 Future<String> getFileUrl(String filePath, [String? extWebId]) async =>
-    (extWebId == null)
-        ? await _getResourceUrl(filePath, false)
-        : await _getResourceUrl(filePath, false, extWebId);
+    await _getResourceUrl(filePath, false, extWebId);
 
 /// Create the URL for a directory (container)
 Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
-    (extWebId == null)
-        ? await _getResourceUrl(dirPath, true)
-        : await _getResourceUrl(dirPath, true, extWebId);
+    await _getResourceUrl(dirPath, true, extWebId);
 
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
@@ -205,14 +198,12 @@ Future<String> getEncTTLStr(
     URIRef(await getFileUrl(filePath, extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
+      if (inheritedFrom != null)
+        solidTermsNS.ns.withAttr(inheritancePred): inheritedFrom,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     },
   };
 
-  if (inheritedFrom != null) {
-    triples[URIRef(await getFileUrl(filePath, extWebId))]![
-        solidTermsNS.ns.withAttr(inheritancePred)] = inheritedFrom;
-  }
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
