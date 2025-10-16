@@ -1,6 +1,6 @@
 /// Common constants used across the package.
 ///
-// Time-stamp: <Friday 2024-02-16 10:59:10 +1100 Graham Williams>
+// Time-stamp: <Friday 2025-10-17 08:54:45 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -110,8 +110,8 @@ const String rdf = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const String terms = 'http://purl.org/dc/terms/';
 const String vcard = 'http://www.w3.org/2006/vcard/ns#';
 // const String xsd = 'http://www.w3.org/2001/XMLSchema#';
-// const String pubAgent = 'http://xmlns.com/foaf/0.1/Agent';
-// const String authAgent = 'http://xmlns.com/foaf/0.1/AuthenticatedAgent';
+// const String pubAgent = 'http: //xmlns.com/foaf/0.1/Agent';
+// const String authAgent = 'http: //xmlns.com/foaf/0.1/AuthenticatedAgent';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String terms used as prfixes in turtle and acl files
