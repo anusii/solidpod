@@ -33,6 +33,7 @@ library;
 import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
+import 'package:solidpod/src/solid/api/common_permission.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -84,13 +85,22 @@ Future<dynamic> readPermission(
         );
       }
 
-      // Read ACL file content
-      final aclContentMap = await readAcl(resourceUrl);
+      // Check if the resource has an ACL
+      bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
 
-      // Extract permission details to a map
-      final permMap = extractAclPerm(aclContentMap);
+      if (hasAcl) {
+        // Read ACL file content
+        final aclContentMap = await readAcl(resourceUrl, isFile);
 
-      return permMap;
+        // Extract permission details to a map
+        final permMap = extractAclPerm(aclContentMap);
+
+        return permMap;
+      } else {
+        debugPrint('Resource does not have a corresponding ACL file. '
+            'If the ACL is inherited provide parent directory as the resource name!');
+        return SolidFunctionCallStatus.noAclFound;
+      }
     } else {
       return {};
     }

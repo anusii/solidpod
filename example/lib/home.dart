@@ -328,24 +328,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         },
         child: const Text('Read Resource with ACL Inheritance'));
 
-    final inheritanceShareButton = ElevatedButton(
-        onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
-          if (loggedIn) {
-            final webId = await getWebId();
-            setState(() {
-              _webId = webId;
-            });
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ShareAclInheritedFile()));
-          } else {
-            await alert(context, 'Please login to continue');
-          }
-        },
-        child: const Text('Share Resource with ACL Inheritance'));
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -432,10 +414,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         smallGapV,
 
                         inheritanceReadButton,
-
-                        smallGapV,
-
-                        inheritanceShareButton,
 
                         largeGapV,
 
@@ -600,7 +578,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             MaterialPageRoute(
                               builder: (context) => const GrantPermissionUi(
                                 backgroundColor: titleBackgroundColor,
-                                fileName: 'keyvalue/key-value.ttl',
+                                resourceName: 'keyvalue/key-value.ttl',
                                 // accessModeList: ['read', 'write'],
                                 // recipientTypeList: ['indi', 'group'],
                                 child: Home(),

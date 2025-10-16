@@ -90,7 +90,7 @@ Future<dynamic> grantPermission(
 
       // Check if file exists
       final resStatus =
-          await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
+          await checkResourceStatus(resourceUrl, isFile: fileFlag);
 
       // Check if recipient/s have initialised their pods with the correct
       // directory structure

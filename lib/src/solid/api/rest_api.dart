@@ -271,6 +271,9 @@ Future<ResourceStatus> checkResourceStatus(
   String resUrl, {
   bool isFile = true,
 }) async {
+  if (!isFile && !resUrl.endsWith('/')) {
+    resUrl += '/';
+  }
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
