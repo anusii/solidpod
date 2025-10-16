@@ -48,7 +48,7 @@ Future<String> removePermissionAcl(
   String ownerWebId,
   String removerId,
   RecipientType recipientType, [
-  bool fileFlag = true,
+  bool isFile = true,
 ]) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);
@@ -127,7 +127,7 @@ Future<String> removePermissionAcl(
   final aclFullContentStr = await genAclTurtle(
     resourceUrl,
     externalWebId: ownerWebId,
-    fileFlag: fileFlag,
+    isFile: isFile,
     ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
     publicAccess: publicPermSet,
     authUserAccess: authUserPermSet,
@@ -148,7 +148,7 @@ Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
       removerWebId.replaceAll(profCard, sharedKeyFilePath);
 
   // Check if the shared key file exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl, isFile: false) ==
       ResourceStatus.exist) {
     // Update the file
 
@@ -199,7 +199,7 @@ Future<void> removeSharedKeyUserClass(
   }
 
   // Check if individual key file exists. If not create a file
-  if (await checkResourceStatus(userClassIndKeyFileUrl, fileFlag: false) ==
+  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: false) ==
       ResourceStatus.exist) {
     // Update the existing file using a sparql query
     final prefix = '${solidTermsNS.prefix}: <$appsTerms>';

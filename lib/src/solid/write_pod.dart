@@ -95,12 +95,12 @@ Future<SolidFunctionCallStatus> writePod(
     }
     final parentDirUrl = await getDirUrl(normalizedDirPath);
 
-    switch (await checkResourceStatus(parentDirUrl, fileFlag: false)) {
+    switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
         // Create the directory
         await createResource(
           parentDirUrl,
-          fileFlag: false,
+          isFile: false,
           contentType: ResourceContentType.directory,
         );
 
@@ -108,7 +108,7 @@ Future<SolidFunctionCallStatus> writePod(
         final aclFileUrl = '$parentDirUrl/.acl';
         await createResource(
           aclFileUrl,
-          content: await genAclTurtle(parentDirUrl, fileFlag: false),
+          content: await genAclTurtle(parentDirUrl, isFile: false),
         );
 
         // Also create an individual AES key for the parent directory. This key will
@@ -116,7 +116,7 @@ Future<SolidFunctionCallStatus> writePod(
         await KeyManager.addIndividualKey(
           normalizedDirPath,
           genRandIndividualKey(),
-          fileFlag: false,
+          isFile: false,
         );
       case ResourceStatus.exist:
         debugPrint(

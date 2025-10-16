@@ -49,7 +49,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// Parameters:
 ///   [fileName] is the name of the file providing permission to. In case where
 ///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
-///   [fileFlag] is the flag to identify if the resources is a file or not
+///   [isFile] is the flag to identify if the resources is a file or not
 ///   [permissionList] is the list of permission to be granted
 ///   [recipientType] is the type of the recipient
 ///   [recipientWebIdList] is the list of webIds of the permission receivers
@@ -60,7 +60,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 
 Future<dynamic> grantPermission(
   String fileName,
-  bool fileFlag,
+  bool isFile,
   List<dynamic> permissionList,
   RecipientType recipientType,
   List<dynamic> recipientWebIdList,
@@ -89,8 +89,7 @@ Future<dynamic> grantPermission(
       }
 
       // Check if file exists
-      final resStatus =
-          await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
+      final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
       // Check if recipient/s have initialised their pods with the correct
       // directory structure

@@ -291,7 +291,7 @@ Future<void> createDir(String dirUrl) async {
   assert(dirUrl.endsWith('/'));
   await createResource(
     dirUrl,
-    fileFlag: false,
+    isFile: false,
     replaceIfExist: false,
     contentType: ResourceContentType.directory,
   );
@@ -365,10 +365,10 @@ Future<void> setAppDirName(String inputAppDirName) async {
 }
 
 /// Get resource acl file path
-String getResAclFile(String resourceUrl, [bool fileFlag = true]) {
+String getResAclFile(String resourceUrl, [bool isFile = true]) {
   final resourceAclUrl = resourceUrl.endsWith('.acl')
       ? resourceUrl
-      : fileFlag
+      : isFile
           ? '$resourceUrl.acl'
           : '$resourceUrl/.acl';
 
@@ -512,7 +512,7 @@ Future<void> initPod(
   for (final d in dirUrls) {
     await createResource(
       d,
-      fileFlag: false,
+      isFile: false,
       contentType: ResourceContentType.directory,
     );
   }
@@ -547,7 +547,7 @@ Future<void> initPod(
       final items = f.split('.');
       final resourceUrl = items.getRange(0, items.length - 1).join('.');
       late Set<AccessMode> publicAccess;
-      var fileFlag = true;
+      var isFile = true;
       switch (fileName) {
         case '$pubKeyFile.acl':
           publicAccess = {AccessMode.read};
@@ -557,12 +557,12 @@ Future<void> initPod(
           debugPrint(fileName);
           assert(fileName == '.acl');
           publicAccess = {AccessMode.read, AccessMode.write};
-          fileFlag = false;
+          isFile = false;
       }
 
       fileContent = await genAclTurtle(
         resourceUrl,
-        fileFlag: fileFlag,
+        isFile: isFile,
         publicAccess: publicAccess,
       );
 
