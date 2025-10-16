@@ -201,6 +201,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Pod data list retreived as a Future
   late Future<List<dynamic>> podDataList;
 
+  /// A flag to identify if the resource is a file or not
+  bool isFile = true;
+
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
   Future<List<dynamic>> loadPodData() async {
@@ -345,7 +348,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     final welcomeHeadingStr = widget.fileName != null
         ? 'Share ${widget.fileName} file with other PODs'
-        : 'Share your data files with other PODs';
+        : 'Share your data files/directories with other PODs';
 
     return Scaffold(
       appBar: (!widget.showAppBar)
@@ -386,18 +389,42 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           if (widget.fileName == null) ...[
                             Padding(
                               padding: const EdgeInsets.all(8),
-                              child: TextFormField(
-                                controller: formControllerFileName,
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Data file path (inside your data folder Eg: personal/about.ttl)',
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Empty field';
-                                  }
-                                  return null;
-                                },
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    controller: formControllerFileName,
+                                    decoration: const InputDecoration(
+                                      hintText:
+                                          'Resource path (inside your data folder Eg: personal/about.ttl)',
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Empty field';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 10),
+                                  SwitchListTile(
+                                    title: const Text(
+                                      'Is a File?',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      isFile ? 'Yes' : 'No',
+                                    ),
+                                    value: isFile,
+                                    onChanged: (bool value) {
+                                      setState(() {
+                                        isFile = value;
+                                      });
+                                    },
+                                    activeThumbColor: Colors.green,
+                                  ),
+                                ],
                               ),
                             ),
                             smallGapV,

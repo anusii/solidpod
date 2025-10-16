@@ -78,6 +78,16 @@ Future<dynamic> grantPermission(
 
       var resourceUrl = '';
 
+      // Initially check if the resource has a corresponding ACL file. If not
+      // return an error.
+
+      if (await resourceHasAcl(fileName, fileFlag: fileFlag)) {
+      } else {
+        debugPrint('Resource does not have a corresponding ACL file. '
+            'If the ACL is inherited provide parent directory as the resource name!');
+        return SolidFunctionCallStatus.noAclFound;
+      }
+
       if (!isExternalRes) {
         // Get the file path
         final filePath = [await getDataDirPath(), fileName].join('/');

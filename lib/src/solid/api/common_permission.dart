@@ -31,6 +31,7 @@
 library;
 
 import 'package:intl/intl.dart';
+import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -195,4 +196,28 @@ Map<dynamic, dynamic> filterLogByWebId(
     }
   }
   return filteredLogMap;
+}
+
+/// Check if a given resource has a corresponding acl file
+Future<bool> resourceHasAcl(String resourcePath, {bool fileFlag = true}) async {
+  String resourceAclUrl;
+  if (fileFlag) {
+    final resourceUrl = await getFileUrl(resourcePath);
+    resourceAclUrl = '$resourceUrl.acl';
+  } else {
+    final resourceUrl = await getDirUrl(resourcePath);
+    if (resourceUrl.endsWith('/')) {
+      resourceAclUrl = '$resourceUrl.acl';
+    } else {
+      resourceAclUrl = '$resourceUrl/.acl';
+    }
+  }
+
+  final resStatus = await checkResourceStatus(resourceAclUrl);
+
+  if (resStatus == ResourceStatus.exist) {
+    return true;
+  } else {
+    return false;
+  }
 }

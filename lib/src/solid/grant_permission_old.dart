@@ -1,7 +1,6 @@
-/// Function to grant permission to a directory in a POD which contains a list
-/// of other resources with an inherited ACL.
+/// Function to grant permission to a private file in a POD.
 ///
-/// Copyright (C) 2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -59,7 +58,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 ///   [isExternalRes] is the flag to identify if the resource is external
 ///   [groupName] is the name of the group permission
 
-Future<dynamic> grantPermissionDir(
+Future<dynamic> grantPermission(
   String fileName,
   bool fileFlag,
   List<dynamic> permissionList,
