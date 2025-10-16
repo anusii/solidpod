@@ -168,14 +168,14 @@ Future<void> send({
   // Create the directory for storing chunked data
   await createResource(
     chunkDirUrl,
-    fileFlag: false,
+    isFile: false,
     contentType: ResourceContentType.directory,
   );
 
   // Create ACL of the directory
   await createResource(
     '$chunkDirUrl.acl',
-    content: await genAclTurtle(chunkDirUrl, fileFlag: false),
+    content: await genAclTurtle(chunkDirUrl, isFile: false),
   );
 
   // Encryption key and IV

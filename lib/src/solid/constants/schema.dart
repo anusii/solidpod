@@ -31,7 +31,7 @@ library;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart'
-    show acl, foaf, rdf, terms, vcard, xsd;
+    show acl, foaf, rdf, terms, vcard;
 
 // /// Predicates schema.
 
@@ -171,7 +171,7 @@ final NS vcardNS = (prefix: 'vcard', ns: Namespace(ns: vcard));
 
 ///
 
-final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
+// final NS xsdNS = (prefix: 'xsd', ns: Namespace(ns: xsd));
 
 ///
 final NS solidTermsNS = (prefix: 'solidTerms', ns: Namespace(ns: appsTerms));
