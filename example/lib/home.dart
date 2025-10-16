@@ -43,7 +43,6 @@ import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/permission_callback_demo.dart';
 import 'package:demopod/features/read_acl_inherited_file.dart';
-import 'package:demopod/features/share_acl_inherited_file.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
