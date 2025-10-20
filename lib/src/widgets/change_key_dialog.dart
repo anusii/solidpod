@@ -33,7 +33,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/solid/common_func.dart' show loginIfRequired;
-import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart'
+    show verifySecurityKey;
+import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart' show getWebId;
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/security_key_ui.dart';

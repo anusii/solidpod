@@ -76,7 +76,7 @@ export 'src/solid/utils/app_info.dart';
 /// Includes the KeyManager class which stores all keys and their parameters
 /// such as Security key, Public key, Private key, and Individual keys.
 
-export 'src/solid/utils/key_helper.dart' show KeyManager;
+export 'src/solid/utils/key_manager.dart' show KeyManager;
 
 /// Turtle string to triple map and triple map to turtle string functions
 

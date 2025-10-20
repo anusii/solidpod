@@ -40,7 +40,8 @@ import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
-    show KeyManager, verifySecurityKey;
+    show verifySecurityKey;
+import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';

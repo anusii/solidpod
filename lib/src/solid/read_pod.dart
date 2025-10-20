@@ -37,7 +37,8 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart' show hasInheritedKey;
+import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
