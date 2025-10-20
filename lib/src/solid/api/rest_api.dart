@@ -147,7 +147,7 @@ Future<List<dynamic>> initialStructureTest(
     for (final fileName in fileNameList) {
       final resourceUrl =
           await getFileUrl([containerName as String, fileName].join('/'));
-      if (await checkResourceStatus(resourceUrl, isFile: false) ==
+      if (await checkResourceStatus(resourceUrl, isFile: true) ==
           ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
