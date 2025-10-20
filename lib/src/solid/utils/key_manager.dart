@@ -41,83 +41,12 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:rdflib/rdflib.dart';
 
-import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart' show createResource;
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
-
-/// Add the encrypted individual/session key string [encIndKey] and
-/// the corresponding IV string [ivBase64] for file with path [filePath]
-Future<void> _addIndKey(
-  String resourcePath,
-  String encIndKey,
-  String ivBase64, {
-  bool isFile = true,
-}) async {
-  final sub = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
-
-  final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$resourcePath"; '
-      '<$appsTerms$ivPred> "$ivBase64"; '
-      '<$appsTerms$sessionKeyPred> "$encIndKey".};';
-
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-
-  await updateFileByQuery(fileUrl, query);
-}
-
-/// Delete the encrypted individual/session key string [encIndKey] and
-/// the corresponding IV string [ivBase64] for file with path [filePath]
-Future<void> _delIndKey(
-  String filePath,
-  String encIndKey,
-  String ivBase64,
-) async {
-  final sub = await getFileUrl(filePath);
-
-  final query = 'DELETE DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
-      '<$appsTerms$ivPred> "$ivBase64"; '
-      '<$appsTerms$sessionKeyPred> "$encIndKey".};';
-
-  final fileUrl = await getFileUrl(await getIndKeyPath());
-
-  await updateFileByQuery(fileUrl, query);
-}
-
-/// Delete the shared individual/session key string [sharedKey] and
-/// the corresponding file path [filePath] and access list [accessList]
-Future<void> _delSharedIndKey(
-  String resUniqueId,
-  String sharedKey,
-  String filePath,
-  String accessList,
-) async {
-  // Define prefix and subject
-  const prefix1 = '$resIdPrefix <$appsResId>';
-  const prefix2 = '$dataPrefix <$appsData>';
-  final subject = '$resIdPrefix$resUniqueId';
-
-  // Define predicates and objects
-  final predObjPath = '$dataPrefix$pathPred "$filePath";';
-  final predObjAcc = '$dataPrefix$accessListPred "$accessList";';
-  final predObjKey = '$dataPrefix$sharedKeyPred "$sharedKey".';
-
-  // Generate delete sparql query
-  final query =
-      'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
-
-  final fileUrl = await getFileUrl(await getSharedKeyFilePath());
-
-  await updateFileByQuery(fileUrl, query);
-}
-
-/// Check duplicated values
-void _checkDuplicatedValue({required dynamic value, required String errMsg}) {
-  if (value is Iterable && (value as List).length > 1) {
-    throw Exception(errMsg);
-  }
-}
 
 /// [KeyManager] is a class to manage security key and encryption keys
 /// for data stored in PODs.
@@ -455,12 +384,7 @@ class KeyManager {
     Key indKey, {
     bool isFile = true,
   }) async {
-    String fileUrl;
-    if (isFile) {
-      fileUrl = await getFileUrl(resourcePath);
-    } else {
-      fileUrl = await getDirUrl(resourcePath);
-    }
+    final resUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
 
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
@@ -469,30 +393,34 @@ class KeyManager {
 
     final iv = genRandIV();
     final encIndKey = encryptData(indKey.base64, await getMasterKey(), iv);
-    _indKeyMap![fileUrl] = _IndKeyRecord(
+    _indKeyMap![resUrl] = _IndKeyRecord(
       resourcePath: resourcePath,
       encKeyBase64: encIndKey,
       ivBase64: iv.base64,
     );
 
-    await _addIndKey(resourcePath, encIndKey, iv.base64, isFile: isFile);
+    await addIndKey(resourcePath, encIndKey, iv.base64, isFile: isFile);
   }
 
   /// Remove the (encrypted) individual key for file
-  static Future<void> removeIndividualKey(String filePath) async {
-    final fileUrl = await getFileUrl(filePath);
+  static Future<void> removeIndividualKey(
+    String resourcePath, {
+    bool isFile = true,
+  }) async {
+    final resUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
     }
     assert(_indKeyMap != null);
 
-    if (_indKeyMap!.containsKey(fileUrl)) {
-      final record = _indKeyMap!.remove(fileUrl);
+    if (_indKeyMap!.containsKey(resUrl)) {
+      final record = _indKeyMap!.remove(resUrl);
       assert(record != null);
-      await _delIndKey(filePath, record!.encKeyBase64, record.ivBase64);
+      await delIndKey(resourcePath, record!.encKeyBase64, record.ivBase64);
       debugPrint('Deleted $record');
     } else {
-      debugPrint('Individual key for "$filePath" does not exist, do nothing.');
+      debugPrint(
+          'Individual key for "$resourcePath" does not exist, do nothing.');
     }
   }
 
@@ -553,7 +481,7 @@ class KeyManager {
       assert(record != null);
 
       // Delete shared key from shared keys file
-      await _delSharedIndKey(
+      await delSharedIndKey(
         resUniqueId,
         record!.encKey,
         record.encFilePath,
@@ -586,7 +514,7 @@ class KeyManager {
     assert(map.length == 1);
 
     final v = map[_encKeyUrl] as Map;
-    _checkDuplicatedValue(
+    checkDuplicatedValue(
       value: v[encKeyPred],
       errMsg: 'ERROR: Duplicated verification key',
     );
@@ -621,15 +549,15 @@ class KeyManager {
       final k = entry.key;
       final v = entry.value as Map;
       if (v.containsKey(sessionKeyPred)) {
-        _checkDuplicatedValue(
+        checkDuplicatedValue(
           value: v[sessionKeyPred],
           errMsg: 'ERROR: Duplicated encryption key for resource "$k"',
         );
-        _checkDuplicatedValue(
+        checkDuplicatedValue(
           value: v[ivPred],
           errMsg: 'ERROR: Duplicated IV for resource "$k"',
         );
-        _checkDuplicatedValue(
+        checkDuplicatedValue(
           value: v[pathPred],
           errMsg: 'ERROR: Duplicated path for resource "$k"',
         );
@@ -666,7 +594,7 @@ class KeyManager {
       throw Exception('Invalid content in file: "$_pubKeyUrl"');
     }
 
-    _checkDuplicatedValue(
+    checkDuplicatedValue(
       value: map[_pubKeyUrl][pubKeyPred],
       errMsg: 'ERROR: Duplicated public key',
     );
@@ -702,12 +630,14 @@ class KeyManager {
         }
         assert(_prvKeyRecord != null);
         _prvKeyRecord!.key ??= await getPrivateKey();
+
         encrypter ??= Encrypter(
           RSA(
-              privateKey:
-                  RSAKeyParser().parse(_prvKeyRecord!.key!) as RSAPrivateKey),
+            privateKey:
+                RSAKeyParser().parse(_prvKeyRecord!.key!) as RSAPrivateKey,
+          ),
         );
-        ;
+
         _sharedIndKeyMap![encrypter.decrypt64(v[pathPred] as String)] =
             _SharedIndKeyRecord(
           encFilePath: v[pathPred] as String,
