@@ -163,16 +163,13 @@ Future<String> _getResourceUrl(
   bool isContainer, [
   String? extWebId,
 ]) async {
-  String? webId = '';
   // Check if resource url is needed for an external webId
-  if (extWebId != null) {
-    webId = extWebId;
-  } else {
-    webId = await AuthDataManager.getWebId();
-  }
+  final webId = extWebId ?? await AuthDataManager.getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
+
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+
   if (isContainer && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
   }
@@ -182,31 +179,31 @@ Future<String> _getResourceUrl(
 
 /// Create the URL for a file
 Future<String> getFileUrl(String filePath, [String? extWebId]) async =>
-    (extWebId == null)
-        ? await _getResourceUrl(filePath, false)
-        : await _getResourceUrl(filePath, false, extWebId);
+    await _getResourceUrl(filePath, false, extWebId);
 
 /// Create the URL for a directory (container)
 Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
-    (extWebId == null)
-        ? await _getResourceUrl(dirPath, true)
-        : await _getResourceUrl(dirPath, true, extWebId);
+    await _getResourceUrl(dirPath, true, extWebId);
 
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
   String filePath,
   String fileContent,
   Key key,
-  IV iv, [
+  IV iv, {
   String? extWebId,
-]) async {
+  String? inheritedFrom,
+}) async {
   final triples = {
     URIRef(await getFileUrl(filePath, extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
+      if (inheritedFrom != null)
+        solidTermsNS.ns.withAttr(inheritancePred): inheritedFrom,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     },
   };
+
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
@@ -285,7 +282,7 @@ Future<void> createDir(String dirUrl) async {
   assert(dirUrl.endsWith('/'));
   await createResource(
     dirUrl,
-    fileFlag: false,
+    isFile: false,
     replaceIfExist: false,
     contentType: ResourceContentType.directory,
   );
@@ -359,10 +356,10 @@ Future<void> setAppDirName(String inputAppDirName) async {
 }
 
 /// Get resource acl file path
-String getResAclFile(String resourceUrl, [bool fileFlag = true]) {
+String getResAclFile(String resourceUrl, [bool isFile = true]) {
   final resourceAclUrl = resourceUrl.endsWith('.acl')
       ? resourceUrl
-      : fileFlag
+      : isFile
           ? '$resourceUrl.acl'
           : '$resourceUrl/.acl';
 
@@ -506,7 +503,7 @@ Future<void> initPod(
   for (final d in dirUrls) {
     await createResource(
       d,
-      fileFlag: false,
+      isFile: false,
       contentType: ResourceContentType.directory,
     );
   }
@@ -541,7 +538,7 @@ Future<void> initPod(
       final items = f.split('.');
       final resourceUrl = items.getRange(0, items.length - 1).join('.');
       late Set<AccessMode> publicAccess;
-      var fileFlag = true;
+      var isFile = true;
       switch (fileName) {
         case '$pubKeyFile.acl':
           publicAccess = {AccessMode.read};
@@ -551,12 +548,12 @@ Future<void> initPod(
           debugPrint(fileName);
           assert(fileName == '.acl');
           publicAccess = {AccessMode.read, AccessMode.write};
-          fileFlag = false;
+          isFile = false;
       }
 
       fileContent = await genAclTurtle(
         resourceUrl,
-        fileFlag: fileFlag,
+        isFile: isFile,
         publicAccess: publicAccess,
       );
 

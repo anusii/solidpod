@@ -87,7 +87,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
           fileContent,
           await KeyManager.getSharedIndividualKey(fileUrl),
           genRandIV(),
-          fileOwnerWebId,
+          extWebId: fileOwnerWebId,
         );
 
         if (!fileUrl.endsWith('.ttl')) {

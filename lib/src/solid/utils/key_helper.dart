@@ -49,7 +49,8 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
+import 'package:solidpod/src/solid/utils/rdf.dart'
+    show tripleMapToTurtle, parseTTLMap;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
@@ -87,13 +88,19 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
 /// Add the encrypted individual/session key string [encIndKey] and
 /// the corresponding IV string [ivBase64] for file with path [filePath]
 Future<void> _addIndKey(
-  String filePath,
+  String resourcePath,
   String encIndKey,
-  String ivBase64,
-) async {
-  final sub = await getFileUrl(filePath);
+  String ivBase64, {
+  bool isFile = true,
+}) async {
+  String sub;
+  if (isFile) {
+    sub = await getFileUrl(resourcePath);
+  } else {
+    sub = await getDirUrl(resourcePath);
+  }
 
-  final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$filePath"; '
+  final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$resourcePath"; '
       '<$appsTerms$ivPred> "$ivBase64"; '
       '<$appsTerms$sessionKeyPred> "$encIndKey".};';
 
@@ -485,8 +492,18 @@ class KeyManager {
   }
 
   /// Add the (encrypted) individual key for file
-  static Future<void> addIndividualKey(String filePath, Key indKey) async {
-    final fileUrl = await getFileUrl(filePath);
+  static Future<void> addIndividualKey(
+    String resourcePath,
+    Key indKey, {
+    bool isFile = true,
+  }) async {
+    String fileUrl;
+    if (isFile) {
+      fileUrl = await getFileUrl(resourcePath);
+    } else {
+      fileUrl = await getDirUrl(resourcePath);
+    }
+
     if (_indKeyMap == null) {
       await _loadIndKeyFile();
     }
@@ -495,12 +512,12 @@ class KeyManager {
     final iv = genRandIV();
     final encIndKey = encryptData(indKey.base64, await getMasterKey(), iv);
     _indKeyMap![fileUrl] = _IndKeyRecord(
-      filePath: filePath,
+      resourcePath: resourcePath,
       encKeyBase64: encIndKey,
       ivBase64: iv.base64,
     );
 
-    await _addIndKey(filePath, encIndKey, iv.base64);
+    await _addIndKey(resourcePath, encIndKey, iv.base64, isFile: isFile);
   }
 
   /// Remove the (encrypted) individual key for file
@@ -645,10 +662,11 @@ class KeyManager {
           errMsg: 'ERROR: Duplicated path for resource "$k"',
         );
 
+        // Add to _indKeyMap
         _indKeyMap![await getFileUrl(v[pathPred] as String)] = _IndKeyRecord(
           encKeyBase64: v[sessionKeyPred] as String,
           ivBase64: v[ivPred] as String,
-          filePath: v[pathPred] as String,
+          resourcePath: v[pathPred] as String,
         );
       }
     }
@@ -767,7 +785,7 @@ class KeyManager {
         assert(indKey != null);
 
         triples[URIRef(fileUrl)] = {
-          solidTermsNS.ns.withAttr(pathPred): record.filePath,
+          solidTermsNS.ns.withAttr(pathPred): record.resourcePath,
           solidTermsNS.ns.withAttr(ivPred): record.ivBase64,
           solidTermsNS.ns.withAttr(sessionKeyPred): record.encKeyBase64,
         };
@@ -810,13 +828,13 @@ class KeyManager {
 class _IndKeyRecord {
   /// Constructor
   _IndKeyRecord({
-    required this.filePath,
+    required this.resourcePath,
     required this.encKeyBase64,
     required this.ivBase64,
   });
 
-  /// The path of file corresponds to the key
-  final String filePath;
+  /// The path of file or directory corresponds to the key
+  final String resourcePath;
 
   /// The base64 string of the encrypted key
   String encKeyBase64;
@@ -830,7 +848,7 @@ class _IndKeyRecord {
   @override
   String toString() {
     return 'IndividualKeyRecord {\n'
-        '    filePath: $filePath,\n'
+        '    resourcePath: $resourcePath,\n'
         '    encIndKey: $encKeyBase64,\n'
         '    iv: $ivBase64\n'
         '}';
@@ -977,5 +995,18 @@ class RecipientPubKey {
 
     final encrypter = Encrypter(RSA(publicKey: _recipientPubKey));
     return encrypter.encrypt(dataVal).base64;
+  }
+}
+
+/// Returns true if there is an individual key for a given resource
+bool hasInheritedKey(
+  String fileContent,
+  String fileUrl,
+) {
+  final dataMap = parseTTLMap(fileContent);
+  if (dataMap.containsKey(fileUrl)) {
+    return dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
+  } else {
+    return false;
   }
 }

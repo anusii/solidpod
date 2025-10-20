@@ -39,7 +39,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart'
 Future<String> genAclTurtle(
   String resourceUrl, {
   String externalWebId = '',
-  bool fileFlag = true,
+  bool isFile = true,
   Set<AccessMode> ownerAccess = const {
     AccessMode.read,
     AccessMode.write,
@@ -54,7 +54,7 @@ Future<String> genAclTurtle(
   assert(!resourceUrl.endsWith('.acl'));
 
   // The resource to be accessed
-  final r = fileFlag ? URIRef(resourceUrl.split('/').last) : thisDir;
+  final r = isFile ? URIRef(resourceUrl.split('/').last) : thisDir;
 
   var ownerWebId = '';
   if (externalWebId.isEmpty) {
@@ -95,7 +95,7 @@ Future<String> genAclTurtle(
         AclPredicate.accessTo.uriRef: r,
 
         // This seems necessary for accessing resources in a container
-        if (!fileFlag) AclPredicate.defaultAccess.uriRef: r,
+        if (!isFile) AclPredicate.defaultAccess.uriRef: r,
 
         for (final agentEntry in entry.value.entries) ...{
           agentEntry.key: agentEntry.value,
@@ -164,9 +164,9 @@ Map<AccessMode, Map<URIRef, Set<URIRef>>> getAccessMap(
 /// The Map structure is defined by the REST API response.
 Future<Map<dynamic, dynamic>> readAcl(
   String resourceUrl, [
-  bool fileFlag = true,
+  bool isFile = true,
 ]) async {
-  final resourceAclUrl = getResAclFile(resourceUrl, fileFlag);
+  final resourceAclUrl = getResAclFile(resourceUrl, isFile);
 
   final aclContent = await fetchPrvFile(resourceAclUrl);
   return parseACL(aclContent);

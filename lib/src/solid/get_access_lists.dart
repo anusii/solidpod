@@ -42,14 +42,14 @@ import 'package:solidpod/src/solid/read_permission.dart';
 /// Parameters:
 ///   [dataMap] is map of resource data to which access lists are added.
 ///   [child] is the child widget to return to
-///   [fileFlag] set to true if the resource is a file, false if the resource is a directory.
+///   [isFile] set to true if the resource is a file, false if the resource is a directory.
 ///   [isFilePath] Set to true if the filename provided is the full path.
 ///   [fileList] Provide list of files in Pods if known.
 Future<Map<String, dynamic>> getAccessLists(
   Map<String, dynamic> dataMap,
   BuildContext context,
   Widget child, {
-  bool fileFlag = true,
+  bool isFile = true,
   bool isFilePath = true,
   List<String>? fileList,
 }) async {
@@ -70,7 +70,7 @@ Future<Map<String, dynamic>> getAccessLists(
     // readPermission() prepending the filepath.
     final dynamic permList = await readPermission(
       fileName,
-      fileFlag,
+      isFile,
       context,
       child,
       isExternalRes: isExternalRes,
