@@ -199,17 +199,12 @@ Map<dynamic, dynamic> filterLogByWebId(
 
 /// Check if a given resource has a corresponding acl file
 Future<bool> resourceHasAcl(String resourceUrl, {bool isFile = true}) async {
-  String resourceAclUrl;
   if (isFile) {
-    resourceAclUrl = '$resourceUrl.acl';
+    assert(!resourceUrl.endsWith('/'));
   } else {
-    if (resourceUrl.endsWith('/')) {
-      resourceAclUrl = '$resourceUrl.acl';
-    } else {
-      resourceAclUrl = '$resourceUrl/.acl';
-    }
+    assert(resourceUrl.endsWith('/'));
   }
-
+  final resourceAclUrl = '$resourceUrl.acl';
   final resStatus = await checkResourceStatus(resourceAclUrl);
 
   if (resStatus == ResourceStatus.exist) {
