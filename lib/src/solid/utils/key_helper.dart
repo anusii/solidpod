@@ -31,7 +31,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen
+/// Authors: Dawei Chen, Anushka Vidanage
 
 library;
 
@@ -93,12 +93,7 @@ Future<void> _addIndKey(
   String ivBase64, {
   bool isFile = true,
 }) async {
-  String sub;
-  if (isFile) {
-    sub = await getFileUrl(resourcePath);
-  } else {
-    sub = await getDirUrl(resourcePath);
-  }
+  final sub = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
 
   final query = 'INSERT DATA {<$sub> <$appsTerms$pathPred> "$resourcePath"; '
       '<$appsTerms$ivPred> "$ivBase64"; '
@@ -563,7 +558,21 @@ class KeyManager {
     final record = _sharedIndKeyMap![resourceUrl];
     assert(record != null);
 
-    return record!.key;
+    if (record!.key == null) {
+      _prvKeyRecord!.key ??= await getPrivateKey();
+      final encrypter = Encrypter(
+        RSA(
+          privateKey:
+              RSAKeyParser().parse(_prvKeyRecord!.key!) as RSAPrivateKey,
+        ),
+      );
+
+      record.filePath = encrypter.decrypt64(record.encFilePath);
+      record.accessList = encrypter.decrypt64(record.encAccessList);
+      record.key = Key.fromBase64(encrypter.decrypt64(record.encKey));
+    }
+
+    return record.key!;
   }
 
   /// Remove the (encrypted) shared individual key for file
@@ -716,8 +725,8 @@ class KeyManager {
     }
 
     _sharedIndKeyUrl ??= await getFileUrl(await getSharedKeyFilePath());
-
     _sharedIndKeyMap ??= <String, _SharedIndKeyRecord>{};
+    Encrypter? encrypter;
 
     final map = await loadPrvTTL(_sharedIndKeyUrl!);
 
@@ -725,16 +734,19 @@ class KeyManager {
       final v = entry.value as Map;
       if (v.containsKey(sharedKeyPred)) {
         // Get private key
+        if (_prvKeyRecord == null) {
+          await _loadEncKeyFile();
+        }
         assert(_prvKeyRecord != null);
         _prvKeyRecord!.key ??= await getPrivateKey();
-
-        _sharedIndKeyMap![_prvKeyRecord!.decryptData(v[pathPred] as String)] =
+        encrypter ??= Encrypter(
+          RSA(
+              privateKey:
+                  RSAKeyParser().parse(_prvKeyRecord!.key!) as RSAPrivateKey),
+        );
+        ;
+        _sharedIndKeyMap![encrypter.decrypt64(v[pathPred] as String)] =
             _SharedIndKeyRecord(
-          filePath: _prvKeyRecord!.decryptData(v[pathPred] as String),
-          accessList: _prvKeyRecord!.decryptData(v[accessListPred] as String),
-          key: Key.fromBase64(
-            _prvKeyRecord!.decryptData(v[sharedKeyPred] as String),
-          ),
           encFilePath: v[pathPred] as String,
           encAccessList: v[accessListPred] as String,
           encKey: v[sharedKeyPred] as String,
@@ -846,13 +858,11 @@ class _IndKeyRecord {
   Key? key;
 
   @override
-  String toString() {
-    return 'IndividualKeyRecord {\n'
-        '    resourcePath: $resourcePath,\n'
-        '    encIndKey: $encKeyBase64,\n'
-        '    iv: $ivBase64\n'
-        '}';
-  }
+  String toString() => 'IndividualKeyRecord {\n'
+      '    resourcePath: $resourcePath,\n'
+      '    encIndKey: $encKeyBase64,\n'
+      '    iv: $ivBase64\n'
+      '}';
 }
 
 /// [_SharedIndKeyRecord] is a simple class to store both encrypted and
@@ -861,22 +871,19 @@ class _IndKeyRecord {
 class _SharedIndKeyRecord {
   /// Constructor
   _SharedIndKeyRecord({
-    required this.filePath,
-    required this.accessList,
-    required this.key,
     required this.encFilePath,
     required this.encAccessList,
     required this.encKey,
   });
 
   /// The path of file corresponds to the key
-  final String filePath;
+  String? filePath;
 
   /// The access list
-  final String accessList;
+  String? accessList;
 
   /// The corresponding decrypted key
-  final Key key;
+  Key? key;
 
   /// The encrypted path of file corresponds to the key
   final String encFilePath;
@@ -888,13 +895,11 @@ class _SharedIndKeyRecord {
   final String encKey;
 
   @override
-  String toString() {
-    return 'SharedIndividualKeyRecord {\n'
-        '    filePath: $filePath,\n'
-        '    accessList: $accessList,\n'
-        '    key: $key\n'
-        '}';
-  }
+  String toString() => 'SharedIndividualKeyRecord {\n'
+      '    encFilePath: $filePath,\n'
+      '    encAccessList: $accessList,\n'
+      '    encKey: $key\n'
+      '}';
 }
 
 /// [_PrvKeyRecord] is a simple class to store encrypted and decrypted
@@ -912,24 +917,6 @@ class _PrvKeyRecord {
 
   /// The corresponding decrypted private key
   String? key;
-
-  /// Decrypt a given value using private key
-  String decryptData(String encryptedVal) {
-    // Decrypt value using private key
-    final parser = RSAKeyParser();
-    final prvKey = parser.parse(key as String) as RSAPrivateKey;
-    final encrypterPrv = Encrypter(
-      RSA(
-        privateKey: prvKey,
-      ),
-    );
-
-    return encrypterPrv.decrypt(
-      Encrypted.fromBase64(
-        encryptedVal,
-      ),
-    );
-  }
 }
 
 /// [RecipientPubKey] is a class to store public keys of another POD.
@@ -947,6 +934,9 @@ class RecipientPubKey {
 
   /// The public key with prefix and suffix
   RSAPublicKey? _recipientPubKey;
+
+  /// Public key encrypter
+  Encrypter? _encrypter;
 
   /// Get the public key
   Future<RSAPublicKey> getPubKey() async {
@@ -985,28 +975,21 @@ class RecipientPubKey {
 
     final parser = RSAKeyParser();
     _recipientPubKey = parser.parse(recipientPubKeyStr) as RSAPublicKey;
+    _encrypter = Encrypter(RSA(publicKey: _recipientPubKey!));
   }
 
   /// Encrypt a given value using public key
   Future<String> encryptData(String dataVal) async {
-    if (_recipientPubKey == null) {
+    if (_recipientPubKey == null || _encrypter == null) {
       await _setPubKey();
     }
-
-    final encrypter = Encrypter(RSA(publicKey: _recipientPubKey));
-    return encrypter.encrypt(dataVal).base64;
+    return _encrypter!.encrypt(dataVal).base64;
   }
 }
 
 /// Returns true if there is an individual key for a given resource
-bool hasInheritedKey(
-  String fileContent,
-  String fileUrl,
-) {
+bool hasInheritedKey(String fileContent, String fileUrl) {
   final dataMap = parseTTLMap(fileContent);
-  if (dataMap.containsKey(fileUrl)) {
-    return dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
-  } else {
-    return false;
-  }
+  return dataMap.containsKey(fileUrl) &&
+      dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
 }
