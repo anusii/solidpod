@@ -39,14 +39,12 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:pointycastle/asymmetric/api.dart';
-import 'package:rdflib/rdflib.dart';
 
-import 'package:solidpod/src/solid/api/rest_api.dart' show createResource;
+import 'package:solidpod/src/solid/api/rest_api.dart'
+    show createResource, updateFileByQuery;
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
 
 /// [KeyManager] is a class to manage security key and encryption keys
 /// for data stored in PODs.
@@ -88,13 +86,13 @@ class KeyManager {
   static String? _pubKey;
 
   /// The encrypted (and decrypted) private key
-  static _PrvKeyRecord? _prvKeyRecord;
+  static PrvKeyRecord? _prvKeyRecord;
 
   /// The encrypted (and decrypted) individual keys
-  static Map<String, _IndKeyRecord>? _indKeyMap;
+  static Map<String, IndKeyRecord>? _indKeyMap;
 
   /// The decrypted shared individual keys
-  static Map<String, _SharedIndKeyRecord>? _sharedIndKeyMap;
+  static Map<String, SharedIndKeyRecord>? _sharedIndKeyMap;
 
   /// The string key for storing auth data in secure storage
   static const String _securityKeySecureStorageKey = '_solid_security_key';
@@ -139,7 +137,7 @@ class KeyManager {
     final pair = await genRandRSAKeyPair();
     _pubKey = trimPubKeyStr(pair.publicKey);
     final iv = genRandIV();
-    _prvKeyRecord = _PrvKeyRecord(
+    _prvKeyRecord = PrvKeyRecord(
       encKeyBase64: encryptPrivateKey(pair.privateKey, _masterKey!, iv),
       ivBase64: iv.base64,
       key: pair.privateKey,
@@ -147,9 +145,9 @@ class KeyManager {
 
     // Save encKeyFile, indKeyFile, and pubKeyFile (on server)
 
-    await _saveEncKeyFile();
-    await _saveIndKeyFile();
-    await _savePubKeyFile();
+    await _saveEncKey();
+    await _saveIndKey();
+    await _savePubKey();
   }
 
   /// Get the master key
@@ -176,7 +174,7 @@ class KeyManager {
   /// Get the verification key
   static Future<String> getVerificationKey() async {
     if (_verificationKey == null) {
-      await _loadEncKeyFile();
+      await _loadEncKey();
     }
     assert(_verificationKey != null);
     return _verificationKey!;
@@ -257,8 +255,8 @@ class KeyManager {
     // Load key files and decrypt the private key and individual keys
     // using the old master key
 
-    await _loadEncKeyFile();
-    await _loadIndKeyFile();
+    await _loadEncKey();
+    await _loadIndKey();
 
     assert(_prvKeyRecord != null);
     _prvKeyRecord!.key ??= await getPrivateKey();
@@ -266,10 +264,10 @@ class KeyManager {
     assert(_indKeyMap != null);
     if (_indKeyMap!.isNotEmpty) {
       for (final entry in _indKeyMap!.entries) {
-        final fileUrl = entry.key;
+        final resourceUrl = entry.key;
         final record = entry.value;
-        record.key ??= await getIndividualKey(fileUrl);
-        _indKeyMap![fileUrl] = record;
+        record.key ??= await getIndividualKey(resourceUrl);
+        _indKeyMap![resourceUrl] = record;
       }
     }
 
@@ -287,13 +285,13 @@ class KeyManager {
         encryptPrivateKey(_prvKeyRecord!.key!, _masterKey!, iv);
 
     // Re-generate the content of encKeyFile and save it (on server)
-    await _saveEncKeyFile();
+    await _saveEncKey();
 
-    // Encrypt the individual keys using the new mater key (and new IVs)
+    // Encrypt the individual keys using the new master key (and new IVs)
 
     if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
       for (final entry in _indKeyMap!.entries) {
-        final fileUrl = entry.key;
+        final resourceUrl = entry.key;
         final record = entry.value;
 
         final iv = genRandIV();
@@ -303,12 +301,12 @@ class KeyManager {
         record.ivBase64 = iv.base64;
         record.encKeyBase64 = encryptData(indKey!.base64, _masterKey!, iv);
 
-        _indKeyMap![fileUrl] = record;
+        _indKeyMap![resourceUrl] = record;
       }
     }
 
     // Re-generate the content of indKeyFile and save it (on server)
-    await _saveIndKeyFile();
+    await _saveIndKey();
 
     // Save security key to local secure storage
     await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
@@ -317,7 +315,7 @@ class KeyManager {
   /// Return the public key
   static Future<String> getPublicKey() async {
     if (_pubKey == null) {
-      await _loadPubKeyFile();
+      await _loadPubKey();
     }
     assert(_pubKey != null);
     return _pubKey!;
@@ -326,7 +324,7 @@ class KeyManager {
   /// Return the private key
   static Future<String> getPrivateKey() async {
     if (_prvKeyRecord == null) {
-      await _loadEncKeyFile();
+      await _loadEncKey();
     }
 
     assert(_prvKeyRecord != null);
@@ -343,7 +341,7 @@ class KeyManager {
   /// Returns true if there is an individual key for a given resource
   static Future<bool> hasIndividualKey(String resourceUrl) async {
     if (_indKeyMap == null) {
-      await _loadIndKeyFile();
+      await _loadIndKey();
     }
     assert(_indKeyMap != null);
     return _indKeyMap!.containsKey(resourceUrl);
@@ -352,7 +350,7 @@ class KeyManager {
   /// Return the (decrypted) individual key for an existing resource
   static Future<Key> getIndividualKey(String resourceUrl) async {
     if (_indKeyMap == null) {
-      await _loadIndKeyFile();
+      await _loadIndKey();
     }
 
     assert(_indKeyMap != null);
@@ -384,22 +382,28 @@ class KeyManager {
     Key indKey, {
     bool isFile = true,
   }) async {
-    final resUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
+    final resourceUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
 
     if (_indKeyMap == null) {
-      await _loadIndKeyFile();
+      await _loadIndKey();
     }
     assert(_indKeyMap != null);
 
     final iv = genRandIV();
     final encIndKey = encryptData(indKey.base64, await getMasterKey(), iv);
-    _indKeyMap![resUrl] = _IndKeyRecord(
+
+    final record = IndKeyRecord(
       resourcePath: resourcePath,
       encKeyBase64: encIndKey,
       ivBase64: iv.base64,
     );
+    _indKeyMap![resourceUrl] = record;
 
-    await addIndKey(resourcePath, encIndKey, iv.base64, isFile: isFile);
+    final query = await getIndKeyQuery(record,
+        operation: SparqlOperation.insert, isFile: isFile);
+    _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
+
+    await updateFileByQuery(_indKeyUrl!, query);
   }
 
   /// Remove the (encrypted) individual key for file
@@ -407,16 +411,21 @@ class KeyManager {
     String resourcePath, {
     bool isFile = true,
   }) async {
-    final resUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
+    final resourceUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
     if (_indKeyMap == null) {
-      await _loadIndKeyFile();
+      await _loadIndKey();
     }
     assert(_indKeyMap != null);
 
-    if (_indKeyMap!.containsKey(resUrl)) {
-      final record = _indKeyMap!.remove(resUrl);
+    if (_indKeyMap!.containsKey(resourceUrl)) {
+      final record = _indKeyMap!.remove(resourceUrl);
       assert(record != null);
-      await delIndKey(resourcePath, record!.encKeyBase64, record.ivBase64);
+
+      final query = await getIndKeyQuery(record!,
+          operation: SparqlOperation.delete, isFile: isFile);
+      _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
+      await updateFileByQuery(_indKeyUrl!, query);
+
       debugPrint('Deleted $record');
     } else {
       debugPrint(
@@ -427,7 +436,7 @@ class KeyManager {
   /// Returns true if there is an individual key for a given resource
   static Future<bool> hasSharedIndividualKey(String resourceUrl) async {
     if (_sharedIndKeyMap == null || _sharedIndKeyMap!.isEmpty) {
-      await _loadSharedIndKeyFile();
+      await _loadSharedIndKey();
     }
     assert(_sharedIndKeyMap != null);
     return _sharedIndKeyMap!.containsKey(resourceUrl);
@@ -436,7 +445,7 @@ class KeyManager {
   /// Return the (decrypted) individual key for an existing resource
   static Future<Key> getSharedIndividualKey(String resourceUrl) async {
     if (_sharedIndKeyMap == null) {
-      await _loadSharedIndKeyFile();
+      await _loadSharedIndKey();
     }
 
     assert(_sharedIndKeyMap != null);
@@ -458,9 +467,10 @@ class KeyManager {
         ),
       );
 
-      record.filePath = encrypter.decrypt64(record.encFilePath);
+      record.resourcePath = encrypter.decrypt64(record.encResourcePath);
       record.accessList = encrypter.decrypt64(record.encAccessList);
       record.key = Key.fromBase64(encrypter.decrypt64(record.encKey));
+      _sharedIndKeyMap![resourceUrl] = record;
     }
 
     return record.key!;
@@ -472,7 +482,7 @@ class KeyManager {
     String resUniqueId,
   ) async {
     if (_sharedIndKeyMap == null) {
-      await _loadSharedIndKeyFile();
+      await _loadSharedIndKey();
     }
     assert(_sharedIndKeyMap != null);
 
@@ -481,333 +491,91 @@ class KeyManager {
       assert(record != null);
 
       // Delete shared key from shared keys file
-      await delSharedIndKey(
-        resUniqueId,
-        record!.encKey,
-        record.encFilePath,
-        record.encAccessList,
-      );
+      final query = await getSharedIndKeyDeletionQuery(resUniqueId, record!);
+      _sharedIndKeyUrl ??= await getFileUrl(await getSharedKeyFilePath());
+
+      await updateFileByQuery(_sharedIndKeyUrl!, query);
+
       debugPrint('Deleted $record');
     } else {
       debugPrint(
-        'Individual key for "$resourceUrl" does not exist, do nothing.',
+        'Shared individual key for "$resourceUrl" does not exist, do nothing.',
       );
     }
   }
 
-  /// Load the file with verification key and encrypted private key
-  static Future<void> _loadEncKeyFile({bool forceReload = false}) async {
+  /// Load verification key and encrypted private key
+  static Future<void> _loadEncKey({bool forceReload = false}) async {
     if (_verificationKey != null && _prvKeyRecord != null && !forceReload) {
       return;
     }
 
-    _encKeyUrl ??= await getFileUrl(await getEncKeyPath());
-
-    // _checkMasterKey();
-
-    // Get and parse the encKeyFile
-    final map = await loadPrvTTL(_encKeyUrl!);
-
-    if (!map.containsKey(_encKeyUrl)) {
-      throw Exception('Invalid content in file: "$_encKeyUrl"');
-    }
-    assert(map.length == 1);
-
-    final v = map[_encKeyUrl] as Map;
-    checkDuplicatedValue(
-      value: v[encKeyPred],
-      errMsg: 'ERROR: Duplicated verification key',
-    );
-    _verificationKey = v[encKeyPred] as String;
-
-    _prvKeyRecord = _PrvKeyRecord(
-      encKeyBase64: v[prvKeyPred] as String,
-      ivBase64: v[ivPred] as String,
-    );
+    final r = await readEncKeyFile();
+    _verificationKey = r.verificationKey;
+    _prvKeyRecord = r.record;
   }
 
   /// Generate the content of indKeyFile and save it (on server)
-  static Future<void> _saveEncKeyFile() async {
+  static Future<void> _saveEncKey() async {
     _encKeyUrl ??= await getFileUrl(await getEncKeyPath());
 
-    await createResource(_encKeyUrl!, content: await _genEncKeyTTLStr());
+    await createResource(
+      _encKeyUrl!,
+      content:
+          await genEncKeyTTLStr(_encKeyUrl!, _verificationKey!, _prvKeyRecord!),
+    );
   }
 
-  /// Load the file with encrypted individual keys
-  static Future<void> _loadIndKeyFile({bool forceReload = false}) async {
+  /// Load encrypted individual keys
+  static Future<void> _loadIndKey({bool forceReload = false}) async {
     if (_indKeyMap != null && !forceReload) {
       return;
     }
-
-    _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
-
-    _indKeyMap ??= <String, _IndKeyRecord>{};
-
-    final map = await loadPrvTTL(_indKeyUrl!);
-
-    for (final entry in map.entries) {
-      final k = entry.key;
-      final v = entry.value as Map;
-      if (v.containsKey(sessionKeyPred)) {
-        checkDuplicatedValue(
-          value: v[sessionKeyPred],
-          errMsg: 'ERROR: Duplicated encryption key for resource "$k"',
-        );
-        checkDuplicatedValue(
-          value: v[ivPred],
-          errMsg: 'ERROR: Duplicated IV for resource "$k"',
-        );
-        checkDuplicatedValue(
-          value: v[pathPred],
-          errMsg: 'ERROR: Duplicated path for resource "$k"',
-        );
-
-        // Add to _indKeyMap
-        _indKeyMap![await getFileUrl(v[pathPred] as String)] = _IndKeyRecord(
-          encKeyBase64: v[sessionKeyPred] as String,
-          ivBase64: v[ivPred] as String,
-          resourcePath: v[pathPred] as String,
-        );
-      }
-    }
+    _indKeyMap = await readIndKeyFile();
   }
 
   /// Generate the content of indKeyFile and save it (on server)
-  static Future<void> _saveIndKeyFile() async {
+  static Future<void> _saveIndKey() async {
     _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
 
-    await createResource(_indKeyUrl!, content: await _genIndKeyTTLStr());
+    await createResource(
+      _indKeyUrl!,
+      content: await genIndKeyTTLStr(_indKeyUrl!, _indKeyMap),
+    );
   }
 
-  /// Load the file with public key
-  static Future<void> _loadPubKeyFile({bool forceReload = false}) async {
+  /// Load the public key
+  static Future<void> _loadPubKey({bool forceReload = false}) async {
     if (_pubKey != null && !forceReload) {
       return;
     }
 
-    _pubKeyUrl ??= await getFileUrl(await getPubKeyPath());
-
-    // Get and parse the pubKeyFile
-    final map = await loadPrvTTL(_pubKeyUrl!);
-
-    if (!map.containsKey(_pubKeyUrl)) {
-      throw Exception('Invalid content in file: "$_pubKeyUrl"');
-    }
-
-    checkDuplicatedValue(
-      value: map[_pubKeyUrl][pubKeyPred],
-      errMsg: 'ERROR: Duplicated public key',
-    );
-
-    _pubKey = map[_pubKeyUrl][pubKeyPred] as String;
+    _pubKey = await readPubKeyFile();
   }
 
   /// Generate the content of pubKeyFile and save it (on server)
-  static Future<void> _savePubKeyFile() async {
+  static Future<void> _savePubKey() async {
+    assert(_pubKey != null);
     _pubKeyUrl ??= await getFileUrl(await getPubKeyPath());
 
-    await createResource(_pubKeyUrl!, content: await _genPubKeyTTLStr());
+    await createResource(
+      _pubKeyUrl!,
+      content: await genPubKeyTTLStr(_pubKeyUrl!, _pubKey!),
+    );
   }
 
-  /// Load the file with encrypted individual keys
-  static Future<void> _loadSharedIndKeyFile({bool forceReload = false}) async {
+  /// Load shared (encrypted) individual keys
+  static Future<void> _loadSharedIndKey({bool forceReload = false}) async {
     if (_sharedIndKeyMap != null && !forceReload) {
       return;
     }
 
-    _sharedIndKeyUrl ??= await getFileUrl(await getSharedKeyFilePath());
-    _sharedIndKeyMap ??= <String, _SharedIndKeyRecord>{};
-    Encrypter? encrypter;
-
-    final map = await loadPrvTTL(_sharedIndKeyUrl!);
-
-    for (final entry in map.entries) {
-      final v = entry.value as Map;
-      if (v.containsKey(sharedKeyPred)) {
-        // Get private key
-        if (_prvKeyRecord == null) {
-          await _loadEncKeyFile();
-        }
-        assert(_prvKeyRecord != null);
-        _prvKeyRecord!.key ??= await getPrivateKey();
-
-        encrypter ??= Encrypter(
-          RSA(
-            privateKey:
-                RSAKeyParser().parse(_prvKeyRecord!.key!) as RSAPrivateKey,
-          ),
-        );
-
-        _sharedIndKeyMap![encrypter.decrypt64(v[pathPred] as String)] =
-            _SharedIndKeyRecord(
-          encFilePath: v[pathPred] as String,
-          encAccessList: v[accessListPred] as String,
-          encKey: v[sharedKeyPred] as String,
-        );
-      }
+    if (_prvKeyRecord == null) {
+      await _loadEncKey();
     }
-  }
-
-  /// Generate the content of encKeyFile
-  static Future<String> _genEncKeyTTLStr() async {
-    assert(_verificationKey != null);
     assert(_prvKeyRecord != null);
+    _prvKeyRecord!.key ??= await getPrivateKey();
 
-    _encKeyUrl ??= await getFileUrl(await getEncKeyPath());
-
-    final triples = {
-      URIRef(_encKeyUrl!): {
-        termsNS.ns.withAttr(titlePred): encKeyFileTitle,
-        solidTermsNS.ns.withAttr(encKeyPred): _verificationKey!,
-        solidTermsNS.ns.withAttr(ivPred): _prvKeyRecord!.ivBase64,
-        solidTermsNS.ns.withAttr(prvKeyPred): _prvKeyRecord!.encKeyBase64,
-      },
-    };
-
-    final bindNS = {
-      solidTermsNS.prefix: solidTermsNS.ns,
-      termsNS.prefix: termsNS.ns,
-    };
-
-    return tripleMapToTurtle(triples, bindNamespaces: bindNS);
+    _sharedIndKeyMap = await readSharedIndKey(_prvKeyRecord!.key!);
   }
-
-  /// Generate the content of indKeyFile
-  static Future<String> _genIndKeyTTLStr() async {
-    _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
-
-    final triples = <URIRef, Map<URIRef, String>>{};
-    triples[URIRef(_indKeyUrl!)] = {
-      termsNS.ns.withAttr(titlePred): indKeyFileTitle,
-    };
-
-    if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
-      for (final entry in _indKeyMap!.entries) {
-        final fileUrl = entry.key;
-        final record = entry.value;
-
-        final indKey = record.key;
-        assert(indKey != null);
-
-        triples[URIRef(fileUrl)] = {
-          solidTermsNS.ns.withAttr(pathPred): record.resourcePath,
-          solidTermsNS.ns.withAttr(ivPred): record.ivBase64,
-          solidTermsNS.ns.withAttr(sessionKeyPred): record.encKeyBase64,
-        };
-      }
-    }
-
-    final bindNS = {
-      solidTermsNS.prefix: solidTermsNS.ns,
-      termsNS.prefix: termsNS.ns,
-    };
-
-    return tripleMapToTurtle(triples, bindNamespaces: bindNS);
-  }
-
-  /// Generate the content of pubKeyFile
-  static Future<String> _genPubKeyTTLStr() async {
-    assert(_pubKey != null);
-
-    _pubKeyUrl ??= await getFileUrl(await getPubKeyPath());
-
-    final triples = {
-      URIRef(_pubKeyUrl!): {
-        termsNS.ns.withAttr(titlePred): pubKeyFileTitle,
-        solidTermsNS.ns.withAttr(pubKeyPred): _pubKey!,
-      },
-    };
-
-    final bindNS = {
-      solidTermsNS.prefix: solidTermsNS.ns,
-      termsNS.prefix: termsNS.ns,
-    };
-
-    return tripleMapToTurtle(triples, bindNamespaces: bindNS);
-  }
-}
-
-/// [_IndKeyRecord] is a simple class to store encrypted and decrypted AES keys
-/// of individual data files.
-
-class _IndKeyRecord {
-  /// Constructor
-  _IndKeyRecord({
-    required this.resourcePath,
-    required this.encKeyBase64,
-    required this.ivBase64,
-  });
-
-  /// The path of file or directory corresponds to the key
-  final String resourcePath;
-
-  /// The base64 string of the encrypted key
-  String encKeyBase64;
-
-  /// The base64 string of the IV
-  String ivBase64;
-
-  /// The corresponding decrypted key
-  Key? key;
-
-  @override
-  String toString() => 'IndividualKeyRecord {\n'
-      '    resourcePath: $resourcePath,\n'
-      '    encIndKey: $encKeyBase64,\n'
-      '    iv: $ivBase64\n'
-      '}';
-}
-
-/// [_SharedIndKeyRecord] is a simple class to store both encrypted and
-/// decrypted individual keys shared by others
-
-class _SharedIndKeyRecord {
-  /// Constructor
-  _SharedIndKeyRecord({
-    required this.encFilePath,
-    required this.encAccessList,
-    required this.encKey,
-  });
-
-  /// The path of file corresponds to the key
-  String? filePath;
-
-  /// The access list
-  String? accessList;
-
-  /// The corresponding decrypted key
-  Key? key;
-
-  /// The encrypted path of file corresponds to the key
-  final String encFilePath;
-
-  /// The encrypted access list
-  final String encAccessList;
-
-  /// The encrypted key string
-  final String encKey;
-
-  @override
-  String toString() => 'SharedIndividualKeyRecord {\n'
-      '    encFilePath: $filePath,\n'
-      '    encAccessList: $accessList,\n'
-      '    encKey: $key\n'
-      '}';
-}
-
-/// [_PrvKeyRecord] is a simple class to store encrypted and decrypted
-/// private key for data sharing.
-
-class _PrvKeyRecord {
-  /// Constructor
-  _PrvKeyRecord({required this.encKeyBase64, required this.ivBase64, this.key});
-
-  /// The base64 string of the encrypted private key
-  String encKeyBase64;
-
-  /// The base64 string of the IV
-  String ivBase64;
-
-  /// The corresponding decrypted private key
-  String? key;
 }
