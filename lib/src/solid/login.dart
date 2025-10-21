@@ -35,11 +35,13 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
 import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
     show
         generateDefaultFiles,
@@ -47,6 +49,9 @@ import 'package:solidpod/src/solid/utils/misc.dart'
         getAppNameVersion,
         setAppDirName,
         checkLoggedIn;
+import 'package:solidpod/src/solid/utils/push_replacement.dart';
+import 'package:solidpod/src/widgets/login_theme.dart';
+import 'package:solidpod/src/widgets/pod_button.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/widgets/snackbar_config.dart';
 
@@ -56,73 +61,6 @@ import 'package:solidpod/src/widgets/snackbar_config.dart';
 
 const int _narrowScreenLimit = 1175;
 const int _veryNarrowScreenLimit = 750;
-
-const Color defaultButtonBackground = Colors.white;
-const Color defaultButtonForeground = Colors.black;
-
-// Colours for highlighted buttons.
-//
-// Do these need to be highligheted. By default the package should not highlight
-// them but if an app developer wants to then we should support that. (gjw
-// 20250422)
-//
-// The original alternatives were Color(0xFF00BCD4) and Colors.white for
-// register and Color(0xFF4CAF50) abd Colors.white for login. I find the colours
-// a bit distracting as a user. (gjw 20250422)
-
-const Color registerButtonBackground = defaultButtonBackground;
-const Color registerButtonForeground = defaultButtonForeground;
-const Color loginButtonBackground = defaultButtonBackground;
-const Color loginButtonForeground = defaultButtonForeground;
-
-const String defaultLoginButtonText = 'Login';
-const String defaultRegisterButtonText = 'Register';
-const String defaultInfoButtonText = 'Info';
-const String defaultContinueButtonText = 'Continue';
-const String defaultChangeKeyButtonText = 'Change Key';
-
-const String defaultServerTooltip = '''
-
-**Solid Server:** This text field contains the Solid server you will connect to
-where your data is hosted. It is also used as the base of the URI (Uniform
-Resource Identifier) that will be used for your WebID. A WebID is a
-decentralized identity that allows you to have a globally unique identifier for
-your data store.
-
-''';
-
-const String defaultLoginTooltip = '''
-
-**Login:** Tap here to log in to a Solid server to access you private data. You
-will be connected to the specified Solid server and you can then log in with
-your username and password. This app does not know your username/password. The
-app will will use a token from the server to establish your secure conenction.
-
-''';
-const String defaultRegisterTooltip = '''
-
-**Register:** Tap here to connect to your Solid server to register for an
-account. Once you have an account you will be able to save data onto your host
-server. You can connect to a Solid server of your choice, including your own, a
-free community supported server, a commercial server, or a government run
-server.
-
-''';
-
-const String defaultInfoTooltip = '''
-
-**Support:** Tap here to be taken to the app help and support documentation.
-
-''';
-
-const String defaultContinueTooltip = '''
-
-**Continue:** Tap here to continue on to the app without logging into your Solid
-server. The app will generally be able to save data locally or else prompt to
-log in to a Solid server when needed. No data will be shared beyond you local
-device until you connect to a SOlid server hosting your data.
-
-''';
 
 double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
 
@@ -529,21 +467,30 @@ class _SolidLoginState extends State<SolidLogin> {
           if (!context.mounted) return;
 
           if (!allExists) {
-            await Navigator.pushReplacement(
+            await pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => InitialSetupScreen(
-                  resCheckList: resCheckList,
-                  originalLogin: widget,
-                  child: widget.child,
-                ),
+              InitialSetupScreen(
+                resCheckList: resCheckList,
+                originalLogin: widget,
+                child: widget.child,
               ),
             );
+            // await Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) => InitialSetupScreen(
+            //       resCheckList: resCheckList,
+            //       originalLogin: widget,
+            //       child: widget.child,
+            //     ),
+            //   ),
+            // );
           } else {
-            await Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => widget.child),
-            );
+            await pushReplacement(context, widget.child);
+            // await Navigator.pushReplacement(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => widget.child),
+            // );
           }
         } else {
           // On moving to using navigateToLogin() the previously implemented
@@ -564,10 +511,11 @@ class _SolidLoginState extends State<SolidLogin> {
 
           // Navigate back to the login screen after authentication failed.
 
-          await Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => widget),
-          );
+          await pushReplacement(context, widget);
+          // await Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => widget),
+          // );
         }
       },
     );
@@ -581,11 +529,12 @@ class _SolidLoginState extends State<SolidLogin> {
       background: widget.continueButtonStyle.background,
       foreground: widget.continueButtonStyle.foreground,
       tooltip: widget.continueButtonStyle.tooltip,
-      onPressed: () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => widget.child),
-        );
+      onPressed: () async {
+        await pushReplacement(context, widget.child);
+        // Navigator.pushReplacement(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => widget.child),
+        // );
       },
     );
 
@@ -802,194 +751,4 @@ class _SolidLoginState extends State<SolidLogin> {
       ),
     );
   }
-}
-
-class PodButton extends StatelessWidget {
-  const PodButton({
-    required this.text,
-    required this.background,
-    required this.foreground,
-    required this.tooltip,
-    required this.onPressed,
-    super.key,
-  });
-  final String text;
-  final Color background;
-  final Color foreground;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  // Define a common style for the text of the two buttons, GET POD and LOGIN.
-
-  final buttonTextStyle = const TextStyle(
-    fontSize: 16.0,
-    letterSpacing: 2.0,
-    fontWeight: FontWeight.w500,
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return MarkdownTooltip(
-      message: tooltip,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: background,
-          foregroundColor: foreground,
-
-          // Add a solid border to make buttons more visible.
-          side: BorderSide(color: Colors.grey.shade400),
-
-          // Apply rounded corners consistent with card style.
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-
-          // Increase vertical padding.
-          padding: const EdgeInsets.symmetric(vertical: 12),
-
-          // Ensure a minimum size of 48px in height as per guidelines.
-          minimumSize: const Size(88, 48),
-        ),
-        child: Text(text, style: buttonTextStyle),
-      ),
-    );
-  }
-}
-
-/// A data structure for the buttons used in the Solid Login widget.
-
-class ContinueButtonStyle {
-  const ContinueButtonStyle({
-    this.text = defaultContinueButtonText,
-    this.background = defaultButtonBackground,
-    this.foreground = defaultButtonForeground,
-    this.tooltip = defaultContinueTooltip,
-  });
-  final String text;
-  final Color background;
-  final Color foreground;
-  final String tooltip;
-}
-
-class ChangeKeyButtonStyle {
-  const ChangeKeyButtonStyle({
-    this.text = defaultChangeKeyButtonText,
-    this.background = defaultButtonBackground,
-    this.foreground = defaultButtonForeground,
-  });
-  final String text;
-  final Color background;
-  final Color foreground;
-}
-
-class LoginButtonStyle {
-  const LoginButtonStyle({
-    this.text = defaultLoginButtonText,
-    this.background = loginButtonBackground,
-    this.foreground = loginButtonForeground,
-    this.tooltip = defaultLoginTooltip,
-  });
-  final String text;
-  final Color background;
-  final Color foreground;
-  final String tooltip;
-}
-
-class RegisterButtonStyle {
-  const RegisterButtonStyle({
-    this.text = defaultRegisterButtonText,
-    this.background = registerButtonBackground,
-    this.foreground = registerButtonForeground,
-    this.tooltip = defaultRegisterTooltip,
-  });
-  final String text;
-  final Color background;
-  final Color foreground;
-  final String tooltip;
-}
-
-class InfoButtonStyle {
-  const InfoButtonStyle({
-    this.text = defaultInfoButtonText,
-    this.background = defaultButtonBackground,
-    this.foreground = defaultButtonForeground,
-    this.tooltip = defaultInfoTooltip,
-  });
-  final String text;
-  final Color background;
-  final Color foreground;
-  final String tooltip;
-}
-
-/// Theme configuration for a single mode (light or dark).
-
-class SolidLoginThemeMode {
-  const SolidLoginThemeMode({
-    this.backgroundColor = Colors.white,
-    this.cardColor = Colors.white,
-    this.shadowColor = Colors.black45,
-    this.titleColor = Colors.black,
-    this.textColor = Colors.black,
-    this.hintColor = Colors.grey,
-    this.dividerColor = Colors.grey,
-    this.inputBorderColor = Colors.grey,
-    this.versionTextColor = Colors.grey,
-  });
-
-  /// Background color of the login panel.
-
-  final Color backgroundColor;
-
-  /// Card color for the login panel.
-
-  final Color cardColor;
-
-  /// Shadow color for the login panel card.
-
-  final Color shadowColor;
-
-  /// Color for the title text.
-
-  final Color titleColor;
-
-  /// Color for regular text.
-
-  final Color textColor;
-
-  /// Color for hint text in input fields.
-
-  final Color hintColor;
-
-  /// Color for dividers
-  final Color dividerColor;
-
-  /// Color for input field borders.
-
-  final Color inputBorderColor;
-
-  /// Color for the version text.
-
-  final Color versionTextColor;
-}
-
-/// Theme configuration for the SolidLogin widget.
-
-class SolidLoginTheme {
-  const SolidLoginTheme({
-    this.lightTheme = const SolidLoginThemeMode(),
-    this.darkTheme = const SolidLoginThemeMode(
-      backgroundColor: Color(0xFF121212),
-      cardColor: Color(0xFF1E1E1E),
-      shadowColor: Colors.black87,
-      titleColor: Colors.white,
-      textColor: Colors.white,
-    ),
-  });
-
-  /// Theme configuration for light mode.
-
-  final SolidLoginThemeMode lightTheme;
-
-  /// Theme configuration for dark mode.
-
-  final SolidLoginThemeMode darkTheme;
 }
