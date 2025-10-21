@@ -627,13 +627,29 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ),
                         ElevatedButton(
                           child: const Text(
-                              'View all Resources your WebID have access to'),
+                              'View specific resource (key-value.ttl) your WebID has access to'),
                           onPressed: () => Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => const SharedResourcesUi(
                                 backgroundColor: titleBackgroundColor,
                                 fileName: 'key-value.ttl',
+                                //sourceWebId:
+                                //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
+                                child: Home(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          child: const Text(
+                              'View ALL Resources your WebID has access to'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SharedResourcesUi(
+                                backgroundColor: titleBackgroundColor,
                                 //sourceWebId:
                                 //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
                                 child: Home(),
