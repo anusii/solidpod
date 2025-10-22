@@ -685,3 +685,12 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
     return [effectiveBasePath, normalizedInput].join('/');
   }
 }
+
+/// Check if a given path string is a directory or not
+bool isDir(String path) {
+  if (path.endsWith('/') || !path.contains('.')) {
+    return true;
+  } else {
+    return false;
+  }
+}
