@@ -510,7 +510,7 @@ class _SolidLoginState extends State<SolidLogin> {
           if (isCachedSession) {
             _showSnackbar(
               'Logged in with your previously saved session.',
-              duration: Duration(seconds: 2),
+              duration: const Duration(seconds: 2),
             );
 
             // Short delay to allow snackbar to be visible.
