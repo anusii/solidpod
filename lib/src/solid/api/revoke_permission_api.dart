@@ -148,7 +148,7 @@ Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
       removerWebId.replaceAll(profCard, sharedKeyFilePath);
 
   // Check if the shared key file exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, isFile: false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl) ==
       ResourceStatus.exist) {
     // Update the file
 

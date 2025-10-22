@@ -36,16 +36,18 @@ import 'package:solidpod/src/solid/utils/snack_bar.dart';
 /// Build the permission table widget. Function call requires the
 /// following inputs
 /// [context] is the BuildContext from which this function is called.
-/// [permDataFile] is the name of the file for which the permission data is
-/// displayed
-/// [permDataMap] is the map of permission data for the [permDataFile]
+/// [permDataResource] is the name of the file or directory for which the
+/// permission data is displayed
+/// [isFile] is the flag to define whether the resource is a file or not
+/// [permDataMap] is the map of permission data for the [permDataResource]
 /// [parentWidget] is the widget to return to after an action Eg: deletion of a
 /// permission
 /// [onDeleteFuncion] is the function to be called on delete
 ///
 Widget buildPermDataTable(
   BuildContext context,
-  String permDataFile,
+  String permDataResource,
+  bool isFile,
   Map<dynamic, dynamic> permDataMap,
   String ownerWebId,
   Widget parentWidget,
@@ -129,8 +131,8 @@ Widget buildPermDataTable(
                           TextButton(
                             onPressed: () async {
                               await revokePermission(
-                                permDataFile,
-                                true,
+                                permDataResource,
+                                isFile,
                                 permDataMap[index][permStr] as List,
                                 index,
                                 ownerWebId,
@@ -153,7 +155,10 @@ Widget buildPermDataTable(
                                   Colors.red,
                                 );
                               }
-                              await onDeleteFuncion(permDataFile);
+                              await onDeleteFuncion(
+                                permDataResource,
+                                isFile: isFile,
+                              );
                             },
                             child: const Text('Yes'),
                           ),

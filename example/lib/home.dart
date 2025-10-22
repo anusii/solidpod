@@ -577,7 +577,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             MaterialPageRoute(
                               builder: (context) => const GrantPermissionUi(
                                 backgroundColor: titleBackgroundColor,
-                                fileName: 'keyvalue/key-value.ttl',
+                                resourceName: 'keyvalue/key-value.ttl',
                                 // accessModeList: ['read', 'write'],
                                 // recipientTypeList: ['indi', 'group'],
                                 child: Home(),

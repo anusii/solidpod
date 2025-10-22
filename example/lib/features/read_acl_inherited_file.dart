@@ -1,4 +1,4 @@
-/// A page to create resources with ACL inheritance
+/// A page to read resources with ACL inheritance
 ///
 /// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
