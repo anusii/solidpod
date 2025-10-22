@@ -28,8 +28,11 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:markdown_tooltip/markdown_tooltip.dart';
+
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
+import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 const recipientToolTips = <RecipientType, String>{
   RecipientType.public: '''
@@ -62,6 +65,17 @@ const selectRecipientPermissionStr =
     'Select the recipient/s of file access permissions';
 const selectFilePermissionStr = 'Select the list of file access permissions';
 const grantPermissionStr = 'Granted file access permissions';
+const selectPermissionMsg = 'Please select one or more file access permissions';
+const selectRecipientTypeMsg = 'Please select a type of recipient';
+const updatePermissionMsg =
+    'Please login first to update file access permission';
+const podNotInitMsg =
+    'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.';
+const successMsg = 'File access permissions granted successfully!';
+const failureMsg =
+    'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.';
+
+const warnBgColor = Color.fromARGB(255, 204, 99, 1);
 
 // Widget getRecipientTypeWidget(
 //   RecipientType recipientType, {
@@ -112,9 +126,58 @@ const grantPermissionStr = 'Granted file access permissions';
 //   );
 // }
 
+String getWelcomeStr(String? fileName) => fileName != null
+    ? 'Share $fileName file with other PODs'
+    : 'Share your data files with other PODs';
+
 Widget getHeading(String text) => buildHeading(
       text,
       17.0,
       Colors.blueGrey,
       8,
+    );
+
+List<Widget> getPermissionCheckBoxes(
+  List<AccessMode> accessModes, {
+  required Map<AccessMode, bool> modeSwitches,
+  required Function onUpdate,
+}) =>
+    [
+      for (final mode in AccessMode.getAllModes())
+        if (accessModes.contains(mode))
+          permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
+    ];
+
+Widget getRecipientTypeButton(
+  RecipientType recipientType, {
+  required void Function() onPressed,
+  EdgeInsetsGeometry? padding,
+}) {
+  assert(recipientType != RecipientType.none);
+  return Expanded(
+    child: Container(
+      padding: padding,
+      height: 50,
+      child: MarkdownTooltip(
+        message: recipientToolTips[recipientType]!,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          child: Text(recipientType.description),
+        ),
+      ),
+    ),
+  );
+}
+
+Widget getResourcePathForm(TextEditingController formController) => Padding(
+      padding: const EdgeInsets.all(8),
+      child: TextFormField(
+        controller: formController,
+        decoration: const InputDecoration(
+          hintText:
+              'Data file path (inside your data folder, Eg: personal/about.ttl)',
+        ),
+        validator: (value) =>
+            (value == null || value.isEmpty) ? 'Empty field' : null,
+      ),
     );

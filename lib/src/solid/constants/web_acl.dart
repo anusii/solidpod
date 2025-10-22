@@ -177,6 +177,13 @@ enum AccessMode {
 
   /// Return the description of access mode
   String get description => _description;
+
+  static List<AccessMode> getAllModes() => [
+        AccessMode.read,
+        AccessMode.write,
+        AccessMode.control,
+        AccessMode.append,
+      ];
 }
 
 /// Return access mode based on a given String value
