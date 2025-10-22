@@ -29,6 +29,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/utils/heading.dart';
 
 const recipientToolTips = <RecipientType, String>{
   RecipientType.public: '''
@@ -56,6 +57,11 @@ provided so that as a group they can
 access the file.
 ''',
 };
+
+const selectRecipientPermissionStr =
+    'Select the recipient/s of file access permissions';
+const selectFilePermissionStr = 'Select the list of file access permissions';
+const grantPermissionStr = 'Granted file access permissions';
 
 // Widget getRecipientTypeWidget(
 //   RecipientType recipientType, {
@@ -105,3 +111,10 @@ access the file.
 //     ),
 //   );
 // }
+
+Widget getHeading(String text) => buildHeading(
+      text,
+      17.0,
+      Colors.blueGrey,
+      8,
+    );

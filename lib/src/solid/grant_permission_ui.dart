@@ -38,6 +38,7 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
+import 'package:solidpod/src/solid/utils/permission_helper.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/file_permission_data_table.dart';
@@ -331,6 +332,98 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ),
       ];
 
+  List<Widget> getPermissionButtons(List<RecipientType> recipientTypeList) => [
+        if (recipientTypeList.contains(RecipientType.public))
+          Expanded(
+            child: SizedBox(
+              height: 50,
+              child: MarkdownTooltip(
+                message: recipientToolTips[RecipientType.public]!,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedRecipientType = RecipientType.public;
+                      selectedRecipientDetails = '';
+                      finalWebIdList = [
+                        publicAgent.value,
+                      ];
+                    });
+                  },
+                  child: Text(RecipientType.public.type),
+                ),
+              ),
+            ),
+          ),
+        if (recipientTypeList.contains(RecipientType.authUser))
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.only(left: 8.0),
+              height: 50,
+              child: MarkdownTooltip(
+                message: recipientToolTips[RecipientType.authUser]!,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedRecipientType = RecipientType.authUser;
+                      selectedRecipientDetails = '';
+                      finalWebIdList = [
+                        authenticatedAgent.value,
+                      ];
+                    });
+                  },
+                  child: Text(
+                    RecipientType.authUser.type,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (recipientTypeList.contains(RecipientType.individual))
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.only(left: 8.0),
+              height: 50,
+              child: MarkdownTooltip(
+                message: recipientToolTips[RecipientType.individual]!,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // Open dialog for WebId entry
+                    await indWebIdInputDialog(
+                      context,
+                      _updateIndWebIdInput,
+                      widget.dataFilesMap,
+                    );
+                  },
+                  child: Text(
+                    RecipientType.individual.type,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (recipientTypeList.contains(RecipientType.group))
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.only(left: 8.0),
+              height: 50,
+              child: MarkdownTooltip(
+                message: recipientToolTips[RecipientType.group]!,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await groupWebIdInputDialog(
+                      context,
+                      formControllerGroupName,
+                      formControllerGroupWebIds,
+                      _updateGroupWebIdInput,
+                    );
+                  },
+                  child: Text(RecipientType.group.type),
+                ),
+              ),
+            ),
+          ),
+      ];
+
   // Update individual webid input data
   void _updateIndWebIdInput(String receiverWebId) {
     setState(() {
@@ -440,12 +533,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             ),
                           ],
                           largeGapV,
-                          buildHeading(
-                            'Select the recipient/s of file access permissions',
-                            17.0,
-                            Colors.blueGrey,
-                            8,
-                          ),
+                          getHeading(selectRecipientPermissionStr),
                           Container(
                             padding: const EdgeInsets.all(8.0),
                             child: Row(
@@ -480,154 +568,20 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             padding: const EdgeInsets.all(8.0),
                             height: 100,
                             child: Row(
-                              children: [
-                                // av 20250526:
-                                // Public and Authenticated users buttons are
-                                // disabled in this function at the moment because
-                                // providing public or authenticated permissions to
-                                // external resources is not yet implemented in
-                                // [grantPermission()] function.
-                                if (!widget.isExternalRes) ...[
-                                  if (recipientTypeList
-                                      .contains(RecipientType.public)) ...[
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: 50,
-                                        child: MarkdownTooltip(
-                                          message: '''
-
-                                        **Public:** This file will be publicly
-                                        accessible so that even users without a
-                                        Data Vault can access the file.
-
-                                        ''',
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                selectedRecipientType =
-                                                    RecipientType.public;
-                                                selectedRecipientDetails = '';
-                                                finalWebIdList = [
-                                                  publicAgent.value,
-                                                ];
-                                              });
-                                            },
-                                            child:
-                                                Text(RecipientType.public.type),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                  if (recipientTypeList
-                                      .contains(RecipientType.authUser)) ...[
-                                    Expanded(
-                                      child: Container(
-                                        padding:
-                                            const EdgeInsets.only(left: 8.0),
-                                        height: 50,
-                                        child: MarkdownTooltip(
-                                          message: '''
-
-                                        **Users:** The file will be available to
-                                        any user who has registered a Data
-                                        Vault. When they have logged into their
-                                        Data Vault they will be able to access
-                                        the file.
-
-                                        ''',
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                selectedRecipientType =
-                                                    RecipientType.authUser;
-                                                selectedRecipientDetails = '';
-                                                finalWebIdList = [
-                                                  authenticatedAgent.value,
-                                                ];
-                                              });
-                                            },
-                                            child: Text(
-                                              RecipientType.authUser.type,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                                if (recipientTypeList
-                                    .contains(RecipientType.individual)) ...[
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      height: 50,
-                                      child: MarkdownTooltip(
-                                        message: '''
-
-                                      **Individual:** The file will be available
-                                      only to the identified individual user. A
-                                      WebID is required to identify the
-                                      individual who is gratned access to the
-                                      file.
-
-                                      ''',
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // Open dialog for WebId entry
-                                            await indWebIdInputDialog(
-                                              context,
-                                              _updateIndWebIdInput,
-                                              widget.dataFilesMap,
-                                            );
-                                          },
-                                          child: Text(
-                                            RecipientType.individual.type,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                if (recipientTypeList
-                                    .contains(RecipientType.group)) ...[
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      height: 50,
-                                      child: MarkdownTooltip(
-                                        message: '''
-
-                                      **Group:** A collection of WebIDs can be
-                                      provided so that as a group they can
-                                      access the file.
-
-                                      ''',
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            await groupWebIdInputDialog(
-                                              context,
-                                              formControllerGroupName,
-                                              formControllerGroupWebIds,
-                                              _updateGroupWebIdInput,
-                                            );
-                                          },
-                                          child: Text(RecipientType.group.type),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                              children:
+                                  // av 20250526:
+                                  // Public and Authenticated users buttons are
+                                  // disabled in this function at the moment because
+                                  // providing public or authenticated permissions to
+                                  // external resources is not yet implemented in
+                                  // [grantPermission()] function.
+                                  widget.isExternalRes
+                                      ? []
+                                      : getPermissionButtons(recipientTypeList),
                             ),
                           ),
                           smallGapV,
-                          buildHeading(
-                            'Select the list of file access permissions',
-                            17.0,
-                            Colors.blueGrey,
-                            8,
-                          ),
+                          getHeading(selectFilePermissionStr),
                           ...getPermissionCheckBoxes(),
                           Padding(
                             padding: const EdgeInsets.all(8),
@@ -735,12 +689,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             ),
                           ),
                           largeGapV,
-                          buildHeading(
-                            'Granted file access permissions',
-                            17.0,
-                            Colors.blueGrey,
-                            8,
-                          ),
+                          getHeading(grantPermissionStr),
                           Scrollbar(
                             // 20250722 jm:
                             // For scrollbar visibility before scrolling,
