@@ -185,7 +185,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
   Widget _buildCardContent(BuildContext context) {
     return Container(
       width: SecurityLayout.dialogWidth,
-      constraints: BoxConstraints(
+      constraints: const BoxConstraints(
         maxWidth: SecurityLayout.maxDialogWidth,
       ),
       decoration: BoxDecoration(
@@ -257,7 +257,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
 
           // "Currently logged in as:" label.
 
-          Text(
+          const Text(
             SecurityStrings.webIdLabel,
             style: SecurityTextStyles.label,
           ),
@@ -364,7 +364,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
           borderRadius: BorderRadius.circular(SecurityLayout.buttonRadius),
         ),
       ),
-      child: Text(
+      child: const Text(
         SecurityStrings.submit,
         style: SecurityTextStyles.button,
       ),
@@ -380,7 +380,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
       style: TextButton.styleFrom(
         padding: SecurityLayout.buttonPadding,
       ),
-      child: Text(
+      child: const Text(
         SecurityStrings.cancel,
         style: TextStyle(
           fontSize: 14,
