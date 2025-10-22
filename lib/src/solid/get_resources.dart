@@ -71,7 +71,7 @@ Future<List<String>> getResources(
 
     // Check if the directory exists.
 
-    final dirExists = await checkResourceStatus(resDirUrl, fileFlag: false);
+    final dirExists = await checkResourceStatus(resDirUrl, isFile: false);
 
     switch (dirExists) {
       case ResourceStatus.exist:

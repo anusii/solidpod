@@ -38,9 +38,11 @@ import 'package:solidpod/solidpod.dart';
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/features/create_acl_inherited_file.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
 import 'package:demopod/features/permission_callback_demo.dart';
+import 'package:demopod/features/read_acl_inherited_file.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
@@ -289,6 +291,42 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
     // HERE.
 
+    final inheritanceDemoButton = ElevatedButton(
+        onPressed: () async {
+          final loggedIn = await loginIfRequired(context);
+          if (loggedIn) {
+            final webId = await getWebId();
+            setState(() {
+              _webId = webId;
+            });
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => CreateAclInheritedFile()));
+          } else {
+            await alert(context, 'Please login to continue');
+          }
+        },
+        child: const Text('Create Resource with ACL Inheritance'));
+
+    final inheritanceReadButton = ElevatedButton(
+        onPressed: () async {
+          final loggedIn = await loginIfRequired(context);
+          if (loggedIn) {
+            final webId = await getWebId();
+            setState(() {
+              _webId = webId;
+            });
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ReadAclInheritedFile()));
+          } else {
+            await alert(context, 'Please login to continue');
+          }
+        },
+        child: const Text('Read Resource with ACL Inheritance'));
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -354,6 +392,27 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         smallGapV,
 
                         fileDemoButton,
+
+                        largeGapV,
+
+                        const Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'ACL Inheritance',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        inheritanceDemoButton,
+
+                        smallGapV,
+
+                        inheritanceReadButton,
 
                         largeGapV,
 

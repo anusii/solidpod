@@ -34,3 +34,20 @@ const dataFile = 'keyvalue/key-value.ttl';
 
 //const dataFilePlain = 'key-value-plain.ttl';
 const dataFilePlain = dataFile;
+
+String createDemoTtlStr(String fileName) {
+  return '''@prefix demo: <#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+demo:sampleData$fileName a demo:DemoResource ;
+    rdfs:label "Permission Callback Demo File $fileName" ;
+    demo:created "${DateTime.now().toIso8601String()}" ;
+    demo:description "This is a file containing some demo ttl content" ;
+    foaf:maker "Solid Demo" .
+
+demo:exampleData$fileName
+    demo:sampleProperty "Sample value" ;
+    demo:category "demo-data".
+''';
+}

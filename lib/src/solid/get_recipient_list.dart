@@ -42,12 +42,12 @@ import 'package:solidpod/src/solid/get_resources.dart';
 /// to find the list of unique WebIds of recipients of the user's files.
 /// Parameters:
 ///   [child] is the child widget to return to
-///   [fileFlag] set to true if the resource is a file, false if the resource is a directory.
+///   [isFile] set to true if the resource is a file, false if the resource is a directory.
 ///   [isFilePath] Set to true if the filename provided is the full path
 Future<List<String>> getRecipientList(
   BuildContext context,
   Widget child, {
-  bool fileFlag = true,
+  bool isFile = true,
   bool isFilePath = true,
 }) async {
   // Initialise the resource list and data

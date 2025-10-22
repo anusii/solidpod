@@ -67,10 +67,12 @@ const String pubKeyPred = 'pubKey';
 const String encKeyPred = 'encKey'; // verification key of the master key
 const String pathPred = 'path';
 const String accessListPred = 'accessList';
+const String filePathListPred = 'filePathList';
 const String authUserPred = 'authUserList';
 const String sharedKeyPred = 'sharedKey';
 const String sessionKeyPred = 'sessionKey';
 const String encDataPred = 'encData';
+const String inheritancePred = 'inheritedFrom';
 const String typePred = 'type';
 // const String accessToPred = 'accessTo';
 const String agentPred = 'agent';
@@ -109,9 +111,9 @@ const String rdf = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 // const String rdfs = 'http://www.w3.org/2000/01/rdf-schema#';
 const String terms = 'http://purl.org/dc/terms/';
 const String vcard = 'http://www.w3.org/2006/vcard/ns#';
-// const String xsd = 'http://www.w3.org/2001/XMLSchema#';
-// const String pubAgent = 'http: //xmlns.com/foaf/0.1/Agent';
-// const String authAgent = 'http: //xmlns.com/foaf/0.1/AuthenticatedAgent';
+const String xsd = 'http://www.w3.org/2001/XMLSchema#';
+// const String pubAgent = 'http://xmlns.com/foaf/0.1/Agent';
+// const String authAgent = 'http://xmlns.com/foaf/0.1/AuthenticatedAgent';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String terms used as prfixes in turtle and acl files
