@@ -150,7 +150,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   bool pageInitialied = false;
 
   /// Define access mode list
-  List<AccessMode> acessModeList = [];
+  List<AccessMode> accessModeList = [];
 
   /// Define recipient type list
   List<RecipientType> recipientTypeList = [];
@@ -228,12 +228,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     // Load access mode list to be displayed
     for (final accessModeStr in widget.accessModeList) {
-      acessModeList.add(getAccessMode(accessModeStr));
+      accessModeList.add(getAccessMode(accessModeStr));
     }
 
     // Load recipient list to be displayed
     for (final recTypeStr in widget.recipientTypeList) {
-      recipientTypeList.add(getRecType(recTypeStr));
+      recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
     }
   }
 
@@ -286,17 +286,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   void _updateCheckbox(bool newValue, AccessMode accessMode) {
     setState(() {
-      if (accessMode == AccessMode.read) {
-        readChecked = newValue;
-      }
-      if (accessMode == AccessMode.write) {
-        writeChecked = newValue;
-      }
-      if (accessMode == AccessMode.control) {
-        controlChecked = newValue;
-      }
-      if (accessMode == AccessMode.append) {
-        appendChecked = newValue;
+      switch (accessMode) {
+        case AccessMode.read:
+          readChecked = newValue;
+        case AccessMode.write:
+          writeChecked = newValue;
+        case AccessMode.control:
+          controlChecked = newValue;
+        case AccessMode.append:
+          appendChecked = newValue;
       }
       if (newValue) {
         selectedPermList.add(accessMode.mode);
@@ -305,6 +303,33 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       }
     });
   }
+
+  List<Widget> getPermissionCheckBoxes() => [
+        if (accessModeList.contains(AccessMode.read))
+          permissionCheckbox(
+            AccessMode.read,
+            readChecked,
+            _updateCheckbox,
+          ),
+        if (accessModeList.contains(AccessMode.write))
+          permissionCheckbox(
+            AccessMode.write,
+            writeChecked,
+            _updateCheckbox,
+          ),
+        if (accessModeList.contains(AccessMode.control))
+          permissionCheckbox(
+            AccessMode.control,
+            controlChecked,
+            _updateCheckbox,
+          ),
+        if (accessModeList.contains(AccessMode.append))
+          permissionCheckbox(
+            AccessMode.append,
+            appendChecked,
+            _updateCheckbox,
+          ),
+      ];
 
   // Update individual webid input data
   void _updateIndWebIdInput(String receiverWebId) {
@@ -603,34 +628,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             Colors.blueGrey,
                             8,
                           ),
-                          if (acessModeList.contains(AccessMode.read)) ...[
-                            permissionCheckbox(
-                              AccessMode.read,
-                              readChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          if (acessModeList.contains(AccessMode.write)) ...[
-                            permissionCheckbox(
-                              AccessMode.write,
-                              writeChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          if (acessModeList.contains(AccessMode.control)) ...[
-                            permissionCheckbox(
-                              AccessMode.control,
-                              controlChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          if (acessModeList.contains(AccessMode.append)) ...[
-                            permissionCheckbox(
-                              AccessMode.append,
-                              appendChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
+                          ...getPermissionCheckBoxes(),
                           Padding(
                             padding: const EdgeInsets.all(8),
                             child: ElevatedButton(
@@ -792,44 +790,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Build as a separate widget with the possibility of adding a FutureBuilder
-    // in the Future
+  Widget build(BuildContext context) =>
+      // Build as a separate widget with the possibility of adding a FutureBuilder
+      // in the Future
 
-    if (widget.fileName != null) {
-      return FutureBuilder(
-        future: podDataList,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn) {
-              return widget.child;
-            } else {
-              return _buildPermPage(context, snapshot.data);
-            }
-          } else {
-            return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
-          }
-        },
-      );
-    } else {
-      return _buildPermPage(context);
-    }
-  }
-}
-
-/// Return recipient type based on a given String value
-RecipientType getRecType(String recTypeStr) {
-  switch (recTypeStr.toLowerCase()) {
-    case 'public':
-      return RecipientType.public;
-    case 'indi':
-      return RecipientType.individual;
-    case 'auth':
-      return RecipientType.authUser;
-    case 'group':
-      return RecipientType.group;
-    default:
-      throw Exception('Wrong recipient type given'
-          '\nRecipient: $recTypeStr');
-  }
+      widget.fileName == null
+          ? _buildPermPage(context)
+          : FutureBuilder(
+              future: podDataList,
+              builder: (context, snapshot) => snapshot.hasData
+                  ? snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn
+                      ? widget.child
+                      : _buildPermPage(context, snapshot.data)
+                  : Scaffold(body: loadingScreen(normalLoadingScreenHeight)));
 }
