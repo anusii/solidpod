@@ -189,7 +189,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
   /// Create file if not exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, isFile: false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl) ==
       ResourceStatus.notExist) {
     final keyFileBody =
         '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $resIdPrefix <$appsResId>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$resIdPrefix$resUniqueId\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
@@ -201,7 +201,6 @@ Future<void> copySharedKey(
     );
   } else {
     /// Update the file
-
     /// First check if the file already contain the same value
     final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
     final keyFileDataMap = getEncFileContent(keyFileContent);
