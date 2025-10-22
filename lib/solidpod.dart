@@ -37,9 +37,9 @@ export 'src/solid/constants/common.dart' show foaf, terms;
 
 /// Solid server login UI class and its corresponding button style classes
 
-export 'src/solid/login.dart'
+export 'src/solid/login.dart' show SolidLogin;
+export 'src/solid/utils/login_helper.dart'
     show
-        SolidLogin,
         LoginButtonStyle,
         ContinueButtonStyle,
         RegisterButtonStyle,

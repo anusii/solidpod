@@ -34,14 +34,11 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:markdown_tooltip/markdown_tooltip.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
 import 'package:solidpod/src/solid/authenticate.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
     show
         generateDefaultFiles,
@@ -49,30 +46,12 @@ import 'package:solidpod/src/solid/utils/misc.dart'
         getAppNameVersion,
         setAppDirName,
         checkLoggedIn;
+import 'package:solidpod/src/solid/utils/login_helper.dart';
 import 'package:solidpod/src/solid/utils/push_replacement.dart';
 import 'package:solidpod/src/widgets/login_theme.dart';
 import 'package:solidpod/src/widgets/pod_button.dart';
 import 'package:solidpod/src/widgets/show_animation_dialog.dart';
 import 'package:solidpod/src/widgets/snackbar_config.dart';
-
-// Screen size support functions to identify narrow and very narrow screens. The
-// width dictates whether the Login panel is laid out on the right with the app
-// image on the left, or is on top of the app image.
-
-const int _narrowScreenLimit = 1175;
-const int _veryNarrowScreenLimit = 750;
-
-double _screenWidth(BuildContext context) => MediaQuery.of(context).size.width;
-
-bool _isNarrowScreen(BuildContext context) =>
-    _screenWidth(context) < _narrowScreenLimit;
-
-bool _isVeryNarrowScreen(BuildContext context) =>
-    _screenWidth(context) < _veryNarrowScreenLimit;
-
-// Check whether the dialog was dismissed by the user.
-
-bool _isDialogCanceled = false;
 
 /// A widget to login to a Solid server for a user's token to access their POD.
 ///
@@ -191,6 +170,10 @@ class _SolidLoginState extends State<SolidLogin> {
   String appVersion = '';
   String appName = '';
 
+  // Check whether the dialog was dismissed by the user.
+
+  bool isDialogCanceled = false;
+
   /// Default folders will be generated after user logged in.
 
   List<String> defaultFolders = [];
@@ -200,17 +183,16 @@ class _SolidLoginState extends State<SolidLogin> {
   Map<dynamic, dynamic> defaultFiles = {};
 
   // Track the current theme mode.
+  // Always start with light mode regardless of system preference.
 
-  bool _isDarkMode = false;
+  bool isDarkMode = false;
 
   @override
   void initState() {
     super.initState();
+
+    // dc 20251022: please explain why calling an async without await.
     _initPackageInfo();
-
-    // Always start with light mode regardless of system preference.
-
-    _isDarkMode = false;
   }
 
   // Fetch the package information.
@@ -257,7 +239,7 @@ class _SolidLoginState extends State<SolidLogin> {
   void updateState() {
     if (mounted) {
       setState(() {
-        _isDialogCanceled = true;
+        isDialogCanceled = true;
       });
     }
   }
@@ -265,12 +247,12 @@ class _SolidLoginState extends State<SolidLogin> {
   // Helper method to create and show a snackbar with consistent theming.
 
   void _showSnackbar(String message, {Duration? duration}) {
-    final currentTheme = _isDarkMode
+    final currentTheme = isDarkMode
         ? widget.themeConfig.darkTheme
         : widget.themeConfig.lightTheme;
 
     final backgroundColor = widget.snackbarConfig.backgroundColor ??
-        (_isDarkMode
+        (isDarkMode
             ? currentTheme.backgroundColor.withValues(alpha: 0.9)
             : currentTheme.backgroundColor.withValues(alpha: 0.7));
 
@@ -309,7 +291,7 @@ class _SolidLoginState extends State<SolidLogin> {
 
   void _toggleTheme() {
     setState(() {
-      _isDarkMode = !_isDarkMode;
+      isDarkMode = !isDarkMode;
     });
   }
 
@@ -317,7 +299,7 @@ class _SolidLoginState extends State<SolidLogin> {
   Widget build(BuildContext context) {
     // Use the internal state for theme instead of system brightness.
 
-    final currentTheme = _isDarkMode
+    final currentTheme = isDarkMode
         ? widget.themeConfig.darkTheme
         : widget.themeConfig.lightTheme;
 
@@ -365,7 +347,7 @@ class _SolidLoginState extends State<SolidLogin> {
       onPressed: () async {
         // Reset the flag.
 
-        _isDialogCanceled = false;
+        isDialogCanceled = false;
 
         // Method to show busy animation requiring BuildContext.
         //
@@ -384,7 +366,7 @@ class _SolidLoginState extends State<SolidLogin> {
           );
         }
 
-        if (_isDialogCanceled) return;
+        if (isDialogCanceled) return;
 
         // Get webId from the textfield or assign a default one.
 
@@ -529,13 +511,11 @@ class _SolidLoginState extends State<SolidLogin> {
       background: widget.continueButtonStyle.background,
       foreground: widget.continueButtonStyle.foreground,
       tooltip: widget.continueButtonStyle.tooltip,
-      onPressed: () async {
-        await pushReplacement(context, widget.child);
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => widget.child),
-        // );
-      },
+      onPressed: () async => await pushReplacement(context, widget.child),
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => widget.child),
+      // );
     );
 
     // An INFO button that when pressed will proceed to visit a link, often
@@ -546,9 +526,7 @@ class _SolidLoginState extends State<SolidLogin> {
       background: widget.infoButtonStyle.background,
       foreground: widget.infoButtonStyle.foreground,
       tooltip: widget.infoButtonStyle.tooltip,
-      onPressed: () {
-        launchUrl(Uri.parse(widget.link));
-      },
+      onPressed: () => launchUrl(Uri.parse(widget.link)),
     );
 
     // A version text that is displayed within the login panel. The text box
@@ -595,26 +573,10 @@ class _SolidLoginState extends State<SolidLogin> {
             ),
           ),
           const SizedBox(height: 20.0),
-          MarkdownTooltip(
-            message: defaultServerTooltip,
-            child: TextFormField(
-              controller: webIdController,
-              style: TextStyle(color: currentTheme.textColor),
-              decoration: InputDecoration(
-                border: const UnderlineInputBorder(),
-                labelText: 'Solid Server',
-                hintText: 'Solid server URL (or WebID)',
-                hintStyle: TextStyle(color: currentTheme.hintColor),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: currentTheme.inputBorderColor),
-                ),
-                focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: currentTheme.inputBorderColor),
-                ),
-              ),
-            ),
-          ),
+          getSolidServerTooltip(webIdController, currentTheme),
           const SizedBox(height: 20.0),
+
+          // Column of buttons
 
           Column(
             children: [
@@ -678,17 +640,7 @@ class _SolidLoginState extends State<SolidLogin> {
         Positioned(
           top: 10,
           right: 10,
-          child: MarkdownTooltip(
-            message:
-                _isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
-            child: IconButton(
-              icon: Icon(
-                _isDarkMode ? Icons.wb_sunny_outlined : Icons.nightlight_round,
-                color: _isDarkMode ? Colors.amber : Colors.blueGrey,
-              ),
-              onPressed: _toggleTheme,
-            ),
-          ),
+          child: getThemeToggleTooltip(isDarkMode, onPressed: _toggleTheme),
         ),
       ],
     );
@@ -699,15 +651,13 @@ class _SolidLoginState extends State<SolidLogin> {
     // HERE FOR THE PANEL WIDTH.
 
     final loginPanelInset =
-        (_isVeryNarrowScreen(context) || !_isNarrowScreen(context))
-            ? 0.05
-            : 0.25;
+        (isVeryNarrowScreen(context) || !isNarrowScreen(context)) ? 0.05 : 0.25;
 
     // Create the actual login panel around the decorated login panel.
 
     final loginPanel = Container(
       margin: EdgeInsets.symmetric(
-        horizontal: loginPanelInset * _screenWidth(context),
+        horizontal: loginPanelInset * screenWidth(context),
       ),
       child: SingleChildScrollView(
         child: Card(
@@ -735,10 +685,10 @@ class _SolidLoginState extends State<SolidLogin> {
           // for a narrow screen or else it is the left panel image as specified
           // shortly, and we create an empty BoxDecoration here in that case.
           decoration:
-              _isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
+              isNarrowScreen(context) ? loginBoxDecor : const BoxDecoration(),
           child: Row(
             children: [
-              _isNarrowScreen(context)
+              isNarrowScreen(context)
                   ? Container()
                   : Expanded(
                       flex: 7,
