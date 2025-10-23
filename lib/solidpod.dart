@@ -118,7 +118,6 @@ export 'src/solid/read_pod.dart';
 
 export 'src/solid/write_pod.dart';
 
-
 /// The function to grant permission to a resource
 
 export 'src/solid/grant_permission.dart';
