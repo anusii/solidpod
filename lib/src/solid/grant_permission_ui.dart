@@ -434,7 +434,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         isFile = value;
                                       });
                                     },
-                                    activeThumbColor: Colors.green,
+                                    thumbColor: WidgetStateProperty.resolveWith<Color?>(
+                                      (Set<WidgetState> states) {
+                                        if (states.contains(WidgetState.selected)) {
+                                          return Colors.green;
+                                        }
+                                        return null;
+                                      },
+                                    ),
                                   ),
                                 ],
                               ),

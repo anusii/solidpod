@@ -43,8 +43,9 @@ import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
-import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/security_key_ui.dart';
+
+import 'package:solidui/solidui.dart' show loginWebIdInputDialog;
 
 /// Login if the user has not done so.
 

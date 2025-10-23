@@ -41,6 +41,8 @@ import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.da
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';
 
+import 'package:solidui/solidui.dart' show SolidLogin, logoutPopup;
+
 /// A [StatefulWidget] that represents the initial setup screen for the desktop version of an application.
 ///
 /// This widget is responsible for rendering the initial setup UI, which includes forms for user input and displaying

@@ -35,19 +35,9 @@ library;
 
 export 'src/solid/constants/common.dart' show foaf, terms;
 
-/// Solid server login UI class and its corresponding button style classes
+/// Solid authentication function
 
-export 'src/solid/login.dart'
-    show
-        SolidLogin,
-        LoginButtonStyle,
-        ContinueButtonStyle,
-        RegisterButtonStyle,
-        InfoButtonStyle;
-
-/// Solid server login popup class
-
-export 'src/solid/popup_login.dart';
+export 'src/solid/authenticate.dart' show solidAuthenticate;
 
 /// UI class to grant permission for a resource
 
@@ -65,8 +55,14 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 /// - A dialog for deleting an encrypted file
 /// - Check whether login tokens are expired and if they are ridirect to login
 /// - Input key from user when required
+/// - Initialise PODs if required after login
+
 export 'src/solid/common_func.dart'
-    show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
+    show
+        deleteDataFileDialog,
+        getKeyFromUserIfRequired,
+        loginIfRequired,
+        initPodsIfRequired;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.
@@ -86,6 +82,9 @@ export 'src/solid/utils/rdf.dart' show parseTTLMap;
 /// - get web id of the user
 /// - get path of a directory or file
 /// - check whether user is logged in or not
+/// - logout from POD
+/// - set app directory name
+/// - generate default folders and files
 
 export 'src/solid/utils/misc.dart'
     show
@@ -101,7 +100,11 @@ export 'src/solid/utils/misc.dart'
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
-        readEncryptionKeyContent;
+        readEncryptionKeyContent,
+        logoutPod,
+        setAppDirName,
+        generateDefaultFolders,
+        generateDefaultFiles;
 
 /// Change security key popup widget
 
@@ -115,9 +118,6 @@ export 'src/solid/read_pod.dart';
 
 export 'src/solid/write_pod.dart';
 
-/// Popup widget for logging out from a POD
-
-export 'src/widgets/logout_dialog.dart' show logoutPopup;
 
 /// The function to grant permission to a resource
 
@@ -141,8 +141,10 @@ export 'src/solid/utils/large_file_helper.dart'
 export 'src/solid/shared_resources.dart';
 
 /// Function to get resources in a container
+/// Function to test initial structure
 
-export 'src/solid/api/rest_api.dart' show getResourcesInContainer;
+export 'src/solid/api/rest_api.dart'
+    show getResourcesInContainer, initialStructureTest;
 
 /// Function to get the latest log enties
 
@@ -169,4 +171,6 @@ export 'src/solid/get_resources.dart';
 
 /// 20250917 gjw Extras that were required for the example app! Not yet documented.
 
+export 'src/screens/initial_setup/initial_setup_screen.dart'
+    show InitialSetupScreen;
 export 'src/screens/initial_setup/initial_setup_screen_body.dart';
