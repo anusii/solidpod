@@ -22,7 +22,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage, Jess Moore, Ashley Tang
+/// Authors: Anushka Vidanage, Jess Moore, Ashley Tang, Dawei Chen
 
 library;
 
@@ -190,24 +190,18 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   bool permissionsGrantedSuccessfully = false;
 
-  /// Small vertical spacing for the widget.
-  final smallGapV = const SizedBox(height: 10.0);
-
-  /// Large vertical spacing for the widget.
-  final largeGapV = const SizedBox(height: 40.0);
-
   /// Pod data list retreived as a Future
   late Future<List<dynamic>> podDataList;
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
-  Future<List<dynamic>> loadPodData() async {
+  Future<List<dynamic>> _loadPodData(String fileName, Widget child) async {
     // ignore: use_build_context_synchronously
     final result = await readPermission(
-      widget.fileName as String,
+      fileName,
       true,
       context,
-      widget,
+      child,
       isExternalRes: widget.isExternalRes,
     );
     final webId = widget.isExternalRes
@@ -221,7 +215,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load future
     if (widget.fileName != null) {
-      podDataList = loadPodData();
+      podDataList = _loadPodData(widget.fileName!, widget);
     }
 
     // Load access mode list to be displayed
@@ -235,18 +229,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
   }
 
-  // Get new permission and update the permission map
+  // // Get new permission and update the permission map
   Future<void> _updatePermissions(String fileName) async {
-    final permissionMap = await readPermission(
-      fileName,
-      true,
-      context,
-      widget.child,
-      isExternalRes: widget.isExternalRes,
-    );
-    final webId = widget.isExternalRes
-        ? widget.externalWebId
-        : await AuthDataManager.getWebId();
+    final pdata = await _loadPodData(fileName, widget.child);
+    final permissionMap = pdata.first;
+    final webId = pdata.last;
 
     if (permissionMap == SolidFunctionCallStatus.notLoggedIn) {
       await _alert('Please login first to retrieve permission');
@@ -294,59 +281,95 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     });
   }
 
-  List<Widget> getButtons(List<RecipientType> recipientTypeList) {
-    const padding = EdgeInsets.only(left: 8.0);
+  List<Widget> _getButtons(List<RecipientType> recipientTypeList) {
+    EdgeInsetsGeometry? getPadding(RecipientType rtype) =>
+        rtype == RecipientType.public ? null : const EdgeInsets.only(left: 8.0);
+
+    final recipientTypeActions = {
+      RecipientType.public: () => setState(() {
+            selectedRecipientType = RecipientType.public;
+            selectedRecipientDetails = '';
+            finalWebIdList = [publicAgent.value];
+          }),
+      RecipientType.authUser: () => setState(() {
+            selectedRecipientType = RecipientType.authUser;
+            selectedRecipientDetails = '';
+            finalWebIdList = [authenticatedAgent.value];
+          }),
+      RecipientType.individual: () async => await indWebIdInputDialog(
+            context,
+            _updateIndWebIdInput,
+            widget.dataFilesMap,
+          ),
+      RecipientType.group: () async => await groupWebIdInputDialog(
+            context,
+            formControllerGroupName,
+            formControllerGroupWebIds,
+            _updateGroupWebIdInput,
+          ),
+    };
+
     return [
-      if (recipientTypeList.contains(RecipientType.public))
-        getRecipientTypeButton(
-          RecipientType.public,
-          onPressed: () {
-            setState(() {
-              selectedRecipientType = RecipientType.public;
-              selectedRecipientDetails = '';
-              finalWebIdList = [publicAgent.value];
-            });
-          },
-        ),
-      if (recipientTypeList.contains(RecipientType.authUser))
-        getRecipientTypeButton(
-          RecipientType.authUser,
-          onPressed: () {
-            setState(() {
-              selectedRecipientType = RecipientType.authUser;
-              selectedRecipientDetails = '';
-              finalWebIdList = [authenticatedAgent.value];
-            });
-          },
-          padding: padding,
-        ),
-      if (recipientTypeList.contains(RecipientType.individual))
-        getRecipientTypeButton(
-          RecipientType.individual,
-          onPressed: () async {
-            // Open dialog for WebId entry
-            await indWebIdInputDialog(
-              context,
-              _updateIndWebIdInput,
-              widget.dataFilesMap,
-            );
-          },
-          padding: padding,
-        ),
-      if (recipientTypeList.contains(RecipientType.group))
-        getRecipientTypeButton(
-          RecipientType.group,
-          onPressed: () async {
-            await groupWebIdInputDialog(
-              context,
-              formControllerGroupName,
-              formControllerGroupWebIds,
-              _updateGroupWebIdInput,
-            );
-          },
-          padding: padding,
-        ),
+      for (final rtype in relevantRecipientTypes)
+        if (recipientTypeList.contains(rtype))
+          getRecipientTypeButton(
+            rtype,
+            onPressed: recipientTypeActions[rtype]!,
+            padding: getPadding(rtype),
+          ),
     ];
+
+    // return [
+    //   if (recipientTypeList.contains(RecipientType.public))
+    //     getRecipientTypeButton(
+    //       RecipientType.public,
+    //       onPressed: () {
+    //         setState(() {
+    //           selectedRecipientType = RecipientType.public;
+    //           selectedRecipientDetails = '';
+    //           finalWebIdList = [publicAgent.value];
+    //         });
+    //       },
+    //     ),
+    //   if (recipientTypeList.contains(RecipientType.authUser))
+    //     getRecipientTypeButton(
+    //       RecipientType.authUser,
+    //       onPressed: () {
+    //         setState(() {
+    //           selectedRecipientType = RecipientType.authUser;
+    //           selectedRecipientDetails = '';
+    //           finalWebIdList = [authenticatedAgent.value];
+    //         });
+    //       },
+    //       padding: padding,
+    //     ),
+    //   if (recipientTypeList.contains(RecipientType.individual))
+    //     getRecipientTypeButton(
+    //       RecipientType.individual,
+    //       onPressed: () async {
+    //         // Open dialog for WebId entry
+    //         await indWebIdInputDialog(
+    //           context,
+    //           _updateIndWebIdInput,
+    //           widget.dataFilesMap,
+    //         );
+    //       },
+    //       padding: padding,
+    //     ),
+    //   if (recipientTypeList.contains(RecipientType.group))
+    //     getRecipientTypeButton(
+    //       RecipientType.group,
+    //       onPressed: () async {
+    //         await groupWebIdInputDialog(
+    //           context,
+    //           formControllerGroupName,
+    //           formControllerGroupWebIds,
+    //           _updateGroupWebIdInput,
+    //         );
+    //       },
+    //       padding: padding,
+    //     ),
+    // ];
   }
 
   // Update individual webid input data
@@ -386,61 +409,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       pageInitialied = true;
     }
 
-    final retrievePermissionButton = ElevatedButton(
-      child: const Text('Retrieve permissions'),
-      onPressed: () async {
-        final fileName = formControllerFileName.text;
-
-        if (fileName.isEmpty) {
-          await _alert('Please enter a file name');
-        } else {
-          await _updatePermissions(fileName);
-        }
-      },
+    final retrievePermissionButton = getRetrieveButton(
+      context,
+      formControllerFileName.text,
+      onRetrieve: _updatePermissions,
     );
 
-    final recipientText = Container(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          const Text(
-            'Recipient/s: ',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          Flexible(
-            child: Text(
-              '${selectedRecipientType.type}${selectedRecipientDetails.isEmpty ? "" : " ($selectedRecipientDetails)"}',
-              // selectedRecipientDetails.isNotEmpty
-              //     ? '${selectedRecipientType.type} ($selectedRecipientDetails)'
-              //     : selectedRecipientType.type,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                // 20251008 gjw Choose blue rather than
-                // orange which looks red. The red looks
-                // like it is an error. Blue is more
-                // neutral.
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    final buttons = Container(
-      padding: const EdgeInsets.all(8.0),
-      height: 100,
-      child: Row(
-        children:
-            // av 20250526:
-            // Public and Authenticated users buttons are
-            // disabled in this function at the moment because
-            // providing public or authenticated permissions to
-            // external resources is not yet implemented in
-            // [grantPermission()] function.
-            widget.isExternalRes ? [] : getButtons(recipientTypeList),
-      ),
+    final buttonContainer = getButtonContainer(
+      buttons: widget.isExternalRes ? [] : _getButtons(recipientTypeList),
     );
 
     final grantPermissionButton = Padding(
@@ -470,12 +446,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         : null,
                   ) as SolidFunctionCallStatus?;
                 } on Object catch (e, stackTrace) {
-                  debugPrint(
-                    '💥 [GrantPermissionUI] Exception in grantPermission: $e',
-                  );
-                  debugPrint(
-                    '📚 [GrantPermissionUI] Stack trace: $stackTrace',
-                  );
+                  printException(e);
+                  printStackTrace(stackTrace);
                   result = SolidFunctionCallStatus.fail;
                 }
 
@@ -493,20 +465,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   widget.onPermissionGranted?.call();
                 } else if (result == SolidFunctionCallStatus.fail) {
                   if (!context.mounted) return;
-
                   // More detailed error message with troubleshooting tips
                   showSnackBar(context, failureMsg, Colors.red);
 
                   // Also log to console for debugging
-                  debugPrint(
-                    '❌ [GrantPermissionUI] Permission granting failed for file: $dataFile',
-                  );
-                  debugPrint(
-                    '🎯 [GrantPermissionUI] Recipients: $finalWebIdList',
-                  );
-                  debugPrint(
-                    '🔐 [GrantPermissionUI] Permissions: $selectedPermList',
-                  );
+                  printFailure(dataFile);
+                  printRecipients(finalWebIdList);
+                  printPermissions(selectedPermList);
                 } else if (result == SolidFunctionCallStatus.notInitialised) {
                   if (!context.mounted) return;
                   showSnackBar(context, podNotInitMsg, warnBgColor);
@@ -524,36 +489,57 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       ),
     );
 
-    final scrollBar = Scrollbar(
-      // 20250722 jm:
-      // For scrollbar visibility before scrolling,
-      // set to true, or set property to true
-      // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-      // thumbVisibility: WidgetStateProperty.all(true)))
-      thumbVisibility: true, // show before user starts scrolling
-      controller: tableScrollController,
-      child: SingleChildScrollView(
-        controller: tableScrollController,
-        scrollDirection: Axis.horizontal,
+    final permDataTable = buildPermDataTable(
+      context,
+      permDataFile,
+      permDataMap,
+      ownerWebId,
+      widget.child,
+      _updatePermissions,
+      isExternalRes: widget.isExternalRes,
+    );
+
+    final form = Form(
+      key: formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                buildPermDataTable(
-                  context,
-                  permDataFile,
-                  permDataMap,
-                  ownerWebId,
-                  widget.child,
-                  _updatePermissions,
-                  isExternalRes: widget.isExternalRes,
+            buildHeading(getWelcomeStr(widget.fileName), 22),
+            smallGapV,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (widget.fileName == null) ...[
+                  getResourcePathForm(formControllerFileName),
+                  smallGapV,
+                  retrievePermissionButton,
+                ],
+                largeGapV,
+                getHeading(selectRecipientPermissionStr),
+                getRecipientText(
+                  selectedRecipientType,
+                  selectedRecipientDetails,
                 ),
-                // Hspace to avoid vertical scrollbar overlap with table
-                ScrollbarLayout.horizontalGap,
+                buttonContainer,
+                smallGapV,
+                getHeading(selectFilePermissionStr),
+                ...getPermissionCheckBoxes(
+                  accessModeList,
+                  modeSwitches: {
+                    AccessMode.read: readChecked,
+                    AccessMode.write: writeChecked,
+                    AccessMode.control: controlChecked,
+                    AccessMode.append: appendChecked,
+                  },
+                  onUpdate: _updateCheckbox,
+                ),
+                grantPermissionButton,
+                largeGapV,
+                getHeading(grantPermissionStr),
+                getFormScrollbar(tableScrollController, permDataTable),
               ],
             ),
-            // Vspace to avoid horizontal scrollbar overlap of table
-            ScrollbarLayout.verticalGap,
           ],
         ),
       ),
@@ -575,60 +561,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
       // Make Grant Permission UI vertically scrollable
       // Shows when content exceeds display height
-      body: Scrollbar(
-        thumbVisibility: true, // show before user starts scrolling
-        controller: pageScrollController,
-        child: SingleChildScrollView(
-          controller: pageScrollController,
-          child: Column(
-            children: [
-              smallGapV,
-              Form(
-                key: formKey,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      buildHeading(getWelcomeStr(widget.fileName), 22),
-                      smallGapV,
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          if (widget.fileName == null) ...[
-                            getResourcePathForm(formControllerFileName),
-                            smallGapV,
-                            retrievePermissionButton,
-                          ],
-                          largeGapV,
-                          getHeading(selectRecipientPermissionStr),
-                          recipientText,
-                          buttons,
-                          smallGapV,
-                          getHeading(selectFilePermissionStr),
-                          ...getPermissionCheckBoxes(
-                            accessModeList,
-                            modeSwitches: {
-                              AccessMode.read: readChecked,
-                              AccessMode.write: writeChecked,
-                              AccessMode.control: controlChecked,
-                              AccessMode.append: appendChecked,
-                            },
-                            onUpdate: _updateCheckbox,
-                          ),
-                          grantPermissionButton,
-                          largeGapV,
-                          getHeading(grantPermissionStr),
-                          scrollBar,
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      body: getPageScrollbar(pageScrollController, form),
     );
   }
 

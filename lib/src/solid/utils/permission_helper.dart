@@ -30,7 +30,12 @@ import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
+
+import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
@@ -75,56 +80,35 @@ const successMsg = 'File access permissions granted successfully!';
 const failureMsg =
     'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.';
 
+void printFailure(String fileName) => debugPrint(
+    '❌ [GrantPermissionUI] Permission granting failed for file: $fileName');
+
+void printRecipients(List<dynamic>? finalList) =>
+    debugPrint('🎯 [GrantPermissionUI] Recipients: $finalList');
+
+void printPermissions(List<String> permissionList) =>
+    debugPrint('🔐 [GrantPermissionUI] Permissions: $permissionList');
+
+void printException(Object e) =>
+    debugPrint('💥 [GrantPermissionUI] Exception in grantPermission: $e');
+
+void printStackTrace(StackTrace stackTrace) =>
+    debugPrint('📚 [GrantPermissionUI] Stack trace: $stackTrace');
+
 const warnBgColor = Color.fromARGB(255, 204, 99, 1);
 
-// Widget getRecipientTypeWidget(
-//   RecipientType recipientType, {
-//   bool padLeft = true,
-// }) {
-//   assert(recipientType != RecipientType.none);
-//   return Expanded(
-//     child: Container(
-//       padding: padLeft ? const EdgeInsets.only(left: 8.0) : null,
-//       height: 50,
-//       child: MarkdownTooltip(
-//         message: recipientToolTips[recipientType]!,
-//         child: ElevatedButton(
-//           onPressed: () async {
-//             switch (recipientType) {
-//               case RecipientType.individual:
-//                 // Open dialog for WebId entry
-//                 await indWebIdInputDialog(
-//                   context,
-//                   _updateIndWebIdInput,
-//                   widget.dataFilesMap,
-//                 );
-//               case RecipientType.group:
-//                 await groupWebIdInputDialog(
-//                   context,
-//                   formControllerGroupName,
-//                   formControllerGroupWebIds,
-//                   _updateGroupWebIdInput,
-//                 );
-//               default:
-//                 setState(() {
-//                   selectedRecipientType = recipientType;
-//                   selectedRecipientDetails = '';
-//                   finalWebIdList = [
-//                     recipientType == RecipientType.public
-//                         ? publicAgent.value
-//                         : authenticatedAgent.value,
-//                   ];
-//                 });
-//             }
-//           },
-//           child: Text(
-//             recipientType.description,
-//           ),
-//         ),
-//       ),
-//     ),
-//   );
-// }
+/// Small vertical spacing for the widget.
+const smallGapV = SizedBox(height: 10.0);
+
+/// Large vertical spacing for the widget.
+const largeGapV = SizedBox(height: 40.0);
+
+const relevantRecipientTypes = [
+  RecipientType.public,
+  RecipientType.authUser,
+  RecipientType.individual,
+  RecipientType.group,
+];
 
 String getWelcomeStr(String? fileName) => fileName != null
     ? 'Share $fileName file with other PODs'
@@ -180,4 +164,112 @@ Widget getResourcePathForm(TextEditingController formController) => Padding(
         validator: (value) =>
             (value == null || value.isEmpty) ? 'Empty field' : null,
       ),
+    );
+
+Widget getRecipientText(RecipientType recipientType, String recipientDetails) =>
+    Container(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          const Text(
+            'Recipient/s: ',
+            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          ),
+          Flexible(
+            child: Text(
+              '${recipientType.type}${recipientDetails.isEmpty ? "" : " ($recipientDetails)"}',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                // 20251008 gjw Choose blue rather than
+                // orange which looks red. The red looks
+                // like it is an error. Blue is more
+                // neutral.
+                color: Colors.blueAccent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+Scrollbar getScrollbar({
+  required ScrollController controller,
+  required Axis direction,
+  required Widget child,
+}) =>
+    Scrollbar(
+      // 20250722 jm:
+      // For scrollbar visibility before scrolling,
+      // set to true, or set property to true
+      // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
+      // thumbVisibility: WidgetStateProperty.all(true)))
+      thumbVisibility: true, // show before user starts scrolling
+      controller: controller,
+      child: SingleChildScrollView(
+        controller: controller,
+        scrollDirection: direction,
+        child: child,
+      ),
+    );
+
+Scrollbar getFormScrollbar(ScrollController controller, Widget permDataTable) =>
+    getScrollbar(
+        controller: controller,
+        direction: Axis.horizontal,
+        child: Column(
+          children: [
+            Row(
+              children: [
+                permDataTable,
+                // Hspace to avoid vertical scrollbar overlap with table
+                ScrollbarLayout.horizontalGap,
+              ],
+            ),
+            // Vspace to avoid horizontal scrollbar overlap of table
+            ScrollbarLayout.verticalGap,
+          ],
+        ));
+
+Scrollbar getPageScrollbar(ScrollController controller, Widget form) =>
+    getScrollbar(
+      controller: controller,
+      direction: Axis.vertical,
+      child: Column(
+        children: [
+          smallGapV,
+          form,
+        ],
+      ),
+    );
+
+Container getButtonContainer({required List<Widget> buttons}) => Container(
+      padding: const EdgeInsets.all(8.0),
+      height: 100,
+      child: Row(
+        children:
+            // av 20250526:
+            // Public and Authenticated users buttons are
+            // disabled in this function at the moment because
+            // providing public or authenticated permissions to
+            // external resources is not yet implemented in
+            // [grantPermission()] function.
+            buttons,
+      ),
+    );
+
+ElevatedButton getRetrieveButton(
+  BuildContext context,
+  String fileName, {
+  required Future<void> Function(String) onRetrieve,
+}) =>
+    ElevatedButton(
+      child: const Text('Retrieve permissions'),
+      onPressed: () async {
+        if (fileName.isEmpty) {
+          await alert(context, 'Please enter a file name');
+        } else {
+          await onRetrieve(fileName);
+        }
+      },
     );
