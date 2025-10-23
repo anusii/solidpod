@@ -42,8 +42,8 @@ import 'package:mime/mime.dart' as mime;
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
@@ -489,56 +489,14 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     // debugPrint('Files  : |${files.join(", ")}|');
 
     return (subDirs: subDirs, files: files);
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to get resource list.');
-  }
-}
-
-/// Get the list of sub-containers and files in a container
-/// Adapted from getContainerList() in
-/// gurriny/indi/lib/models/common/rest_api.dart
-Future<dynamic> getResourcesInExContainer(
-  String containerUrl,
-) async {
-  // The trailing "/" is essential for a directory
-  final url = containerUrl.endsWith('/') ? containerUrl : '$containerUrl/';
-
-  final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
-
-  final profResponse = await http.get(
-    Uri.parse(url),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'DPoP': dPopToken,
-    },
-  );
-
-  if (profResponse.statusCode == 200) {
-    //debugPrint(profResponse.body.runtimeType as String); // String
-    // NB: rdflib-0.2.8 (dart) is not able to parse this but
-    //     rdflib-7.0.0 (python) can parse it
-    //
-    // final g = Graph();
-    // g.parseTurtle(profResponse.body);
-
-    final (:subDirs, :files) = _parseGetContainerResponse(profResponse.body);
-
-    // debugPrint('SubDirs: |${subDirs.join(", ")}|');
-    // debugPrint('Files  : |${files.join(", ")}|');
-
-    return (subDirs: subDirs, files: files);
   } else if (profResponse.statusCode == 403) {
     // If the server returned a 403 response,
-    // then return a forbidden.
-    return SolidFunctionCallStatus.forbidden;
+    // then throw a forbidden exception.
+    throw AccessForbiddenException('Access to resource denied!');
   } else {
     // If the server did not return a 200 or 403 response,
-    // then return a fail.
-    return SolidFunctionCallStatus.fail;
+    // then trow a fail exception.
+    throw AccessFailedException('Access to resource failed!');
   }
 }
 
