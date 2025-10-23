@@ -39,6 +39,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart' show initialStructureTest;
 import 'package:solidpod/src/solid/authenticate.dart';
+import 'package:solidpod/src/solid/utils/login_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
     show
         generateDefaultFiles,
@@ -46,7 +47,6 @@ import 'package:solidpod/src/solid/utils/misc.dart'
         getAppNameVersion,
         setAppDirName,
         checkLoggedIn;
-import 'package:solidpod/src/solid/utils/login_helper.dart';
 import 'package:solidpod/src/solid/utils/push_replacement.dart';
 import 'package:solidpod/src/widgets/login_theme.dart';
 import 'package:solidpod/src/widgets/pod_button.dart';
