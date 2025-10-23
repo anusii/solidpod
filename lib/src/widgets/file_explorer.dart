@@ -240,6 +240,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   context,
                                   widget.child,
                                 );
+                                print(fileContent);
 
                                 if (fileContent != null &&
                                     fileContent !=
@@ -278,7 +279,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   if (!context.mounted) return;
                                   await alert(
                                     context,
-                                    'The file $index could not be found!',
+                                    'The file $item could not be found!',
                                   );
                                 }
                               }

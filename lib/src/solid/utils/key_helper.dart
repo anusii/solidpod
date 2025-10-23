@@ -1003,6 +1003,7 @@ bool hasInheritedKey(
   String fileContent,
   String fileUrl,
 ) {
+  print('here1');
   final dataMap = parseTTLMap(fileContent);
   if (dataMap.containsKey(fileUrl)) {
     return dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
