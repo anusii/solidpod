@@ -87,7 +87,7 @@ Future<dynamic> revokePermission(
       resourceUrl = fileName;
     }
 
-    print(resourceUrl);
+    // print(resourceUrl);
 
     // Check if file/directory exists
     final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
