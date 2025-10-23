@@ -33,6 +33,7 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/solid/write_external_pod.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A simple file explorer class with two input parameters
@@ -69,22 +70,33 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
   }
 
   Future<void> _getResources() async {
-    final res = await getResourcesInExContainer(widget.folderPath);
-
-    setState(() {
-      if (res == SolidFunctionCallStatus.forbidden) {
-        errMsg = 'You do not have access to this directory';
-        isLoading = false;
-      } else if (res == SolidFunctionCallStatus.fail) {
-        errMsg = 'Reading directory conten failed. Please try again';
-        isLoading = false;
-      } else {
+    try {
+      final res = await getResourcesInContainer(widget.folderPath);
+      setState(() {
         folderList = res.subDirs;
         fileList = res.files;
         currentPath = widget.folderPath;
         isLoading = false;
-      }
-    });
+      });
+    } on AccessForbiddenException catch (e) {
+      debugPrint('Exception occured: $e');
+      setState(() {
+        errMsg = 'You do not have access to this directory';
+        isLoading = false;
+      });
+    } on AccessFailedException catch (e) {
+      debugPrint('Exception occured: $e');
+      setState(() {
+        errMsg = 'Reading directory content failed. Please try again';
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Unknown exception occured: $e');
+      setState(() {
+        errMsg = 'Unkown error occured: $e';
+        isLoading = false;
+      });
+    }
   }
 
   PreferredSizeWidget defaltAppBar() {
