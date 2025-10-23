@@ -49,7 +49,7 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 /// Parameters:
 ///   [fileName] is the name of the file revoking permission from. In case where
 ///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
-///   [fileFlag] is the flag to identify if the resources is a file or not
+///   [isFile] is the flag to identify if the resources is a file or not
 ///   [removerWebId] is the Web ID of the person whose permission gets removed
 ///   [ownerWebId] is the Web ID of file owner
 ///   [recipientType] is the type of the recipient
@@ -57,7 +57,7 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 
 Future<dynamic> revokePermission(
   String fileName,
-  bool fileFlag,
+  bool isFile,
   List<dynamic> permissionList,
   String removerWebId,
   String ownerWebId,
@@ -77,15 +77,20 @@ Future<dynamic> revokePermission(
       // Get the file path
       final filePath = [await getDataDirPath(), fileName].join('/');
 
-      // Get the url of the file
-      resourceUrl = await getFileUrl(filePath);
+      // Get the url of the resource
+      if (isFile) {
+        resourceUrl = await getFileUrl(filePath);
+      } else {
+        resourceUrl = await getDirUrl(filePath);
+      }
     } else {
       resourceUrl = fileName;
     }
 
-    // Check if file exists
-    final resStatus =
-        await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
+    // print(resourceUrl);
+
+    // Check if file/directory exists
+    final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
     if (resStatus == ResourceStatus.exist) {
       // Common list of remover IDs to process further

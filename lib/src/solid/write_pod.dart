@@ -59,6 +59,9 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// [child] - The child widget
 /// [encrypted] - Whether to encrypt the file content (default: true)
 /// [basePath] - Optional base path to override the default `appname/data` directory
+/// [inheritedFrom] - Optional parameter to set a parent directory for the resource.
+///                   If set a single encryption key will be used to encrypt the
+///                   resource.
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -67,6 +70,7 @@ Future<SolidFunctionCallStatus> writePod(
   Widget child, {
   bool encrypted = true,
   String? basePath,
+  String? inheritedFrom,
 }) async {
   // Sanity check - ensure fileName doesn't end with path separators
   // The normalizeFilePath function will handle path separator normalization
@@ -78,6 +82,57 @@ Future<SolidFunctionCallStatus> writePod(
 
   if (!loggedIn) {
     return SolidFunctionCallStatus.notLoggedIn;
+  }
+
+  // If file is inherited then check if parent directory exists. If not create
+  // parent directory
+  if (inheritedFrom != null) {
+    String normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
+    // Following addition is to make sure that the path value added to the
+    // ind-keys.ttl contains / so that can be recognised as a directory
+    if (!normalizedDirPath.endsWith('/')) {
+      normalizedDirPath += '/';
+    }
+    final parentDirUrl = await getDirUrl(normalizedDirPath);
+
+    switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
+      case ResourceStatus.notExist:
+        await getKeyFromUserIfRequired(context, child);
+        // Create the directory
+        await createResource(
+          parentDirUrl,
+          isFile: false,
+          contentType: ResourceContentType.directory,
+        );
+
+        // Create the corresponding acl file
+        final aclFileUrl = '$parentDirUrl/.acl';
+        await createResource(
+          aclFileUrl,
+          content: await genAclTurtle(parentDirUrl, isFile: false),
+        );
+
+        // Also create an individual AES key for the parent directory. This key will
+        // be used to encrypt all the resources inside the parent directory
+        await KeyManager.addIndividualKey(
+          normalizedDirPath,
+          genRandIndividualKey(),
+          isFile: false,
+        );
+      case ResourceStatus.exist:
+        debugPrint(
+          'Directory "$parentDirUrl" exists. Continuing the process...',
+        );
+        break;
+      case ResourceStatus.unknown:
+        throw Exception(
+          'Unable to determine if directory "$parentDirUrl" exists, writePod() aborted',
+        );
+      case ResourceStatus.forbidden:
+        throw Exception(
+          'Access to directory "$parentDirUrl" is forbidden, writePod() aborted',
+        );
+    }
   }
 
   // Check if the file already exists
@@ -163,22 +218,35 @@ Future<SolidFunctionCallStatus> writePod(
     // Get the security key (and cache it in KeyManager)
     await getKeyFromUserIfRequired(context, child);
 
-    // Reuse the individual key if the key already exists,
-    // otherwise, generate a random key and add it to the individual key file.
-
-    if (!existingFileEncrypted) {
-      await KeyManager.addIndividualKey(
+    if (inheritedFrom != null) {
+      final normalizedDirPath =
+          await normalizeFilePath(inheritedFrom, basePath);
+      final parentDirUrl = await getDirUrl(normalizedDirPath);
+      content = await getEncTTLStr(
         normalizedFilePath,
-        genRandIndividualKey(),
+        fileContent,
+        await KeyManager.getIndividualKey(parentDirUrl),
+        genRandIV(),
+        inheritedFrom: normalizedDirPath,
+      );
+    } else {
+      // Reuse the individual key if the key already exists,
+      // otherwise, generate a random key and add it to the individual key file.
+
+      if (!existingFileEncrypted) {
+        await KeyManager.addIndividualKey(
+          normalizedFilePath,
+          genRandIndividualKey(),
+        );
+      }
+
+      content = await getEncTTLStr(
+        normalizedFilePath,
+        fileContent,
+        await KeyManager.getIndividualKey(fileUrl),
+        genRandIV(),
       );
     }
-
-    content = await getEncTTLStr(
-      normalizedFilePath,
-      fileContent,
-      await KeyManager.getIndividualKey(fileUrl),
-      genRandIV(),
-    );
 
     if (!fileUrl.endsWith('.ttl')) {
       debugPrint('WARN: Encrypted text file should be in turtle format, '
@@ -205,9 +273,11 @@ Future<SolidFunctionCallStatus> writePod(
 
   // Create the ACL file for the data file if necessary
 
-  final aclFileUrl = '$fileUrl.acl';
-  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
-    await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
+  if (inheritedFrom == null) {
+    final aclFileUrl = '$fileUrl.acl';
+    if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
+      await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
+    }
   }
 
   return SolidFunctionCallStatus.success;

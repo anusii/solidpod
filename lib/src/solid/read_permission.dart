@@ -34,6 +34,7 @@ import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
 
+import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -45,13 +46,13 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 /// Parameters:
 ///   [fileName] is the name of the file reading permission from. In case where
 ///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
-///   [fileFlag] is the flag to identify if the resources is a file or not
+///   [isFile] is the flag to identify if the resources is a file or not
 ///   [child] is the child widget to return to
 ///   [isExternalRes] is set to true if reading permissions from an external file
 
 Future<dynamic> readPermission(
   String fileName,
-  bool fileFlag,
+  bool isFile,
   BuildContext context,
   Widget child, {
   bool isExternalRes = false,
@@ -74,8 +75,7 @@ Future<dynamic> readPermission(
     }
 
     // Check if file exists
-    final resStatus =
-        await checkResourceStatus(resourceUrl, fileFlag: fileFlag);
+    final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
     if (resStatus == ResourceStatus.exist ||
         resStatus == ResourceStatus.forbidden) {
@@ -85,13 +85,22 @@ Future<dynamic> readPermission(
         );
       }
 
-      // Read ACL file content
-      final aclContentMap = await readAcl(resourceUrl);
+      // Check if the resource has an ACL
+      bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
 
-      // Extract permission details to a map
-      final permMap = extractAclPerm(aclContentMap);
+      if (hasAcl) {
+        // Read ACL file content
+        final aclContentMap = await readAcl(resourceUrl, isFile);
 
-      return permMap;
+        // Extract permission details to a map
+        final permMap = extractAclPerm(aclContentMap);
+
+        return permMap;
+      } else {
+        debugPrint('Resource does not have a corresponding ACL file. '
+            'If the ACL is inherited provide parent directory as the resource name!');
+        return SolidFunctionCallStatus.noAclFound;
+      }
     } else {
       return {};
     }

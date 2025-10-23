@@ -36,11 +36,13 @@ import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/security_key_ui.dart';
 
@@ -223,4 +225,14 @@ Future<void> deleteDataFileDialog(
   }
 
   if (context.mounted) await alert(context, msg);
+}
+
+/// Get inherited resource parent directory url
+String getParentDir(
+  String fileContent,
+  String fileUrl,
+) {
+  final dataMap = parseTTLMap(fileContent);
+
+  return dataMap[fileUrl]['$appsTerms$inheritancePred'].first;
 }

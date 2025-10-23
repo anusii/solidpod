@@ -60,7 +60,8 @@ class GrantPermissionUi extends StatefulWidget {
     this.accessModeList = const ['read', 'write', 'append', 'control'],
     this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
-    this.fileName,
+    this.resourceName,
+    this.isFile,
     this.dataFilesMap = const {},
     this.customAppBar,
     this.onPermissionGranted,
@@ -96,11 +97,17 @@ class GrantPermissionUi extends StatefulWidget {
   /// if [isExternalRes] is set to true.
   final String? externalWebId;
 
-  /// The name of the file permission is being set to. This is a non required
-  /// parameter. If not set there will be a text field to define the file name.
+  /// The name of the file or directory permission is being set to. This is a
+  /// non required parameter. If not set there will be a text field to define
+  /// the file name. If [resourceName] is set to true this must be set and the
+  /// value should be the url of the resource.
+  final String? resourceName;
+
+  /// A flag to determine whether the given resource is a file or not. This is
+  /// a non required parameter. If not set there will be a toggle to define this.
   /// If [isExternalRes] is set to true this must be set and the value should
   /// be the url of the resource
-  final String? fileName;
+  final bool? isFile;
 
   /// Map of data files on a user's POD used to extract the
   /// user's recipient list by the WebIdTextInputScreen.
@@ -201,12 +208,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Pod data list retreived as a Future
   late Future<List<dynamic>> podDataList;
 
+  /// A flag to identify if the resource is a file or not
+  bool isFile = true;
+
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
   Future<List<dynamic>> loadPodData() async {
     // ignore: use_build_context_synchronously
     final result = await readPermission(
-      widget.fileName as String,
+      widget.resourceName as String,
       true,
       context,
       widget,
@@ -222,7 +232,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   void initState() {
     super.initState();
     // Load future
-    if (widget.fileName != null) {
+    if (widget.resourceName != null) {
       podDataList = loadPodData();
     }
 
@@ -238,10 +248,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   }
 
   // Get new permission and update the permission map
-  Future<void> _updatePermissions(String fileName) async {
+  Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
     final permissionMap = await readPermission(
       fileName,
-      true,
+      isFile,
       context,
       widget.child,
       isExternalRes: widget.isExternalRes,
@@ -253,6 +263,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     if (permissionMap == SolidFunctionCallStatus.notLoggedIn) {
       await _alert(
         'Please login first to retrieve permission',
+      );
+    } else if (permissionMap == SolidFunctionCallStatus.noAclFound) {
+      await _alert(
+        'Resource does not have a corresponding ACL file.\n'
+        'If the ACL is inherited, provide parent directory as the resource name!',
       );
     } else {
       if ((permissionMap as Map).isEmpty) {
@@ -339,13 +354,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     if (futureObjList != null && pageInitialied == false) {
       permDataMap = futureObjList.first as Map;
       ownerWebId = futureObjList[1] as String;
-      permDataFile = widget.fileName!;
+      permDataFile = widget.resourceName!;
       pageInitialied = true;
     }
 
-    final welcomeHeadingStr = widget.fileName != null
-        ? 'Share ${widget.fileName} file with other PODs'
-        : 'Share your data files with other PODs';
+    final welcomeHeadingStr = widget.resourceName != null
+        ? 'Share ${widget.resourceName} file with other PODs'
+        : 'Share your data files/directories with other PODs';
 
     return Scaffold(
       appBar: (!widget.showAppBar)
@@ -383,21 +398,45 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: <Widget>[
-                          if (widget.fileName == null) ...[
+                          if (widget.resourceName == null) ...[
                             Padding(
                               padding: const EdgeInsets.all(8),
-                              child: TextFormField(
-                                controller: formControllerFileName,
-                                decoration: const InputDecoration(
-                                  hintText:
-                                      'Data file path (inside your data folder Eg: personal/about.ttl)',
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Empty field';
-                                  }
-                                  return null;
-                                },
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    controller: formControllerFileName,
+                                    decoration: const InputDecoration(
+                                      hintText:
+                                          'Resource path (inside your data folder Eg: personal/about.ttl)',
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Empty field';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 10),
+                                  SwitchListTile(
+                                    title: const Text(
+                                      'Is a File?',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      isFile ? 'Yes' : 'No',
+                                    ),
+                                    value: isFile,
+                                    onChanged: (bool value) {
+                                      setState(() {
+                                        isFile = value;
+                                      });
+                                    },
+                                    activeThumbColor: Colors.green,
+                                  ),
+                                ],
                               ),
                             ),
                             smallGapV,
@@ -409,7 +448,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 if (fileName.isEmpty) {
                                   await _alert('Please enter a file name');
                                 } else {
-                                  await _updatePermissions(fileName);
+                                  await _updatePermissions(
+                                    fileName,
+                                    isFile: isFile,
+                                  );
                                 }
                               },
                             ),
@@ -639,14 +681,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                 if (formKey.currentState!.validate()) {
                                   if (selectedRecipientType.type.isNotEmpty) {
                                     if (selectedPermList.isNotEmpty) {
-                                      final dataFile = widget.fileName ??
+                                      final dataFile = widget.resourceName ??
                                           formControllerFileName.text;
+
+                                      final isFileFlag =
+                                          widget.isFile ?? isFile;
 
                                       SolidFunctionCallStatus? result;
                                       try {
                                         result = await grantPermission(
                                           dataFile,
-                                          true,
+                                          isFileFlag,
                                           selectedPermList,
                                           selectedRecipientType,
                                           finalWebIdList as List,
@@ -678,7 +723,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                           'File access permissions granted successfully!',
                                           Colors.green,
                                         );
-                                        await _updatePermissions(dataFile);
+                                        await _updatePermissions(
+                                          dataFile,
+                                          isFile: isFileFlag,
+                                        );
 
                                         // Mark permissions as granted successfully for callback tracking
                                         setState(() {
@@ -762,6 +810,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       buildPermDataTable(
                                         context,
                                         permDataFile,
+                                        widget.isFile ?? isFile,
                                         permDataMap,
                                         ownerWebId,
                                         widget.child,
@@ -796,7 +845,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     // Build as a separate widget with the possibility of adding a FutureBuilder
     // in the Future
 
-    if (widget.fileName != null) {
+    if (widget.resourceName != null) {
       return FutureBuilder(
         future: podDataList,
         builder: (context, snapshot) {

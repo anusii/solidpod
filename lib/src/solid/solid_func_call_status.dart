@@ -27,17 +27,20 @@ library;
 
 /// Solid function call results
 enum SolidFunctionCallStatus {
-  /// Read POD data file
+  /// Function call successful
   success('success'),
 
-  /// Write to POD data file
+  /// Function call fails
   fail('fail'),
 
-  /// Grant permission to other WebIds
+  /// When loggin check fails
   notLoggedIn('notLoggedIn'),
 
   /// Other WebIds not initialised
-  notInitialised('notInitialised');
+  notInitialised('notInitialised'),
+
+  /// When there is no corresponding ACl file
+  noAclFound('noAclFound');
 
   /// Constructor
   const SolidFunctionCallStatus(this.value);

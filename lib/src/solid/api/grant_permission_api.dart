@@ -55,7 +55,7 @@ Future<String> setPermissionAcl(
   List<dynamic> recipientWebIdList,
   List<dynamic> permissionList, [
   String? groupName,
-  bool fileFlag = true,
+  bool isFile = true,
 ]) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);
@@ -161,7 +161,7 @@ Future<String> setPermissionAcl(
   final aclFullContentStr = await genAclTurtle(
     resourceUrl,
     externalWebId: ownerWebId,
-    fileFlag: fileFlag,
+    isFile: isFile,
     ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
     publicAccess: publicPermSet,
     authUserAccess: authUserPermSet,
@@ -189,7 +189,7 @@ Future<void> copySharedKey(
       receiverWebId.replaceAll(profCard, sharedKeyFilePath);
 
   /// Create file if not exists
-  if (await checkResourceStatus(receiverSharedKeyFileUrl, fileFlag: false) ==
+  if (await checkResourceStatus(receiverSharedKeyFileUrl) ==
       ResourceStatus.notExist) {
     final keyFileBody =
         '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $resIdPrefix <$appsResId>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$resIdPrefix$resUniqueId\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
@@ -201,7 +201,6 @@ Future<void> copySharedKey(
     );
   } else {
     /// Update the file
-
     /// First check if the file already contain the same value
     final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
     final keyFileDataMap = getEncFileContent(keyFileContent);
@@ -284,7 +283,7 @@ Future<void> copySharedKeyUserClass(
   }
 
   // Check if individual key file exists. If not create a file
-  if (await checkResourceStatus(userClassIndKeyFileUrl, fileFlag: false) ==
+  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: false) ==
       ResourceStatus.notExist) {
     // If file does not exist create a ttl file
     final userClassIndKeyFileContent = await genUserClassIndKeyTTLStr([

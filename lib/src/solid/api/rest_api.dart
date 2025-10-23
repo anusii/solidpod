@@ -133,7 +133,7 @@ Future<List<dynamic>> initialStructureTest(
   for (final containerName in folders) {
     // NB: the trailing separator in path is essential for this check
     final resourceUrl = await getDirUrl(containerName);
-    if (await checkResourceStatus(resourceUrl, fileFlag: false) ==
+    if (await checkResourceStatus(resourceUrl, isFile: false) ==
         ResourceStatus.notExist) {
       allExists = false;
 
@@ -147,7 +147,7 @@ Future<List<dynamic>> initialStructureTest(
     for (final fileName in fileNameList) {
       final resourceUrl =
           await getFileUrl([containerName as String, fileName].join('/'));
-      if (await checkResourceStatus(resourceUrl, fileFlag: false) ==
+      if (await checkResourceStatus(resourceUrl, isFile: true) ==
           ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
@@ -167,12 +167,12 @@ Future<List<dynamic>> initialStructureTest(
 Future<void> createResource(
   String resourceUrl, {
   dynamic content = '',
-  bool fileFlag = true,
+  bool isFile = true,
   bool replaceIfExist = true,
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
   // Sanity check
-  if (fileFlag) {
+  if (isFile) {
     assert(!resourceUrl.endsWith('/'));
   } else {
     assert(resourceUrl.endsWith('/'));
@@ -181,7 +181,7 @@ Future<void> createResource(
 
   // Use PUT request for creating and replacing a file if it already exists
 
-  final put = (fileFlag && replaceIfExist) ? true : false;
+  final put = (isFile && replaceIfExist) ? true : false;
   final httpMethod = put ? http.put : http.post;
 
   // Get the name and parent container URL of the resource to be created for
@@ -192,7 +192,7 @@ Future<void> createResource(
 
   if (!put) {
     final items = resourceUrl.split('/');
-    final index = fileFlag ? items.length - 1 : items.length - 2;
+    final index = isFile ? items.length - 1 : items.length - 2;
 
     name = items[index];
     parentUrl = '${items.getRange(0, index).join('/')}/';
@@ -220,7 +220,7 @@ Future<void> createResource(
         'Content-Length': content is String
             ? utf8.encode(content).length.toString()
             : (content as List<int>).length.toString(),
-      if (!put) 'Link': fileFlag ? fileTypeLink : dirTypeLink,
+      if (!put) 'Link': isFile ? fileTypeLink : dirTypeLink,
       if (!put) 'Slug': name,
       'DPoP': dPopToken,
     },
@@ -265,21 +265,26 @@ Future<void> deleteResource(
 /// Asynchronously checks whether a given resource exists on the server.
 ///
 /// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
-/// It handles both files and directories (containers) by setting appropriate headers based on the [fileFlag].
+/// It handles both files and directories (containers) by setting appropriate headers based on the [isFile].
 
 Future<ResourceStatus> checkResourceStatus(
   String resUrl, {
-  bool fileFlag = true,
+  bool isFile = true,
 }) async {
+  if (!isFile) {
+    assert(resUrl.endsWith('/'));
+  } else {
+    assert(!resUrl.endsWith('/'));
+  }
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),
     headers: <String, String>{
-      'Content-Type': fileFlag
+      'Content-Type': isFile
           ? ResourceContentType.any.value
           : ResourceContentType.directory.value,
       'Authorization': 'DPoP $accessToken',
-      'Link': fileFlag ? fileTypeLink : dirTypeLink,
+      'Link': isFile ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
     },
   );
@@ -342,7 +347,7 @@ Future<bool> checkPodInitialised(
     // Check if directory exists
     final dirStatus = await checkResourceStatus(
       sharedDirUrl,
-      fileFlag: false,
+      isFile: false,
     );
 
     if (dirStatus == ResourceStatus.exist) {
