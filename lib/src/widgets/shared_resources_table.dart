@@ -29,6 +29,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
@@ -152,11 +153,22 @@ Widget buildSharedResourcesTable(
                                 'You do not have read permission to this resource!',
                               );
                             } else {
+                              bool isEditable = [
+                                AccessMode.write.mode,
+                                AccessMode.control.mode,
+                              ].any(
+                                (mode) => sharedResMap[index]
+                                        [PermissionLogLiteral.permissions]
+                                    .contains(mode.toLowerCase()),
+                              );
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => FileExplorerScreen(
                                     folderPath: index,
+                                    isEditable: isEditable,
+                                    ownerWebId: sharedResMap[index]
+                                        [PermissionLogLiteral.owner] as String,
                                     child: parentWidget,
                                   ),
                                 ),

@@ -31,6 +31,8 @@ import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/snack_bar.dart';
+import 'package:solidpod/src/solid/write_external_pod.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A simple file explorer class with two input parameters
@@ -39,6 +41,8 @@ class FileExplorerScreen extends StatefulWidget {
     super.key,
     required this.folderPath,
     required this.child,
+    required this.isEditable,
+    required this.ownerWebId,
   });
 
   @override
@@ -46,6 +50,8 @@ class FileExplorerScreen extends StatefulWidget {
 
   final String folderPath;
   final Widget child;
+  final bool isEditable;
+  final String ownerWebId;
 }
 
 class _FileExplorerScreenState extends State<FileExplorerScreen> {
@@ -83,7 +89,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
 
   PreferredSizeWidget defaltAppBar() {
     return AppBar(
-      title: Text('Go back'),
+      title: const Text('Go back'),
       leading: currentPath.isNotEmpty
           ? IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -113,7 +119,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
         body: Center(
           child: Text(
             errMsg,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ),
       );
@@ -145,7 +151,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
     if (sections.isEmpty) {
       return Scaffold(
         appBar: defaltAppBar(),
-        body: Center(
+        body: const Center(
           child: Text(
             'No directories or files found.',
             style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -216,6 +222,121 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                               color:
                                   section.isFolder ? Colors.amber : Colors.blue,
                             ),
+                            trailing: (!section.isFolder && widget.isEditable)
+                                ? IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () async {
+                                      final filePath =
+                                          '${widget.folderPath}$item';
+                                      final fileContent = await readExternalPod(
+                                        filePath,
+                                        context,
+                                        widget.child,
+                                      );
+
+                                      final TextEditingController
+                                          editController =
+                                          TextEditingController(
+                                        text: fileContent,
+                                      );
+
+                                      if (!context.mounted) return;
+                                      await showDialog<String>(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title:
+                                                const Text('Edit File Content'),
+                                            content: SizedBox(
+                                              width: double.maxFinite,
+                                              child: TextField(
+                                                controller: editController,
+                                                autofocus: true,
+                                                maxLines:
+                                                    null, // allows multiple lines
+                                                minLines:
+                                                    3, // starts with 3 visible lines
+                                                textInputAction:
+                                                    TextInputAction.newline,
+                                                keyboardType:
+                                                    TextInputType.multiline,
+                                                decoration:
+                                                    const InputDecoration(
+                                                  labelText:
+                                                      'Enter your file content',
+                                                  border: OutlineInputBorder(),
+                                                  alignLabelWithHint: true,
+                                                ),
+                                              ),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(); // Cancel -> close dialog
+                                                },
+                                                child: const Text('Cancel'),
+                                              ),
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  final newContent =
+                                                      editController.text;
+                                                  // Check if the content has changed
+                                                  if (newContent !=
+                                                      fileContent) {
+                                                    final writeFileStatus =
+                                                        await writeExternalPod(
+                                                      filePath,
+                                                      newContent,
+                                                      widget.ownerWebId,
+                                                      context,
+                                                      widget.child,
+                                                    );
+
+                                                    if (writeFileStatus ==
+                                                        SolidFunctionCallStatus
+                                                            .success) {
+                                                      if (!context.mounted) {
+                                                        return;
+                                                      }
+                                                      showSnackBar(
+                                                        context,
+                                                        'Changes saved successfully!',
+                                                        Colors.green,
+                                                      );
+                                                    } else {
+                                                      if (!context.mounted) {
+                                                        return;
+                                                      }
+                                                      showSnackBar(
+                                                        context,
+                                                        'Something went wrong! Please try again.',
+                                                        Colors.red,
+                                                      );
+                                                    }
+                                                  } else {
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
+                                                    showSnackBar(
+                                                      context,
+                                                      'Content has not changed',
+                                                      Colors.orange,
+                                                    );
+                                                  }
+
+                                                  Navigator.of(context)
+                                                      .pop(); // Save -> return value
+                                                },
+                                                child: const Text('Save'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                  )
+                                : null,
                             title: Text(item),
                             onTap: () async {
                               if (section.isFolder) {
@@ -226,8 +347,12 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   MaterialPageRoute(
                                     builder: (context) => FileExplorerScreen(
                                       folderPath: newFolderPath,
+                                      isEditable: widget.isEditable,
+                                      ownerWebId: widget.ownerWebId,
                                       child: FileExplorerScreen(
                                         folderPath: widget.folderPath,
+                                        isEditable: widget.isEditable,
+                                        ownerWebId: widget.ownerWebId,
                                         child: widget.child,
                                       ),
                                     ),
@@ -240,7 +365,6 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   context,
                                   widget.child,
                                 );
-                                print(fileContent);
 
                                 if (fileContent != null &&
                                     fileContent !=
