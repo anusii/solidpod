@@ -77,6 +77,8 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
       return null;
     }
 
+    final outerContext = context;
+
     Future<void> submitForm(Map<String, dynamic> formDataMap) async {
       final currentKey = formDataMap[currentKeyStr].toString();
       final newKey = formDataMap[newKeyStr].toString();
@@ -105,7 +107,9 @@ Future<void> changeKeyPopup(BuildContext context, Widget child) async {
       } finally {
         if (context.mounted) {
           Navigator.pop(context);
-          showSnackBar(context, msg, bgColor, duration: duration);
+        }
+        if (outerContext.mounted) {
+          showSnackBar(outerContext, msg, bgColor, duration: duration);
         }
       }
     }

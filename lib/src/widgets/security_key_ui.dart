@@ -371,12 +371,18 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
     );
 
     final cancelButton = TextButton(
-      onPressed: () async => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => widget.child,
-        ),
-      ),
+      onPressed: () {
+        if (widget.displayMode == SecurityKeyDisplayMode.dialog) {
+          Navigator.pop(context);
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => widget.child,
+            ),
+          );
+        }
+      },
       style: TextButton.styleFrom(
         padding: SecurityLayout.buttonPadding,
       ),
