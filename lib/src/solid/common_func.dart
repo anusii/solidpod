@@ -31,6 +31,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:solidui/solidui.dart' show loginWebIdInputDialog;
 
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
     show InitialSetupScreen;
@@ -43,7 +44,6 @@ import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
-import 'package:solidpod/src/widgets/login_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/security_key_ui.dart';
 
 /// Login if the user has not done so.
