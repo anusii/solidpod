@@ -578,5 +578,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   ? snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn
                       ? widget.child
                       : _buildPermPage(context, snapshot.data)
-                  : Scaffold(body: loadingScreen(normalLoadingScreenHeight)));
+                  : Scaffold(body: loadingScreen(normalLoadingScreenHeight)),
+            );
 }

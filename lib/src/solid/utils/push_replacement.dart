@@ -31,7 +31,9 @@ library;
 import 'package:flutter/material.dart';
 
 Future<void> pushReplacement(
-    BuildContext context, Widget destinationWidget) async {
+  BuildContext context,
+  Widget destinationWidget,
+) async {
   Navigator.pushAndRemoveUntil(
     context,
     MaterialPageRoute(

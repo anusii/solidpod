@@ -399,8 +399,11 @@ class KeyManager {
     );
     _indKeyMap![resourceUrl] = record;
 
-    final query = await getIndKeyQuery(record,
-        operation: SparqlOperation.insert, isFile: isFile);
+    final query = await getIndKeyQuery(
+      record,
+      operation: SparqlOperation.insert,
+      isFile: isFile,
+    );
     _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
 
     await updateFileByQuery(_indKeyUrl!, query);
@@ -421,15 +424,19 @@ class KeyManager {
       final record = _indKeyMap!.remove(resourceUrl);
       assert(record != null);
 
-      final query = await getIndKeyQuery(record!,
-          operation: SparqlOperation.delete, isFile: isFile);
+      final query = await getIndKeyQuery(
+        record!,
+        operation: SparqlOperation.delete,
+        isFile: isFile,
+      );
       _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
       await updateFileByQuery(_indKeyUrl!, query);
 
       debugPrint('Deleted $record');
     } else {
       debugPrint(
-          'Individual key for "$resourcePath" does not exist, do nothing.');
+        'Individual key for "$resourcePath" does not exist, do nothing.',
+      );
     }
   }
 

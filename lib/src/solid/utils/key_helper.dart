@@ -163,7 +163,8 @@ Future<String> readPubKeyFile() async {
 /// Read file `shared/shared-keys.ttl` to get encrypted individual keys
 /// of shared resources.
 Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
-    String privateKey) async {
+  String privateKey,
+) async {
   final sharedIndKeyUrl = await getFileUrl(await getSharedKeyFilePath());
   final sharedIndKeyMap = <String, SharedIndKeyRecord>{};
   Encrypter? encrypter;

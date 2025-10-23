@@ -78,7 +78,8 @@ const failureMsg =
     'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.';
 
 void printFailure(String fileName) => debugPrint(
-    '❌ [GrantPermissionUI] Permission granting failed for file: $fileName');
+      '❌ [GrantPermissionUI] Permission granting failed for file: $fileName',
+    );
 
 void printRecipients(List<dynamic>? finalList) =>
     debugPrint('🎯 [GrantPermissionUI] Recipients: $finalList');
@@ -212,21 +213,22 @@ Scrollbar getScrollbar({
 
 Scrollbar getFormScrollbar(ScrollController controller, Widget permDataTable) =>
     getScrollbar(
-        controller: controller,
-        direction: Axis.horizontal,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                permDataTable,
-                // Hspace to avoid vertical scrollbar overlap with table
-                ScrollbarLayout.horizontalGap,
-              ],
-            ),
-            // Vspace to avoid horizontal scrollbar overlap of table
-            ScrollbarLayout.verticalGap,
-          ],
-        ));
+      controller: controller,
+      direction: Axis.horizontal,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              permDataTable,
+              // Hspace to avoid vertical scrollbar overlap with table
+              ScrollbarLayout.horizontalGap,
+            ],
+          ),
+          // Vspace to avoid horizontal scrollbar overlap of table
+          ScrollbarLayout.verticalGap,
+        ],
+      ),
+    );
 
 Scrollbar getPageScrollbar(ScrollController controller, Widget form) =>
     getScrollbar(
