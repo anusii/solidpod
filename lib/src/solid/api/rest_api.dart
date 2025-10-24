@@ -147,7 +147,7 @@ Future<List<dynamic>> initialStructureTest(
     for (final fileName in fileNameList) {
       final resourceUrl =
           await getFileUrl([containerName as String, fileName].join('/'));
-      if (await checkResourceStatus(resourceUrl, isFile: false) ==
+      if (await checkResourceStatus(resourceUrl, isFile: true) ==
           ResourceStatus.notExist) {
         allExists = false;
         resNotExist['files'].add(resourceUrl);
@@ -271,6 +271,11 @@ Future<ResourceStatus> checkResourceStatus(
   String resUrl, {
   bool isFile = true,
 }) async {
+  if (!isFile) {
+    assert(resUrl.endsWith('/'));
+  } else {
+    assert(!resUrl.endsWith('/'));
+  }
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
   final response = await http.get(
     Uri.parse(resUrl),

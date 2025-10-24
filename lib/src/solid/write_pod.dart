@@ -102,6 +102,7 @@ Future<SolidFunctionCallStatus> writePod(
 
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
+        await getKeyFromUserIfRequired(context, child);
         // Create the directory
         await createResource(
           parentDirUrl,

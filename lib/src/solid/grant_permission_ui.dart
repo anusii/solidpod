@@ -6,7 +6,7 @@
 ///
 /// Licensed under the GNU General Public License, Version 3 (the "License").
 ///
-/// License: https://www.gnu.org/licenses/gpl-3.0.en.html.
+/// License: https://opensource.org/license/gpl-3-0.
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
@@ -19,7 +19,7 @@
 // details.
 //
 // You should have received a copy of the GNU General Public License along with
-// this program.  If not, see <https://www.gnu.org/licenses/>.
+// this program.  If not, see <https://opensource.org/license/gpl-3-0>.
 ///
 ///
 /// Authors: Anushka Vidanage, Jess Moore, Ashley Tang, Dawei Chen
@@ -58,7 +58,8 @@ class GrantPermissionUi extends StatefulWidget {
     this.accessModeList = const ['read', 'write', 'append', 'control'],
     this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
-    this.fileName,
+    this.resourceName,
+    this.isFile,
     this.dataFilesMap = const {},
     this.customAppBar,
     this.onPermissionGranted,
@@ -94,11 +95,17 @@ class GrantPermissionUi extends StatefulWidget {
   /// if [isExternalRes] is set to true.
   final String? externalWebId;
 
-  /// The name of the file permission is being set to. This is a non required
-  /// parameter. If not set there will be a text field to define the file name.
+  /// The name of the file or directory permission is being set to. This is a
+  /// non required parameter. If not set there will be a text field to define
+  /// the file name. If [resourceName] is set to true this must be set and the
+  /// value should be the url of the resource.
+  final String? resourceName;
+
+  /// A flag to determine whether the given resource is a file or not. This is
+  /// a non required parameter. If not set there will be a toggle to define this.
   /// If [isExternalRes] is set to true this must be set and the value should
   /// be the url of the resource
-  final String? fileName;
+  final bool? isFile;
 
   /// Map of data files on a user's POD used to extract the
   /// user's recipient list by the WebIdTextInputScreen.
@@ -193,13 +200,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Pod data list retreived as a Future
   late Future<List<dynamic>> podDataList;
 
+  /// A flag to identify if the resource is a file or not
+  bool isFile = true;
+
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
-  Future<List<dynamic>> _loadPodData(String fileName, Widget child) async {
+  Future<List<dynamic>> _loadPodData(String resourceName, Widget child,
+      {bool isFile = true}) async {
     // ignore: use_build_context_synchronously
     final result = await readPermission(
-      fileName,
-      true,
+      resourceName,
+      isFile,
       context,
       child,
       isExternalRes: widget.isExternalRes,
@@ -214,8 +225,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   void initState() {
     super.initState();
     // Load future
-    if (widget.fileName != null) {
-      podDataList = _loadPodData(widget.fileName!, widget);
+    if (widget.resourceName != null) {
+      podDataList = _loadPodData(widget.resourceName!, widget);
     }
 
     // Load access mode list to be displayed
@@ -229,14 +240,19 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
   }
 
-  // // Get new permission and update the permission map
-  Future<void> _updatePermissions(String fileName) async {
-    final pdata = await _loadPodData(fileName, widget.child);
+  // Get new permission and update the permission map
+  Future<void> _updatePermissions(String fileName, [bool isFile = true]) async {
+    final pdata = await _loadPodData(fileName, widget.child, isFile: isFile);
     final permissionMap = pdata.first;
     final webId = pdata.last;
 
     if (permissionMap == SolidFunctionCallStatus.notLoggedIn) {
       await _alert('Please login first to retrieve permission');
+    } else if (permissionMap == SolidFunctionCallStatus.noAclFound) {
+      await _alert(
+        'Resource does not have a corresponding ACL file.\n'
+        'If the ACL is inherited, provide parent directory as the resource name!',
+      );
     } else {
       if ((permissionMap as Map).isEmpty) {
         await _alert('We could not find a resource by the name $fileName');
@@ -318,58 +334,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             padding: getPadding(rtype),
           ),
     ];
-
-    // return [
-    //   if (recipientTypeList.contains(RecipientType.public))
-    //     getRecipientTypeButton(
-    //       RecipientType.public,
-    //       onPressed: () {
-    //         setState(() {
-    //           selectedRecipientType = RecipientType.public;
-    //           selectedRecipientDetails = '';
-    //           finalWebIdList = [publicAgent.value];
-    //         });
-    //       },
-    //     ),
-    //   if (recipientTypeList.contains(RecipientType.authUser))
-    //     getRecipientTypeButton(
-    //       RecipientType.authUser,
-    //       onPressed: () {
-    //         setState(() {
-    //           selectedRecipientType = RecipientType.authUser;
-    //           selectedRecipientDetails = '';
-    //           finalWebIdList = [authenticatedAgent.value];
-    //         });
-    //       },
-    //       padding: padding,
-    //     ),
-    //   if (recipientTypeList.contains(RecipientType.individual))
-    //     getRecipientTypeButton(
-    //       RecipientType.individual,
-    //       onPressed: () async {
-    //         // Open dialog for WebId entry
-    //         await indWebIdInputDialog(
-    //           context,
-    //           _updateIndWebIdInput,
-    //           widget.dataFilesMap,
-    //         );
-    //       },
-    //       padding: padding,
-    //     ),
-    //   if (recipientTypeList.contains(RecipientType.group))
-    //     getRecipientTypeButton(
-    //       RecipientType.group,
-    //       onPressed: () async {
-    //         await groupWebIdInputDialog(
-    //           context,
-    //           formControllerGroupName,
-    //           formControllerGroupWebIds,
-    //           _updateGroupWebIdInput,
-    //         );
-    //       },
-    //       padding: padding,
-    //     ),
-    // ];
   }
 
   // Update individual webid input data
@@ -405,13 +369,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     if (futureObjList != null && pageInitialied == false) {
       permDataMap = futureObjList.first as Map;
       ownerWebId = futureObjList[1] as String;
-      permDataFile = widget.fileName!;
+      permDataFile = widget.resourceName!;
       pageInitialied = true;
     }
 
     final retrievePermissionButton = getRetrieveButton(
       context,
       formControllerFileName.text,
+      isFile,
       onRetrieve: _updatePermissions,
     );
 
@@ -427,7 +392,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           if (formKey.currentState!.validate()) {
             if (selectedRecipientType.type.isNotEmpty) {
               if (selectedPermList.isNotEmpty) {
-                final dataFile = widget.fileName ?? formControllerFileName.text;
+                final dataFile =
+                    widget.resourceName ?? formControllerFileName.text;
 
                 SolidFunctionCallStatus? result;
                 try {
@@ -454,7 +420,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 if (result == SolidFunctionCallStatus.success) {
                   if (!context.mounted) return;
                   showSnackBar(context, successMsg, Colors.green);
-                  await _updatePermissions(dataFile);
+                  await _updatePermissions(dataFile, isFile);
 
                   // Mark permissions as granted successfully for callback tracking
                   setState(() {
@@ -492,6 +458,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     final permDataTable = buildPermDataTable(
       context,
       permDataFile,
+      widget.isFile ?? isFile,
       permDataMap,
       ownerWebId,
       widget.child,
@@ -505,13 +472,19 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
-            buildHeading(getWelcomeStr(widget.fileName), 22),
+            buildHeading(getWelcomeStr(widget.resourceName), 22),
             smallGapV,
             Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                if (widget.fileName == null) ...[
-                  getResourcePathForm(formControllerFileName),
+                if (widget.resourceName == null) ...[
+                  getResourceForm(
+                    formControllerFileName,
+                    isFile,
+                    (bool value) => setState(() {
+                      isFile = value;
+                    }),
+                  ),
                   smallGapV,
                   retrievePermissionButton,
                 ],
@@ -570,7 +543,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       // Build as a separate widget with the possibility of adding a FutureBuilder
       // in the Future
 
-      widget.fileName == null
+      widget.resourceName == null
           ? _buildPermPage(context)
           : FutureBuilder(
               future: podDataList,

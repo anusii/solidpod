@@ -151,16 +151,48 @@ Widget getRecipientTypeButton(
   );
 }
 
-Widget getResourcePathForm(TextEditingController formController) => Padding(
+Widget getResourceForm(
+  TextEditingController formController,
+  bool isFile,
+  void Function(bool) onResourceTypeChange,
+) =>
+    Padding(
       padding: const EdgeInsets.all(8),
-      child: TextFormField(
-        controller: formController,
-        decoration: const InputDecoration(
-          hintText:
-              'Data file path (inside your data folder, Eg: personal/about.ttl)',
-        ),
-        validator: (value) =>
-            (value == null || value.isEmpty) ? 'Empty field' : null,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: formController,
+            decoration: const InputDecoration(
+              hintText:
+                  'Data file path (inside your data folder, Eg: personal/about.ttl)',
+            ),
+            validator: (value) =>
+                (value == null || value.isEmpty) ? 'Empty field' : null,
+          ),
+          const SizedBox(height: 10),
+          SwitchListTile(
+            title: const Text(
+              'Is a File?',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(
+              isFile ? 'Yes' : 'No',
+            ),
+            value: isFile,
+            onChanged: onResourceTypeChange,
+            thumbColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return Colors.green;
+                }
+                return null;
+              },
+            ),
+          ),
+        ],
       ),
     );
 
@@ -259,8 +291,9 @@ Container getButtonContainer({required List<Widget> buttons}) => Container(
 
 ElevatedButton getRetrieveButton(
   BuildContext context,
-  String fileName, {
-  required Future<void> Function(String) onRetrieve,
+  String fileName,
+  bool isFile, {
+  required Future<void> Function(String, bool) onRetrieve,
 }) =>
     ElevatedButton(
       child: const Text('Retrieve permissions'),
@@ -268,7 +301,7 @@ ElevatedButton getRetrieveButton(
         if (fileName.isEmpty) {
           await alert(context, 'Please enter a file name');
         } else {
-          await onRetrieve(fileName);
+          await onRetrieve(fileName, isFile);
         }
       },
     );

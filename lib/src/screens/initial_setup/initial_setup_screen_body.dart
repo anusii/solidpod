@@ -35,8 +35,8 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
+import 'package:solidui/solidui.dart' show SolidLogin, logoutPopup;
 
-import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/enc_key_input_form.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/initial_setup_welcome.dart';
 import 'package:solidpod/src/screens/initial_setup/widgets/res_create_form_submission.dart';

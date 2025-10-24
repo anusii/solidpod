@@ -81,7 +81,7 @@ Stream<Uint8List> _getChunkStream(
   int chunkSize = 2 * 1024 * 1024,
 }) async* {
   // Dart reads file in blocks of size 64k, see
-  // https://github.com/dart-lang/sdk/lib/io/file_impl.dart
+  // https://github.com/dart-lang/sdk/blob/main/sdk/lib/io/file_impl.dart
   assert(chunkSize >= 64 * 1024);
 
   final bytesBuilder = BytesBuilder();

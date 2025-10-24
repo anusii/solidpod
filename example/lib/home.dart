@@ -6,7 +6,7 @@
 ///
 /// Licensed under the GNU General Public License, Version 3 (the "License").
 ///
-/// License: https://www.gnu.org/licenses/gpl-3.0.en.html.
+/// License: https://opensource.org/license/gpl-3-0.
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
@@ -19,7 +19,7 @@
 // details.
 //
 // You should have received a copy of the GNU General Public License along with
-// this program.  If not, see <https://www.gnu.org/licenses/>.
+// this program.  If not, see <https://opensource.org/license/gpl-3-0>.
 ///
 ///
 /// Authors: Zheyuan Xu, Anushka Vidanage, Kevin Wang, Dawei Chen, Graham Williams
@@ -34,6 +34,8 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
+
+import 'package:solidui/solidui.dart' show logoutPopup;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -577,7 +579,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             MaterialPageRoute(
                               builder: (context) => const GrantPermissionUi(
                                 backgroundColor: titleBackgroundColor,
-                                fileName: 'keyvalue/key-value.ttl',
+                                resourceName: 'keyvalue/key-value.ttl',
                                 // accessModeList: ['read', 'write'],
                                 // recipientTypeList: ['indi', 'group'],
                                 child: Home(),

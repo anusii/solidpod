@@ -13,7 +13,7 @@ on:
     types: [opened, reopened, synchronize]
 
 env:
-  FLUTTER_VERSION: '3.35.5'
+  FLUTTER_VERSION: '3.35.6'
 
 jobs:
 
@@ -111,13 +111,13 @@ jobs:
             'lib/**/*.dart'
           fail: false
 
-      - name: Create Issue From File
-        if: steps.lychee.outputs.exit_code != 0
-        uses: peter-evans/create-issue-from-file@v5
-        with:
-          title: Link Checker Report
-          content-filepath: ./lychee/out.md
-          labels: report, automated issue
+      # - name: Create Issue From File
+      #   if: steps.lychee.outputs.exit_code != 0
+      #   uses: peter-evans/create-issue-from-file@v5
+      #   with:
+      #     title: Link Checker Report
+      #     content-filepath: ./lychee/out.md
+      #     labels: report, automated issue
 
   locmax:
     runs-on: ubuntu-latest
@@ -131,11 +131,6 @@ jobs:
     if: github.event.repository.private == false
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: ${{env.FLUTTER_VERSION}}
-      - run: flutter pub get
       - name: Check copyright headers
         run: |
           # Find Dart files without proper copyright headers, excluding generated files
@@ -155,4 +150,43 @@ jobs:
             exit 1
           else
             echo "✅ All non-generated Dart files have copyright headers"
+          fi
+
+  # 20251017 gjw The usual command for running the integration tests
+  # is `flutter test interaction_test` and each `*_test.dart`  is
+  # run. However for our testing of apps using solidui we need to
+  # authenticate through an external browser login. The usual `flutter
+  # test` will not properly authenticate. Instead, we should run `make
+  # qtest.all` to run the tests. This action
+
+  test_enforcement:
+    runs-on: ubuntu-latest
+    if: github.event.repository.private == false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for batch test commands
+        run: |
+          # Check for disallowed "flutter test integration_test/" usage in scripts/workflows
+          # Exclude comments and this CI check itself
+          batch_test_found=$(grep -r "flutter test integration_test" \
+            .github/workflows/ \
+            support/ \
+            scripts/ \
+            Makefile 2>/dev/null | \
+            grep -v "# Check for disallowed" | \
+            grep -v "batch_test_found=" | \
+            grep -v "echo.*flutter test integration_test/" || true)
+          if [ -n "$batch_test_found" ]; then
+            echo "❌ Found disallowed batch test command 'flutter test integration_test/'"
+            echo ""
+            echo "Found in:"
+            echo "$batch_test_found"
+            echo ""
+            echo "⚠️  Batch testing fails on desktop due to Flutter framework limitations."
+            echo "✅ Use 'make qtest' instead - it runs tests individually."
+            echo ""
+            echo "See docs/TESTING_GUIDE.md for details."
+            exit 1
+          else
+            echo "✅ No batch test commands found - using recommended 'make qtest' approach"
           fi

@@ -77,13 +77,19 @@ Future<dynamic> revokePermission(
       // Get the file path
       final filePath = [await getDataDirPath(), fileName].join('/');
 
-      // Get the url of the file
-      resourceUrl = await getFileUrl(filePath);
+      // Get the url of the resource
+      if (isFile) {
+        resourceUrl = await getFileUrl(filePath);
+      } else {
+        resourceUrl = await getDirUrl(filePath);
+      }
     } else {
       resourceUrl = fileName;
     }
 
-    // Check if file exists
+    // print(resourceUrl);
+
+    // Check if file/directory exists
     final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
     if (resStatus == ResourceStatus.exist) {

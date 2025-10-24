@@ -1,6 +1,6 @@
 /// Miscellaneous utility functions used across the package.
 ///
-// Time-stamp: <Wednesday 2025-04-30 15:53:26 +1000 Graham Williams>
+// Time-stamp: <Friday 2025-10-24 08:51:54 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -54,7 +54,7 @@ import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-// solid-encrypt uses unencrypted local storage and refers to http://yarrabah.net/ for predicates definition,
+// solid-encrypt uses unencrypted local storage and refers to http: //yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
 // import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
 

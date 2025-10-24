@@ -6,7 +6,7 @@
 ///
 /// Licensed under the GNU General Public License, Version 3 (the "License").
 ///
-/// License: https://www.gnu.org/licenses/gpl-3.0.en.html.
+/// License: https://opensource.org/license/gpl-3-0.
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
@@ -19,7 +19,7 @@
 // details.
 //
 // You should have received a copy of the GNU General Public License along with
-// this program.  If not, see <https://www.gnu.org/licenses/>.
+// this program.  If not, see <https://opensource.org/license/gpl-3-0>.
 ///
 ///
 /// Authors: Anushka Vidanage, Jess Moore
@@ -36,16 +36,18 @@ import 'package:solidpod/src/solid/utils/snack_bar.dart';
 /// Build the permission table widget. Function call requires the
 /// following inputs
 /// [context] is the BuildContext from which this function is called.
-/// [permDataFile] is the name of the file for which the permission data is
-/// displayed
-/// [permDataMap] is the map of permission data for the [permDataFile]
+/// [permDataResource] is the name of the file or directory for which the
+/// permission data is displayed
+/// [isFile] is the flag to define whether the resource is a file or not
+/// [permDataMap] is the map of permission data for the [permDataResource]
 /// [parentWidget] is the widget to return to after an action Eg: deletion of a
 /// permission
 /// [onDeleteFuncion] is the function to be called on delete
 ///
 Widget buildPermDataTable(
   BuildContext context,
-  String permDataFile,
+  String permDataResource,
+  bool isFile,
   Map<dynamic, dynamic> permDataMap,
   String ownerWebId,
   Widget parentWidget,
@@ -129,8 +131,8 @@ Widget buildPermDataTable(
                           TextButton(
                             onPressed: () async {
                               await revokePermission(
-                                permDataFile,
-                                true,
+                                permDataResource,
+                                isFile,
                                 permDataMap[index][permStr] as List,
                                 index,
                                 ownerWebId,
@@ -153,7 +155,10 @@ Widget buildPermDataTable(
                                   Colors.red,
                                 );
                               }
-                              await onDeleteFuncion(permDataFile);
+                              await onDeleteFuncion(
+                                permDataResource,
+                                isFile: isFile,
+                              );
                             },
                             child: const Text('Yes'),
                           ),
