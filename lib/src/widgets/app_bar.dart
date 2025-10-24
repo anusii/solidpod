@@ -28,6 +28,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/utils/push_replacement.dart';
+
 /// A default app bar that is used when user does not define an app bar for
 /// the UI
 PreferredSizeWidget defaultAppBar(
@@ -53,10 +55,12 @@ PreferredSizeWidget defaultAppBar(
         } else {
           // Use the original pushReplacement behaviour.
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => child),
-          );
+          pushReplacement(context, child);
+
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => child),
+          // );
         }
       },
     ),
