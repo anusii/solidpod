@@ -73,6 +73,8 @@ const updatePermissionMsg =
     'Please login first to update file access permission';
 const podNotInitMsg =
     'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.';
+const noAclMsg = 'Resource does not have a corresponding ACL file.\n'
+    'If the ACL is inherited, provide parent directory as the resource name!';
 const successMsg = 'File access permissions granted successfully!';
 const failureMsg =
     'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.';
@@ -129,6 +131,19 @@ List<Widget> getPermissionCheckBoxes(
         if (accessModes.contains(mode))
           permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
     ];
+
+Widget getButton(
+  String text, {
+  required void Function() onPressed,
+}) =>
+    Padding(
+      padding: const EdgeInsets.all(8),
+      child: ElevatedButton(
+        // child: Text(text),
+        onPressed: onPressed,
+        child: Text(text),
+      ),
+    );
 
 Widget getRecipientTypeButton(
   RecipientType recipientType, {

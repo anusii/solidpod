@@ -279,11 +279,9 @@ Future<dynamic> indWebIdInputDialog(
 ) {
   return showDialog(
     context: context,
-    builder: (context) {
-      return IndWebIdInputScreen(
-        onSubmitFunction: onSubmitFunction,
-        dataFilesMap: dataFilesMap,
-      );
-    },
+    builder: (context) => IndWebIdInputScreen(
+      onSubmitFunction: onSubmitFunction,
+      dataFilesMap: dataFilesMap,
+    ),
   );
 }
