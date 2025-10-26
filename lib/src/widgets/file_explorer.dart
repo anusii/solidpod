@@ -31,9 +31,9 @@ import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/solid/write_external_pod.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A simple file explorer class with two input parameters
@@ -201,232 +201,230 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
           ),
           Expanded(
             child: ListView.builder(
-                itemCount: sections.length,
-                itemBuilder: (context, sectionIndex) {
-                  final section = sections[sectionIndex];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Section header
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          section.title,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
+              itemCount: sections.length,
+              itemBuilder: (context, sectionIndex) {
+                final section = sections[sectionIndex];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Section header
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        section.title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // List items
-                      ListView.builder(
-                        itemCount: section.items.length,
-                        shrinkWrap: true,
-                        physics:
-                            const NeverScrollableScrollPhysics(), // Disable inner scroll
-                        itemBuilder: (context, index) {
-                          final item = section.items[index];
-                          return ListTile(
-                            leading: Icon(
-                              section.isFolder
-                                  ? Icons.folder
-                                  : Icons.insert_drive_file,
-                              color:
-                                  section.isFolder ? Colors.amber : Colors.blue,
-                            ),
-                            trailing: (!section.isFolder && widget.isEditable)
-                                ? IconButton(
-                                    icon: const Icon(Icons.edit),
-                                    onPressed: () async {
-                                      final filePath =
-                                          '${widget.folderPath}$item';
-                                      final fileContent = await readExternalPod(
-                                        filePath,
-                                        context,
-                                        widget.child,
-                                      );
+                    ),
+                    // List items
+                    ListView.builder(
+                      itemCount: section.items.length,
+                      shrinkWrap: true,
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Disable inner scroll
+                      itemBuilder: (context, index) {
+                        final item = section.items[index];
+                        return ListTile(
+                          leading: Icon(
+                            section.isFolder
+                                ? Icons.folder
+                                : Icons.insert_drive_file,
+                            color:
+                                section.isFolder ? Colors.amber : Colors.blue,
+                          ),
+                          trailing: (!section.isFolder && widget.isEditable)
+                              ? IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () async {
+                                    final filePath =
+                                        '${widget.folderPath}$item';
+                                    final fileContent = await readExternalPod(
+                                      filePath,
+                                      context,
+                                      widget.child,
+                                    );
 
-                                      final TextEditingController
-                                          editController =
-                                          TextEditingController(
-                                        text: fileContent,
-                                      );
+                                    final TextEditingController editController =
+                                        TextEditingController(
+                                      text: fileContent,
+                                    );
 
-                                      if (!context.mounted) return;
-                                      await showDialog<String>(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title:
-                                                const Text('Edit File Content'),
-                                            content: SizedBox(
-                                              width: double.maxFinite,
-                                              child: TextField(
-                                                controller: editController,
-                                                autofocus: true,
-                                                maxLines:
-                                                    null, // allows multiple lines
-                                                minLines:
-                                                    3, // starts with 3 visible lines
-                                                textInputAction:
-                                                    TextInputAction.newline,
-                                                keyboardType:
-                                                    TextInputType.multiline,
-                                                decoration:
-                                                    const InputDecoration(
-                                                  labelText:
-                                                      'Enter your file content',
-                                                  border: OutlineInputBorder(),
-                                                  alignLabelWithHint: true,
-                                                ),
+                                    if (!context.mounted) return;
+                                    await showDialog<String>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title:
+                                              const Text('Edit File Content'),
+                                          content: SizedBox(
+                                            width: double.maxFinite,
+                                            child: TextField(
+                                              controller: editController,
+                                              autofocus: true,
+                                              maxLines:
+                                                  null, // allows multiple lines
+                                              minLines:
+                                                  3, // starts with 3 visible lines
+                                              textInputAction:
+                                                  TextInputAction.newline,
+                                              keyboardType:
+                                                  TextInputType.multiline,
+                                              decoration: const InputDecoration(
+                                                labelText:
+                                                    'Enter your file content',
+                                                border: OutlineInputBorder(),
+                                                alignLabelWithHint: true,
                                               ),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(); // Cancel -> close dialog
-                                                },
-                                                child: const Text('Cancel'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () async {
-                                                  final newContent =
-                                                      editController.text;
-                                                  // Check if the content has changed
-                                                  if (newContent !=
-                                                      fileContent) {
-                                                    final writeFileStatus =
-                                                        await writeExternalPod(
-                                                      filePath,
-                                                      newContent,
-                                                      widget.ownerWebId,
-                                                      context,
-                                                      widget.child,
-                                                    );
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(); // Cancel -> close dialog
+                                              },
+                                              child: const Text('Cancel'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () async {
+                                                final newContent =
+                                                    editController.text;
+                                                // Check if the content has changed
+                                                if (newContent != fileContent) {
+                                                  final writeFileStatus =
+                                                      await writeExternalPod(
+                                                    filePath,
+                                                    newContent,
+                                                    widget.ownerWebId,
+                                                    context,
+                                                    widget.child,
+                                                  );
 
-                                                    if (writeFileStatus ==
-                                                        SolidFunctionCallStatus
-                                                            .success) {
-                                                      if (!context.mounted) {
-                                                        return;
-                                                      }
-                                                      showSnackBar(
-                                                        context,
-                                                        'Changes saved successfully!',
-                                                        Colors.green,
-                                                      );
-                                                    } else {
-                                                      if (!context.mounted) {
-                                                        return;
-                                                      }
-                                                      showSnackBar(
-                                                        context,
-                                                        'Something went wrong! Please try again.',
-                                                        Colors.red,
-                                                      );
+                                                  if (writeFileStatus ==
+                                                      SolidFunctionCallStatus
+                                                          .success) {
+                                                    if (!context.mounted) {
+                                                      return;
                                                     }
+                                                    showSnackBar(
+                                                      context,
+                                                      'Changes saved successfully!',
+                                                      Colors.green,
+                                                    );
                                                   } else {
                                                     if (!context.mounted) {
                                                       return;
                                                     }
                                                     showSnackBar(
                                                       context,
-                                                      'Content has not changed',
-                                                      Colors.orange,
+                                                      'Something went wrong! Please try again.',
+                                                      Colors.red,
                                                     );
                                                   }
+                                                } else {
+                                                  if (!context.mounted) {
+                                                    return;
+                                                  }
+                                                  showSnackBar(
+                                                    context,
+                                                    'Content has not changed',
+                                                    Colors.orange,
+                                                  );
+                                                }
 
-                                                  Navigator.of(context)
-                                                      .pop(); // Save -> return value
-                                                },
-                                                child: const Text('Save'),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                  )
-                                : null,
-                            title: Text(item),
-                            onTap: () async {
-                              if (section.isFolder) {
-                                final newFolderPath =
-                                    '${widget.folderPath}$item/';
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FileExplorerScreen(
-                                      folderPath: newFolderPath,
+                                                Navigator.of(context)
+                                                    .pop(); // Save -> return value
+                                              },
+                                              child: const Text('Save'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                )
+                              : null,
+                          title: Text(item),
+                          onTap: () async {
+                            if (section.isFolder) {
+                              final newFolderPath =
+                                  '${widget.folderPath}$item/';
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FileExplorerScreen(
+                                    folderPath: newFolderPath,
+                                    isEditable: widget.isEditable,
+                                    ownerWebId: widget.ownerWebId,
+                                    child: FileExplorerScreen(
+                                      folderPath: widget.folderPath,
                                       isEditable: widget.isEditable,
                                       ownerWebId: widget.ownerWebId,
-                                      child: FileExplorerScreen(
-                                        folderPath: widget.folderPath,
-                                        isEditable: widget.isEditable,
-                                        ownerWebId: widget.ownerWebId,
-                                        child: widget.child,
-                                      ),
+                                      child: widget.child,
                                     ),
                                   ),
-                                );
-                              } else {
-                                final filePath = '${widget.folderPath}$item';
-                                final fileContent = await readExternalPod(
-                                  filePath,
-                                  context,
-                                  widget.child,
-                                );
+                                ),
+                              );
+                            } else {
+                              final filePath = '${widget.folderPath}$item';
+                              final fileContent = await readExternalPod(
+                                filePath,
+                                context,
+                                widget.child,
+                              );
 
-                                if (fileContent != null &&
-                                    fileContent !=
-                                        SolidFunctionCallStatus.notLoggedIn) {
-                                  if (!context.mounted) return;
-                                  await showDialog(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text('File content'),
-                                      content: Stack(
-                                        alignment: Alignment.center,
-                                        children: <Widget>[
-                                          Container(
-                                            width: double.infinity,
-                                            height: 300,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: Text(fileContent as String),
+                              if (fileContent != null &&
+                                  fileContent !=
+                                      SolidFunctionCallStatus.notLoggedIn) {
+                                if (!context.mounted) return;
+                                await showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('File content'),
+                                    content: Stack(
+                                      alignment: Alignment.center,
+                                      children: <Widget>[
+                                        Container(
+                                          width: double.infinity,
+                                          height: 300,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
                                           ),
-                                        ],
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            // Close the dialog
-                                            Navigator.of(ctx).pop();
-                                          },
-                                          child: const Text('Ok'),
+                                          child: Text(fileContent as String),
                                         ),
                                       ],
                                     ),
-                                  );
-                                } else {
-                                  if (!context.mounted) return;
-                                  await alert(
-                                    context,
-                                    'The file $item could not be found!',
-                                  );
-                                }
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          // Close the dialog
+                                          Navigator.of(ctx).pop();
+                                        },
+                                        child: const Text('Ok'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                if (!context.mounted) return;
+                                await alert(
+                                  context,
+                                  'The file $item could not be found!',
+                                );
                               }
-                              // handle open file/folder
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                }),
+                            }
+                            // handle open file/folder
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
