@@ -95,7 +95,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
 
   PreferredSizeWidget defaltAppBar() {
     return AppBar(
-      title: Text('Go back'),
+      title: const Text('Go back'),
       leading: currentPath.isNotEmpty
           ? IconButton(
               icon: const Icon(Icons.arrow_back),
@@ -125,7 +125,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
         body: Center(
           child: Text(
             errMsg,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
           ),
         ),
       );
@@ -157,7 +157,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
     if (sections.isEmpty) {
       return Scaffold(
         appBar: defaltAppBar(),
-        body: Center(
+        body: const Center(
           child: Text(
             'No directories or files found.',
             style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -195,113 +195,114 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
           ),
           Expanded(
             child: ListView.builder(
-                itemCount: sections.length,
-                itemBuilder: (context, sectionIndex) {
-                  final section = sections[sectionIndex];
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Section header
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          section.title,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
+              itemCount: sections.length,
+              itemBuilder: (context, sectionIndex) {
+                final section = sections[sectionIndex];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Section header
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        section.title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // List items
-                      ListView.builder(
-                        itemCount: section.items.length,
-                        shrinkWrap: true,
-                        physics:
-                            const NeverScrollableScrollPhysics(), // Disable inner scroll
-                        itemBuilder: (context, index) {
-                          final item = section.items[index];
-                          return ListTile(
-                            leading: Icon(
-                              section.isFolder
-                                  ? Icons.folder
-                                  : Icons.insert_drive_file,
-                              color:
-                                  section.isFolder ? Colors.amber : Colors.blue,
-                            ),
-                            title: Text(item),
-                            onTap: () async {
-                              if (section.isFolder) {
-                                final newFolderPath =
-                                    '${widget.folderPath}$item/';
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FileExplorerScreen(
-                                      folderPath: newFolderPath,
-                                      child: FileExplorerScreen(
-                                        folderPath: widget.folderPath,
-                                        child: widget.child,
-                                      ),
+                    ),
+                    // List items
+                    ListView.builder(
+                      itemCount: section.items.length,
+                      shrinkWrap: true,
+                      physics:
+                          const NeverScrollableScrollPhysics(), // Disable inner scroll
+                      itemBuilder: (context, index) {
+                        final item = section.items[index];
+                        return ListTile(
+                          leading: Icon(
+                            section.isFolder
+                                ? Icons.folder
+                                : Icons.insert_drive_file,
+                            color:
+                                section.isFolder ? Colors.amber : Colors.blue,
+                          ),
+                          title: Text(item),
+                          onTap: () async {
+                            if (section.isFolder) {
+                              final newFolderPath =
+                                  '${widget.folderPath}$item/';
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FileExplorerScreen(
+                                    folderPath: newFolderPath,
+                                    child: FileExplorerScreen(
+                                      folderPath: widget.folderPath,
+                                      child: widget.child,
                                     ),
                                   ),
-                                );
-                              } else {
-                                final filePath = '${widget.folderPath}$item';
-                                final fileContent = await readExternalPod(
-                                  filePath,
-                                  context,
-                                  widget.child,
-                                );
+                                ),
+                              );
+                            } else {
+                              final filePath = '${widget.folderPath}$item';
+                              final fileContent = await readExternalPod(
+                                filePath,
+                                context,
+                                widget.child,
+                              );
 
-                                if (fileContent != null &&
-                                    fileContent !=
-                                        SolidFunctionCallStatus.notLoggedIn) {
-                                  if (!context.mounted) return;
-                                  await showDialog(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text('File content'),
-                                      content: Stack(
-                                        alignment: Alignment.center,
-                                        children: <Widget>[
-                                          Container(
-                                            width: double.infinity,
-                                            height: 300,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                            ),
-                                            child: Text(fileContent as String),
+                              if (fileContent != null &&
+                                  fileContent !=
+                                      SolidFunctionCallStatus.notLoggedIn) {
+                                if (!context.mounted) return;
+                                await showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('File content'),
+                                    content: Stack(
+                                      alignment: Alignment.center,
+                                      children: <Widget>[
+                                        Container(
+                                          width: double.infinity,
+                                          height: 300,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
                                           ),
-                                        ],
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () {
-                                            // Close the dialog
-                                            Navigator.of(ctx).pop();
-                                          },
-                                          child: const Text('Ok'),
+                                          child: Text(fileContent as String),
                                         ),
                                       ],
                                     ),
-                                  );
-                                } else {
-                                  if (!context.mounted) return;
-                                  await alert(
-                                    context,
-                                    'The file $index could not be found!',
-                                  );
-                                }
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          // Close the dialog
+                                          Navigator.of(ctx).pop();
+                                        },
+                                        child: const Text('Ok'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                if (!context.mounted) return;
+                                await alert(
+                                  context,
+                                  'The file $index could not be found!',
+                                );
                               }
-                              // handle open file/folder
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  );
-                }),
+                            }
+                            // handle open file/folder
+                          },
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
