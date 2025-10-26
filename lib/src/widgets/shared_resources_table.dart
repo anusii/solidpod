@@ -33,6 +33,7 @@ import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/widgets/file_explorer.dart';
 
 /// Build the permission table widget. Function call requires the
 /// following inputs
@@ -96,7 +97,7 @@ Widget buildSharedResourcesTable(
               buildDataColumn('Owner', 'Resource owner WebID'),
               buildDataColumn('Granter', 'Permission granter WebID'),
               buildDataColumn('Permissions', 'List of permissions given'),
-              buildDataColumn('View', 'View file'),
+              buildDataColumn('View/Open', 'View file'),
             ],
             rows: sharedResMap.keys.map((index) {
               return DataRow(
@@ -135,60 +136,90 @@ Widget buildSharedResourcesTable(
                     sharedResMap[index][PermissionLogLiteral.permissions]
                         as String,
                   ),
-                  DataCell(
-                    IconButton(
-                      icon: const Icon(
-                        Icons.visibility,
-                        size: 24.0,
-                        color: Colors.blueAccent,
-                      ),
-                      onPressed: () async {
-                        // Get file content
-                        final fileContent =
-                            await readExternalPod(index, context, parentWidget);
-
-                        if (fileContent != null &&
-                            fileContent !=
-                                SolidFunctionCallStatus.notLoggedIn) {
-                          if (!context.mounted) return;
-                          await showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('File content'),
-                              content: Stack(
-                                alignment: Alignment.center,
-                                children: <Widget>[
-                                  Container(
-                                    width: double.infinity,
-                                    height: 300,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    child: Text(fileContent as String),
+                  DataCell(isDir(index)
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.folder_open_outlined,
+                            size: 24.0,
+                            color: Colors.blueAccent,
+                          ),
+                          onPressed: () async {
+                            if (!sharedResMap[index]
+                                    [PermissionLogLiteral.permissions]
+                                .contains('read')) {
+                              await alert(
+                                context,
+                                'You do not have read permission to this resource!',
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FileExplorerScreen(
+                                    folderPath: index,
+                                    child: parentWidget,
                                   ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Close the dialog
-                                    Navigator.of(ctx).pop();
-                                  },
-                                  child: const Text('Ok'),
                                 ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          if (!context.mounted) return;
-                          await alert(
-                            context,
-                            'The file $index could not be found!',
-                          );
-                        }
-                      },
-                    ),
-                  ),
+                              );
+                            }
+                          },
+                        )
+                      : IconButton(
+                          icon: const Icon(
+                            Icons.visibility,
+                            size: 24.0,
+                            color: Colors.blueAccent,
+                          ),
+                          onPressed: () async {
+                            // Get file content
+                            final fileContent = await readExternalPod(
+                              index,
+                              context,
+                              parentWidget,
+                            );
+
+                            if (fileContent != null &&
+                                fileContent !=
+                                    SolidFunctionCallStatus.notLoggedIn) {
+                              if (!context.mounted) return;
+                              await showDialog(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('File content'),
+                                  content: Stack(
+                                    alignment: Alignment.center,
+                                    children: <Widget>[
+                                      Container(
+                                        width: double.infinity,
+                                        height: 300,
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                        child: Text(fileContent as String),
+                                      ),
+                                    ],
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        // Close the dialog
+                                        Navigator.of(ctx).pop();
+                                      },
+                                      child: const Text('Ok'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              if (!context.mounted) return;
+                              await alert(
+                                context,
+                                'The file $index could not be found!',
+                              );
+                            }
+                          },
+                        )),
                 ],
               );
             }).toList(),

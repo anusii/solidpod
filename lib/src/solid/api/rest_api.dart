@@ -43,6 +43,7 @@ import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
@@ -488,10 +489,14 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     // debugPrint('Files  : |${files.join(", ")}|');
 
     return (subDirs: subDirs, files: files);
+  } else if (profResponse.statusCode == 403) {
+    // If the server returned a 403 response,
+    // then throw a forbidden exception.
+    throw AccessForbiddenException('Access to resource denied!');
   } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to get resource list.');
+    // If the server did not return a 200 or 403 response,
+    // then trow a fail exception.
+    throw AccessFailedException('Access to resource failed!');
   }
 }
 
