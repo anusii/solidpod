@@ -76,21 +76,11 @@ Future<dynamic> grantPermission(
     try {
       await getKeyFromUserIfRequired(context, child);
 
-      var resourceUrl = '';
-
-      if (!isExternalRes) {
-        // Get the file path
-        final filePath = [await getDataDirPath(), fileName].join('/');
-
-        // Get the url of the resource
-        if (isFile) {
-          resourceUrl = await getFileUrl(filePath);
-        } else {
-          resourceUrl = await getDirUrl(filePath);
-        }
-      } else {
-        resourceUrl = fileName;
-      }
+      final resourceUrl = await filenameToResourceUrl(
+        fileName: fileName,
+        isExternalRes: isExternalRes,
+        isFile: isFile,
+      );
 
       // Initially check if the resource has a corresponding ACL file. If not
       // return an error.

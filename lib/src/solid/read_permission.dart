@@ -63,17 +63,11 @@ Future<dynamic> readPermission({
   if (loggedIn) {
     await getKeyFromUserIfRequired(context, child);
 
-    var resourceUrl = '';
-    if (!isExternalRes) {
-      // Get the file path
-      final filePath = [await getDataDirPath(), fileName].join('/');
-
-      // Get the url of the file
-      resourceUrl = await getFileUrl(filePath);
-    } else {
-      // Get the url of the file
-      resourceUrl = fileName;
-    }
+    final resourceUrl = await filenameToResourceUrl(
+      fileName: fileName,
+      isExternalRes: isExternalRes,
+      isFile: isFile,
+    );
 
     // Check if file exists
     final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);

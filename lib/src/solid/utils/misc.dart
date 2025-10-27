@@ -191,6 +191,39 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
         ? await _getResourceUrl(dirPath, true)
         : await _getResourceUrl(dirPath, true, extWebId);
 
+/// Get resource Url from a filename
+///
+/// Parameters:
+/// - [fileName] - name of file of interest.
+/// - [isExternal] - if is set to true, the file is an external file shared
+/// with the user and the[fileName] should be the full URL of the file.
+/// - [isFile] is the flag to identify if the resources is a file or not.
+/// If false the [fileName] is a directory.
+
+Future<String> filenameToResourceUrl({
+  required String fileName,
+  bool isExternalRes = false,
+  bool isFile = true,
+}) async {
+  final String resourceUrl;
+
+  if (!isExternalRes) {
+    // Get the file path
+    final filePath = [await getDataDirPath(), fileName].join('/');
+
+    // Get the url of the resource
+    if (isFile) {
+      resourceUrl = await getFileUrl(filePath);
+    } else {
+      resourceUrl = await getDirUrl(filePath);
+    }
+  } else {
+    resourceUrl = fileName;
+  }
+
+  return resourceUrl;
+}
+
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
   String filePath,

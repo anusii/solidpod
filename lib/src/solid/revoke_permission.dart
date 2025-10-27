@@ -74,23 +74,11 @@ Future<dynamic> revokePermission({
   if (loggedIn) {
     await getKeyFromUserIfRequired(context, child);
 
-    var resourceUrl = '';
-
-    if (!isExternalRes) {
-      // Get the file path
-      final filePath = [await getDataDirPath(), fileName].join('/');
-
-      // Get the url of the resource
-      if (isFile) {
-        resourceUrl = await getFileUrl(filePath);
-      } else {
-        resourceUrl = await getDirUrl(filePath);
-      }
-    } else {
-      resourceUrl = fileName;
-    }
-
-    // print(resourceUrl);
+    final resourceUrl = await filenameToResourceUrl(
+      fileName: fileName,
+      isExternalRes: isExternalRes,
+      isFile: isFile,
+    );
 
     // Check if file/directory exists
     final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
