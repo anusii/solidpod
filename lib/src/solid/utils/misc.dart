@@ -37,20 +37,20 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:crypto/crypto.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
+// import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
+import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
@@ -602,9 +602,16 @@ Future<void> deleteAclForResource(String resourceUrl) async {
   }
 }
 
-/// Delete a file with path [filePath], its ACL file, and its encryption key
-/// if exists.
+/// Delete a file and its associated resources. The file with path [filePath],
+/// its ACL file, and its encryption key (if exists) will be deleted.
 /// Throws an exception if the file does not exist or any error occurs.
+///
+/// Arguments:
+///
+/// - [filePath] - path of file to be deleted.
+/// - [contentType] - the type of content of the resource. Default:
+/// [ResourceContentType.turtleText].
+
 Future<void> deleteFile(
   String filePath, {
   ResourceContentType contentType = ResourceContentType.turtleText,
