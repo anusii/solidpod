@@ -44,14 +44,14 @@ import 'package:solidpod/src/solid/utils/snack_bar.dart';
 /// permission
 /// [onDeleteFuncion] is the function to be called on delete
 ///
-Widget buildPermDataTable(
-  BuildContext context,
-  String permDataResource,
-  bool isFile,
-  Map<dynamic, dynamic> permDataMap,
-  String ownerWebId,
-  Widget parentWidget,
-  Function onDeleteFuncion, {
+Widget buildPermDataTable({
+  required BuildContext context,
+  required String permDataResource,
+  required bool isFile,
+  required Map<dynamic, dynamic> permDataMap,
+  required String ownerWebId,
+  required Widget parentWidget,
+  required Function onDeleteFuncion,
   bool isExternalRes = false,
 }) {
   DataColumn buildDataColumn(String title, String tooltip) {
@@ -131,17 +131,18 @@ Widget buildPermDataTable(
                           TextButton(
                             onPressed: () async {
                               await revokePermission(
-                                permDataResource,
-                                isFile,
-                                permDataMap[index][permStr] as List,
-                                index,
-                                ownerWebId,
-                                getRecipientType(
+                                fileName: permDataResource,
+                                isFile: isFile,
+                                permissionList:
+                                    permDataMap[index][permStr] as List,
+                                removerWebId: index,
+                                ownerWebId: ownerWebId,
+                                recipientType: getRecipientType(
                                   permDataMap[index][agentStr] as String,
                                   index,
                                 ),
-                                context,
-                                parentWidget,
+                                context: context,
+                                child: parentWidget,
                                 isExternalRes: isExternalRes,
                               );
 

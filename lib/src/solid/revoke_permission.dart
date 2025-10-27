@@ -46,6 +46,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
 /// Revoke permissions from [fileName] for a given [removerWebId].
+///
 /// Parameters:
 ///   [fileName] is the name of the file revoking permission from. In case where
 ///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
@@ -55,17 +56,19 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 ///   [recipientType] is the type of the recipient
 ///   [child] is the child widget to return to
 
-Future<dynamic> revokePermission(
-  String fileName,
-  bool isFile,
-  List<dynamic> permissionList,
-  String removerWebId,
-  String ownerWebId,
-  RecipientType recipientType,
-  BuildContext context,
-  Widget child, {
+Future<dynamic> revokePermission({
+  required String fileName,
+  required bool isFile,
+  required List<dynamic> permissionList,
+  required String removerWebId,
+  required String ownerWebId,
+  required RecipientType recipientType,
+  required BuildContext context,
+  required Widget child,
   bool isExternalRes = false,
 }) async {
+  // debugPrint('[revokePermissions] revoking permissions for: $removerWebId');
+
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {

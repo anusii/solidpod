@@ -42,7 +42,8 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
-/// Read permission given for the [fileName].
+/// Read permission given for the [fileName] from the associated ACL file.
+///
 /// Parameters:
 ///   [fileName] is the name of the file reading permission from. In case where
 ///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
@@ -50,11 +51,11 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 ///   [child] is the child widget to return to
 ///   [isExternalRes] is set to true if reading permissions from an external file
 
-Future<dynamic> readPermission(
-  String fileName,
-  bool isFile,
-  BuildContext context,
-  Widget child, {
+Future<dynamic> readPermission({
+  required String fileName,
+  required bool isFile,
+  required BuildContext context,
+  required Widget child,
   bool isExternalRes = false,
 }) async {
   final loggedIn = await loginIfRequired(context);

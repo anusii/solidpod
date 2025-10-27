@@ -69,10 +69,10 @@ Future<Map<String, dynamic>> getAccessLists(
     // is a full file path, use isExternalRes true, to avoid
     // readPermission() prepending the filepath.
     final dynamic permList = await readPermission(
-      fileName,
-      isFile,
-      context,
-      child,
+      fileName: fileName,
+      isFile: isFile,
+      context: context,
+      child: child,
       isExternalRes: isExternalRes,
     );
     // Create empty map for each file if dataMap lacks file data

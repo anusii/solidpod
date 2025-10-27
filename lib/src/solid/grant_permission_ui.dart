@@ -216,10 +216,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Future<List<dynamic>> loadPodData() async {
     // ignore: use_build_context_synchronously
     final result = await readPermission(
-      widget.resourceName as String,
-      true,
-      context,
-      widget,
+      fileName: widget.resourceName as String,
+      isFile: true,
+      context: context,
+      child: widget,
       isExternalRes: widget.isExternalRes,
     );
     final webId = widget.isExternalRes
@@ -250,10 +250,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   // Get new permission and update the permission map
   Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
     final permissionMap = await readPermission(
-      fileName,
-      isFile,
-      context,
-      widget.child,
+      fileName: fileName,
+      isFile: isFile,
+      context: context,
+      child: widget.child,
       isExternalRes: widget.isExternalRes,
     );
     final webId = widget.isExternalRes
@@ -817,13 +817,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   Row(
                                     children: [
                                       buildPermDataTable(
-                                        context,
-                                        permDataFile,
-                                        widget.isFile ?? isFile,
-                                        permDataMap,
-                                        ownerWebId,
-                                        widget.child,
-                                        _updatePermissions,
+                                        context: context,
+                                        permDataResource: permDataFile,
+                                        isFile: widget.isFile ?? isFile,
+                                        permDataMap: permDataMap,
+                                        ownerWebId: ownerWebId,
+                                        parentWidget: widget.child,
+                                        onDeleteFuncion: _updatePermissions,
                                         isExternalRes: widget.isExternalRes,
                                       ),
                                       // Hspace to avoid vertical scrollbar overlap with table
