@@ -34,8 +34,10 @@ library;
 
 import 'package:flutter/material.dart' hide Key;
 
+import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 
 /// Get the access control list data of each file in a map of files, ie. webIDs and
 /// their access permission for each of the files in a map of data files [dataMap].
@@ -68,20 +70,30 @@ Future<Map<String, dynamic>> getAccessLists(
     // 20250726 jm: While not an external file, as the file
     // is a full file path, use isExternalRes true, to avoid
     // readPermission() prepending the filepath.
-    final dynamic permList = await readPermission(
+    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
       fileName: fileName,
       isFile: isFile,
       context: context,
       child: child,
-      isExternalRes: isExternalRes,
     );
-    // Create empty map for each file if dataMap lacks file data
-    if (!dataMap.containsKey(fileName)) {
+    if (response == SolidFunctionCallStatus.aclFound) {
+      final dynamic permList = await readPermission(
+        fileName: fileName,
+        isFile: isFile,
+        isExternalRes: isExternalRes,
+      );
+      // Create empty map for each file if dataMap lacks file data
+      if (!dataMap.containsKey(fileName)) {
+        dataMap[fileName] = {};
+        continue;
+      }
+
+      // Add recipients map to dataMap
+      dataMap[fileName][authUserPred] = permList;
+    } else {
+      // Create empty map for each file if acl does not exist
       dataMap[fileName] = {};
     }
-
-    // Add recipients map to dataMap
-    dataMap[fileName][authUserPred] = permList;
   }
 
   return dataMap;

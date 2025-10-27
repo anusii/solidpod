@@ -78,8 +78,6 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
       final dynamic permDataMap = await readPermission(
         fileName: fileName,
         isFile: isFile,
-        context: context,
-        child: child,
         isExternalRes: isExternalRes,
       );
 

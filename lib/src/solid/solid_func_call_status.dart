@@ -40,7 +40,10 @@ enum SolidFunctionCallStatus {
   notInitialised('notInitialised'),
 
   /// When there is no corresponding ACl file
-  noAclFound('noAclFound');
+  noAclFound('noAclFound'),
+
+  /// When corresponding ACL file found
+  aclFound('AclFound');
 
   /// Constructor
   const SolidFunctionCallStatus(this.value);
