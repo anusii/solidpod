@@ -32,8 +32,9 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidui/solidui.dart' show SolidLogin;
+
 import 'package:solidpod/src/screens/initial_setup/initial_setup_screen_body.dart';
-import 'package:solidpod/src/solid/login.dart';
 
 /// Numeric variables used in initial setup page.
 

@@ -150,7 +150,7 @@ dependencies:
 ```
 <!-- TODO dc: Refer to keypod as the example? -->
 An example project that uses `solidpod` can be found
-in the [demopod](https://github.com/anusii/solidpod/tree/dev/demopod)
+in the [example](https://github.com/anusii/solidpod/tree/dev/example)
 folder of the git repository.
 
 <!-- TODO: List prerequisites and provide or pointer to information on how

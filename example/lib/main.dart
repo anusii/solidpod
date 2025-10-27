@@ -27,8 +27,9 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/solidpod.dart';
 import 'package:window_manager/window_manager.dart';
+
+import 'package:solidui/solidui.dart' show SolidLogin, InfoButtonStyle;
 
 import 'package:demopod/home.dart';
 import 'package:demopod/utils/is_desktop.dart';

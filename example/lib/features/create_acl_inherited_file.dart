@@ -165,7 +165,14 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
                     _isEncrypted = value;
                   });
                 },
-                activeThumbColor: Colors.green,
+                thumbColor: WidgetStateProperty.resolveWith<Color?>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return Colors.green;
+                    }
+                    return null;
+                  },
+                ),
               ),
               const SizedBox(height: 24),
 

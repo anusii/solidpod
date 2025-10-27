@@ -11,6 +11,9 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ Read shared resource with inheritance [0.7.16 20251027 anushkavidanage]
++ Migrate SolidLogin to solidui [0.7.15 20251027 tonypioneer]
++ Support single key encryption for a folder [0.7.14 20251027 anushkavidanage]
 + Bug fix readPermission [0.7.13 20251008 jesscmoore]
 + Support ACL with 403 return messages [0.7.12 20250926 jesscmoore]
 + AuthManager compatible solid-auth changes [0.7.11 20250924 anushkavidanage]
