@@ -30,6 +30,8 @@
 
 library;
 
+// import 'package:flutter/material.dart';
+
 // 20250915 TODO These constants should be inside a constants structure to avoid
 // name conflicts?
 
@@ -129,6 +131,11 @@ export 'src/solid/read_permission.dart';
 /// The function to revoke permission from a given resource
 
 export 'src/solid/revoke_permission.dart';
+
+/// The function to revoke permission to all recipients of
+/// a given resource
+
+export 'src/solid/revoke_permission_to_recipients.dart';
 
 /// Functions to upload, download, and delete large file from a Solid server
 
