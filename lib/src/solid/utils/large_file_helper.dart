@@ -161,8 +161,10 @@ Future<void> send({
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
   final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
-  if (await checkResourceStatus(fileUrl) == ResourceStatus.exist ||
-      await checkResourceStatus(chunkDirUrl) == ResourceStatus.exist) {
+  if (await checkResourceStatus(fileUrl, isFile: true) ==
+          ResourceStatus.exist ||
+      await checkResourceStatus(chunkDirUrl, isFile: false) ==
+          ResourceStatus.exist) {
     throw Exception('ERROR: $remoteFileName already exists.');
   }
 
@@ -290,8 +292,10 @@ Stream<List<int>> fetch({
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
   final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
-  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist ||
-      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
+  if (await checkResourceStatus(fileUrl, isFile: true) !=
+          ResourceStatus.exist ||
+      await checkResourceStatus(chunkDirUrl, isFile: false) !=
+          ResourceStatus.exist) {
     throw Exception('Failed to get the requested file "$remoteFileName');
   }
 
@@ -358,8 +362,10 @@ Future<void> deleteLargeFile({
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
   final fileUrl = await getFileUrl('$remoteFilePath.ttl');
 
-  if (await checkResourceStatus(fileUrl) != ResourceStatus.exist &&
-      await checkResourceStatus(chunkDirUrl) != ResourceStatus.exist) {
+  if (await checkResourceStatus(fileUrl, isFile: true) !=
+          ResourceStatus.exist &&
+      await checkResourceStatus(chunkDirUrl, isFile: false) !=
+          ResourceStatus.exist) {
     debugPrint('The requested file does not exist.');
     return;
   }

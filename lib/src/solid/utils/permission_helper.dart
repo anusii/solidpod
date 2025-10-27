@@ -308,7 +308,10 @@ ElevatedButton getRetrieveButton(
   BuildContext context,
   String fileName,
   bool isFile, {
-  required Future<void> Function(String, bool) onRetrieve,
+  required Future<void> Function(
+    String, {
+    bool isFile,
+  }) onRetrieve,
 }) =>
     ElevatedButton(
       child: const Text('Retrieve permissions'),
@@ -316,7 +319,7 @@ ElevatedButton getRetrieveButton(
         if (fileName.isEmpty) {
           await alert(context, 'Please enter a file name');
         } else {
-          await onRetrieve(fileName, isFile);
+          await onRetrieve(fileName, isFile: isFile);
         }
       },
     );

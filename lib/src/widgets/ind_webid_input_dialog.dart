@@ -195,6 +195,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
             // User has entered WebId text that satisfies error checks
             if (receiverWebId.isNotEmpty && _helpText == null) {
               // Check WebId exists
+
               if (await checkResourceStatus(receiverWebId) ==
                   ResourceStatus.exist) {
                 // Save provided WebId

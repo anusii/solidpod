@@ -243,7 +243,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   }
 
   // Get new permission and update the permission map
-  Future<void> _updatePermissions(String fileName, [bool isFile = true]) async {
+  Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
     final pdata = await _loadPodData(fileName, widget.child, isFile: isFile);
     final permissionMap = pdata.first;
 
@@ -401,7 +401,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
               if (result == SolidFunctionCallStatus.success) {
                 if (!context.mounted) return;
                 showSnackBar(context, successMsg, Colors.green);
-                await _updatePermissions(dataFile, isFile);
+                await _updatePermissions(dataFile, isFile: isFile);
 
                 // Mark permissions as granted successfully for callback tracking
                 setState(() => permissionsGrantedSuccessfully = true);
@@ -410,13 +410,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 widget.onPermissionGranted?.call();
               } else if (result == SolidFunctionCallStatus.fail) {
                 if (!context.mounted) return;
-                // More detailed error message with troubleshooting tips
-                showSnackBar(context, failureMsg, Colors.red);
 
                 // Also log to console for debugging
                 printFailure(dataFile);
                 printRecipients(finalWebIdList);
                 printPermissions(selectedPermList);
+
+                // More detailed error message with troubleshooting tips
+                showSnackBar(context, failureMsg, Colors.red);
               } else if (result == SolidFunctionCallStatus.notInitialised) {
                 if (!context.mounted) return;
                 showSnackBar(context, podNotInitMsg, warnBgColor);
