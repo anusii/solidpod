@@ -84,6 +84,13 @@ Future<SolidFunctionCallStatus> writePod(
     return SolidFunctionCallStatus.notLoggedIn;
   }
 
+  // Normalise the file path using the specified base path
+  // or default to appname/data, and handle cross-platform path separators properly.
+
+  final normalizedFilePath = await normalizeFilePath(fileName, basePath);
+  final fileUrl = await getFileUrl(normalizedFilePath);
+  final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
+
   // If file is inherited then check if parent directory exists. If not create
   // parent directory
   if (inheritedFrom != null) {
@@ -93,6 +100,29 @@ Future<SolidFunctionCallStatus> writePod(
     if (!normalizedDirPath.endsWith('/')) {
       normalizedDirPath += '/';
     }
+
+    // Check if parent directory path is compatible. Two checks are conducted
+    //    1. If the parent diretory is the last directory in the file path
+    //    2. If above fails check whether there are any other directories (in
+    //       the file path) that comes after the parent directory, but also
+    //       defined as a parent directory for other resources.
+    //       Eg: creating the resource data/dir1/dir2/abc.ttl with parent
+    //           directory data/dir1, but data/dir1/dir2 is already a parent
+    //           directory to some other resource/s.
+
+    final subPaths = buildPathSegments(normalizedFilePath);
+
+    // Check 1
+    if (subPaths.last != normalizedDirPath) {
+      // Check 2
+      if (await includeParentDir(subPaths, normalizedDirPath)) {
+        throw Exception(
+          'Cannot use the parent directory $normalizedDirPath. There is another '
+          'directory at a lower level with its own ACL.',
+        );
+      }
+    }
+
     final parentDirUrl = await getDirUrl(normalizedDirPath);
 
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
@@ -137,13 +167,6 @@ Future<SolidFunctionCallStatus> writePod(
 
   // Check if the file already exists
   // The file should exist if its individual key exists
-
-  // Normalise the file path using the specified base path
-  // or default to appname/data, and handle cross-platform path separators properly.
-
-  final normalizedFilePath = await normalizeFilePath(fileName, basePath);
-  final fileUrl = await getFileUrl(normalizedFilePath);
-  final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
