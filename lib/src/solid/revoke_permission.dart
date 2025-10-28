@@ -90,8 +90,8 @@ Future<dynamic> revokePermission(
     resourceUrl = fileName;
   }
 
-    // Check if file/directory exists
-    final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
+  // Check if file/directory exists
+  final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
   if (resStatus == ResourceStatus.exist) {
     // Common list of remover IDs to process further

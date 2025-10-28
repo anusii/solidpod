@@ -74,27 +74,27 @@ Future<dynamic> readExternalPod(
       // Get master key from the user if required
       await getKeyFromUserIfRequired(context, child);
 
-        Key? indKey;
+      Key? indKey;
 
-        // Decrypt if reading an encrypted file
-        if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-          // Get the individual key for the file
-          indKey = await KeyManager.getSharedIndividualKey(fileUrl);
-        } else if (hasInheritedKey(
+      // Decrypt if reading an encrypted file
+      if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
+        // Get the individual key for the file
+        indKey = await KeyManager.getSharedIndividualKey(fileUrl);
+      } else if (hasInheritedKey(
+        fileContent,
+        fileUrl,
+      )) {
+        // Get the individual key for the file
+        final parentDirPath = getParentDir(
           fileContent,
           fileUrl,
-        )) {
-          // Get the individual key for the file
-          final parentDirPath = getParentDir(
-            fileContent,
-            fileUrl,
-          );
-          final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
-          indKey = await KeyManager.getSharedIndividualKey(parentDirUrl);
-        }
+        );
+        final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
+        indKey = await KeyManager.getSharedIndividualKey(parentDirUrl);
+      }
 
-        if (indKey != null) {
-          // Decrypt the file content
+      if (indKey != null) {
+        // Decrypt the file content
 
         final dataMap = parseTTL(fileContent);
         assert(dataMap.containsKey(fileUrl));
