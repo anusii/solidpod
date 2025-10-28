@@ -36,6 +36,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/utils/inheritance_func.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -83,6 +84,9 @@ Future<SolidFunctionCallStatus> writePod(
   if (!loggedIn) {
     return SolidFunctionCallStatus.notLoggedIn;
   }
+
+  // Get the security key from user if required
+  await getKeyFromUserIfRequired(context, child);
 
   // Normalise the file path using the specified base path
   // or default to appname/data, and handle cross-platform path separators properly.
@@ -150,9 +154,40 @@ Future<SolidFunctionCallStatus> writePod(
           isFile: false,
         );
       case ResourceStatus.exist:
-        debugPrint(
-          'Directory "$parentDirUrl" exists. Continuing the process...',
-        );
+        print('here1');
+        // If the parent directory already exisits then we need to check its
+        // compatibility to be a parent directory.
+        //  - If the directory already has a key, then its compatible
+        //  - If not, then check for any resources inside the directory that
+        //    points to other parent directories. If the directory is empty or
+        //    there are no other inherited resources then its compatible.
+        final ihtCompatibile = await ihtCompatibility(parentDirUrl);
+
+        if (ihtCompatibile == InheritanceCompatibility.compatibleWithKey) {
+          debugPrint(
+            'Directory "$parentDirUrl" exists with a key. Continuing the process...',
+          );
+        } else if (ihtCompatibile ==
+            InheritanceCompatibility.compatibleWithoutKey) {
+          // Create an ACL file for the directory
+          final aclFileUrl = '$parentDirUrl/.acl';
+          await createResource(
+            aclFileUrl,
+            content: await genAclTurtle(parentDirUrl, isFile: false),
+          );
+
+          // Create a new key for the directory
+          await KeyManager.addIndividualKey(
+            normalizedDirPath,
+            genRandIndividualKey(),
+            isFile: false,
+          );
+        } else {
+          throw Exception(
+            'Incompatible parent directory "$parentDirUrl". Please re-check',
+          );
+        }
+
         break;
       case ResourceStatus.unknown:
         throw Exception(
