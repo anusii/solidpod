@@ -132,11 +132,6 @@ export 'src/solid/read_permission.dart';
 
 export 'src/solid/revoke_permission.dart';
 
-/// The function to revoke permission to all recipients of
-/// a given resource
-
-export 'src/solid/revoke_permission_to_recipients.dart';
-
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
