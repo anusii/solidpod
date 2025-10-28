@@ -47,17 +47,20 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 ///
 /// -[fileName] - is the name of the file that permissions are being
 /// revoked from.
+/// - [isFile] - flag describing whether the resources is a file or not.
+/// (Default: true).
+/// - [isFilePath] - flag describing whether the resource [fileName] includes
+/// the app data directory. (Default: false).
+/// - [isFileUrl] - flag describing whether the resource [fileName] is the
+/// resource url. (Default: false).
 /// - [isExternalRes] - boolean describing whether the file is an
-/// external file shared to the user. Where it is set to true, [fileName] should be the full URL of the file.
-/// - [isFile] - is the flag to identify if the resources is a file or not.
-/// - [context] - is the build context.
-/// - [child] - is the child widget to return to.
+/// external file shared to the user. Where it is set to true, [fileName] should be the full URL of the file. (Default: false).
 
 Future<SolidFunctionCallStatus> revokePermissionToRecipients({
   required String fileName,
   bool isFile = true,
-  required BuildContext context,
-  required Widget child,
+  bool isFilePath = false,
+  bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
   if (!isExternalRes) {
@@ -74,10 +77,11 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
       final webIdList = <String>[];
 
       // Obtain access permissions from resource ACL
-      if (!context.mounted) return SolidFunctionCallStatus.fail;
       final dynamic permDataMap = await readPermission(
         fileName: fileName,
         isFile: isFile,
+        isFilePath: isFilePath,
+        isFileUrl: isFileUrl,
         isExternalRes: isExternalRes,
       );
 
@@ -92,7 +96,6 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
       final List<String> uniqueWebIdList = webIdList.toSet().toList();
       recipientWebIdList = uniqueWebIdList;
       recipientWebIdList.removeWhere((element) => element == userWebId);
-      // debugPrint('Unique webIDs: $uniqueWebIdList');
 
       if (recipientWebIdList.isNotEmpty) {
         debugPrint(
@@ -100,21 +103,20 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
         );
 
         // Revoke permission for recipients
-        if (!context.mounted) return SolidFunctionCallStatus.fail;
         for (final recipientWebId in recipientWebIdList) {
           debugPrint('Revoking permission for $recipientWebId...');
           await revokePermission(
             fileName: fileName,
             isFile: isFile,
+            isFilePath: isFilePath,
+            isFileUrl: isFileUrl,
             permissionList: permDataMap[recipientWebId][permStr] as List,
-            removerWebId: recipientWebId,
+            removerIndOrGroupWebId: recipientWebId,
             ownerWebId: userWebId,
             recipientType: getRecipientType(
               permDataMap[recipientWebId][agentStr] as String,
               recipientWebId,
             ),
-            context: context,
-            child: child,
             isExternalRes: isExternalRes,
           );
         }

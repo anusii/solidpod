@@ -38,20 +38,21 @@ import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-// import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-// import 'package:solidpod/src/solid/utils/permission.dart';
 
 /// Check [fileName] exists and has the associated ACL file. Requires user
 /// to be logged in.
 ///
 /// Parameters:
-///   [fileName] is the name of the file reading permission from. In case where
-///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
-///   [isFile] is the flag to identify if the resources is a file or not
-///   [child] is the child widget to return to
-///   [isExternalRes] is set to true if reading permissions from an external file
+/// - [fileName] - is the name of the file to reading permission from.
+/// - [isFile] - flag describing whether the resources is a file or not.
+/// (Default: false).
+/// - [isFileUrl] - flag describing whether the resource [fileName] is
+/// the url of the resource. (Default: false).
+/// - [isExternalRes] - flag describing whether the resource is an
+/// external file shared with the user. (Default: false).
+/// - [child] - is the child widget to return to.
 /// - [context] - The build context.
 
 Future<dynamic> chkExistsAndHasAcl({
@@ -59,6 +60,7 @@ Future<dynamic> chkExistsAndHasAcl({
   required bool isFile,
   required BuildContext context,
   required Widget child,
+  bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
   final loggedIn = await loginIfRequired(context);
@@ -68,6 +70,7 @@ Future<dynamic> chkExistsAndHasAcl({
 
     final resourceUrl = await filenameToResourceUrl(
       fileName: fileName,
+      isFileUrl: isFileUrl,
       isExternalRes: isExternalRes,
       isFile: isFile,
     );

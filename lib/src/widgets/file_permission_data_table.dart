@@ -26,8 +26,9 @@
 
 library;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Key;
 
+import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -130,26 +131,33 @@ Widget buildPermDataTable({
                           // The "Yes" button
                           TextButton(
                             onPressed: () async {
-                              await revokePermission(
-                                fileName: permDataResource,
-                                isFile: isFile,
-                                permissionList:
-                                    permDataMap[index][permStr] as List,
-                                removerWebId: index,
-                                ownerWebId: ownerWebId,
-                                recipientType: getRecipientType(
-                                  permDataMap[index][agentStr] as String,
-                                  index,
-                                ),
-                                context: context,
-                                child: parentWidget,
-                                isExternalRes: isExternalRes,
-                              );
+                              final loggedIn = await loginIfRequired(context);
+
+                              if (loggedIn && ctx.mounted) {
+                                await getKeyFromUserIfRequired(
+                                  ctx,
+                                  parentWidget,
+                                );
+
+                                await revokePermission(
+                                  fileName: permDataResource,
+                                  isFile: isFile,
+                                  permissionList:
+                                      permDataMap[index][permStr] as List,
+                                  removerIndOrGroupWebId: index,
+                                  ownerWebId: ownerWebId,
+                                  recipientType: getRecipientType(
+                                    permDataMap[index][agentStr] as String,
+                                    index,
+                                  ),
+                                  isExternalRes: isExternalRes,
+                                );
+                              }
 
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
                               }
-                              if (context.mounted) {
+                              if (ctx.mounted) {
                                 showSnackBar(
                                   context,
                                   'Permission revoked successfully!',

@@ -48,6 +48,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/permission.dart';
@@ -191,25 +192,46 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
         ? await _getResourceUrl(dirPath, true)
         : await _getResourceUrl(dirPath, true, extWebId);
 
-/// Get resource Url from a filename
+/// Get resource Url from a filename, with different options for how
+/// the filename is provided. If [isExternalRes] or [isFileUrl] is
+/// set to true, the filename is already the resource url and is
+/// returned unchanged.
 ///
 /// Parameters:
 /// - [fileName] - name of file of interest.
-/// - [isExternal] - if is set to true, the file is an external file shared
-/// with the user and the[fileName] should be the full URL of the file.
-/// - [isFile] is the flag to identify if the resources is a file or not.
-/// If false the [fileName] is a directory.
+/// - [isFile] - flag describing whether the resources is a file or not.
+/// If false the [fileName] is a directory. (Default: true).
+/// - [isFilePath] - flag describing whether [fileName] includes the
+/// directory data path. (Default: false).
+/// - [isFileUrl] - flag describing whether [fileName] is the url of the
+/// file. (Default: false).
+/// - [isExternalRes] - flag describing whether the file is an external
+/// file shared with the user. In which case the [fileName] should be
+/// the full URL of the file. (Default: false).
 
 Future<String> filenameToResourceUrl({
   required String fileName,
-  bool isExternalRes = false,
   bool isFile = true,
+  bool isFilePath = false,
+  bool isFileUrl = false,
+  bool isExternalRes = false,
 }) async {
   final String resourceUrl;
+  final String filePath;
 
-  if (!isExternalRes) {
+  // Note: external resources always specified by url
+  if (isExternalRes) {
+    isFileUrl = true;
+  }
+
+  // If not already a url, get url
+  if (!isExternalRes && !isFileUrl) {
     // Get the file path
-    final filePath = [await getDataDirPath(), fileName].join('/');
+    if (!isFilePath) {
+      filePath = [await getDataDirPath(), fileName].join('/');
+    } else {
+      filePath = fileName;
+    }
 
     // Get the url of the resource
     if (isFile) {
@@ -218,6 +240,7 @@ Future<String> filenameToResourceUrl({
       resourceUrl = await getDirUrl(filePath);
     }
   } else {
+    // Use fileName, fileName already the resource url
     resourceUrl = fileName;
   }
 
@@ -634,13 +657,18 @@ Future<void> deleteAclForResource(String resourceUrl) async {
   }
 }
 
-/// Delete a file and its associated resources. The file with path [filePath],
+/// Delete a file and its associated resources, after first revoking
+/// external access to the file. The file with path [filePath],
 /// its ACL file, and its encryption key (if exists) will be deleted.
+/// The permission logs of any recipients to the file, will also be
+/// updated with a log line recording that permissions have been
+/// revoked.
 /// Throws an exception if the file does not exist or any error occurs.
 ///
 /// Arguments:
 ///
-/// - [filePath] - path of file to be deleted.
+/// - [filePath] - path of file to be deleted. Where [filePath] is the
+/// app data directory and the filename.
 /// - [contentType] - the type of content of the resource. Default:
 /// [ResourceContentType.turtleText].
 
@@ -648,6 +676,15 @@ Future<void> deleteFile(
   String filePath, {
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
+  // Revoke permission to recipients:
+  // to avoid the permission log of recipients still
+  // showing the recipient as having access to the
+  // file that is being deleted
+  await revokePermissionToRecipients(
+    fileName: filePath,
+    isFilePath: true,
+  );
+
   final fileUrl = await getFileUrl(filePath);
   await deleteResource(fileUrl, contentType);
   await deleteAclForResource(fileUrl);

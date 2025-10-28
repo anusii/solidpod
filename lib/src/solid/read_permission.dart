@@ -26,8 +26,6 @@
 ///
 /// Authors: Anushka Vidanage, Jess Moore
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'dart:core';
@@ -38,21 +36,30 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 /// Read permission given for the [fileName] from the associated ACL file.
 ///
 /// Parameters:
-/// - [fileName] - is the name of the file reading permission from. In case where
-/// - [isExternalRes] - is boolean describing whether [fileName] is an
+/// - [fileName] - is the name of the file reading permission from.
+/// - [isFile] - flag describing whether [fileName] is a file or not.
+///
+/// - [isFilePath] - is boolean describing whether [fileName] is the file
+/// path, ie. whether includes the app data directory. Default: false.
+/// - [isFileUrl] - boolean describing whether [fileName] is the url
+/// of the resource. Default: false.
+/// - [isExternalRes] - flag describing whether [fileName] is an
 /// external resource shared with the user. If it is set to true, the
-/// [fileName] should be the full URL of the file.
-/// - [isFile] - boolean describing whether [fileName] is a file or not.
+/// [fileName] should be the full URL of the file. Default: false.
 
 Future<Map<dynamic, dynamic>> readPermission({
   required String fileName,
   required bool isFile,
+  bool isFilePath = false,
+  bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
-    isExternalRes: isExternalRes,
     isFile: isFile,
+    isExternalRes: isExternalRes,
+    isFilePath: isFilePath,
+    isFileUrl: isFileUrl,
   );
 
   // Read ACL file content
