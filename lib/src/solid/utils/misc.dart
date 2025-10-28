@@ -192,6 +192,22 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
         ? await _getResourceUrl(dirPath, true)
         : await _getResourceUrl(dirPath, true, extWebId);
 
+/// Derive external POD inherited parent directory url from the resource url
+/// and parent directory path
+String getExtDirUrl(String resourceUrl, String dirPath) {
+  int pathIndex = resourceUrl.indexOf(dirPath);
+
+  String dirUrl = '';
+  if (pathIndex != -1) {
+    dirUrl = resourceUrl.substring(0, pathIndex + dirPath.length);
+    if (!dirUrl.endsWith('/')) {
+      dirUrl += '/';
+    }
+  }
+
+  return dirUrl;
+}
+
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
   String filePath,
