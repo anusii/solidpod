@@ -2,24 +2,29 @@
 ///
 // Time-stamp: <Sunday 2024-07-11 12:55:00 +1000 Anushka Vidange>
 ///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
-/// Licensed under the GNU General Public License, Version 3 (the "License").
+/// Licensed under the MIT License (the "License").
 ///
-/// License: https://opensource.org/license/gpl-3-0.
+/// License: https://choosealicense.com/licenses/mit/.
 //
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the GNU General Public License as published by the Free Software
-// Foundation, either version 3 of the License, or (at your option) any later
-// version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This program is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-// details.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU General Public License along with
-// this program.  If not, see <https://opensource.org/license/gpl-3-0>.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 ///
 ///
 /// Authors: Anushka Vidanage
@@ -29,10 +34,12 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/widgets/file_explorer.dart';
 
 /// Build the permission table widget. Function call requires the
 /// following inputs
@@ -96,7 +103,7 @@ Widget buildSharedResourcesTable(
               buildDataColumn('Owner', 'Resource owner WebID'),
               buildDataColumn('Granter', 'Permission granter WebID'),
               buildDataColumn('Permissions', 'List of permissions given'),
-              buildDataColumn('View', 'View file'),
+              buildDataColumn('View/Open', 'View file'),
             ],
             rows: sharedResMap.keys.map((index) {
               return DataRow(
@@ -136,58 +143,102 @@ Widget buildSharedResourcesTable(
                         as String,
                   ),
                   DataCell(
-                    IconButton(
-                      icon: const Icon(
-                        Icons.visibility,
-                        size: 24.0,
-                        color: Colors.blueAccent,
-                      ),
-                      onPressed: () async {
-                        // Get file content
-                        final fileContent =
-                            await readExternalPod(index, context, parentWidget);
-
-                        if (fileContent != null &&
-                            fileContent !=
-                                SolidFunctionCallStatus.notLoggedIn) {
-                          if (!context.mounted) return;
-                          await showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: const Text('File content'),
-                              content: Stack(
-                                alignment: Alignment.center,
-                                children: <Widget>[
-                                  Container(
-                                    width: double.infinity,
-                                    height: 300,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    child: Text(fileContent as String),
-                                  ),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Close the dialog
-                                    Navigator.of(ctx).pop();
-                                  },
-                                  child: const Text('Ok'),
-                                ),
-                              ],
+                    isDir(index)
+                        ? IconButton(
+                            icon: const Icon(
+                              Icons.folder_open_outlined,
+                              size: 24.0,
+                              color: Colors.blueAccent,
                             ),
-                          );
-                        } else {
-                          if (!context.mounted) return;
-                          await alert(
-                            context,
-                            'The file $index could not be found!',
-                          );
-                        }
-                      },
-                    ),
+                            onPressed: () async {
+                              if (!sharedResMap[index]
+                                      [PermissionLogLiteral.permissions]
+                                  .contains('read')) {
+                                await alert(
+                                  context,
+                                  'You do not have read permission to this resource!',
+                                );
+                              } else {
+                                bool isEditable = [
+                                  AccessMode.write.mode,
+                                  AccessMode.control.mode,
+                                ].any(
+                                  (mode) => sharedResMap[index]
+                                          [PermissionLogLiteral.permissions]
+                                      .contains(mode.toLowerCase()),
+                                );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FileExplorerScreen(
+                                      folderPath: index,
+                                      isEditable: isEditable,
+                                      ownerWebId: sharedResMap[index]
+                                              [PermissionLogLiteral.owner]
+                                          as String,
+                                      child: parentWidget,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          )
+                        : IconButton(
+                            icon: const Icon(
+                              Icons.visibility,
+                              size: 24.0,
+                              color: Colors.blueAccent,
+                            ),
+                            onPressed: () async {
+                              // Get file content
+                              final fileContent = await readExternalPod(
+                                index,
+                                context,
+                                parentWidget,
+                              );
+
+                              if (fileContent != null &&
+                                  fileContent !=
+                                      SolidFunctionCallStatus.notLoggedIn) {
+                                if (!context.mounted) return;
+                                await showDialog(
+                                  context: context,
+                                  builder: (ctx) => AlertDialog(
+                                    title: const Text('File content'),
+                                    content: Stack(
+                                      alignment: Alignment.center,
+                                      children: <Widget>[
+                                        Container(
+                                          width: double.infinity,
+                                          height: 300,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                          child: Text(fileContent as String),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          // Close the dialog
+                                          Navigator.of(ctx).pop();
+                                        },
+                                        child: const Text('Ok'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                if (!context.mounted) return;
+                                await alert(
+                                  context,
+                                  'The file $index could not be found!',
+                                );
+                              }
+                            },
+                          ),
                   ),
                 ],
               );

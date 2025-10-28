@@ -247,6 +247,22 @@ Future<String> filenameToResourceUrl({
   return resourceUrl;
 }
 
+/// Derive external POD inherited parent directory url from the resource url
+/// and parent directory path
+String getExtDirUrl(String resourceUrl, String dirPath) {
+  int pathIndex = resourceUrl.indexOf(dirPath);
+
+  String dirUrl = '';
+  if (pathIndex != -1) {
+    dirUrl = resourceUrl.substring(0, pathIndex + dirPath.length);
+    if (!dirUrl.endsWith('/')) {
+      dirUrl += '/';
+    }
+  }
+
+  return dirUrl;
+}
+
 /// Encrypt a given data string and format to TTL
 Future<String> getEncTTLStr(
   String filePath,
@@ -759,5 +775,14 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
     // Prepend the base path.
 
     return [effectiveBasePath, normalizedInput].join('/');
+  }
+}
+
+/// Check if a given path string is a directory or not
+bool isDir(String path) {
+  if (path.endsWith('/') || !path.contains('.')) {
+    return true;
+  } else {
+    return false;
   }
 }

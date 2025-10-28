@@ -1,8 +1,6 @@
-/// A default app bar.
+/// Custom exception classes
 ///
-// Time-stamp: <Sunday 2024-07-11 12:55:00 +1000 Anushka Vidange>
-///
-/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -26,26 +24,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-///
-/// Authors: Dawei Chen, Anushka Vidanage
+/// Authors: Anushka Vidanage
 
 library;
 
-import 'package:flutter/material.dart';
+class AccessForbiddenException implements Exception {
+  final String message;
 
-/// A snack bar to show a custom message on screen
-/// A customised background color and duration can be used
-void showSnackBar(
-  BuildContext context,
-  String msg,
-  Color bgColor, {
-  Duration duration = const Duration(seconds: 4),
-}) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(msg),
-      backgroundColor: bgColor,
-      duration: duration,
-    ),
-  );
+  AccessForbiddenException(this.message);
+
+  @override
+  String toString() => 'AccessForbiddenException: $message';
+}
+
+class AccessFailedException implements Exception {
+  final String message;
+
+  AccessFailedException(this.message);
+
+  @override
+  String toString() => 'AccessFailedException: $message';
 }
