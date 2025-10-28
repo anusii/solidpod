@@ -26,8 +26,6 @@
 ///
 /// Authors: Anushka Vidanage
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'dart:core';
@@ -46,6 +44,7 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Grant permission to [fileName] for a given [recipientWebIdList].
+///
 /// Parameters:
 ///   [fileName] is the name of the file providing permission to. In case where
 ///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
@@ -58,7 +57,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 ///   [isExternalRes] is the flag to identify if the resource is external
 ///   [groupName] is the name of the group permission
 
-Future<dynamic> grantPermission(
+Future<SolidFunctionCallStatus> grantPermission(
   String fileName,
   bool isFile,
   List<dynamic> permissionList,
@@ -70,10 +69,12 @@ Future<dynamic> grantPermission(
   bool isExternalRes = false,
   String? groupName,
 }) async {
+  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
     try {
+      if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
       await getKeyFromUserIfRequired(context, child);
 
       final resourceUrl = await filenameToResourceUrl(

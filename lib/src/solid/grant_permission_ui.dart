@@ -376,7 +376,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     });
   }
 
+  // Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
+
+  // Private function to show snackbar in grant permission UI context
+  Future<void> _showSnackBar(
+    String msg,
+    Color bgColor, {
+    Duration duration = const Duration(seconds: 4),
+  }) async =>
+      showSnackBar(context, msg, bgColor, duration: duration);
 
   /// Build the main widget
   Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
@@ -732,7 +741,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       final isFileFlag =
                                           widget.isFile ?? isFile;
 
-                                      SolidFunctionCallStatus? result;
+                                      SolidFunctionCallStatus result;
                                       try {
                                         result = await grantPermission(
                                           dataFile,
@@ -749,7 +758,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                               ? formControllerGroupName.text
                                                   .trim()
                                               : null,
-                                        ) as SolidFunctionCallStatus?;
+                                        );
                                       } on Object catch (e, stackTrace) {
                                         debugPrint(
                                           '💥 [GrantPermissionUI] Exception in grantPermission: $e',
@@ -762,9 +771,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                                       if (result ==
                                           SolidFunctionCallStatus.success) {
-                                        if (!context.mounted) return;
-                                        showSnackBar(
-                                          context,
+                                        _showSnackBar(
                                           'File access permissions granted successfully!',
                                           Colors.green,
                                         );
@@ -782,11 +789,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         widget.onPermissionGranted?.call();
                                       } else if (result ==
                                           SolidFunctionCallStatus.fail) {
-                                        if (!context.mounted) return;
-
                                         // More detailed error message with troubleshooting tips
-                                        showSnackBar(
-                                          context,
+                                        _showSnackBar(
                                           'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.',
                                           Colors.red,
                                         );
@@ -804,9 +808,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       } else if (result ==
                                           SolidFunctionCallStatus
                                               .notInitialised) {
-                                        if (!context.mounted) return;
-                                        showSnackBar(
-                                          context,
+                                        _showSnackBar(
                                           'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.',
                                           const Color.fromARGB(255, 204, 99, 1),
                                         );
