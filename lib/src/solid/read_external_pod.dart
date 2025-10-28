@@ -42,10 +42,15 @@ import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read file content from a POD
+/// Read [fileUrl] from an external POD with file [mode] (default is text).
 ///
-/// First check if the user is logged in and then
-/// read and parse the file content
+/// We first check if the user is logged in and then read and parse the file
+/// content.
+///
+/// [fileUrl] - The path to the external file to read
+/// [context] - The build context
+/// [child] - The child widget
+/// [mode] - The file open mode (default: text)
 
 Future<dynamic> readExternalPod(
   String fileUrl,
@@ -69,11 +74,26 @@ Future<dynamic> readExternalPod(
         // Get master key from the user if required
         await getKeyFromUserIfRequired(context, child);
 
+        Key? indKey;
+
         // Decrypt if reading an encrypted file
         if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
           // Get the individual key for the file
-          final indKey = await KeyManager.getSharedIndividualKey(fileUrl);
+          indKey = await KeyManager.getSharedIndividualKey(fileUrl);
+        } else if (hasInheritedKey(
+          fileContent,
+          fileUrl,
+        )) {
+          // Get the individual key for the file
+          final parentDirPath = getParentDir(
+            fileContent,
+            fileUrl,
+          );
+          final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
+          indKey = await KeyManager.getSharedIndividualKey(parentDirUrl);
+        }
 
+        if (indKey != null) {
           // Decrypt the file content
 
           final dataMap = parseTTL(fileContent);
