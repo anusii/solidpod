@@ -1,23 +1,28 @@
 /// A simple file explorer for navigating through both own and external PODs
 ///
-/// Copyright (C) 2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
-/// Licensed under the GNU General Public License, Version 3 (the "License").
+/// Licensed under the MIT License (the "License").
 ///
-/// License: https://www.gnu.org/licenses/gpl-3.0.en.html.
+/// License: https://choosealicense.com/licenses/mit/.
 //
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the GNU General Public License as published by the Free Software
-// Foundation, either version 3 of the License, or (at your option) any later
-// version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This program is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
-// details.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU General Public License along with
-// this program.  If not, see <https://www.gnu.org/licenses/>.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 ///
 ///
 /// Authors: Anushka Vidanage
@@ -32,6 +37,8 @@ import 'package:solidpod/src/solid/read_external_pod.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/snack_bar.dart';
+import 'package:solidpod/src/solid/write_external_pod.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A simple file explorer class with two input parameters
@@ -40,6 +47,8 @@ class FileExplorerScreen extends StatefulWidget {
     super.key,
     required this.folderPath,
     required this.child,
+    required this.isEditable,
+    required this.ownerWebId,
   });
 
   @override
@@ -47,6 +56,8 @@ class FileExplorerScreen extends StatefulWidget {
 
   final String folderPath;
   final Widget child;
+  final bool isEditable;
+  final String ownerWebId;
 }
 
 class _FileExplorerScreenState extends State<FileExplorerScreen> {
@@ -228,6 +239,118 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                             color:
                                 section.isFolder ? Colors.amber : Colors.blue,
                           ),
+                          trailing: (!section.isFolder && widget.isEditable)
+                              ? IconButton(
+                                  icon: const Icon(Icons.edit),
+                                  onPressed: () async {
+                                    final filePath =
+                                        '${widget.folderPath}$item';
+                                    final fileContent = await readExternalPod(
+                                      filePath,
+                                      context,
+                                      widget.child,
+                                    );
+
+                                    final TextEditingController editController =
+                                        TextEditingController(
+                                      text: fileContent,
+                                    );
+
+                                    if (!context.mounted) return;
+                                    await showDialog<String>(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title:
+                                              const Text('Edit File Content'),
+                                          content: SizedBox(
+                                            width: double.maxFinite,
+                                            child: TextField(
+                                              controller: editController,
+                                              autofocus: true,
+                                              maxLines:
+                                                  null, // allows multiple lines
+                                              minLines:
+                                                  3, // starts with 3 visible lines
+                                              textInputAction:
+                                                  TextInputAction.newline,
+                                              keyboardType:
+                                                  TextInputType.multiline,
+                                              decoration: const InputDecoration(
+                                                labelText:
+                                                    'Enter your file content',
+                                                border: OutlineInputBorder(),
+                                                alignLabelWithHint: true,
+                                              ),
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.of(context)
+                                                    .pop(); // Cancel -> close dialog
+                                              },
+                                              child: const Text('Cancel'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () async {
+                                                final newContent =
+                                                    editController.text;
+                                                // Check if the content has changed
+                                                if (newContent != fileContent) {
+                                                  final writeFileStatus =
+                                                      await writeExternalPod(
+                                                    filePath,
+                                                    newContent,
+                                                    widget.ownerWebId,
+                                                    context,
+                                                    widget.child,
+                                                  );
+
+                                                  if (writeFileStatus ==
+                                                      SolidFunctionCallStatus
+                                                          .success) {
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
+                                                    showSnackBar(
+                                                      context,
+                                                      'Changes saved successfully!',
+                                                      Colors.green,
+                                                    );
+                                                  } else {
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
+                                                    showSnackBar(
+                                                      context,
+                                                      'Something went wrong! Please try again.',
+                                                      Colors.red,
+                                                    );
+                                                  }
+                                                } else {
+                                                  if (!context.mounted) {
+                                                    return;
+                                                  }
+                                                  showSnackBar(
+                                                    context,
+                                                    'Content has not changed',
+                                                    Colors.orange,
+                                                  );
+                                                }
+
+                                                Navigator.of(context)
+                                                    .pop(); // Save -> return value
+                                              },
+                                              child: const Text('Save'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                )
+                              : null,
                           title: Text(item),
                           onTap: () async {
                             if (section.isFolder) {
@@ -238,8 +361,12 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                 MaterialPageRoute(
                                   builder: (context) => FileExplorerScreen(
                                     folderPath: newFolderPath,
+                                    isEditable: widget.isEditable,
+                                    ownerWebId: widget.ownerWebId,
                                     child: FileExplorerScreen(
                                       folderPath: widget.folderPath,
+                                      isEditable: widget.isEditable,
+                                      ownerWebId: widget.ownerWebId,
                                       child: widget.child,
                                     ),
                                   ),
@@ -290,7 +417,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                 if (!context.mounted) return;
                                 await alert(
                                   context,
-                                  'The file $index could not be found!',
+                                  'The file $item could not be found!',
                                 );
                               }
                             }
