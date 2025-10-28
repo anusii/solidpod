@@ -55,14 +55,9 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 /// - A dialog for deleting an encrypted file
 /// - Check whether login tokens are expired and if they are ridirect to login
 /// - Input key from user when required
-/// - Initialise PODs if required after login
 
 export 'src/solid/common_func.dart'
-    show
-        deleteDataFileDialog,
-        getKeyFromUserIfRequired,
-        loginIfRequired,
-        initPodsIfRequired;
+    show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.

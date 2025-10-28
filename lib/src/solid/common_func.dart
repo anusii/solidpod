@@ -61,42 +61,6 @@ Future<bool> loginIfRequired(
   return checkLoggedIn();
 }
 
-/// Initialise the user's PODs if the user has not done so.
-///
-/// [context] is the build context.
-/// [setupCallback] is a callback function that handles the initial setup UI.
-/// The callback receives the resCheckList and a child widget to display after
-/// setup. If no callback is provided, this function simply checks the pod
-/// structure.
-
-Future<void> initPodsIfRequired(
-  BuildContext context, {
-  Future<void> Function(BuildContext, List<dynamic>, Widget)? setupCallback,
-}) async {
-  final defaultFolders = await generateDefaultFolders();
-  final defaultFiles = await generateDefaultFiles();
-
-  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
-  final allExists = resCheckList.first as bool;
-
-  if (!allExists && context.mounted && setupCallback != null) {
-    final successWidget = AlertDialog(
-      title: const Text('Notice'),
-      content: const Text('PODs successfully initialised!'),
-      actions: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('OK'),
-        ),
-      ],
-    );
-
-    await setupCallback(context, resCheckList, successWidget);
-  }
-}
-
 /// Ask for the security key from the user if the security key is not available
 /// or cannot be verfied using the verification key stored in PODs.
 
