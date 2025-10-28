@@ -219,13 +219,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
   Future<List<dynamic>> loadPodData() async {
-    // ignore: use_build_context_synchronously
-    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
-      fileName: widget.resourceName as String,
-      isFile: isFile,
-      context: context,
-      child: widget,
-    );
+    final SolidFunctionCallStatus response;
+    if (context.mounted) {
+      response = await chkExistsAndHasAcl(
+        fileName: widget.resourceName as String,
+        isFile: isFile,
+        context: context,
+        child: widget,
+      );
+    } else {
+      response = SolidFunctionCallStatus.contextNotMounted;
+    }
 
     if (response == SolidFunctionCallStatus.aclFound) {
       final Map<dynamic, dynamic> result = await readPermission(

@@ -28,8 +28,6 @@
 ///
 /// Authors: Jess Moore
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'package:flutter/material.dart' hide Key;
@@ -76,13 +74,18 @@ Future<Map<String, dynamic>> getAccessLists({
   // Read recipients for each file
   for (final fileName in fileList!) {
     // Check file exists and has an associated ACL file.
-    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
-      fileName: fileName,
-      isFile: isFile,
-      isFileUrl: isFileUrl,
-      context: context,
-      child: child,
-    );
+    final SolidFunctionCallStatus response;
+    if (context.mounted) {
+      response = await chkExistsAndHasAcl(
+        fileName: fileName,
+        isFile: isFile,
+        isFileUrl: isFileUrl,
+        context: context,
+        child: child,
+      );
+    } else {
+      response = SolidFunctionCallStatus.contextNotMounted;
+    }
 
     if (response == SolidFunctionCallStatus.aclFound) {
       // Read permissions from the ACL.

@@ -54,7 +54,10 @@ enum SolidFunctionCallStatus {
   fileNotExists('fileNotExists'),
 
   /// When the call is forbidden
-  forbidden('forbidden');
+  forbidden('forbidden'),
+
+  /// Context not mounted
+  contextNotMounted('contextNotMounted');
 
   /// Constructor
   const SolidFunctionCallStatus(this.value);

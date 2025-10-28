@@ -26,8 +26,6 @@
 ///
 /// Authors: Anushka Vidanage, Jess Moore
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'dart:core';
@@ -63,9 +61,11 @@ Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
+  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
   final loggedIn = await loginIfRequired(context);
 
   if (loggedIn) {
+    if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
     await getKeyFromUserIfRequired(context, child);
 
     final resourceUrl = await filenameToResourceUrl(

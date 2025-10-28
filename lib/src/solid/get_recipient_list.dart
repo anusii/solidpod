@@ -28,8 +28,6 @@
 ///
 /// Authors: Jess Moore
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'package:flutter/material.dart' hide Key;
@@ -55,10 +53,12 @@ Future<List<String>> getRecipientList({
 
   try {
     // Get file list (note: getResources() returns urls of files)
+    if (!context.mounted) return [];
     fileList = await getResources(context, child);
 
     if (fileList.isNotEmpty) {
       // Retrieve ACLs for each file
+      if (!context.mounted) return [];
       dataMapWithPermissions = await getAccessLists(
         fileList: fileList,
         context: context,
