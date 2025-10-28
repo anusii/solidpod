@@ -210,10 +210,10 @@ enum RecipientType {
   public('public', 'Public'),
 
   /// Authenticated users
-  authUser('indi', 'Authenticated Users'),
+  authUser('auth', 'Authenticated Users'),
 
   /// Individual WebID
-  individual('auth', 'Individual'),
+  individual('indi', 'Individual'),
 
   /// Group of WebIDs
   group('group', 'Group'),
