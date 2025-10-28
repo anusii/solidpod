@@ -47,12 +47,11 @@ import 'package:solidpod/src/solid/get_resources.dart';
 
 Future<List<String>> getRecipientList({
   required BuildContext context,
-  required Widget child, //{
+  required Widget child,
 }) async {
   // Initialise the resource list and data
   final List<String> fileList;
-  final dataMap = <String, dynamic>{};
-  final Map<String, dynamic> tempMap;
+  final Map<String, dynamic> dataMapWithPermissions;
 
   try {
     // Get file list (note: getResources() returns urls of files)
@@ -60,18 +59,16 @@ Future<List<String>> getRecipientList({
 
     if (fileList.isNotEmpty) {
       // Retrieve ACLs for each file
-      tempMap = await getAccessLists(
-        dataMap,
-        context,
-        child,
+      dataMapWithPermissions = await getAccessLists(
         fileList: fileList,
-        // isFilePath: true,
+        context: context,
+        child: child,
         isFileUrl: true,
       );
 
       // Extract recipient webIDs to list
       final uniqRecipWebIdList =
-          extractRecipWebIdList(tempMap, fileList: fileList);
+          extractRecipWebIdList(dataMapWithPermissions, fileList: fileList);
 
       return uniqRecipWebIdList;
     } else {

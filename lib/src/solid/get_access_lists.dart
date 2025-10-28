@@ -46,6 +46,9 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 ///
 /// Parameters:
 /// - [dataMap] - is map of resource data to which access lists are added.
+/// Either [dataMap] or [fileList] must be provided.
+/// - [fileList] - is the list of files in the user's Pod. Either [fileList]
+/// or [dataMap] must be provided.
 /// - [context] - the build context.
 /// - [child] - is the child widget to return to.
 /// - [isFile] - flag describing whether the resource is a file, false if the resource is a directory. (Default: true).
@@ -53,21 +56,25 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 /// in the dataMap provide the filename with the app data dir. (Default: false).
 /// - [isFileUrl] - Flag describing whether filenames used as keys in dataMap
 /// are the url of the file. (Default: false).
-///   [fileList] Provide list of files in Pods if known.
 
-Future<Map<String, dynamic>> getAccessLists(
-  Map<String, dynamic> dataMap,
-  BuildContext context,
-  Widget child, {
+Future<Map<String, dynamic>> getAccessLists({
+  required BuildContext context,
+  required Widget child,
+  Map<String, dynamic>? dataMap,
+  List<String>? fileList,
   bool isFile = true,
   bool isFilePath = false,
   bool isFileUrl = false,
-  List<String>? fileList,
 }) async {
-  fileList = fileList ?? dataMap.keys.toList();
+  assert(
+    dataMap != null || fileList != null,
+    'Either dataMap or fileList must be provided.',
+  );
+  fileList ??= dataMap?.keys.toList();
+  dataMap ??= <String, dynamic>{};
 
   // Read recipients for each file
-  for (final fileName in fileList) {
+  for (final fileName in fileList!) {
     // Check file exists and has an associated ACL file.
     final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
       fileName: fileName,
