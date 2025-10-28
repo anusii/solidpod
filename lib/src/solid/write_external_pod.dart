@@ -55,10 +55,10 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   BuildContext context,
   Widget child,
 ) async {
-  final loggedIn = await loginIfRequired(context);
-
-  if (!loggedIn) {
-    return SolidFunctionCallStatus.notLoggedIn;
+  if (!await checkLoggedIn()) {
+    throw Exception(
+      'User must be logged in to write to external POD.',
+    );
   }
 
   // Check if the file already exists

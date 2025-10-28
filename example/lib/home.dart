@@ -35,7 +35,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:solidui/solidui.dart' show logoutPopup, InitialSetupScreenBody;
+import 'package:solidui/solidui.dart' show InitialSetupScreenBody, logoutPopup;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -81,6 +81,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     setState(() {
       _webId = null;
     });
+  }
+
+  /// Helper function to ensure user is logged in before executing an action.
+  /// Returns true if logged in, false otherwise.
+
+  Future<bool> _ensureLoggedIn() async {
+    return await checkLoggedIn();
   }
 
   Future<void> _showPrivateData(String title) async {
@@ -170,7 +177,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Future<void> _showSecurityKeyPrompt() async {
     // First ensure we are logged in.
 
-    final loggedIn = await loginIfRequired(context);
+    final loggedIn = await _ensureLoggedIn();
     if (!loggedIn) {
       await alert(context, 'Please login to continue');
       return;
@@ -274,7 +281,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
+          final loggedIn = await _ensureLoggedIn();
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -295,7 +302,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
+          final loggedIn = await _ensureLoggedIn();
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -313,7 +320,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceReadButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
+          final loggedIn = await _ensureLoggedIn();
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {

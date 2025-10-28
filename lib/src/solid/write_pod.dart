@@ -30,7 +30,7 @@
 
 library;
 
-import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
@@ -48,15 +48,15 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// [basePath] is specified to override the default base path.
 ///
 /// Examples:
-/// - `writePod('abc.ttl', content)` writes to `appname/data/abc.ttl`
-/// - `writePod('movies/abc.ttl', content)` writes to `appname/data/movies/abc.ttl`
-/// - `writePod('appname/data/file.ttl', content)` writes to `appname/data/file.ttl` (already correct path)
-/// - `writePod('file.ttl', content, basePath: 'appname/custom')` writes to `appname/custom/file.ttl`
+/// - `writePod('abc.ttl', content, context, widget)` writes to `appname/data/abc.ttl`
+/// - `writePod('movies/abc.ttl', content, context, widget)` writes to `appname/data/movies/abc.ttl`
+/// - `writePod('appname/data/file.ttl', content, context, widget)` writes to `appname/data/file.ttl` (already correct path)
+/// - `writePod('file.ttl', content, context, widget, basePath: 'appname/custom')` writes to `appname/custom/file.ttl`
 ///
 /// [fileName] - The name of the file to write
 /// [fileContent] - The content to write to the file
-/// [context] - The build context
-/// [child] - The child widget
+/// [context] - The BuildContext for UI interactions (e.g., security key prompts)
+/// [child] - The child widget to return to after UI interactions
 /// [encrypted] - Whether to encrypt the file content (default: true)
 /// [basePath] - Optional base path to override the default `appname/data` directory
 /// [inheritedFrom] - Optional parameter to set a parent directory for the resource.
@@ -78,10 +78,10 @@ Future<SolidFunctionCallStatus> writePod(
   assert(!fileName.endsWith('/'));
   assert(!fileName.endsWith('\\'));
 
-  final loggedIn = await loginIfRequired(context);
-
-  if (!loggedIn) {
-    return SolidFunctionCallStatus.notLoggedIn;
+  if (!await checkLoggedIn()) {
+    throw Exception(
+      'User must be logged in to write to POD.',
+    );
   }
 
   // If file is inherited then check if parent directory exists. If not create

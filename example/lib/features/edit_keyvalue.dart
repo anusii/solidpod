@@ -29,7 +29,7 @@ import 'package:flutter/material.dart';
 
 import 'package:editable/editable.dart';
 import 'package:solidpod/solidpod.dart'
-    show SolidFunctionCallStatus, loginIfRequired, writePod;
+    show SolidFunctionCallStatus, checkLoggedIn, writePod;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/alert.dart';
@@ -163,11 +163,15 @@ class _KeyValueEditState extends State<KeyValueEdit> {
     try {
       // Write to POD
       if (context.mounted) {
-        final loggedIn = await loginIfRequired(context);
+        if (!await checkLoggedIn()) {
+          await _alert('Please login to write data to your POD');
+          return false;
+        }
+
         // Generate TTL str with dataMap
-        if (loggedIn) {
-          final ttlStr = await genTTLStr(pairs!);
-          if (context.mounted) {
+        final ttlStr = await genTTLStr(pairs!);
+        if (context.mounted) {
+          try {
             final result = await writePod(
                 widget.fileName, ttlStr, context, widget.child,
                 encrypted: widget.encrypted);
@@ -181,10 +185,10 @@ class _KeyValueEditState extends State<KeyValueEdit> {
               await _alert('Something went wrong. Please try again!');
               return false;
             }
+          } on Exception {
+            await _alert('Please login to write data to your POD');
+            return false;
           }
-        } else {
-          await _alert('Please login to write data to your POD');
-          return false;
         }
       }
     } on Exception catch (e) {

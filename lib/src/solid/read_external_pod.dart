@@ -37,7 +37,6 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -53,48 +52,46 @@ Future<dynamic> readExternalPod(
   Widget child, {
   FileOpenMode mode = FileOpenMode.text,
 }) async {
-  // Login and initialise PODs if necessary
-
-  final loggedIn = await loginIfRequired(context);
-
-  if (loggedIn) {
-    // Check if the requested file exists
-
-    final fileExists = await checkResourceStatus(fileUrl);
-
-    if (fileExists == ResourceStatus.exist) {
-      try {
-        final fileContent = await fetchPrvFile(fileUrl);
-
-        // Get master key from the user if required
-        await getKeyFromUserIfRequired(context, child);
-
-        // Decrypt if reading an encrypted file
-        if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-          // Get the individual key for the file
-          final indKey = await KeyManager.getSharedIndividualKey(fileUrl);
-
-          // Decrypt the file content
-
-          final dataMap = parseTTL(fileContent);
-          assert(dataMap.containsKey(fileUrl));
-
-          return decryptData(
-            dataMap[fileUrl][encDataPred] as String,
-            indKey,
-            IV.fromBase64(dataMap[fileUrl][ivPred] as String),
-          );
-        } else {
-          return fileContent;
-        }
-      } on Object catch (e) {
-        debugPrint(e.toString());
-      }
-    }
-
-    debugPrint('Resource "$fileUrl" does not exist.');
-    return null;
-  } else {
-    return SolidFunctionCallStatus.notLoggedIn;
+  if (!await checkLoggedIn()) {
+    throw Exception(
+      'User must be logged in to read external POD.',
+    );
   }
+
+  // Check if the requested file exists
+
+  final fileExists = await checkResourceStatus(fileUrl);
+
+  if (fileExists == ResourceStatus.exist) {
+    try {
+      final fileContent = await fetchPrvFile(fileUrl);
+
+      // Get master key from the user if required
+      await getKeyFromUserIfRequired(context, child);
+
+      // Decrypt if reading an encrypted file
+      if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
+        // Get the individual key for the file
+        final indKey = await KeyManager.getSharedIndividualKey(fileUrl);
+
+        // Decrypt the file content
+
+        final dataMap = parseTTL(fileContent);
+        assert(dataMap.containsKey(fileUrl));
+
+        return decryptData(
+          dataMap[fileUrl][encDataPred] as String,
+          indKey,
+          IV.fromBase64(dataMap[fileUrl][ivPred] as String),
+        );
+      } else {
+        return fileContent;
+      }
+    } on Object catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  debugPrint('Resource "$fileUrl" does not exist.');
+  return null;
 }

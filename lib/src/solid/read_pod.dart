@@ -43,21 +43,20 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Read [filePath] from POD with file [mode] (default is text).
 ///
-/// We first check if the user is logged in and then read and parse the file
-/// content.
+/// Check if the user is logged in and then read and parse the file content.
 ///
 /// The file will be read from the `appname/data` directory by default, unless
 /// [basePath] is specified to override the default base path.
 ///
 /// Examples:
-/// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
-/// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
-/// - `readPod('appname/data/file.ttl')` reads from `appname/data/file.ttl` (already correct path)
-/// - `readPod('file.ttl', basePath: 'appname/custom')` reads from `appname/custom/file.ttl`
+/// - `readPod('abc.ttl', context, widget)` reads from `appname/data/abc.ttl`
+/// - `readPod('movies/abc.ttl', context, widget)` reads from `appname/data/movies/abc.ttl`
+/// - `readPod('appname/data/file.ttl', context, widget)` reads from `appname/data/file.ttl` (already correct path)
+/// - `readPod('file.ttl', context, widget, basePath: 'appname/custom')` reads from `appname/custom/file.ttl`
 ///
 /// [filePath] - The path to the file to read
-/// [context] - The build context
-/// [child] - The child widget
+/// [context] - The BuildContext for UI interactions (e.g., security key prompts)
+/// [child] - The child widget to return to after UI interactions
 /// [mode] - The file open mode (default: text)
 /// [basePath] - Optional base path to override the default `appname/data` directory
 
@@ -68,12 +67,10 @@ Future<String> readPod(
   FileOpenMode mode = FileOpenMode.text,
   String? basePath,
 }) async {
-  // Login and initialise PODs if necessary
-
-  final loggedIn = await loginIfRequired(context);
-
-  if (!loggedIn) {
-    throw Exception('User has not logged in.');
+  if (!await checkLoggedIn()) {
+    throw Exception(
+      'User must be logged in to read from POD.',
+    );
   }
 
   // Normalise the file path using the specified base path
