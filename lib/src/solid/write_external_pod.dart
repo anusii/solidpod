@@ -53,8 +53,10 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   String fileContent,
   String fileOwnerWebId,
   BuildContext context,
-  Widget child,
-) async {
+  Widget child, {
+  bool encrypted = true,
+  String? inheritedFrom,
+}) async {
   if (!await checkLoggedIn()) {
     throw Exception(
       'User must be logged in to write to external POD.',
@@ -64,7 +66,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
-  final remoteFileEncrypted = await KeyManager.hasSharedIndividualKey(fileUrl);
+  // final remoteFileEncrypted = await KeyManager.hasSharedIndividualKey(fileUrl);
 
   // Define file type
   var contentType = ResourceContentType.turtleText;
@@ -72,9 +74,11 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   // File content
   var content = fileContent;
 
+  // Check if the file already exists
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
-      if (remoteFileEncrypted) {
+      final remoteFileContent = await fetchPrvFile(fileUrl);
+      if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
         // Get the security key (and cache it in KeyManager)
         await getKeyFromUserIfRequired(context, child);
 
@@ -94,6 +98,30 @@ Future<SolidFunctionCallStatus> writeExternalPod(
           debugPrint('WARN: Encrypted text file should be in turtle format, '
               'but the extension of provided filename "$fileUrl" is not ".ttl"');
         }
+      } else if (hasInheritedKey(
+        remoteFileContent,
+        fileUrl,
+      )) {
+        // Get file path
+        final filePath =
+            fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+
+        // Get the individual key for the file
+        final parentDirPath = getParentDir(
+          remoteFileContent,
+          fileUrl,
+        );
+        final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
+
+        // Generate encrypted file content
+        content = await getEncTTLStr(
+          filePath,
+          fileContent,
+          await KeyManager.getSharedIndividualKey(parentDirUrl),
+          genRandIV(),
+          extWebId: fileOwnerWebId,
+          inheritedFrom: parentDirPath,
+        );
       } else {
         if (!fileUrl.endsWith('.ttl')) {
           // .plainText may result in a filename ending with `$.txt'
@@ -115,15 +143,44 @@ Future<SolidFunctionCallStatus> writeExternalPod(
 
     case ResourceStatus.notExist: // Empty case falls through.
       debugPrint('File "$fileUrl" does not exist');
+
+      // If the resource does not exist, if the encrypted flag is set to true,
+      // and if inheritedFrom is set, then encrypt the file using the
+      // inherited key
+      if (inheritedFrom != null && encrypted) {
+        // Get normalised directory path
+        String normalizedDirPath = await normalizeFilePath(inheritedFrom, null);
+
+        final parentDirUrl = getExtDirUrl(fileUrl, normalizedDirPath);
+
+        // Get file path
+        final filePath =
+            fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+
+        // Generate encrypted file content
+        content = await getEncTTLStr(
+          filePath,
+          fileContent,
+          await KeyManager.getSharedIndividualKey(parentDirUrl),
+          genRandIV(),
+          extWebId: fileOwnerWebId,
+        );
+      }
+
+    /// av:23102025-TODO: Add functionality to support encryption of a new non
+    /// inherited file. This is tricky as the key is not created for this file
   }
 
   // Create file on server
   await createResource(fileUrl, content: content, contentType: contentType);
 
   // Create the ACL file for the data file if necessary
+  // Check if file exsits AND if there is no inheritedFrom variable set. If this
+  // is set then the ACL file will be inherited
 
   final aclFileUrl = '$fileUrl.acl';
-  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
+  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&
+      inheritedFrom == null) {
     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
 
