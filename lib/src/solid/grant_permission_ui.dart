@@ -744,14 +744,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       SolidFunctionCallStatus result;
                                       try {
                                         result = await grantPermission(
-                                          dataFile,
-                                          isFileFlag,
-                                          selectedPermList,
-                                          selectedRecipientType,
-                                          finalWebIdList as List,
-                                          ownerWebId,
-                                          context,
-                                          widget.child,
+                                          fileName: dataFile,
+                                          isFile: isFileFlag,
+                                          permissionList: selectedPermList,
+                                          recipientType: selectedRecipientType,
+                                          recipientWebIdList:
+                                              finalWebIdList as List,
+                                          ownerWebId: ownerWebId,
+                                          context: context,
+                                          child: widget.child,
                                           isExternalRes: widget.isExternalRes,
                                           groupName: selectedRecipientType ==
                                                   RecipientType.group
