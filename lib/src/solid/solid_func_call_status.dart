@@ -50,6 +50,9 @@ enum SolidFunctionCallStatus {
   /// When corresponding ACL file found
   aclFound('AclFound'),
 
+  /// When file not exists
+  fileNotExists('fileNotExists'),
+
   /// When the call is forbidden
   forbidden('forbidden');
 

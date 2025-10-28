@@ -55,7 +55,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// - [child] - is the child widget to return to.
 /// - [context] - The build context.
 
-Future<dynamic> chkExistsAndHasAcl({
+Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
   required String fileName,
   required bool isFile,
   required BuildContext context,
@@ -98,7 +98,7 @@ Future<dynamic> chkExistsAndHasAcl({
         return SolidFunctionCallStatus.noAclFound;
       }
     } else {
-      return {};
+      return SolidFunctionCallStatus.fileNotExists;
     }
   } else {
     return SolidFunctionCallStatus.notLoggedIn;
