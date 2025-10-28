@@ -104,7 +104,8 @@ export 'src/solid/utils/misc.dart'
         logoutPod,
         setAppDirName,
         generateDefaultFolders,
-        generateDefaultFiles;
+        generateDefaultFiles,
+        initPod;
 
 /// Change security key popup widget
 
@@ -168,8 +169,5 @@ export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
 export 'src/solid/get_access_lists.dart';
 export 'src/solid/get_resources.dart';
 
-/// 20250917 gjw Extras that were required for the example app! Not yet documented.
-
-export 'src/screens/initial_setup/initial_setup_screen.dart'
-    show InitialSetupScreen;
-export 'src/screens/initial_setup/initial_setup_screen_body.dart';
+/// 20250917 gjw Extras that were required for the example app! Not yet
+/// documented.

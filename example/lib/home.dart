@@ -35,7 +35,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:solidui/solidui.dart' show logoutPopup;
+import 'package:solidui/solidui.dart' show logoutPopup, InitialSetupScreenBody;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
