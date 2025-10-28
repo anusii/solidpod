@@ -75,7 +75,6 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
   }
 
   Future<void> _getResources() async {
-    print(widget.folderPath);
     try {
       final res = await getResourcesInContainer(widget.folderPath);
       setState(() {
@@ -83,9 +82,6 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
         fileList = res.files;
         currentPath = widget.folderPath;
         isLoading = false;
-        print('i am here');
-        print(folderList);
-        print(fileList);
       });
     } on AccessForbiddenException catch (e) {
       debugPrint('Exception occured: $e');

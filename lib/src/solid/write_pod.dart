@@ -154,7 +154,6 @@ Future<SolidFunctionCallStatus> writePod(
           isFile: false,
         );
       case ResourceStatus.exist:
-        print('here1');
         // If the parent directory already exisits then we need to check its
         // compatibility to be a parent directory.
         //  - If the directory already has a key, then its compatible

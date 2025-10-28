@@ -121,9 +121,6 @@ Future<InheritanceCompatibility> ihtCompatibility(String parentDirUrl) async {
     final folderList = res.subDirs;
     final fileList = res.files;
 
-    print(fileList);
-    print(folderList);
-
     if (folderList.isNotEmpty) {
       for (final dirName in folderList) {
         final dirAclUrl = '$containerUrl/$dirName/.acl';
