@@ -127,11 +127,8 @@ Future<SolidFunctionCallStatus> revokePermission({
       }
     }
 
-    final resourceName = resourceUrl.split('/').last;
-
     // Remove the permission line from the relevant ACL file
     await removePermissionAcl(
-      resourceName: resourceName,
       resourceUrl: resourceUrl,
       ownerWebId: ownerWebId,
       removerId: removerIndOrGroupWebId,
