@@ -79,21 +79,20 @@ const successMsg = 'File access permissions granted successfully!';
 const failureMsg =
     'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.';
 
-void printFailure(String fileName) => debugPrint(
-      '❌ [GrantPermissionUI] Permission granting failed for file: $fileName',
-    );
+String getFailureMsg(String fileName) =>
+    '❌ [GrantPermissionUI] Permission granting failed for file: $fileName';
 
-void printRecipients(List<dynamic>? finalList) =>
-    debugPrint('🎯 [GrantPermissionUI] Recipients: $finalList');
+String getRecipientMsg(List<dynamic>? finalList) =>
+    '🎯 [GrantPermissionUI] Recipients: $finalList';
 
-void printPermissions(List<String> permissionList) =>
-    debugPrint('🔐 [GrantPermissionUI] Permissions: $permissionList');
+String getPermissionMsg(List<String> permissionList) =>
+    '🔐 [GrantPermissionUI] Permissions: $permissionList';
 
-void printException(Object e) =>
-    debugPrint('💥 [GrantPermissionUI] Exception in grantPermission: $e');
+String getExceptionMsg(Object e) =>
+    '💥 [GrantPermissionUI] Exception in grantPermission: $e';
 
-void printStackTrace(StackTrace stackTrace) =>
-    debugPrint('📚 [GrantPermissionUI] Stack trace: $stackTrace');
+String getStackTraceMsg(StackTrace stackTrace) =>
+    '📚 [GrantPermissionUI] Stack trace: $stackTrace';
 
 const warnBgColor = Color.fromARGB(255, 204, 99, 1);
 
@@ -120,6 +119,9 @@ Widget getHeading(String text) => buildHeading(
       Colors.blueGrey,
       8,
     );
+
+EdgeInsetsGeometry? getPadding(RecipientType rtype) =>
+    rtype == RecipientType.public ? null : const EdgeInsets.only(left: 8.0);
 
 List<Widget> getPermissionCheckBoxes(
   List<AccessMode> accessModes, {
