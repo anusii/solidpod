@@ -69,6 +69,11 @@ export 'src/solid/utils/app_info.dart';
 
 export 'src/solid/utils/key_helper.dart' show KeyManager;
 
+/// Custom exception classes for better error handling.
+
+export 'src/solid/utils/exceptions.dart'
+    show AccessForbiddenException, AccessFailedException, NotLoggedInException;
+
 /// Includes common TTL conversion functions such as parseTTLMap.
 
 export 'src/solid/utils/rdf.dart' show parseTTLMap;

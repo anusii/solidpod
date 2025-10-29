@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -117,7 +118,7 @@ Future<void> deleteDataFileDialog(
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to delete files. '
       'Please authenticate before calling this function.',
     );

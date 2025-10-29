@@ -42,6 +42,7 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
@@ -67,7 +68,7 @@ Future<dynamic> revokePermission(
   bool isExternalRes = false,
 }) async {
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to revoke permissions.',
     );
   }

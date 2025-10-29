@@ -37,6 +37,7 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -58,7 +59,7 @@ Future<dynamic> readExternalPod(
   FileOpenMode mode = FileOpenMode.text,
 }) async {
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to read external POD.',
     );
   }
