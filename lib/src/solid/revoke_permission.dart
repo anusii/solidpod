@@ -144,6 +144,7 @@ Future<dynamic> revokePermission(
         ownerWebId,
         removerWebId,
         recipientType,
+        isFile: isFile,
       );
 
       // Add log entry to owner, granter, and receiver permission log files
