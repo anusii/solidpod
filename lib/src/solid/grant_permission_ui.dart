@@ -238,6 +238,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         isExternalRes: widget.isExternalRes,
       );
 
+      // Get owner's webID
       final webId = widget.isExternalRes
           ? widget.externalWebId
           : await AuthDataManager.getWebId();

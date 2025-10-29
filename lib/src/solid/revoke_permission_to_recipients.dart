@@ -105,6 +105,8 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
         // Revoke permission for recipients
         for (final recipientWebId in recipientWebIdList) {
           debugPrint('Revoking permission for $recipientWebId...');
+          // [20251029 jesscmoore] Assumes user is owner and uses
+          // AuthDataManager.getWebId() to fetch webId
           await revokePermission(
             fileName: fileName,
             isFile: isFile,

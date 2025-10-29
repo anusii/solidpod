@@ -165,9 +165,13 @@ Future<SolidFunctionCallStatus> revokePermission({
       final logFilePath = await getPermLogFilePath();
 
       // Owner
+      // [20251029 jesscmoore] Assumes user = owner and uses
+      // AuthDataManager.getWebId() to fetch user webId
       final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
 
       // Granter
+      // [20251029 jesscmoore] Assumes user = granter and uses
+      // AuthDataManager.getWebId() to fetch user webId
       final granterLogFileUrl = await getFileUrl(logFilePath);
 
       // Run log entry insert query for the granter
