@@ -52,8 +52,6 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 /// - [recipientType] - is the type of the recipient.
 /// - [isFile] - flag describing whether the resources is a file or not.
 /// (Default: true).
-/// - [isFilePath] - flag describing whether the [fileName] includes the
-/// app data directory. (Default: false).
 /// - [isFileUrl] - flag describing whether the [fileName] is the url
 /// of the resource. (Default: false).
 /// - [isExternalRes] - flag describing whether resource is an external
@@ -67,7 +65,6 @@ Future<SolidFunctionCallStatus> revokePermission({
   required String ownerWebId,
   required RecipientType recipientType,
   bool isFile = true,
-  bool isFilePath = false,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
@@ -76,7 +73,6 @@ Future<SolidFunctionCallStatus> revokePermission({
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
     isFile: isFile,
-    isFilePath: isFilePath,
     isFileUrl: isFileUrl,
     isExternalRes: isExternalRes,
   );
@@ -135,11 +131,11 @@ Future<SolidFunctionCallStatus> revokePermission({
 
     // Remove the permission line from the relevant ACL file
     await removePermissionAcl(
-      resourceName,
-      resourceUrl,
-      ownerWebId,
-      removerIndOrGroupWebId,
-      recipientType,
+      resourceName: resourceName,
+      resourceUrl: resourceUrl,
+      ownerWebId: ownerWebId,
+      removerId: removerIndOrGroupWebId,
+      recipientType: recipientType,
     );
 
     // Add log entry to owner, granter, and receiver permission log files

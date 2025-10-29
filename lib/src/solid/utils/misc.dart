@@ -212,7 +212,6 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
 Future<String> filenameToResourceUrl({
   required String fileName,
   bool isFile = true,
-  bool isFilePath = false,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
@@ -227,13 +226,12 @@ Future<String> filenameToResourceUrl({
   // If not already a url, get url
   if (!isExternalRes && !isFileUrl) {
     // Get the file path
-    if (!isFilePath) {
-      filePath = [await getDataDirPath(), fileName].join('/');
-    } else {
-      filePath = fileName;
-    }
+    // Ensure path uses correct path separators and
+    // has app data dir prepended.
+    filePath = await normalizeFilePath(fileName, null);
 
-    // Get the url of the resource
+    // Get the url of the resource by prepending the
+    // user = owner webID (excluding profCard)
     if (isFile) {
       resourceUrl = await getFileUrl(filePath);
     } else {
@@ -698,7 +696,6 @@ Future<void> deleteFile(
   // file that is being deleted
   await revokePermissionToRecipients(
     fileName: filePath,
-    isFilePath: true,
   );
 
   final fileUrl = await getFileUrl(filePath);

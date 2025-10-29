@@ -39,8 +39,6 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 /// - [fileName] - is the name of the file reading permission from.
 /// - [isFile] - flag describing whether [fileName] is a file or not.
 ///
-/// - [isFilePath] - is boolean describing whether [fileName] is the file
-/// path, ie. whether includes the app data directory. Default: false.
 /// - [isFileUrl] - boolean describing whether [fileName] is the url
 /// of the resource. Default: false.
 /// - [isExternalRes] - flag describing whether [fileName] is an
@@ -50,7 +48,6 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 Future<Map<dynamic, dynamic>> readPermission({
   required String fileName,
   required bool isFile,
-  bool isFilePath = false,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
@@ -58,7 +55,6 @@ Future<Map<dynamic, dynamic>> readPermission({
     fileName: fileName,
     isFile: isFile,
     isExternalRes: isExternalRes,
-    isFilePath: isFilePath,
     isFileUrl: isFileUrl,
   );
 

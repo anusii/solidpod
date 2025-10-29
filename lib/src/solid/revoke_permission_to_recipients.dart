@@ -41,7 +41,10 @@ import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
-/// Revoke permissions from [fileName] for recipients of the file.
+/// Adds a log entry to the permission log of each recipient
+/// of [fileName] that revokes their access to the file
+/// and removes the permission entry from the associated
+/// ACL file.
 ///
 /// Parameters:
 ///
@@ -49,8 +52,6 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 /// revoked from.
 /// - [isFile] - flag describing whether the resources is a file or not.
 /// (Default: true).
-/// - [isFilePath] - flag describing whether the resource [fileName] includes
-/// the app data directory. (Default: false).
 /// - [isFileUrl] - flag describing whether the resource [fileName] is the
 /// resource url. (Default: false).
 /// - [isExternalRes] - boolean describing whether the file is an
@@ -59,7 +60,6 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 Future<SolidFunctionCallStatus> revokePermissionToRecipients({
   required String fileName,
   bool isFile = true,
-  bool isFilePath = false,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
@@ -80,7 +80,6 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
       final dynamic permDataMap = await readPermission(
         fileName: fileName,
         isFile: isFile,
-        isFilePath: isFilePath,
         isFileUrl: isFileUrl,
         isExternalRes: isExternalRes,
       );
@@ -110,7 +109,6 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
           await revokePermission(
             fileName: fileName,
             isFile: isFile,
-            isFilePath: isFilePath,
             isFileUrl: isFileUrl,
             permissionList: permDataMap[recipientWebId][permStr] as List,
             removerIndOrGroupWebId: recipientWebId,
