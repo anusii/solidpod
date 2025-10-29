@@ -58,10 +58,11 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// [context] - The BuildContext for UI interactions (e.g., security key prompts)
 /// [child] - The child widget to return to after UI interactions
 /// [encrypted] - Whether to encrypt the file content (default: true)
+/// [createAcl] - Whether to create a separate acl for the resource (default: true)
 /// [basePath] - Optional base path to override the default `appname/data` directory
-/// [inheritedFrom] - Optional parameter to set a parent directory for the resource.
-///                   If set a single encryption key will be used to encrypt the
-///                   resource.
+/// [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
+///                   be inherited from. If set a single encryption key associated
+///                   with the given directory is used to encrypt the resource.
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -69,8 +70,9 @@ Future<SolidFunctionCallStatus> writePod(
   BuildContext context,
   Widget child, {
   bool encrypted = true,
+  bool createAcl = true,
   String? basePath,
-  String? inheritedFrom,
+  String? inheritKeyFrom,
 }) async {
   // Sanity check - ensure fileName doesn't end with path separators
   // The normalizeFilePath function will handle path separator normalization
@@ -84,8 +86,8 @@ Future<SolidFunctionCallStatus> writePod(
     );
   }
 
-  // If file is inherited then check if parent directory exists. If not create
-  // parent directory
+  // If file key is inherited then check if parent directory exists. If not
+  // create parent directory
   if (inheritedFrom != null) {
     String normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
     // Following addition is to make sure that the path value added to the
@@ -273,11 +275,17 @@ Future<SolidFunctionCallStatus> writePod(
 
   // Create the ACL file for the data file if necessary
 
-  if (inheritedFrom == null) {
-    final aclFileUrl = '$fileUrl.acl';
-    if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
-      await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
-    }
+  // if (inheritedFrom == null) {
+  //   final aclFileUrl = '$fileUrl.acl';
+  //   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
+  //     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
+  //   }
+  // }
+
+  final aclFileUrl = '$fileUrl.acl';
+  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&
+      createAcl) {
+    await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
 
   return SolidFunctionCallStatus.success;
