@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ Remove circular dependency with solidui [0.7.17 20251029 tonypioneer]
 + Read shared resource with inheritance [0.7.16 20251027 anushkavidanage]
 + Migrate SolidLogin to solidui [0.7.15 20251027 tonypioneer]
 + Support single key encryption for a folder [0.7.14 20251027 anushkavidanage]
