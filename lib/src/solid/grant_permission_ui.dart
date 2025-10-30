@@ -34,6 +34,7 @@ import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
+import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
@@ -218,18 +219,45 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
   Future<List<dynamic>> loadPodData() async {
-    // ignore: use_build_context_synchronously
-    final result = await readPermission(
-      widget.resourceName as String,
-      true,
-      context,
-      widget,
-      isExternalRes: widget.isExternalRes,
-    );
-    final webId = widget.isExternalRes
-        ? widget.externalWebId
-        : await AuthDataManager.getWebId();
-    return [result, webId];
+    final SolidFunctionCallStatus response;
+    if (context.mounted) {
+      response = await chkExistsAndHasAcl(
+        fileName: widget.resourceName as String,
+        isFile: isFile,
+        context: context,
+        child: widget,
+      );
+    } else {
+      response = SolidFunctionCallStatus.contextNotMounted;
+    }
+
+    if (response == SolidFunctionCallStatus.aclFound) {
+      final Map<dynamic, dynamic> result = await readPermission(
+        fileName: widget.resourceName as String,
+        isFile: isFile,
+        isExternalRes: widget.isExternalRes,
+      );
+
+      // Get owner's webID
+      final webId = widget.isExternalRes
+          ? widget.externalWebId
+          : await AuthDataManager.getWebId();
+      return [result, webId];
+    } else if (response == SolidFunctionCallStatus.notLoggedIn) {
+      await _alert(
+        'Please login first to retrieve permission',
+      );
+      return [];
+    } else if (response == SolidFunctionCallStatus.noAclFound) {
+      await _alert(
+        'Resource does not have a corresponding ACL file.\n'
+        'If the ACL is inherited, provide parent directory as the resource name!',
+      );
+      return [];
+    } else {
+      await _alert('Unknown error');
+      return [];
+    }
   }
 
   @override
@@ -253,28 +281,24 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   // Get new permission and update the permission map
   Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
-    final permissionMap = await readPermission(
-      fileName,
-      isFile,
-      context,
-      widget.child,
-      isExternalRes: widget.isExternalRes,
+    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
+      fileName: fileName,
+      isFile: isFile,
+      context: context,
+      child: widget,
     );
-    final webId = widget.isExternalRes
-        ? widget.externalWebId
-        : await AuthDataManager.getWebId();
+    if (response == SolidFunctionCallStatus.aclFound) {
+      final Map<dynamic, dynamic> permissionMap = await readPermission(
+        fileName: widget.resourceName as String,
+        isFile: isFile,
+        isExternalRes: widget.isExternalRes,
+      );
 
-    if (permissionMap == SolidFunctionCallStatus.notLoggedIn) {
-      await _alert(
-        'Please login first to retrieve permission',
-      );
-    } else if (permissionMap == SolidFunctionCallStatus.noAclFound) {
-      await _alert(
-        'Resource does not have a corresponding ACL file.\n'
-        'If the ACL is inherited, provide parent directory as the resource name!',
-      );
-    } else {
-      if ((permissionMap as Map).isEmpty) {
+      final webId = widget.isExternalRes
+          ? widget.externalWebId
+          : await AuthDataManager.getWebId();
+
+      if (permissionMap.isEmpty) {
         await _alert(
           'We could not find a resource by the name $fileName',
         );
@@ -285,6 +309,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           fileName,
         );
       }
+    } else if (response == SolidFunctionCallStatus.notLoggedIn) {
+      await _alert(
+        'Please login first to retrieve permission',
+      );
+    } else if (response == SolidFunctionCallStatus.noAclFound) {
+      await _alert(
+        'Resource does not have a corresponding ACL file.\n'
+        'If the ACL is inherited, provide parent directory as the resource name!',
+      );
     }
   }
 
@@ -344,7 +377,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     });
   }
 
+  // Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
+
+  // Private function to show snackbar in grant permission UI context
+  Future<void> _showSnackBar(
+    String msg,
+    Color bgColor, {
+    Duration duration = const Duration(seconds: 4),
+  }) async =>
+      showSnackBar(context, msg, bgColor, duration: duration);
 
   /// Build the main widget
   Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
@@ -700,24 +742,25 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       final isFileFlag =
                                           widget.isFile ?? isFile;
 
-                                      SolidFunctionCallStatus? result;
+                                      SolidFunctionCallStatus result;
                                       try {
                                         result = await grantPermission(
-                                          dataFile,
-                                          isFileFlag,
-                                          selectedPermList,
-                                          selectedRecipientType,
-                                          finalWebIdList as List,
-                                          ownerWebId,
-                                          context,
-                                          widget.child,
+                                          fileName: dataFile,
+                                          isFile: isFileFlag,
+                                          permissionList: selectedPermList,
+                                          recipientType: selectedRecipientType,
+                                          recipientWebIdList:
+                                              finalWebIdList as List,
+                                          ownerWebId: ownerWebId,
+                                          context: context,
+                                          child: widget.child,
                                           isExternalRes: widget.isExternalRes,
                                           groupName: selectedRecipientType ==
                                                   RecipientType.group
                                               ? formControllerGroupName.text
                                                   .trim()
                                               : null,
-                                        ) as SolidFunctionCallStatus?;
+                                        );
                                       } on Object catch (e, stackTrace) {
                                         debugPrint(
                                           '💥 [GrantPermissionUI] Exception in grantPermission: $e',
@@ -730,9 +773,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                                       if (result ==
                                           SolidFunctionCallStatus.success) {
-                                        if (!context.mounted) return;
-                                        showSnackBar(
-                                          context,
+                                        _showSnackBar(
                                           'File access permissions granted successfully!',
                                           Colors.green,
                                         );
@@ -750,11 +791,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                         widget.onPermissionGranted?.call();
                                       } else if (result ==
                                           SolidFunctionCallStatus.fail) {
-                                        if (!context.mounted) return;
-
                                         // More detailed error message with troubleshooting tips
-                                        showSnackBar(
-                                          context,
+                                        _showSnackBar(
                                           'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.',
                                           Colors.red,
                                         );
@@ -772,9 +810,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                       } else if (result ==
                                           SolidFunctionCallStatus
                                               .notInitialised) {
-                                        if (!context.mounted) return;
-                                        showSnackBar(
-                                          context,
+                                        _showSnackBar(
                                           'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.',
                                           const Color.fromARGB(255, 204, 99, 1),
                                         );
@@ -821,13 +857,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                                   Row(
                                     children: [
                                       buildPermDataTable(
-                                        context,
-                                        permDataFile,
-                                        widget.isFile ?? isFile,
-                                        permDataMap,
-                                        ownerWebId,
-                                        widget.child,
-                                        _updatePermissions,
+                                        context: context,
+                                        permDataResource: permDataFile,
+                                        isFile: widget.isFile ?? isFile,
+                                        permDataMap: permDataMap,
+                                        ownerWebId: ownerWebId,
+                                        parentWidget: widget.child,
+                                        onDeleteFuncion: _updatePermissions,
                                         isExternalRes: widget.isExternalRes,
                                       ),
                                       // Hspace to avoid vertical scrollbar overlap with table

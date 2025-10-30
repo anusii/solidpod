@@ -78,8 +78,8 @@ class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
     // Retrieve files and derive unique recipient WebId list.
     if (widget.dataFilesMap.isEmpty) {
       _asyncGetRecipList = getRecipientList(
-        context,
-        IndWebIdInputScreen(
+        context: context,
+        child: IndWebIdInputScreen(
           onSubmitFunction: widget.onSubmitFunction,
         ),
       );

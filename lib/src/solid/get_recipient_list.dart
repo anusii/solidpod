@@ -28,8 +28,6 @@
 ///
 /// Authors: Jess Moore
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'package:flutter/material.dart' hide Key;
@@ -38,39 +36,39 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/get_access_lists.dart';
 import 'package:solidpod/src/solid/get_resources.dart';
 
-/// Retrieve the list of files and access control lists on each file in the user's POD
-/// to find the list of unique WebIds of recipients of the user's files.
+/// Retrieve the list of recipients that have access to any file
+/// in the user's POD.
+///
 /// Parameters:
-///   [child] is the child widget to return to
-///   [isFile] set to true if the resource is a file, false if the resource is a directory.
-///   [isFilePath] Set to true if the filename provided is the full path
-Future<List<String>> getRecipientList(
-  BuildContext context,
-  Widget child, {
-  bool isFile = true,
-  bool isFilePath = true,
+/// - [context] - the build context.
+/// - [child] - is the child widget to return to.
+
+Future<List<String>> getRecipientList({
+  required BuildContext context,
+  required Widget child,
 }) async {
   // Initialise the resource list and data
   final List<String> fileList;
-  final dataMap = <String, dynamic>{};
-  final Map<String, dynamic> tempMap;
+  final Map<String, dynamic> dataMapWithPermissions;
 
   try {
-    // Get file list
+    // Get file list (note: getResources() returns urls of files)
+    if (!context.mounted) return [];
     fileList = await getResources(context, child);
 
     if (fileList.isNotEmpty) {
       // Retrieve ACLs for each file
-      tempMap = await getAccessLists(
-        dataMap,
-        context,
-        child,
+      if (!context.mounted) return [];
+      dataMapWithPermissions = await getAccessLists(
         fileList: fileList,
+        context: context,
+        child: child,
+        isFileUrl: true,
       );
 
       // Extract recipient webIDs to list
       final uniqRecipWebIdList =
-          extractRecipWebIdList(tempMap, fileList: fileList);
+          extractRecipWebIdList(dataMapWithPermissions, fileList: fileList);
 
       return uniqRecipWebIdList;
     } else {
