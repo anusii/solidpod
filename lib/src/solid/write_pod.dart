@@ -88,8 +88,9 @@ Future<SolidFunctionCallStatus> writePod(
 
   // If file key is inherited then check if parent directory exists. If not
   // create parent directory
-  if (inheritedFrom != null) {
-    String normalizedDirPath = await normalizeFilePath(inheritedFrom, basePath);
+  if (inheritKeyFrom != null) {
+    String normalizedDirPath =
+        await normalizeFilePath(inheritKeyFrom, basePath);
     // Following addition is to make sure that the path value added to the
     // ind-keys.ttl contains / so that can be recognised as a directory
     if (!normalizedDirPath.endsWith('/')) {
@@ -100,30 +101,21 @@ Future<SolidFunctionCallStatus> writePod(
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
         await getKeyFromUserIfRequired(context, child);
-        // Create the directory
-        await createResource(
-          parentDirUrl,
-          isFile: false,
-          contentType: ResourceContentType.directory,
-        );
 
-        // Create the corresponding acl file
-        final aclFileUrl = '$parentDirUrl/.acl';
-        await createResource(
-          aclFileUrl,
-          content: await genAclTurtle(parentDirUrl, isFile: false),
-        );
+        // Create directory and set a new key for the directory
+        await setInheritKeyDir(normalizedDirPath);
 
-        // Also create an individual AES key for the parent directory. This key will
-        // be used to encrypt all the resources inside the parent directory
-        await KeyManager.addIndividualKey(
-          normalizedDirPath,
-          genRandIndividualKey(),
-          isFile: false,
-        );
       case ResourceStatus.exist:
+        if (!await KeyManager.hasIndividualKey(parentDirUrl)) {
+          // Generate a new key for the directory
+          await setInheritKeyDir(
+            normalizedDirPath,
+            createAcl: false,
+            createDir: false,
+          );
+        }
         debugPrint(
-          'Directory "$parentDirUrl" exists. Continuing the process...',
+          'Directory "$parentDirUrl" and key exists. Continuing the process...',
         );
         break;
       case ResourceStatus.unknown:
@@ -220,9 +212,9 @@ Future<SolidFunctionCallStatus> writePod(
     // Get the security key (and cache it in KeyManager)
     await getKeyFromUserIfRequired(context, child);
 
-    if (inheritedFrom != null) {
+    if (inheritKeyFrom != null) {
       final normalizedDirPath =
-          await normalizeFilePath(inheritedFrom, basePath);
+          await normalizeFilePath(inheritKeyFrom, basePath);
       final parentDirUrl = await getDirUrl(normalizedDirPath);
       content = await getEncTTLStr(
         normalizedFilePath,

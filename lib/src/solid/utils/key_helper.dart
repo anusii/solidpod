@@ -49,6 +49,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, parseTTLMap;
 
@@ -1009,4 +1010,43 @@ bool hasInheritedKey(
   } else {
     return false;
   }
+}
+
+/// Set a key for a given directory so that key can be used to encrypt multiple
+/// resources within the directory. Takes three input parameters
+///   [normalizedDirPath] - normalised path for the directory
+///   [createDir] - Whether to create the directory or not (default: true)
+///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
+Future<void> setInheritKeyDir(
+  String normalizedDirPath, {
+  bool createDir = true,
+  bool createAcl = true,
+}) async {
+  final dirUrl = await getDirUrl(normalizedDirPath);
+
+  if (createDir) {
+    // Create the directory
+    await createResource(
+      dirUrl,
+      isFile: false,
+      contentType: ResourceContentType.directory,
+    );
+  }
+
+  if (createAcl) {
+    // Create the corresponding acl file
+    final aclFileUrl = '$dirUrl/.acl';
+    await createResource(
+      aclFileUrl,
+      content: await genAclTurtle(dirUrl, isFile: false),
+    );
+  }
+
+  // Create an individual AES key for the directory. This key will
+  // be used to encrypt all the resources inside the directory
+  await KeyManager.addIndividualKey(
+    normalizedDirPath,
+    genRandIndividualKey(),
+    isFile: false,
+  );
 }

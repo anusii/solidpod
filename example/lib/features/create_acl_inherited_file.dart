@@ -72,7 +72,9 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
       if (context.mounted) {
         final result = await writePod(
             resourcePath, demoTtlContent, context, widget,
-            encrypted: _isEncrypted, inheritedFrom: parentDirectory);
+            encrypted: _isEncrypted,
+            createAcl: false,
+            inheritKeyFrom: parentDirectory);
 
         if (result == SolidFunctionCallStatus.success) {
           if (!mounted) return;
