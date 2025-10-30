@@ -80,9 +80,6 @@ Future<SolidFunctionCallStatus> writeExternalPod(
     case ResourceStatus.exist:
       final remoteFileContent = await fetchPrvFile(fileUrl);
       if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-        // Get the security key (and cache it in KeyManager)
-        await getKeyFromUserIfRequired(context, child);
-
         // Get file path
         final filePath =
             fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');

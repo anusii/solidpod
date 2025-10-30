@@ -53,11 +53,10 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 
 /// Includes common functions that are useful such as,
 /// - A dialog for deleting an encrypted file
-/// - Input key from user when required
 /// - Check POD initialisation status
 
 export 'src/solid/common_func.dart'
-    show checkPodInitialization, deleteDataFileDialog, getKeyFromUserIfRequired;
+    show checkPodInitialization, deleteDataFileDialog;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.

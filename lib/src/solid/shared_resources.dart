@@ -60,8 +60,6 @@ Future<dynamic> sharedResources(
     );
   }
 
-  await getKeyFromUserIfRequired(context, child);
-
   // Get user webID
   final userWebId = await AuthDataManager.getWebId() as String;
 

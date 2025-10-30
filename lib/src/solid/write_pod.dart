@@ -98,7 +98,6 @@ Future<SolidFunctionCallStatus> writePod(
 
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
-        await getKeyFromUserIfRequired(context, child);
         // Create the directory
         await createResource(
           parentDirUrl,
@@ -216,9 +215,6 @@ Future<SolidFunctionCallStatus> writePod(
   var contentType = ResourceContentType.turtleText;
 
   if (encrypted) {
-    // Get the security key (and cache it in KeyManager)
-    await getKeyFromUserIfRequired(context, child);
-
     if (inheritedFrom != null) {
       final normalizedDirPath =
           await normalizeFilePath(inheritedFrom, basePath);

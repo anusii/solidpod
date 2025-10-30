@@ -64,8 +64,6 @@ Future<dynamic> readPermission(
     );
   }
 
-  await getKeyFromUserIfRequired(context, child);
-
   var resourceUrl = '';
   if (!isExternalRes) {
     // Get the file path

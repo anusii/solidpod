@@ -73,8 +73,6 @@ Future<dynamic> revokePermission(
     );
   }
 
-  await getKeyFromUserIfRequired(context, child);
-
   var resourceUrl = '';
 
   if (!isExternalRes) {

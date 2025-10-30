@@ -35,7 +35,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:solidui/solidui.dart' show InitialSetupScreenBody, logoutPopup;
+import 'package:solidui/solidui.dart'
+    show InitialSetupScreenBody, loginIfRequired, logoutPopup;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -274,7 +275,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await checkLoggedIn();
+          final loggedIn = await loginIfRequired(context, widget);
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -284,8 +285,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 context,
                 MaterialPageRoute(
                     builder: (context) => FileService(child: widget)));
-          } else {
-            await alert(context, 'Please login to continue');
           }
         },
         child: const Text('Upload / Download Large File'));
@@ -295,7 +294,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await checkLoggedIn();
+          final loggedIn = await loginIfRequired(context, widget);
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -305,15 +304,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 context,
                 MaterialPageRoute(
                     builder: (context) => CreateAclInheritedFile()));
-          } else {
-            await alert(context, 'Please login to continue');
           }
         },
         child: const Text('Create Resource with ACL Inheritance'));
 
     final inheritanceReadButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await checkLoggedIn();
+          final loggedIn = await loginIfRequired(context, widget);
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -323,8 +320,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 context,
                 MaterialPageRoute(
                     builder: (context) => ReadAclInheritedFile()));
-          } else {
-            await alert(context, 'Please login to continue');
           }
         },
         child: const Text('Read Resource with ACL Inheritance'));

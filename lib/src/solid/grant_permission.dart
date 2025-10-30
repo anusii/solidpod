@@ -79,8 +79,6 @@ Future<dynamic> grantPermission(
   }
 
   try {
-    await getKeyFromUserIfRequired(context, child);
-
     var resourceUrl = '';
 
     if (!isExternalRes) {
