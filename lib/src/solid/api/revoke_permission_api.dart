@@ -41,15 +41,25 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
-/// Remove permission from ALC file by running a Sparql DELETE query
-Future<String> removePermissionAcl(
-  String resourceName,
-  String resourceUrl,
-  String ownerWebId,
-  String removerId,
-  RecipientType recipientType, [
-  bool isFile = true,
-]) async {
+/// Remove access permissions of recipient to a resource from
+/// the resource owner's ACL file by running a Sparql DELETE
+/// query. Where resource can be a file or directory.
+///
+/// Parameters:
+/// - [resourceUrl] - the url of resource (file/dir) for
+/// which access is being revoked.
+/// - [ownerWebId] - the webId of the resource owner.
+/// - [removerId] - the webId of the recipient having their
+/// access to the resource removed.
+/// - [recipientType] - type of recipient having their access
+/// to the resource removed.
+Future<String> removePermissionAcl({
+  required String resourceUrl,
+  required String ownerWebId,
+  required String removerId,
+  required RecipientType recipientType, //[
+  bool isFile = true, // ]
+}) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);
 
