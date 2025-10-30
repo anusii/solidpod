@@ -31,8 +31,9 @@
 
 library;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Key;
 
+import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -49,14 +50,14 @@ import 'package:solidpod/src/solid/utils/snack_bar.dart';
 /// permission
 /// [onDeleteFuncion] is the function to be called on delete
 ///
-Widget buildPermDataTable(
-  BuildContext context,
-  String permDataResource,
-  bool isFile,
-  Map<dynamic, dynamic> permDataMap,
-  String ownerWebId,
-  Widget parentWidget,
-  Function onDeleteFuncion, {
+Widget buildPermDataTable({
+  required BuildContext context,
+  required String permDataResource,
+  required bool isFile,
+  required Map<dynamic, dynamic> permDataMap,
+  required String ownerWebId,
+  required Widget parentWidget,
+  required Function onDeleteFuncion,
   bool isExternalRes = false,
 }) {
   DataColumn buildDataColumn(String title, String tooltip) {
@@ -135,25 +136,33 @@ Widget buildPermDataTable(
                           // The "Yes" button
                           TextButton(
                             onPressed: () async {
-                              await revokePermission(
-                                permDataResource,
-                                isFile,
-                                permDataMap[index][permStr] as List,
-                                index,
-                                ownerWebId,
-                                getRecipientType(
-                                  permDataMap[index][agentStr] as String,
-                                  index,
-                                ),
-                                context,
-                                parentWidget,
-                                isExternalRes: isExternalRes,
-                              );
+                              final loggedIn = await loginIfRequired(context);
+
+                              if (loggedIn && ctx.mounted) {
+                                await getKeyFromUserIfRequired(
+                                  ctx,
+                                  parentWidget,
+                                );
+
+                                await revokePermission(
+                                  fileName: permDataResource,
+                                  isFile: isFile,
+                                  permissionList:
+                                      permDataMap[index][permStr] as List,
+                                  removerIndOrGroupWebId: index,
+                                  ownerWebId: ownerWebId,
+                                  recipientType: getRecipientType(
+                                    permDataMap[index][agentStr] as String,
+                                    index,
+                                  ),
+                                  isExternalRes: isExternalRes,
+                                );
+                              }
 
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
                               }
-                              if (context.mounted) {
+                              if (ctx.mounted) {
                                 showSnackBar(
                                   context,
                                   'Permission revoked successfully!',

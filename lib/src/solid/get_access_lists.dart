@@ -28,60 +28,87 @@
 ///
 /// Authors: Jess Moore
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'package:flutter/material.dart' hide Key;
 
+import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/solid_func_call_status.dart';
 
-/// Get the access control list data of each file in a map of files, ie. webIDs and
-/// their access permission for each of the files in a map of data files [dataMap].
+/// Get the access control list data of each file in a map of files, ie.
+/// webIDs and their access permission for each of the files in a map of
+/// data files [dataMap].
+/// Note: the list of files are always files owned by the user.
+///
 /// Parameters:
-///   [dataMap] is map of resource data to which access lists are added.
-///   [child] is the child widget to return to
-///   [isFile] set to true if the resource is a file, false if the resource is a directory.
-///   [isFilePath] Set to true if the filename provided is the full path.
-///   [fileList] Provide list of files in Pods if known.
-Future<Map<String, dynamic>> getAccessLists(
-  Map<String, dynamic> dataMap,
-  BuildContext context,
-  Widget child, {
-  bool isFile = true,
-  bool isFilePath = true,
-  List<String>? fileList,
-}) async {
-  fileList = fileList ?? dataMap.keys.toList();
-  final bool isExternalRes;
+/// - [dataMap] - is map of resource data to which access lists are added.
+/// Either [dataMap] or [fileList] must be provided.
+/// - [fileList] - is the list of files in the user's Pod. Either [fileList]
+/// or [dataMap] must be provided.
+/// - [context] - the build context.
+/// - [child] - is the child widget to return to.
+/// - [isFile] - flag describing whether the resource is a file, false if the resource is a directory. (Default: true).
+/// - [isFilePath] - Flag describing whether the filenames provided as keys
+/// in the dataMap provide the filename with the app data dir. (Default: false).
+/// - [isFileUrl] - Flag describing whether filenames used as keys in dataMap
+/// are the url of the file. (Default: false).
 
-  // File path
-  if (isFilePath) {
-    isExternalRes = true;
-  } else {
-    isExternalRes = false;
-  }
+Future<Map<String, dynamic>> getAccessLists({
+  required BuildContext context,
+  required Widget child,
+  Map<String, dynamic>? dataMap,
+  List<String>? fileList,
+  bool isFile = true,
+  bool isFilePath = false,
+  bool isFileUrl = false,
+}) async {
+  assert(
+    dataMap != null || fileList != null,
+    'Either dataMap or fileList must be provided.',
+  );
+  fileList ??= dataMap?.keys.toList();
+  dataMap ??= <String, dynamic>{};
 
   // Read recipients for each file
-  for (final fileName in fileList) {
-    // 20250726 jm: While not an external file, as the file
-    // is a full file path, use isExternalRes true, to avoid
-    // readPermission() prepending the filepath.
-    final dynamic permList = await readPermission(
-      fileName,
-      isFile,
-      context,
-      child,
-      isExternalRes: isExternalRes,
-    );
-    // Create empty map for each file if dataMap lacks file data
-    if (!dataMap.containsKey(fileName)) {
-      dataMap[fileName] = {};
+  for (final fileName in fileList!) {
+    // Check file exists and has an associated ACL file.
+    final SolidFunctionCallStatus response;
+    if (context.mounted) {
+      response = await chkExistsAndHasAcl(
+        fileName: fileName,
+        isFile: isFile,
+        isFileUrl: isFileUrl,
+        context: context,
+        child: child,
+      );
+    } else {
+      response = SolidFunctionCallStatus.contextNotMounted;
     }
 
-    // Add recipients map to dataMap
-    dataMap[fileName][authUserPred] = permList;
+    if (response == SolidFunctionCallStatus.aclFound) {
+      // Read permissions from the ACL.
+      final dynamic permList = await readPermission(
+        fileName: fileName,
+        isFile: isFile,
+        isFileUrl: isFileUrl,
+      );
+
+      // Add fileName key if missing
+      if (!dataMap.containsKey(fileName)) {
+        dataMap[fileName] = {};
+      }
+
+      // Add recipients map to dataMap
+      dataMap[fileName][authUserPred] = permList;
+      // debugPrint('adding permission map to dataMap for this file');
+    } else {
+      // Create empty map for each file if acl does not exist
+      dataMap[fileName] = {};
+      // debugPrint(
+      //     'no acl found, adding empty permission map to dataMap for this file',);
+    }
   }
 
   return dataMap;

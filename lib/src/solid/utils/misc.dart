@@ -43,15 +43,15 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
+import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/utils/app_info.dart' show AppInfo;
+import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
@@ -192,6 +192,59 @@ Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
     (extWebId == null)
         ? await _getResourceUrl(dirPath, true)
         : await _getResourceUrl(dirPath, true, extWebId);
+
+/// Get resource Url from a filename, with different options for how
+/// the filename is provided. If [isExternalRes] or [isFileUrl] is
+/// set to true, the filename is already the resource url and is
+/// returned unchanged.
+///
+/// Parameters:
+/// - [fileName] - name of file of interest.
+/// - [isFile] - flag describing whether the resources is a file or not.
+/// If false the [fileName] is a directory. (Default: true).
+/// - [isFilePath] - flag describing whether [fileName] includes the
+/// directory data path. (Default: false).
+/// - [isFileUrl] - flag describing whether [fileName] is the url of the
+/// file. (Default: false).
+/// - [isExternalRes] - flag describing whether the file is an external
+/// file shared with the user. In which case the [fileName] should be
+/// the full URL of the file. (Default: false).
+
+Future<String> filenameToResourceUrl({
+  required String fileName,
+  bool isFile = true,
+  bool isFileUrl = false,
+  bool isExternalRes = false,
+}) async {
+  final String resourceUrl;
+  final String filePath;
+
+  // Note: external resources always specified by url
+  if (isExternalRes) {
+    isFileUrl = true;
+  }
+
+  // If not already a url, get url
+  if (!isExternalRes && !isFileUrl) {
+    // Get the file path
+    // Ensure path uses correct path separators and
+    // has app data dir prepended.
+    filePath = await normalizeFilePath(fileName, null);
+
+    // Get the url of the resource by prepending the
+    // user = owner webID (excluding profCard)
+    if (isFile) {
+      resourceUrl = await getFileUrl(filePath);
+    } else {
+      resourceUrl = await getDirUrl(filePath);
+    }
+  } else {
+    // Use fileName, fileName already the resource url
+    resourceUrl = fileName;
+  }
+
+  return resourceUrl;
+}
 
 /// Derive external POD inherited parent directory url from the resource url
 /// and parent directory path
@@ -619,18 +672,50 @@ Future<void> deleteAclForResource(String resourceUrl) async {
   }
 }
 
-/// Delete a file with path [filePath], its ACL file, and its encryption key
-/// if exists.
+/// Delete a file and its associated resources, after first revoking
+/// external access to the file. The file with path [filePath],
+/// its ACL file, and its encryption key (if exists) will be deleted.
+/// The permission logs of any recipients to the file, will also be
+/// updated with a log line recording that permissions have been
+/// revoked.
 /// Throws an exception if the file does not exist or any error occurs.
+///
+/// Arguments:
+///
+/// - [filePath] - path of file to be deleted. Where [filePath] is the
+/// app data directory and the filename.
+/// - [contentType] - the type of content of the resource. Default:
+/// [ResourceContentType.turtleText].
+/// - [isKey] - flag describing whether the file to be deleted is a
+/// security key. Use this flag if file is a security key to avoid
+/// unnecessary operations that are not needed to delete a key.
+
 Future<void> deleteFile(
   String filePath, {
   ResourceContentType contentType = ResourceContentType.turtleText,
+  bool isKey = false,
 }) async {
-  final fileUrl = await getFileUrl(filePath);
-  await deleteResource(fileUrl, contentType);
-  await deleteAclForResource(fileUrl);
-  if (await KeyManager.hasIndividualKey(fileUrl)) {
-    await KeyManager.removeIndividualKey(filePath);
+  if (!isKey) {
+    // File to be deleted != key => perform all steps
+
+    // Revoke permission to recipients:
+    // to avoid the permission log of recipients still
+    // showing the recipient as having access to the
+    // file that is being deleted
+    await revokePermissionToRecipients(
+      fileName: filePath,
+    );
+
+    final fileUrl = await getFileUrl(filePath);
+    await deleteResource(fileUrl, contentType);
+    await deleteAclForResource(fileUrl);
+    if (await KeyManager.hasIndividualKey(fileUrl)) {
+      await KeyManager.removeIndividualKey(filePath);
+    }
+  } else {
+    // File to be deleted == key => perform delete only
+    final fileUrl = await getFileUrl(filePath);
+    await deleteResource(fileUrl, contentType);
   }
 }
 
