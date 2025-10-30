@@ -98,18 +98,26 @@ Future<SolidFunctionCallStatus> writePod(
     }
     final parentDirUrl = await getDirUrl(normalizedDirPath);
 
+    await getKeyFromUserIfRequired(context, child);
+
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
-        await getKeyFromUserIfRequired(context, child);
-
+        debugPrint(
+            'WARNING: Directory $inheritKeyFrom does not exist. Creating '
+            'the directory and corresponding acl file, and setting up a new key '
+            'for the directory');
         // Create directory and set a new key for the directory
-        await setInheritKeyDir(normalizedDirPath);
+        await setInheritKeyDir(normalizedDirPath, basePath: basePath);
 
       case ResourceStatus.exist:
         if (!await KeyManager.hasIndividualKey(parentDirUrl)) {
+          debugPrint(
+              'WARNING: Directory $inheritKeyFrom does not have a key. Setting '
+              'up a new key for the directory');
           // Generate a new key for the directory
           await setInheritKeyDir(
             normalizedDirPath,
+            basePath: basePath,
             createAcl: false,
             createDir: false,
           );
@@ -243,7 +251,7 @@ Future<SolidFunctionCallStatus> writePod(
     }
 
     if (!fileUrl.endsWith('.ttl')) {
-      debugPrint('WARN: Encrypted text file should be in turtle format, '
+      debugPrint('WARNING: Encrypted text file should be in turtle format, '
           'but the extension of provided filename "$fileName" is not ".ttl"');
     }
   } else {

@@ -1014,14 +1014,16 @@ bool hasInheritedKey(
 
 /// Set a key for a given directory so that key can be used to encrypt multiple
 /// resources within the directory. Takes three input parameters
-///   [normalizedDirPath] - normalised path for the directory
+///   [dirPath] - unnormalised path for the directory
 ///   [createDir] - Whether to create the directory or not (default: true)
 ///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
 Future<void> setInheritKeyDir(
-  String normalizedDirPath, {
+  String dirPath, {
   bool createDir = true,
   bool createAcl = true,
+  String? basePath,
 }) async {
+  final normalizedDirPath = await normalizeFilePath(dirPath, basePath);
   final dirUrl = await getDirUrl(normalizedDirPath);
 
   if (createDir) {
@@ -1035,7 +1037,7 @@ Future<void> setInheritKeyDir(
 
   if (createAcl) {
     // Create the corresponding acl file
-    final aclFileUrl = '$dirUrl/.acl';
+    final aclFileUrl = '$dirUrl.acl';
     await createResource(
       aclFileUrl,
       content: await genAclTurtle(dirUrl, isFile: false),
