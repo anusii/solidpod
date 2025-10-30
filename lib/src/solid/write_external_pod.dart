@@ -147,7 +147,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
       // If the resource does not exist, if the encrypted flag is set to true,
       // and if inheritedFrom is set, then encrypt the file using the
       // inherited key
-      if (inheritKeyFrom != null && encrypted) {
+      if (inheritKeyFrom != null) {
         // Get normalised directory path
         String normalizedDirPath =
             await normalizeFilePath(inheritKeyFrom, null);
