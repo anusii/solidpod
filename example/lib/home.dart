@@ -36,7 +36,11 @@ import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
 
 import 'package:solidui/solidui.dart'
-    show InitialSetupScreenBody, loginIfRequired, logoutPopup;
+    show
+        InitialSetupScreenBody,
+        loginIfRequired,
+        logoutPopup,
+        getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';

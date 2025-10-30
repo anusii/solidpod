@@ -32,9 +32,10 @@ import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
 
+import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
+
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';

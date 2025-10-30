@@ -34,6 +34,7 @@ library;
 // name conflicts?
 
 export 'src/solid/constants/common.dart' show foaf, terms;
+export 'src/solid/constants/schema.dart' show appsTerms;
 
 /// Solid authentication function
 
@@ -65,8 +66,9 @@ export 'src/solid/utils/app_info.dart';
 
 /// Includes the KeyManager class which stores all keys and their parameters
 /// such as Security key, Public key, Private key, and Individual keys.
+/// Also includes the verifySecurityKey function to verify security keys.
 
-export 'src/solid/utils/key_helper.dart' show KeyManager;
+export 'src/solid/utils/key_helper.dart' show KeyManager, verifySecurityKey;
 
 /// Custom exception classes for better error handling.
 
