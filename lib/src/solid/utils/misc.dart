@@ -51,7 +51,6 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 

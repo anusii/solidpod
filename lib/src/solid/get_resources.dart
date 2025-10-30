@@ -65,7 +65,7 @@ Future<List<String>> getResources(
   final dataDirPath = await getDataDirPath();
   final dataDirUrl = await getDirUrl(dataDirPath);
 
-  final resDirUrl = '$dataDirUrl';
+  final resDirUrl = dataDirUrl;
 
   // Normalise the file path to use appname/data as base path
   // and handle cross-platform path separators properly.

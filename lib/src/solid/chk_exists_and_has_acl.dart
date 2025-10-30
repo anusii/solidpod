@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Check [fileName] exists and has the associated ACL file. Requires user
@@ -62,45 +63,47 @@ Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
   bool isExternalRes = false,
 }) async {
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-  final loggedIn = await loginIfRequired(context);
 
-  if (loggedIn) {
-    if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-    await getKeyFromUserIfRequired(context, child);
-
-    final resourceUrl = await filenameToResourceUrl(
-      fileName: fileName,
-      isFileUrl: isFileUrl,
-      isExternalRes: isExternalRes,
-      isFile: isFile,
+  if (!await checkLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to check resource ACL. '
+      'Please authenticate before calling chkExistsAndHasAcl().',
     );
+  }
 
-    // Check if file exists
-    final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
+  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
+  await getKeyFromUserIfRequired(context, child);
 
-    if (resStatus == ResourceStatus.exist ||
-        resStatus == ResourceStatus.forbidden) {
-      if (resStatus == ResourceStatus.forbidden) {
-        debugPrint(
-          '[read_permission] Allowing resource\'s ACL to be read when the resource is access forbidden',
-        );
-      }
+  final resourceUrl = await filenameToResourceUrl(
+    fileName: fileName,
+    isFileUrl: isFileUrl,
+    isExternalRes: isExternalRes,
+    isFile: isFile,
+  );
 
-      // Check if the resource has an ACL
-      bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
+  // Check if file exists
+  final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
-      if (hasAcl) {
-        // Return desired acl found status
-        return SolidFunctionCallStatus.aclFound;
-      } else {
-        debugPrint('Resource does not have a corresponding ACL file. '
-            'If the ACL is inherited provide parent directory as the resource name!');
-        return SolidFunctionCallStatus.noAclFound;
-      }
+  if (resStatus == ResourceStatus.exist ||
+      resStatus == ResourceStatus.forbidden) {
+    if (resStatus == ResourceStatus.forbidden) {
+      debugPrint(
+        '[read_permission] Allowing resource\'s ACL to be read when the resource is access forbidden',
+      );
+    }
+
+    // Check if the resource has an ACL
+    bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
+
+    if (hasAcl) {
+      // Return desired acl found status
+      return SolidFunctionCallStatus.aclFound;
     } else {
-      return SolidFunctionCallStatus.fileNotExists;
+      debugPrint('Resource does not have a corresponding ACL file. '
+          'If the ACL is inherited provide parent directory as the resource name!');
+      return SolidFunctionCallStatus.noAclFound;
     }
   } else {
-    return SolidFunctionCallStatus.notLoggedIn;
+    return SolidFunctionCallStatus.fileNotExists;
   }
 }

@@ -30,7 +30,6 @@ library;
 
 import 'dart:core';
 
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
