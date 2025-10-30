@@ -215,7 +215,7 @@ Future<String> getEncTTLStr(
   Key key,
   IV iv, {
   String? extWebId,
-  String? inheritedFrom,
+  String? inheritKeyFrom,
 }) async {
   final triples = {
     URIRef(await getFileUrl(filePath, extWebId)): {
@@ -225,9 +225,9 @@ Future<String> getEncTTLStr(
     },
   };
 
-  if (inheritedFrom != null) {
+  if (inheritKeyFrom != null) {
     triples[URIRef(await getFileUrl(filePath, extWebId))]![
-        solidTermsNS.ns.withAttr(inheritancePred)] = inheritedFrom;
+        solidTermsNS.ns.withAttr(inheritKeyPred)] = inheritKeyFrom;
   }
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 

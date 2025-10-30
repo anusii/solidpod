@@ -1006,27 +1006,27 @@ bool hasInheritedKey(
 ) {
   final dataMap = parseTTLMap(fileContent);
   if (dataMap.containsKey(fileUrl)) {
-    return dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
+    return dataMap[fileUrl].containsKey('$appsTerms$inheritKeyPred');
   } else {
     return false;
   }
 }
 
 /// Set a key for a given directory so that key can be used to encrypt multiple
-/// resources within the directory. Takes three input parameters
+/// resources within the directory. Takes two input parameters
 ///   [dirPath] - unnormalised path for the directory
-///   [createDir] - Whether to create the directory or not (default: true)
 ///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
+/// Directory will be created if not exist
 Future<void> setInheritKeyDir(
   String dirPath, {
-  bool createDir = true,
   bool createAcl = true,
   String? basePath,
 }) async {
   final normalizedDirPath = await normalizeFilePath(dirPath, basePath);
   final dirUrl = await getDirUrl(normalizedDirPath);
 
-  if (createDir) {
+  if (await checkResourceStatus(dirUrl, isFile: false) ==
+      ResourceStatus.notExist) {
     // Create the directory
     await createResource(
       dirUrl,
@@ -1044,11 +1044,13 @@ Future<void> setInheritKeyDir(
     );
   }
 
-  // Create an individual AES key for the directory. This key will
-  // be used to encrypt all the resources inside the directory
-  await KeyManager.addIndividualKey(
-    normalizedDirPath,
-    genRandIndividualKey(),
-    isFile: false,
-  );
+  if (!await KeyManager.hasIndividualKey(dirUrl)) {
+    // Create an individual AES key for the directory. This key will
+    // be used to encrypt all the resources inside the directory
+    await KeyManager.addIndividualKey(
+      normalizedDirPath,
+      genRandIndividualKey(),
+      isFile: false,
+    );
+  }
 }

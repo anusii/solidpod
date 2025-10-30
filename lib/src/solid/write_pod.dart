@@ -63,6 +63,8 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
 ///                   be inherited from. If set a single encryption key associated
 ///                   with the given directory is used to encrypt the resource.
+///                   If this is set, then content will be encrypted regardless
+///                   of encrypted flag is True or False.
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -107,8 +109,8 @@ Future<SolidFunctionCallStatus> writePod(
             'the directory and corresponding acl file, and setting up a new key '
             'for the directory');
         // Create directory and set a new key for the directory
-        await setInheritKeyDir(normalizedDirPath, basePath: basePath);
-
+        await setInheritKeyDir(inheritKeyFrom, basePath: basePath);
+        break;
       case ResourceStatus.exist:
         if (!await KeyManager.hasIndividualKey(parentDirUrl)) {
           debugPrint(
@@ -116,10 +118,9 @@ Future<SolidFunctionCallStatus> writePod(
               'up a new key for the directory');
           // Generate a new key for the directory
           await setInheritKeyDir(
-            normalizedDirPath,
+            inheritKeyFrom,
             basePath: basePath,
             createAcl: false,
-            createDir: false,
           );
         }
         debugPrint(
@@ -216,22 +217,19 @@ Future<SolidFunctionCallStatus> writePod(
   var content = fileContent;
   var contentType = ResourceContentType.turtleText;
 
-  if (encrypted) {
-    // Get the security key (and cache it in KeyManager)
-    await getKeyFromUserIfRequired(context, child);
-
-    if (inheritKeyFrom != null) {
-      final normalizedDirPath =
-          await normalizeFilePath(inheritKeyFrom, basePath);
-      final parentDirUrl = await getDirUrl(normalizedDirPath);
-      content = await getEncTTLStr(
-        normalizedFilePath,
-        fileContent,
-        await KeyManager.getIndividualKey(parentDirUrl),
-        genRandIV(),
-        inheritedFrom: normalizedDirPath,
-      );
-    } else {
+  // If inheritKeyFrom is set, always encrypt the resource
+  if (inheritKeyFrom != null) {
+    final normalizedDirPath = await normalizeFilePath(inheritKeyFrom, basePath);
+    final parentDirUrl = await getDirUrl(normalizedDirPath);
+    content = await getEncTTLStr(
+      normalizedFilePath,
+      fileContent,
+      await KeyManager.getIndividualKey(parentDirUrl),
+      genRandIV(),
+      inheritKeyFrom: normalizedDirPath,
+    );
+  } else {
+    if (encrypted) {
       // Reuse the individual key if the key already exists,
       // otherwise, generate a random key and add it to the individual key file.
 
@@ -248,39 +246,32 @@ Future<SolidFunctionCallStatus> writePod(
         await KeyManager.getIndividualKey(fileUrl),
         genRandIV(),
       );
-    }
+    } else {
+      // Delete existing (encrypted) file if the new content is unencrypted
 
-    if (!fileUrl.endsWith('.ttl')) {
-      debugPrint('WARNING: Encrypted text file should be in turtle format, '
-          'but the extension of provided filename "$fileName" is not ".ttl"');
-    }
-  } else {
-    // Delete existing (encrypted) file if the new content is unencrypted
+      if (existingFileEncrypted) {
+        await deleteFile(normalizedFilePath);
+      }
 
-    if (existingFileEncrypted) {
-      await deleteFile(normalizedFilePath);
-    }
+      // If the filename does not end with `.ttl', set content type to plain text
 
-    // If the filename does not end with `.ttl', set content type to plain text
-
-    if (!fileUrl.endsWith('.ttl')) {
-      // .plainText may result in a filename ending with `$.txt'
-      // .any may result in a filename ending with `$.unknown'
-      contentType = ResourceContentType.auto;
+      if (!fileUrl.endsWith('.ttl')) {
+        // .plainText may result in a filename ending with `$.txt'
+        // .any may result in a filename ending with `$.unknown'
+        contentType = ResourceContentType.auto;
+      }
     }
+  }
+
+  if ((encrypted || inheritKeyFrom != null) && !fileUrl.endsWith('.ttl')) {
+    debugPrint('WARNING: Encrypted text file should be in turtle format, '
+        'but the extension of provided filename "$fileName" is not ".ttl"');
   }
 
   // Create file on server
   await createResource(fileUrl, content: content, contentType: contentType);
 
   // Create the ACL file for the data file if necessary
-
-  // if (inheritedFrom == null) {
-  //   final aclFileUrl = '$fileUrl.acl';
-  //   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
-  //     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
-  //   }
-  // }
 
   final aclFileUrl = '$fileUrl.acl';
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&
