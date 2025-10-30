@@ -26,14 +26,10 @@ dependencies:
   pointycastle: ^4.0.0
   rdflib: ^0.2.11
   solid_auth: ^0.1.28
-  # FIXME: solidui temporarily pointed to path to avoid dependency conflicts
-  # revert back when this solidpod branch merged
-  # solidui:
-  #   git:
-  #     url: https://github.com/anusii/solidui.git
-  #     ref: dev
   solidui:
-    path: ../solidui/
+    git:
+      url: https://github.com/anusii/solidui.git
+      ref: dev
   universal_io: ^2.2.2
 
 dev_dependencies:
