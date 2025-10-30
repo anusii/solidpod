@@ -685,24 +685,36 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 /// app data directory and the filename.
 /// - [contentType] - the type of content of the resource. Default:
 /// [ResourceContentType.turtleText].
+/// - [isKey] - flag describing whether the file to be deleted is a
+/// security key. Use this flag if file is a security key to avoid
+/// unnecessary operations that are not needed to delete a key.
 
 Future<void> deleteFile(
   String filePath, {
   ResourceContentType contentType = ResourceContentType.turtleText,
+  bool isKey = false,
 }) async {
-  // Revoke permission to recipients:
-  // to avoid the permission log of recipients still
-  // showing the recipient as having access to the
-  // file that is being deleted
-  await revokePermissionToRecipients(
-    fileName: filePath,
-  );
+  if (!isKey) {
+    // File to be deleted != key => perform all steps
 
-  final fileUrl = await getFileUrl(filePath);
-  await deleteResource(fileUrl, contentType);
-  await deleteAclForResource(fileUrl);
-  if (await KeyManager.hasIndividualKey(fileUrl)) {
-    await KeyManager.removeIndividualKey(filePath);
+    // Revoke permission to recipients:
+    // to avoid the permission log of recipients still
+    // showing the recipient as having access to the
+    // file that is being deleted
+    await revokePermissionToRecipients(
+      fileName: filePath,
+    );
+
+    final fileUrl = await getFileUrl(filePath);
+    await deleteResource(fileUrl, contentType);
+    await deleteAclForResource(fileUrl);
+    if (await KeyManager.hasIndividualKey(fileUrl)) {
+      await KeyManager.removeIndividualKey(filePath);
+    }
+  } else {
+    // File to be deleted == key => perform delete only
+    final fileUrl = await getFileUrl(filePath);
+    await deleteResource(fileUrl, contentType);
   }
 }
 
