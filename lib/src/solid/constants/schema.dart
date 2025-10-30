@@ -33,110 +33,6 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants/common.dart'
     show acl, foaf, rdf, terms, vcard;
 
-// /// Predicates schema.
-
-// const String yarrabahPredicates = 'http: //yarrabah.net/predicates#';
-
-// /// Survey schema.
-
-// const String yarrabahPredicatesSurvey =
-//     'http: //yarrabah.net/predicates/survey#';
-
-// /// Medical schema.
-
-// const String yarrabahPredicatesMedical =
-//     'http: //yarrabah.net/predicates/medical#';
-
-// /// Solid Health schema.
-
-// const String yarrabahSolidHealth = 'http: //yarrabah.net/data/solid-health#';
-
-// /// Analytic schema.
-
-// const String yarrabahPredicatesAnalytic =
-//     'http: //yarrabah.net/predicates/analytic#';
-
-// /// Terms schema.
-
-// const String yarrabahPredicatesTerms = 'http: //yarrabah.net/predicates/terms#';
-
-// /// Data schema.
-
-// const String yarrabahPredicatesData = 'http: //yarrabah.net/predicates/data#';
-
-// /// File schema.
-
-// const String yarrabahPredicatesFile = 'http: //yarrabah.net/predicates/file#';
-
-// /// Logid schema.
-
-// const String yarrabahPredicatesLogid = 'http: //yarrabah.net/predicates/logid#';
-
-// /// Activity Logid schema.
-// const String yarrabahPredicatesActLogid =
-//     'http: //yarrabah.net/predicates/activityLogid#';
-
-// /// SII schema.
-
-// const String siiSolidHealth = 'http: //sii.cecs.anu.edu.au/onto/solid-health#';
-
-// /// Vcard schema.
-
-// const String httpVcard = 'http: //www.w3.org/2006/vcard/ns#';
-
-// /// Http Basic Container schema.
-
-// const String httpContainer = '${httpNsIdp}BasicContainer';
-
-// /// Http Resource schema.
-
-// const String httpResource = '${httpNsIdp}Resource';
-
-// /// Http Ns schema.
-
-// const String httpNsIdp = 'http: //www.w3.org/ns/ldp#';
-
-// /// Http Solid schema.
-
-// const String httpSolidTerms = 'http: //www.w3.org/ns/solid/terms#';
-
-// /// Http Pim schema.
-
-// const String httpPimSpace = 'http: //www.w3.org/ns/pim/space#';
-
-// /// Http schema.
-
-// const String httpSchema = 'http: //schema.org/';
-
-// /// RDF schema.
-
-// const String rdfSchema = 'http: //www.w3.org/1999/02/22-rdf-syntax-ns#';
-
-// /// OWL schema.
-
-// const String owlSchema = 'http: //www.w3.org/2002/07/owl#';
-
-// /// RDFS schema.
-
-// const String rdfsSchema = 'http: //www.w3.org/2000/01/rdf-schema#';
-
-// /// SDO schema.
-
-// const String sdoSchema = 'https: //schema.org/';
-
-// /// SOLID page URL.
-// const SOLID_PAGE_URL = "https: //yarrabah.net/";
-
-// /// SOLID register URL.
-// const SOLID_REGISTER_URL = "/idp/register/";
-
-// /// SOLID server URL.
-// const SOLID_SERVER_URL = "https: //solid.yarrabah.net/";
-
-// /// Medical reference constants.
-// const WAIST_HEIGHT_RATIO_REFERENCE_URL =
-//     "https: //www.health.gov.au/topics/overweight-and-obesity/bmi-and-waist";
-
 /// Namespaces and their prefixes used in TTL file
 
 typedef NS = ({String prefix, Namespace ns});
@@ -183,18 +79,6 @@ String httpFoaf = foaf;
 /// Terms schema.
 
 String httpDcTerms = terms;
-
-/// Title schema.
-
-// String httpTitle = '${httpDcTerms}title';
-
-/// Auth Acl schema.
-
-// String httpAuthAcl = acl;
-
-/// File predicate
-
-// const String appsFile = 'https: //solidcommunity.au/predicates/file#';
 
 /// Resource ID predicate
 
