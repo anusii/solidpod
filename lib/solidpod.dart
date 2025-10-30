@@ -55,14 +55,9 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 /// - A dialog for deleting an encrypted file
 /// - Check whether login tokens are expired and if they are ridirect to login
 /// - Input key from user when required
-/// - Initialise PODs if required after login
 
 export 'src/solid/common_func.dart'
-    show
-        deleteDataFileDialog,
-        getKeyFromUserIfRequired,
-        loginIfRequired,
-        initPodsIfRequired;
+    show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.
@@ -104,7 +99,8 @@ export 'src/solid/utils/misc.dart'
         logoutPod,
         setAppDirName,
         generateDefaultFolders,
-        generateDefaultFiles;
+        generateDefaultFiles,
+        initPod;
 
 /// Change security key popup widget
 
@@ -168,8 +164,5 @@ export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
 export 'src/solid/get_access_lists.dart';
 export 'src/solid/get_resources.dart';
 
-/// 20250917 gjw Extras that were required for the example app! Not yet documented.
-
-export 'src/screens/initial_setup/initial_setup_screen.dart'
-    show InitialSetupScreen;
-export 'src/screens/initial_setup/initial_setup_screen_body.dart';
+/// 20250917 gjw Extras that were required for the example app! Not yet
+/// documented.

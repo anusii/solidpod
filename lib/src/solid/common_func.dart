@@ -31,10 +31,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:solidui/solidui.dart' show loginWebIdInputDialog;
 
-import 'package:solidpod/src/screens/initial_setup/initial_setup_screen.dart'
-    show InitialSetupScreen;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
@@ -47,53 +44,21 @@ import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 import 'package:solidpod/src/widgets/security_key_ui.dart';
 
 /// Login if the user has not done so.
+///
+/// [context] is the build context.
+/// [loginCallback] is a callback function that handles the login UI.
+/// If no callback is provided, this function simply checks if the user is
+/// logged in.
 
-Future<bool> loginIfRequired(BuildContext context) async {
+Future<bool> loginIfRequired(
+  BuildContext context, {
+  Future<void> Function(BuildContext)? loginCallback,
+}) async {
   final loggedIn = await checkLoggedIn();
-  if (!loggedIn && context.mounted) {
-    await loginWebIdInputDialog(
-      context,
-    );
-    // await Navigator.push(
-    //     context,
-    //     MaterialPageRoute(
-    //       builder: (context) => const SolidPopupLogin(),
-    //     ));
+  if (!loggedIn && context.mounted && loginCallback != null) {
+    await loginCallback(context);
   }
   return checkLoggedIn();
-}
-
-/// Initialise the user's PODs if the user has not done so
-
-Future<void> initPodsIfRequired(BuildContext context) async {
-  final defaultFolders = await generateDefaultFolders();
-  final defaultFiles = await generateDefaultFiles();
-
-  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
-  final allExists = resCheckList.first as bool;
-
-  if (!allExists && context.mounted) {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => InitialSetupScreen(
-          resCheckList: resCheckList,
-          child: AlertDialog(
-            title: const Text('Notice'),
-            content: const Text('PODs successfully initialised!'),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 /// Ask for the security key from the user if the security key is not available
