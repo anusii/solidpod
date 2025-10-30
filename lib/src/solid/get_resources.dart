@@ -65,9 +65,7 @@ Future<List<String>> getResources(
   final dataDirPath = await getDataDirPath();
   final dataDirUrl = await getDirUrl(dataDirPath);
 
-  // Why do we need the additional `/`? (20250714 gjw)
-
-  final resDirUrl = '$dataDirUrl/';
+  final resDirUrl = '$dataDirUrl';
 
   // Normalise the file path to use appname/data as base path
   // and handle cross-platform path separators properly.
