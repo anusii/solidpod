@@ -374,7 +374,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
               try {
                 result = await grantPermission(
                   dataFile,
-                  true,
+                  widget.isFile ?? isFile,
                   selectedPermList,
                   selectedRecipientType,
                   finalWebIdList as List,
