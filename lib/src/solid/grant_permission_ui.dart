@@ -38,6 +38,7 @@ import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
+import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
@@ -218,11 +219,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
-  Future<List<dynamic>> loadPodData() async {
+  Future<List<dynamic>> loadPodData({
+    required String resourceName,
+    bool isFile = true,
+  }) async {
     final SolidFunctionCallStatus response;
     if (context.mounted) {
       response = await chkExistsAndHasAcl(
-        fileName: widget.resourceName as String,
+        fileName: resourceName,
         isFile: isFile,
         context: context,
         child: widget,
@@ -233,7 +237,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     if (response == SolidFunctionCallStatus.aclFound) {
       final Map<dynamic, dynamic> result = await readPermission(
-        fileName: widget.resourceName as String,
+        fileName: resourceName,
         isFile: isFile,
         isExternalRes: widget.isExternalRes,
       );
@@ -244,20 +248,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           : await AuthDataManager.getWebId();
       return [result, webId];
     } else if (response == SolidFunctionCallStatus.notLoggedIn) {
-      await _alert(
-        'Please login first to retrieve permission',
-      );
-      return [];
+      await _alert('Please login first to retrieve permission');
     } else if (response == SolidFunctionCallStatus.noAclFound) {
-      await _alert(
-        'Resource does not have a corresponding ACL file.\n'
-        'If the ACL is inherited, provide parent directory as the resource name!',
-      );
-      return [];
+      await _alert(noAclMsg);
     } else {
       await _alert('Unknown error');
-      return [];
     }
+    return [];
   }
 
   @override
@@ -265,7 +262,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load future
     if (widget.resourceName != null) {
-      podDataList = loadPodData();
+      podDataList = loadPodData(
+        resourceName: widget.resourceName as String,
+        isFile: isFile,
+      );
     }
 
     // Load access mode list to be displayed
@@ -275,63 +275,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     // Load recipient list to be displayed
     for (final recTypeStr in widget.recipientTypeList) {
-      recipientTypeList.add(getRecType(recTypeStr));
+      recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
     }
   }
 
   // Get new permission and update the permission map
   Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
-    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
-      fileName: fileName,
-      isFile: isFile,
-      context: context,
-      child: widget,
-    );
-    if (response == SolidFunctionCallStatus.aclFound) {
-      final Map<dynamic, dynamic> permissionMap = await readPermission(
-        fileName: fileName,
-        isFile: isFile,
-        isExternalRes: widget.isExternalRes,
-      );
-
-      final webId = widget.isExternalRes
-          ? widget.externalWebId
-          : await AuthDataManager.getWebId();
+    final pdata = await loadPodData(resourceName: fileName, isFile: isFile);
+    if (pdata.isNotEmpty) {
+      assert(pdata.length == 2);
+      final permissionMap = pdata.first;
+      final webId = pdata.last;
 
       if (permissionMap.isEmpty) {
-        await _alert(
-          'We could not find a resource by the name $fileName',
-        );
+        await _alert('We could not find a resource by the name $fileName');
       } else {
-        _updatePermTable(
-          permissionMap,
-          webId as String,
-          fileName,
-        );
+        setState(() {
+          permDataMap = permissionMap;
+          permDataFile = fileName;
+          ownerWebId = webId as String;
+        });
       }
-    } else if (response == SolidFunctionCallStatus.notLoggedIn) {
-      await _alert(
-        'Please login first to retrieve permission',
-      );
-    } else if (response == SolidFunctionCallStatus.noAclFound) {
-      await _alert(
-        'Resource does not have a corresponding ACL file.\n'
-        'If the ACL is inherited, provide parent directory as the resource name!',
-      );
     }
-  }
-
-  // Update permission table with new data
-  void _updatePermTable(
-    Map<dynamic, dynamic> newPermMap,
-    String webId,
-    String fileName,
-  ) {
-    setState(() {
-      permDataMap = newPermMap;
-      permDataFile = fileName;
-      ownerWebId = webId;
-    });
   }
 
   // Update checkbox tick data.
@@ -912,22 +877,5 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     } else {
       return _buildPermPage(context);
     }
-  }
-}
-
-/// Return recipient type based on a given String value
-RecipientType getRecType(String recTypeStr) {
-  switch (recTypeStr.toLowerCase()) {
-    case 'public':
-      return RecipientType.public;
-    case 'indi':
-      return RecipientType.individual;
-    case 'auth':
-      return RecipientType.authUser;
-    case 'group':
-      return RecipientType.group;
-    default:
-      throw Exception('Wrong recipient type given'
-          '\nRecipient: $recTypeStr');
   }
 }
