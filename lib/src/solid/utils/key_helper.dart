@@ -39,8 +39,7 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart'
-    show parseTTLMap, tripleMapToTurtle;
+import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
@@ -463,11 +462,4 @@ class RecipientPubKey {
     }
     return _encrypter!.encrypt(dataVal).base64;
   }
-}
-
-/// Returns true if there is an individual key for a given resource
-bool hasInheritedKey(String fileContent, String fileUrl) {
-  final dataMap = parseTTLMap(fileContent);
-  return dataMap.containsKey(fileUrl) &&
-      dataMap[fileUrl].containsKey('$appsTerms$inheritKeyPred');
 }
