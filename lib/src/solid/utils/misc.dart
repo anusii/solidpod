@@ -208,14 +208,14 @@ Future<String> getEncTTLStr(
   Key key,
   IV iv, {
   String? extWebId,
-  String? inheritedFrom,
+  String? inheritKeyFrom,
 }) async {
   final triples = {
     URIRef(await getFileUrl(filePath, extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
-      if (inheritedFrom != null)
-        solidTermsNS.ns.withAttr(inheritancePred): inheritedFrom,
+      if (inheritKeyFrom != null)
+        solidTermsNS.ns.withAttr(inheritKeyPred): inheritKeyFrom,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     },
   };

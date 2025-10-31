@@ -57,51 +57,50 @@ Future<dynamic> readPermission(
   Widget child, {
   bool isExternalRes = false,
 }) async {
-  final loggedIn = await loginIfRequired(context);
+  if (!await checkLoggedIn()) {
+    throw Exception(
+      'User must be logged in to read permissions.',
+    );
+  }
 
-  if (loggedIn) {
-    await getKeyFromUserIfRequired(context, child);
+  await getKeyFromUserIfRequired(context, child);
 
-    var resourceUrl = resourceName;
-    if (!isExternalRes) {
-      // Get the file path
-      final resourcePath = [await getDataDirPath(), resourceName].join('/');
+  var resourceUrl = resourceName;
+  if (!isExternalRes) {
+    // Get the file path
+    final resourcePath = [await getDataDirPath(), resourceName].join('/');
 
-      // Get the url of the file
-      resourceUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
+    // Get the url of the file
+    resourceUrl = await getFileUrl(resourcePath);
+  }
+  // Check if file exists
+  final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
+
+  if (resStatus == ResourceStatus.exist ||
+      resStatus == ResourceStatus.forbidden) {
+    if (resStatus == ResourceStatus.forbidden) {
+      debugPrint(
+        '[read_permission] Allowing resource\'s ACL to be read when the resource is access forbidden',
+      );
     }
 
-    // Check if file exists
-    final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
+    // Check if the resource has an ACL
+    bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
 
-    if (resStatus == ResourceStatus.exist ||
-        resStatus == ResourceStatus.forbidden) {
-      if (resStatus == ResourceStatus.forbidden) {
-        debugPrint(
-          '[read_permission] Allowing resource\'s ACL to be read when the resource is access forbidden',
-        );
-      }
+    if (hasAcl) {
+      // Read ACL file content
+      final aclContentMap = await readAcl(resourceUrl, isFile);
 
-      // Check if the resource has an ACL
-      bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
+      // Extract permission details to a map
+      final permMap = extractAclPerm(aclContentMap);
 
-      if (hasAcl) {
-        // Read ACL file content
-        final aclContentMap = await readAcl(resourceUrl, isFile);
-
-        // Extract permission details to a map
-        final permMap = extractAclPerm(aclContentMap);
-
-        return permMap;
-      } else {
-        debugPrint('Resource does not have a corresponding ACL file. '
-            'If the ACL is inherited provide parent directory as the resource name!');
-        return SolidFunctionCallStatus.noAclFound;
-      }
+      return permMap;
     } else {
-      return {};
+      debugPrint('Resource does not have a corresponding ACL file. '
+          'If the ACL is inherited provide parent directory as the resource name!');
+      return SolidFunctionCallStatus.noAclFound;
     }
   } else {
-    return SolidFunctionCallStatus.notLoggedIn;
+    return {};
   }
 }

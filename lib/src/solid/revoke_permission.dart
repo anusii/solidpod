@@ -66,150 +66,150 @@ Future<dynamic> revokePermission(
   Widget child, {
   bool isExternalRes = false,
 }) async {
-  final loggedIn = await loginIfRequired(context);
+  if (!await checkLoggedIn()) {
+    throw Exception(
+      'User must be logged in to revoke permissions.',
+    );
+  }
 
-  if (loggedIn) {
-    await getKeyFromUserIfRequired(context, child);
+  await getKeyFromUserIfRequired(context, child);
 
-    var resourceUrl = '';
+  var resourceUrl = '';
 
-    if (!isExternalRes) {
-      // Get the file path
-      final filePath = [await getDataDirPath(), fileName].join('/');
+  if (!isExternalRes) {
+    // Get the file path
+    final filePath = [await getDataDirPath(), fileName].join('/');
 
-      // Get the url of the resource
-      if (isFile) {
-        resourceUrl = await getFileUrl(filePath);
-      } else {
-        resourceUrl = await getDirUrl(filePath);
-      }
+    // Get the url of the resource
+    if (isFile) {
+      resourceUrl = await getFileUrl(filePath);
     } else {
-      resourceUrl = fileName;
+      resourceUrl = await getDirUrl(filePath);
+    }
+  } else {
+    resourceUrl = fileName;
+  }
+
+  // Check if file/directory exists
+  final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
+
+  if (resStatus == ResourceStatus.exist) {
+    // Common list of remover IDs to process further
+    final removerIdList = [];
+
+    if (recipientType == RecipientType.group) {
+      // Read the file that stores group of webIds
+      // Get the file path
+      final groupFilePath = [await getDataDirPath(), removerWebId].join('/');
+
+      // Get the url of the file
+      final groupFileUrl = await getFileUrl(groupFilePath);
+
+      final groupWebIdList = await readGroupTtl(groupFileUrl);
+      removerIdList.addAll(groupWebIdList);
+    } else {
+      removerIdList.add(removerWebId);
     }
 
-    // Check if file/directory exists
-    final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
+    // Check if the file is encrypted
+    final fileIsEncrypted =
+        await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
 
-    if (resStatus == ResourceStatus.exist) {
-      // Common list of remover IDs to process further
-      final removerIdList = [];
+    // If the file is encrypted then remove the individual key from relavant
+    // users/ user classes
+    if (fileIsEncrypted) {
+      if ([RecipientType.individual, RecipientType.group]
+          .contains(recipientType)) {
+        for (final removerId in removerIdList) {
+          // Check if POD file structure is still there
+          if (await checkPodInitialised(removerId as String)) {
+            // Generate unique ID for the resource being shared
+            final resUniqueId = getUniqueIdResUrl(resourceUrl, removerId);
 
-      if (recipientType == RecipientType.group) {
-        // Read the file that stores group of webIds
-        // Get the file path
-        final groupFilePath = [await getDataDirPath(), removerWebId].join('/');
-
-        // Get the url of the file
-        final groupFileUrl = await getFileUrl(groupFilePath);
-
-        final groupWebIdList = await readGroupTtl(groupFileUrl);
-        removerIdList.addAll(groupWebIdList);
-      } else {
-        removerIdList.add(removerWebId);
-      }
-
-      // Check if the file is encrypted
-      final fileIsEncrypted =
-          await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
-
-      // If the file is encrypted then remove the individual key from relavant
-      // users/ user classes
-      if (fileIsEncrypted) {
-        if ([RecipientType.individual, RecipientType.group]
-            .contains(recipientType)) {
-          for (final removerId in removerIdList) {
-            // Check if POD file structure is still there
-            if (await checkPodInitialised(removerId as String)) {
-              // Generate unique ID for the resource being shared
-              final resUniqueId = getUniqueIdResUrl(resourceUrl, removerId);
-
-              // Delete shared key content from recipient's POD
-              await removeSharedKey(removerId, resUniqueId);
-            }
+            // Delete shared key content from recipient's POD
+            await removeSharedKey(removerId, resUniqueId);
           }
-        } else {
-          // if the recipient type is either public or authenticated agent
-          // Remove the key from the publicly available or authenticated user
-          // accessible file
-          await removeSharedKeyUserClass(resourceUrl, recipientType);
         }
+      } else {
+        // if the recipient type is either public or authenticated agent
+        // Remove the key from the publicly available or authenticated user
+        // accessible file
+        await removeSharedKeyUserClass(resourceUrl, recipientType);
       }
+    }
 
-      final resourceName = resourceUrl.split('/').last;
+    final resourceName = resourceUrl.split('/').last;
 
-      // Remove the permission line from the relevant ACL file
-      await removePermissionAcl(
-        resourceName,
+    // Remove the permission line from the relevant ACL file
+    await removePermissionAcl(
+      resourceName,
+      resourceUrl,
+      ownerWebId,
+      removerWebId,
+      recipientType,
+      isFile: isFile,
+    );
+
+    // Add log entry to owner, granter, and receiver permission log files
+    // av20240703: At this instance the owner and the granter are the same
+    //             At some point we might need to change this function so that
+    //             it can be used in the instances where owner is different from
+    //             the granter
+
+    // Get user webID
+    final userWebId = await AuthDataManager.getWebId() as String;
+
+    for (final removerId in removerIdList) {
+      final logEntryRes = createPermLogEntry(
+        permissionList,
         resourceUrl,
         ownerWebId,
-        removerWebId,
-        recipientType,
-        isFile: isFile,
+        'revoke',
+        userWebId,
+        removerId as String,
       );
 
-      // Add log entry to owner, granter, and receiver permission log files
-      // av20240703: At this instance the owner and the granter are the same
-      //             At some point we might need to change this function so that
-      //             it can be used in the instances where owner is different from
-      //             the granter
+      // Log file urls of the owner, granter, and receiver
+      final logFilePath = await getPermLogFilePath();
 
-      // Get user webID
-      final userWebId = await AuthDataManager.getWebId() as String;
+      // Owner
+      final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
 
-      for (final removerId in removerIdList) {
-        final logEntryRes = createPermLogEntry(
-          permissionList,
-          resourceUrl,
-          ownerWebId,
-          'revoke',
-          userWebId,
-          removerId as String,
-        );
+      // Granter
+      final granterLogFileUrl = await getFileUrl(logFilePath);
 
-        // Log file urls of the owner, granter, and receiver
-        final logFilePath = await getPermLogFilePath();
+      // Run log entry insert query for the granter
+      await addPermLogLine(
+        granterLogFileUrl,
+        logEntryRes[0] as String,
+        logEntryRes[1] as String,
+      );
 
-        // Owner
-        final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
-
-        // Granter
-        final granterLogFileUrl = await getFileUrl(logFilePath);
-
-        // Run log entry insert query for the granter
+      // If owner and the granter is not the same add another log file entry
+      // for the owner
+      if (ownerLogFileUrl != granterLogFileUrl) {
         await addPermLogLine(
-          granterLogFileUrl,
+          ownerLogFileUrl,
           logEntryRes[0] as String,
           logEntryRes[1] as String,
         );
+      }
 
-        // If owner and the granter is not the same add another log file entry
-        // for the owner
-        if (ownerLogFileUrl != granterLogFileUrl) {
+      // Add log entry if the recipient is either an individual or group of WebIDs
+      if ([RecipientType.individual, RecipientType.group]
+          .contains(recipientType)) {
+        if (await checkPodInitialised(removerId)) {
+          final receiverLogFileUrl = await getFileUrl(logFilePath, removerId);
           await addPermLogLine(
-            ownerLogFileUrl,
+            receiverLogFileUrl,
             logEntryRes[0] as String,
             logEntryRes[1] as String,
           );
         }
-
-        // Add log entry if the recipient is either an individual or group of WebIDs
-        if ([RecipientType.individual, RecipientType.group]
-            .contains(recipientType)) {
-          if (await checkPodInitialised(removerId)) {
-            final receiverLogFileUrl = await getFileUrl(logFilePath, removerId);
-            await addPermLogLine(
-              receiverLogFileUrl,
-              logEntryRes[0] as String,
-              logEntryRes[1] as String,
-            );
-          }
-        }
       }
-      return SolidFunctionCallStatus.success;
-    } else {
-      return SolidFunctionCallStatus.fail;
     }
+    return SolidFunctionCallStatus.success;
   } else {
-    return SolidFunctionCallStatus.notLoggedIn;
+    return SolidFunctionCallStatus.fail;
   }
 }

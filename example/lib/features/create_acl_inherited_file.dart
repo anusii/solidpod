@@ -25,7 +25,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/solidpod.dart' show SolidFunctionCallStatus, writePod;
+import 'package:solidpod/solidpod.dart'
+    show SolidFunctionCallStatus, writePod, setInheritKeyDir;
 import 'package:demopod/constants/app.dart';
 
 // A widget to create a resource with inherited ACL.
@@ -70,9 +71,18 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
       final demoTtlContent = createDemoTtlStr(resourcePath);
 
       if (context.mounted) {
-        final result = await writePod(
-            resourcePath, demoTtlContent, context, widget,
-            encrypted: _isEncrypted, inheritedFrom: parentDirectory);
+        SolidFunctionCallStatus result;
+        if (_isEncrypted) {
+          result = await writePod(resourcePath, demoTtlContent, context, widget,
+              encrypted: _isEncrypted,
+              createAcl: false,
+              inheritKeyFrom: parentDirectory);
+        } else {
+          // First check and create the corresponding directory
+          await setInheritKeyDir(parentDirectory);
+          result = await writePod(resourcePath, demoTtlContent, context, widget,
+              encrypted: _isEncrypted, createAcl: false);
+        }
 
         if (result == SolidFunctionCallStatus.success) {
           if (!mounted) return;

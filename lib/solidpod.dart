@@ -53,11 +53,11 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 
 /// Includes common functions that are useful such as,
 /// - A dialog for deleting an encrypted file
-/// - Check whether login tokens are expired and if they are ridirect to login
 /// - Input key from user when required
+/// - Check POD initialisation status
 
 export 'src/solid/common_func.dart'
-    show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
+    show checkPodInitialization, deleteDataFileDialog, getKeyFromUserIfRequired;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.
@@ -66,8 +66,9 @@ export 'src/solid/utils/app_info.dart';
 
 /// Includes the KeyManager class which stores all keys and their parameters
 /// such as Security key, Public key, Private key, and Individual keys.
+/// Also exports the function to set inherited key for a directory
 
-export 'src/solid/utils/key_manager.dart' show KeyManager;
+export 'src/solid/utils/key_manager.dart' show KeyManager, setInheritKeyDir;
 
 /// Turtle string to triple map and triple map to turtle string functions
 

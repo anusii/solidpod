@@ -38,6 +38,7 @@ import 'package:flutter/widgets.dart' hide Key;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
+import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show createResource, checkResourceStatus, getResource, deleteResource;
@@ -121,7 +122,7 @@ Future<void> writeLargeFile({
   required String remoteFileName,
   required BuildContext context,
   required Widget child,
-  String? inheritedFrom,
+  String? inheritKeyFrom,
   void Function(int, int)? onProgress,
   bool encrypted = true,
 }) async {
@@ -133,7 +134,7 @@ Future<void> writeLargeFile({
     context: context,
     child: child,
     totalBytes: totalBytes,
-    inheritedFrom: inheritedFrom,
+    inheritKeyFrom: inheritKeyFrom,
     onProgress: (sent, total) {
       if (onProgress != null) {
         onProgress(sent, total!);
@@ -152,7 +153,8 @@ Future<void> send({
   required BuildContext context,
   required Widget child,
   int? totalBytes,
-  String? inheritedFrom,
+  String? inheritKeyFrom,
+  bool createAcl = true,
   void Function(int, int?)? onProgress,
   bool encrypted = true,
 }) async {
@@ -176,7 +178,7 @@ Future<void> send({
   );
 
   // Create ACL of the directory if ACL is not inherited
-  if (inheritedFrom == null) {
+  if (createAcl) {
     await createResource(
       '$chunkDirUrl.acl',
       content: await genAclTurtle(chunkDirUrl, isFile: false),
@@ -187,8 +189,10 @@ Future<void> send({
   Key? encKey;
   Encrypter? encrypter;
   IV? iv;
-  if (encrypted) {
-    encKey = genRandIndividualKey();
+  if (encrypted || inheritKeyFrom != null) {
+    encKey = inheritKeyFrom == null
+        ? genRandIndividualKey()
+        : await KeyManager.getIndividualKey(await getDirUrl(inheritKeyFrom));
     encrypter = _getEncrypter(encKey);
     iv = genRandIV();
   }
@@ -204,12 +208,12 @@ Future<void> send({
     // Create the chunk file
     await createResource(
       chunkUrl,
-      content: encrypted ? _encryptBytes(chunk, encrypter!, iv!) : chunk,
+      content: encrypter != null ? _encryptBytes(chunk, encrypter, iv!) : chunk,
       contentType: ResourceContentType.binary,
     );
 
     // Create ACL of the chunk file if ACL is not inherited
-    if (inheritedFrom == null) {
+    if (createAcl) {
       await createResource(
         '$chunkUrl.acl',
         content: await genAclTurtle(chunkUrl),
@@ -248,7 +252,8 @@ Future<void> send({
     context,
     child,
     encrypted: encrypted,
-    inheritedFrom: inheritedFrom,
+    inheritKeyFrom: inheritKeyFrom,
+    createAcl: createAcl,
   );
 
   // Create ACL of the Turtle file

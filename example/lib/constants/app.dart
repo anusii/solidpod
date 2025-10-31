@@ -41,7 +41,7 @@ String createDemoTtlStr(String fileName) {
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
 demo:sampleData$fileName a demo:DemoResource ;
-    rdfs:label "Permission Callback Demo File $fileName" ;
+    rdfs:label "Demo File $fileName" ;
     demo:created "${DateTime.now().toIso8601String()}" ;
     demo:description "This is a file containing some demo ttl content" ;
     foaf:maker "Solid Demo" .

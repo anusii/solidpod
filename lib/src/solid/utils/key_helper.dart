@@ -469,5 +469,5 @@ class RecipientPubKey {
 bool hasInheritedKey(String fileContent, String fileUrl) {
   final dataMap = parseTTLMap(fileContent);
   return dataMap.containsKey(fileUrl) &&
-      dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
+      dataMap[fileUrl].containsKey('$appsTerms$inheritKeyPred');
 }

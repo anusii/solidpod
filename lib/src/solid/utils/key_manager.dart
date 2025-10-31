@@ -40,11 +40,11 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
-import 'package:solidpod/src/solid/api/rest_api.dart'
-    show createResource, updateFileByQuery;
+import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
 /// [KeyManager] is a class to manage security key and encryption keys
 /// for data stored in PODs.
@@ -584,5 +584,47 @@ class KeyManager {
     _prvKeyRecord!.key ??= await getPrivateKey();
 
     _sharedIndKeyMap = await readSharedIndKey(_prvKeyRecord!.key!);
+  }
+}
+
+/// Set a key for a given directory so that key can be used to encrypt multiple
+/// resources within the directory. Takes two input parameters
+///   [dirPath] - unnormalised path for the directory
+///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
+/// Directory will be created if not exist
+Future<void> setInheritKeyDir(
+  String dirPath, {
+  bool createAcl = true,
+  String? basePath,
+}) async {
+  final normalizedDirPath = await normalizeFilePath(dirPath, basePath);
+  final dirUrl = await getDirUrl(normalizedDirPath);
+
+  if (await checkResourceStatus(dirUrl, isFile: false) ==
+      ResourceStatus.notExist) {
+    // Create the directory
+    await createResource(
+      dirUrl,
+      isFile: false,
+      contentType: ResourceContentType.directory,
+    );
+  }
+
+  if (createAcl) {
+    // Create the corresponding acl file
+    await createResource(
+      '$dirUrl.acl',
+      content: await genAclTurtle(dirUrl, isFile: false),
+    );
+  }
+
+  if (!await KeyManager.hasIndividualKey(dirUrl)) {
+    // Create an individual AES key for the directory. This key will
+    // be used to encrypt all the resources inside the directory
+    await KeyManager.addIndividualKey(
+      normalizedDirPath,
+      genRandIndividualKey(),
+      isFile: false,
+    );
   }
 }
