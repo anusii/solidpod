@@ -37,8 +37,8 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
@@ -54,37 +54,37 @@ Future<dynamic> sharedResources(
   String? fileName,
   String? sourceWebId,
 ]) async {
-  final loggedIn = await loginIfRequired(context);
-
-  if (loggedIn) {
-    await getKeyFromUserIfRequired(context, child);
-
-    // Get user webID
-    final userWebId = await AuthDataManager.getWebId() as String;
-
-    // Log file url
-    final logFilePath = await getPermLogFilePath();
-    final logFileUrl = await getFileUrl(logFilePath);
-
-    // Read log file
-    final logContent = await fetchPrvFile(logFileUrl);
-
-    final logDataMap = parseTTLMap(logContent);
-
-    var uniqueLogMap = getLatestLog(logDataMap, userWebId);
-
-    // Filer log entried based on defined file name
-    if (fileName != null) {
-      uniqueLogMap = filterLogByFilename(uniqueLogMap, fileName);
-    }
-
-    // Filer log entried based on defined source webId
-    if (sourceWebId != null) {
-      uniqueLogMap = filterLogByWebId(uniqueLogMap, sourceWebId);
-    }
-
-    return uniqueLogMap;
-  } else {
-    return SolidFunctionCallStatus.notLoggedIn;
+  if (!await checkLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to access shared resources.',
+    );
   }
+
+  await getKeyFromUserIfRequired(context, child);
+
+  // Get user webID
+  final userWebId = await AuthDataManager.getWebId() as String;
+
+  // Log file url
+  final logFilePath = await getPermLogFilePath();
+  final logFileUrl = await getFileUrl(logFilePath);
+
+  // Read log file
+  final logContent = await fetchPrvFile(logFileUrl);
+
+  final logDataMap = parseTTLMap(logContent);
+
+  var uniqueLogMap = getLatestLog(logDataMap, userWebId);
+
+  // Filer log entried based on defined file name
+  if (fileName != null) {
+    uniqueLogMap = filterLogByFilename(uniqueLogMap, fileName);
+  }
+
+  // Filer log entried based on defined source webId
+  if (sourceWebId != null) {
+    uniqueLogMap = filterLogByWebId(uniqueLogMap, sourceWebId);
+  }
+
+  return uniqueLogMap;
 }

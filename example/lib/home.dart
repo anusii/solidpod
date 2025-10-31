@@ -35,7 +35,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:solidui/solidui.dart' show logoutPopup, InitialSetupScreenBody;
+import 'package:solidui/solidui.dart' show InitialSetupScreenBody, logoutPopup;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -170,7 +170,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Future<void> _showSecurityKeyPrompt() async {
     // First ensure we are logged in.
 
-    final loggedIn = await loginIfRequired(context);
+    final loggedIn = await checkLoggedIn();
     if (!loggedIn) {
       await alert(context, 'Please login to continue');
       return;
@@ -274,7 +274,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
+          final loggedIn = await checkLoggedIn();
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -295,7 +295,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
+          final loggedIn = await checkLoggedIn();
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
@@ -313,7 +313,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceReadButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context);
+          final loggedIn = await checkLoggedIn();
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {

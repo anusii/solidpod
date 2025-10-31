@@ -35,8 +35,8 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Get the list of files created by the user in their POD by querying the data directory of the POD.
@@ -52,46 +52,45 @@ Future<List<String>> getResources(
   BuildContext context,
   Widget child,
 ) async {
-  final loggedIn = await loginIfRequired(context);
+  if (!await checkLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to get resources. '
+      'Please authenticate before calling getResources().',
+    );
+  }
+
   var webId = await getWebId() as String;
   webId = webId.replaceAll(profCard, '');
 
-  if (loggedIn) {
-    final dataDirPath = await getDataDirPath();
-    final dataDirUrl = await getDirUrl(dataDirPath);
+  final dataDirPath = await getDataDirPath();
+  final dataDirUrl = await getDirUrl(dataDirPath);
 
-    // Why do we need the additional `/`? (20250714 gjw)
+  final resDirUrl = dataDirUrl;
 
-    final resDirUrl = '$dataDirUrl/';
+  // Normalise the file path to use appname/data as base path
+  // and handle cross-platform path separators properly.
 
-    // Normalise the file path to use appname/data as base path
-    // and handle cross-platform path separators properly.
+  final normalizedFilePath = await normalizeFilePath(resDirUrl, null);
 
-    final normalizedFilePath = await normalizeFilePath(resDirUrl, null);
+  // Check if the directory exists.
 
-    // Check if the directory exists.
+  final dirExists = await checkResourceStatus(resDirUrl, isFile: false);
 
-    final dirExists = await checkResourceStatus(resDirUrl, isFile: false);
+  switch (dirExists) {
+    case ResourceStatus.exist:
+      try {
+        //debugPrint('Data: $dataDirUrl');
+        final res = await getResourcesInContainer(resDirUrl);
+        // debugPrint(res.toString());
 
-    switch (dirExists) {
-      case ResourceStatus.exist:
-        try {
-          //debugPrint('Data: $dataDirUrl');
-          final res = await getResourcesInContainer(resDirUrl);
-          // debugPrint(res.toString());
-
-          return res.files;
-        } on Object catch (e) {
-          debugPrint(e.toString());
-          rethrow;
-        }
-      case ResourceStatus.notExist:
-        throw Exception('Resource "$normalizedFilePath" does not exist.');
-      default:
-        throw Exception('Unknown error.');
-    }
-  } else {
-    debugPrint('WARN: Not logged in when finding the list of resources.');
-    return [];
+        return res.files;
+      } on Object catch (e) {
+        debugPrint(e.toString());
+        rethrow;
+      }
+    case ResourceStatus.notExist:
+      throw Exception('Resource "$normalizedFilePath" does not exist.');
+    default:
+      throw Exception('Unknown error.');
   }
 }

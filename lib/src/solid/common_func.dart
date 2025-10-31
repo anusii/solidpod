@@ -37,28 +37,24 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 import 'package:solidpod/src/widgets/security_key_ui.dart';
 
-/// Login if the user has not done so.
-///
-/// [context] is the build context.
-/// [loginCallback] is a callback function that handles the login UI.
-/// If no callback is provided, this function simply checks if the user is
-/// logged in.
+/// Check if the user's POD structure is initialised.
 
-Future<bool> loginIfRequired(
-  BuildContext context, {
-  Future<void> Function(BuildContext)? loginCallback,
-}) async {
-  final loggedIn = await checkLoggedIn();
-  if (!loggedIn && context.mounted && loginCallback != null) {
-    await loginCallback(context);
-  }
-  return checkLoggedIn();
+Future<(bool, Map<String, dynamic>)> checkPodInitialization() async {
+  final defaultFolders = await generateDefaultFolders();
+  final defaultFiles = await generateDefaultFiles();
+
+  final resCheckList = await initialStructureTest(defaultFolders, defaultFiles);
+  final allExists = resCheckList.first as bool;
+  final missingResources = resCheckList.last as Map<String, dynamic>;
+
+  return (allExists, missingResources);
 }
 
 /// Ask for the security key from the user if the security key is not available
@@ -114,79 +110,79 @@ Future<void> getKeyFromUserIfRequired(
 }
 
 /// Delete a data file (and its ACL file if exist), remove its individual key
-/// and the corresponding IV from the ind-key-file
+/// and the corresponding IV from the ind-key-file.
 
 Future<void> deleteDataFileDialog(
   String fileName,
   BuildContext context, {
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
-  final loggedIn = await loginIfRequired(context);
+  if (!await checkLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to delete files. '
+      'Please authenticate before calling this function.',
+    );
+  }
 
   const smallGapH = SizedBox(width: 10);
   String msg;
 
-  if (loggedIn) {
-    final filePath = [await getDataDirPath(), fileName].join('/');
-    final fileUrl = await getFileUrl(filePath);
-    final status = await checkResourceStatus(fileUrl);
+  final filePath = [await getDataDirPath(), fileName].join('/');
+  final fileUrl = await getFileUrl(filePath);
+  final status = await checkResourceStatus(fileUrl);
 
-    switch (status) {
-      case ResourceStatus.exist:
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Notice'),
-              content: Text('Delete data file "$fileName"?'),
-              actions: [
-                ElevatedButton(
-                  onPressed: () async {
-                    await deleteFile(filePath, contentType: contentType);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Successfully deleted data file "$fileName".',
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 3),
+  switch (status) {
+    case ResourceStatus.exist:
+      if (context.mounted) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Notice'),
+            content: Text('Delete data file "$fileName"?'),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  await deleteFile(filePath, contentType: contentType);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Successfully deleted data file "$fileName".',
                         ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
                 ),
-                smallGapH,
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.white),
                 ),
-              ],
-            ),
-          );
-        }
-        return;
+              ),
+              smallGapH,
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+            ],
+          ),
+        );
+      }
+      return;
 
-      case ResourceStatus.forbidden:
-        msg = 'Access to data file "$fileName" is forbidden.';
+    case ResourceStatus.forbidden:
+      msg = 'Access to data file "$fileName" is forbidden.';
 
-      case ResourceStatus.notExist:
-        msg = 'Data file "$fileName" does not exist.';
+    case ResourceStatus.notExist:
+      msg = 'Data file "$fileName" does not exist.';
 
-      case ResourceStatus.unknown:
-        msg =
-            'Error occurred when checking the status of data file "$fileName".';
-    }
-  } else {
-    msg = 'Please login to delete the data file';
+    case ResourceStatus.unknown:
+      msg = 'Error occurred when checking the status of data file "$fileName".';
   }
 
   if (context.mounted) await alert(context, msg);

@@ -557,7 +557,7 @@ Future<void> initPod(
 
   final loggedIn = await checkLoggedIn();
   if (!loggedIn) {
-    throw Exception('Can not initialise POD without logging in');
+    throw NotLoggedInException('Can not initialise POD without logging in');
   }
 
   // Check (and generate) the directory URLs

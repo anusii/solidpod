@@ -136,9 +136,7 @@ Widget buildPermDataTable({
                           // The "Yes" button
                           TextButton(
                             onPressed: () async {
-                              final loggedIn = await loginIfRequired(context);
-
-                              if (loggedIn && ctx.mounted) {
+                              if (ctx.mounted) {
                                 await getKeyFromUserIfRequired(
                                   ctx,
                                   parentWidget,

@@ -53,11 +53,11 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 
 /// Includes common functions that are useful such as,
 /// - A dialog for deleting an encrypted file
-/// - Check whether login tokens are expired and if they are ridirect to login
 /// - Input key from user when required
+/// - Check POD initialisation status
 
 export 'src/solid/common_func.dart'
-    show deleteDataFileDialog, getKeyFromUserIfRequired, loginIfRequired;
+    show checkPodInitialization, deleteDataFileDialog, getKeyFromUserIfRequired;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.
@@ -68,6 +68,11 @@ export 'src/solid/utils/app_info.dart';
 /// such as Security key, Public key, Private key, and Individual keys.
 
 export 'src/solid/utils/key_helper.dart' show KeyManager;
+
+/// Custom exception classes for better error handling.
+
+export 'src/solid/utils/exceptions.dart'
+    show AccessForbiddenException, AccessFailedException, NotLoggedInException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 

@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -57,10 +58,10 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   bool encrypted = true,
   String? inheritedFrom,
 }) async {
-  final loggedIn = await loginIfRequired(context);
-
-  if (!loggedIn) {
-    return SolidFunctionCallStatus.notLoggedIn;
+  if (!await checkLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to write to external POD.',
+    );
   }
 
   // Check if the file already exists

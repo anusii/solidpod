@@ -289,7 +289,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     );
     if (response == SolidFunctionCallStatus.aclFound) {
       final Map<dynamic, dynamic> permissionMap = await readPermission(
-        fileName: widget.resourceName as String,
+        fileName: fileName,
         isFile: isFile,
         isExternalRes: widget.isExternalRes,
       );
