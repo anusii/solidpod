@@ -163,7 +163,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   bool pageInitialied = false;
 
   /// Define access mode list
-  List<AccessMode> acessModeList = [];
+  List<AccessMode> accessModeList = [];
 
   /// Define recipient type list
   List<RecipientType> recipientTypeList = [];
@@ -204,12 +204,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Flag to track if permissions were granted successfully.
 
   bool permissionsGrantedSuccessfully = false;
-
-  /// Small vertical spacing for the widget.
-  final smallGapV = const SizedBox(height: 10.0);
-
-  /// Large vertical spacing for the widget.
-  final largeGapV = const SizedBox(height: 40.0);
 
   /// Pod data list retreived as a Future
   late Future<List<dynamic>> podDataList;
@@ -270,7 +264,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     // Load access mode list to be displayed
     for (final accessModeStr in widget.accessModeList) {
-      acessModeList.add(getAccessMode(accessModeStr));
+      accessModeList.add(getAccessMode(accessModeStr));
     }
 
     // Load recipient list to be displayed
@@ -301,46 +295,39 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   // Update checkbox tick data.
 
-  void _updateCheckbox(bool newValue, AccessMode accessMode) {
-    setState(() {
-      if (accessMode == AccessMode.read) {
-        readChecked = newValue;
-      }
-      if (accessMode == AccessMode.write) {
-        writeChecked = newValue;
-      }
-      if (accessMode == AccessMode.control) {
-        controlChecked = newValue;
-      }
-      if (accessMode == AccessMode.append) {
-        appendChecked = newValue;
-      }
-      if (newValue) {
-        selectedPermList.add(accessMode.mode);
-      } else {
-        selectedPermList.remove(accessMode.mode);
-      }
-    });
-  }
+  void _updateCheckbox(bool newValue, AccessMode accessMode) => setState(() {
+        switch (accessMode) {
+          case AccessMode.read:
+            readChecked = newValue;
+          case AccessMode.write:
+            writeChecked = newValue;
+          case AccessMode.control:
+            controlChecked = newValue;
+          case AccessMode.append:
+            appendChecked = newValue;
+        }
+        if (newValue) {
+          selectedPermList.add(accessMode.mode);
+        } else {
+          selectedPermList.remove(accessMode.mode);
+        }
+      });
 
   // Update individual webid input data
-  void _updateIndWebIdInput(String receiverWebId) {
-    setState(() {
-      selectedRecipientType = RecipientType.individual;
-      selectedRecipientDetails = receiverWebId;
-      finalWebIdList = [receiverWebId];
-    });
-  }
+  void _updateIndWebIdInput(String receiverWebId) => setState(() {
+        selectedRecipientType = RecipientType.individual;
+        selectedRecipientDetails = receiverWebId;
+        finalWebIdList = [receiverWebId];
+      });
 
   // Update group of webids input data
-  void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) {
-    setState(() {
-      selectedRecipientType = RecipientType.group;
-      selectedRecipientDetails =
-          '$groupName with WebIDs ${webIdList.join(', ')}';
-      finalWebIdList = webIdList;
-    });
-  }
+  void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) =>
+      setState(() {
+        selectedRecipientType = RecipientType.group;
+        selectedRecipientDetails =
+            '$groupName with WebIDs ${webIdList.join(', ')}';
+        finalWebIdList = webIdList;
+      });
 
   // Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
@@ -369,513 +356,219 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       pageInitialied = true;
     }
 
-    final welcomeHeadingStr = widget.resourceName != null
-        ? 'Share ${widget.resourceName} file with other PODs'
-        : 'Share your data files/directories with other PODs';
+    final retrievePermissionButton = ElevatedButton(
+      child: const Text('Retrieve permissions'),
+      onPressed: () async {
+        final fileName = formControllerFileName.text;
+        if (fileName.isEmpty) {
+          await _alert('Please enter a file name');
+        } else {
+          await _updatePermissions(fileName, isFile: isFile);
+        }
+      },
+    );
 
-    return Scaffold(
-      appBar: (!widget.showAppBar)
-          ? null
-          : (widget.customAppBar != null)
-              ? widget.customAppBar
-              : defaultAppBar(
-                  context,
-                  widget.title,
-                  widget.backgroundColor,
-                  widget.child,
-                  onNavigateBack: () {
-                    widget.onNavigateBack?.call();
-                  },
-                  getResult: () => permissionsGrantedSuccessfully,
-                ),
-      // Make Grant Permission UI vertically scrollable
-      // Shows when content exceeds display height
-      body: Scrollbar(
-        thumbVisibility: true, // show before user starts scrolling
-        controller: pageScrollController,
-        child: SingleChildScrollView(
-          controller: pageScrollController,
-          child: Column(
-            children: [
-              smallGapV,
-              Form(
-                key: formKey,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: [
-                      buildHeading(welcomeHeadingStr, 22),
-                      smallGapV,
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          if (widget.resourceName == null) ...[
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Column(
-                                children: [
-                                  TextFormField(
-                                    controller: formControllerFileName,
-                                    decoration: const InputDecoration(
-                                      hintText:
-                                          'Resource path (inside your data folder Eg: personal/about.ttl)',
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Empty field';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 10),
-                                  SwitchListTile(
-                                    title: const Text(
-                                      'Is a File?',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      isFile ? 'Yes' : 'No',
-                                    ),
-                                    value: isFile,
-                                    onChanged: (bool value) {
-                                      setState(() {
-                                        isFile = value;
-                                      });
-                                    },
-                                    thumbColor:
-                                        WidgetStateProperty.resolveWith<Color?>(
-                                      (Set<WidgetState> states) {
-                                        if (states
-                                            .contains(WidgetState.selected)) {
-                                          return Colors.green;
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            smallGapV,
-                            ElevatedButton(
-                              child: const Text('Retrieve permissions'),
-                              onPressed: () async {
-                                final fileName = formControllerFileName.text;
-
-                                if (fileName.isEmpty) {
-                                  await _alert('Please enter a file name');
-                                } else {
-                                  await _updatePermissions(
-                                    fileName,
-                                    isFile: isFile,
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                          largeGapV,
-                          buildHeading(
-                            'Select the recipient/s of file access permissions',
-                            17.0,
-                            Colors.blueGrey,
-                            8,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  'Recipient/s: ',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Text(
-                                    selectedRecipientDetails.isNotEmpty
-                                        ? '${selectedRecipientType.type} ($selectedRecipientDetails)'
-                                        : selectedRecipientType.type,
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      // 20251008 gjw Choose blue rather than
-                                      // orange which looks red. The red looks
-                                      // like it is an error. Blue is more
-                                      // neutral.
-                                      color: Colors.blueAccent,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(8.0),
-                            height: 100,
-                            child: Row(
-                              children: [
-                                // av 20250526:
-                                // Public and Authenticated users buttons are
-                                // disabled in this function at the moment because
-                                // providing public or authenticated permissions to
-                                // external resources is not yet implemented in
-                                // [grantPermission()] function.
-                                if (!widget.isExternalRes) ...[
-                                  if (recipientTypeList
-                                      .contains(RecipientType.public)) ...[
-                                    Expanded(
-                                      child: SizedBox(
-                                        height: 50,
-                                        child: MarkdownTooltip(
-                                          message: '''
-
-                                        **Public:** This file will be publicly
-                                        accessible so that even users without a
-                                        Data Vault can access the file.
-
-                                        ''',
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                selectedRecipientType =
-                                                    RecipientType.public;
-                                                selectedRecipientDetails = '';
-                                                finalWebIdList = [
-                                                  publicAgent.value,
-                                                ];
-                                              });
-                                            },
-                                            child:
-                                                Text(RecipientType.public.type),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                  if (recipientTypeList
-                                      .contains(RecipientType.authUser)) ...[
-                                    Expanded(
-                                      child: Container(
-                                        padding:
-                                            const EdgeInsets.only(left: 8.0),
-                                        height: 50,
-                                        child: MarkdownTooltip(
-                                          message: '''
-
-                                        **Users:** The file will be available to
-                                        any user who has registered a Data
-                                        Vault. When they have logged into their
-                                        Data Vault they will be able to access
-                                        the file.
-
-                                        ''',
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                selectedRecipientType =
-                                                    RecipientType.authUser;
-                                                selectedRecipientDetails = '';
-                                                finalWebIdList = [
-                                                  authenticatedAgent.value,
-                                                ];
-                                              });
-                                            },
-                                            child: Text(
-                                              RecipientType.authUser.type,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                                if (recipientTypeList
-                                    .contains(RecipientType.individual)) ...[
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      height: 50,
-                                      child: MarkdownTooltip(
-                                        message: '''
-
-                                      **Individual:** The file will be available
-                                      only to the identified individual user. A
-                                      WebID is required to identify the
-                                      individual who is gratned access to the
-                                      file.
-
-                                      ''',
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // Open dialog for WebId entry
-                                            await indWebIdInputDialog(
-                                              context,
-                                              _updateIndWebIdInput,
-                                              widget.dataFilesMap,
-                                            );
-                                          },
-                                          child: Text(
-                                            RecipientType.individual.type,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                                if (recipientTypeList
-                                    .contains(RecipientType.group)) ...[
-                                  Expanded(
-                                    child: Container(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      height: 50,
-                                      child: MarkdownTooltip(
-                                        message: '''
-
-                                      **Group:** A collection of WebIDs can be
-                                      provided so that as a group they can
-                                      access the file.
-
-                                      ''',
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            await groupWebIdInputDialog(
-                                              context,
-                                              formControllerGroupName,
-                                              formControllerGroupWebIds,
-                                              _updateGroupWebIdInput,
-                                            );
-                                          },
-                                          child: Text(RecipientType.group.type),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          smallGapV,
-                          buildHeading(
-                            'Select the list of file access permissions',
-                            17.0,
-                            Colors.blueGrey,
-                            8,
-                          ),
-                          if (acessModeList.contains(AccessMode.read)) ...[
-                            permissionCheckbox(
-                              AccessMode.read,
-                              readChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          if (acessModeList.contains(AccessMode.write)) ...[
-                            permissionCheckbox(
-                              AccessMode.write,
-                              writeChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          if (acessModeList.contains(AccessMode.control)) ...[
-                            permissionCheckbox(
-                              AccessMode.control,
-                              controlChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          if (acessModeList.contains(AccessMode.append)) ...[
-                            permissionCheckbox(
-                              AccessMode.append,
-                              appendChecked,
-                              _updateCheckbox,
-                            ),
-                          ],
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: ElevatedButton(
-                              child: const Text('Grant Permission'),
-                              onPressed: () async {
-                                if (formKey.currentState!.validate()) {
-                                  if (selectedRecipientType.type.isNotEmpty) {
-                                    if (selectedPermList.isNotEmpty) {
-                                      final dataFile = widget.resourceName ??
-                                          formControllerFileName.text;
-
-                                      final isFileFlag =
-                                          widget.isFile ?? isFile;
-
-                                      SolidFunctionCallStatus result;
-                                      try {
-                                        result = await grantPermission(
-                                          fileName: dataFile,
-                                          isFile: isFileFlag,
-                                          permissionList: selectedPermList,
-                                          recipientType: selectedRecipientType,
-                                          recipientWebIdList:
-                                              finalWebIdList as List,
-                                          ownerWebId: ownerWebId,
-                                          context: context,
-                                          child: widget.child,
-                                          isExternalRes: widget.isExternalRes,
-                                          groupName: selectedRecipientType ==
-                                                  RecipientType.group
-                                              ? formControllerGroupName.text
-                                                  .trim()
-                                              : null,
-                                        );
-                                      } on Object catch (e, stackTrace) {
-                                        debugPrint(
-                                          '💥 [GrantPermissionUI] Exception in grantPermission: $e',
-                                        );
-                                        debugPrint(
-                                          '📚 [GrantPermissionUI] Stack trace: $stackTrace',
-                                        );
-                                        result = SolidFunctionCallStatus.fail;
-                                      }
-
-                                      if (result ==
-                                          SolidFunctionCallStatus.success) {
-                                        _showSnackBar(
-                                          'File access permissions granted successfully!',
-                                          Colors.green,
-                                        );
-                                        await _updatePermissions(
-                                          dataFile,
-                                          isFile: isFileFlag,
-                                        );
-
-                                        // Mark permissions as granted successfully for callback tracking
-                                        setState(() {
-                                          permissionsGrantedSuccessfully = true;
-                                        });
-
-                                        // Trigger the onPermissionGranted callback if provided
-                                        widget.onPermissionGranted?.call();
-                                      } else if (result ==
-                                          SolidFunctionCallStatus.fail) {
-                                        // More detailed error message with troubleshooting tips
-                                        _showSnackBar(
-                                          'Permission granting failed. Check console logs for details. Common issues: resource not found, invalid WebID format, or network connectivity.',
-                                          Colors.red,
-                                        );
-
-                                        // Also log to console for debugging
-                                        debugPrint(
-                                          '❌ [GrantPermissionUI] Permission granting failed for file: $dataFile',
-                                        );
-                                        debugPrint(
-                                          '🎯 [GrantPermissionUI] Recipients: $finalWebIdList',
-                                        );
-                                        debugPrint(
-                                          '🔐 [GrantPermissionUI] Permissions: $selectedPermList',
-                                        );
-                                      } else if (result ==
-                                          SolidFunctionCallStatus
-                                              .notInitialised) {
-                                        _showSnackBar(
-                                          'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.',
-                                          const Color.fromARGB(255, 204, 99, 1),
-                                        );
-                                      } else {
-                                        await _alert(
-                                          'Please login first to update file access permission',
-                                        );
-                                      }
-                                    } else {
-                                      await _alert(
-                                        'Please select one or more file access permissions',
-                                      );
-                                    }
-                                  } else {
-                                    await _alert(
-                                      'Please select a type of recipient',
-                                    );
-                                  }
-                                }
-                              },
-                            ),
-                          ),
-                          largeGapV,
-                          buildHeading(
-                            'Granted file access permissions',
-                            17.0,
-                            Colors.blueGrey,
-                            8,
-                          ),
-                          Scrollbar(
-                            // 20250722 jm:
-                            // For scrollbar visibility before scrolling,
-                            // set to true, or set property to true
-                            // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-                            // thumbVisibility: WidgetStateProperty.all(true)))
-                            thumbVisibility:
-                                true, // show before user starts scrolling
-                            controller: tableScrollController,
-                            child: SingleChildScrollView(
-                              controller: tableScrollController,
-                              scrollDirection: Axis.horizontal,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      buildPermDataTable(
-                                        context: context,
-                                        permDataResource: permDataFile,
-                                        isFile: widget.isFile ?? isFile,
-                                        permDataMap: permDataMap,
-                                        ownerWebId: ownerWebId,
-                                        parentWidget: widget.child,
-                                        onDeleteFuncion: _updatePermissions,
-                                        isExternalRes: widget.isExternalRes,
-                                      ),
-                                      // Hspace to avoid vertical scrollbar overlap with table
-                                      ScrollbarLayout.horizontalGap,
-                                    ],
-                                  ),
-                                  // Vspace to avoid horizontal scrollbar overlap of table
-                                  ScrollbarLayout.verticalGap,
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+    final recipientTypeActions = {
+      RecipientType.public: () => setState(() {
+            selectedRecipientType = RecipientType.public;
+            selectedRecipientDetails = '';
+            finalWebIdList = [publicAgent.value];
+          }),
+      RecipientType.authUser: () => setState(() {
+            selectedRecipientType = RecipientType.authUser;
+            selectedRecipientDetails = '';
+            finalWebIdList = [authenticatedAgent.value];
+          }),
+      RecipientType.individual: () async => await indWebIdInputDialog(
+            context,
+            _updateIndWebIdInput,
+            widget.dataFilesMap,
           ),
+      RecipientType.group: () async => await groupWebIdInputDialog(
+            context,
+            formControllerGroupName,
+            formControllerGroupWebIds,
+            _updateGroupWebIdInput,
+          ),
+    };
+
+    final buttonContainer = getButtonContainer(
+      buttons: widget.isExternalRes
+          ? []
+          : [
+              for (final rtype in relevantRecipientTypes)
+                if (recipientTypeList.contains(rtype))
+                  getRecipientTypeButton(
+                    rtype,
+                    onPressed: recipientTypeActions[rtype]!,
+                    padding: getPadding(rtype),
+                  ),
+            ],
+    );
+
+    final customAppBar = widget.customAppBar ??
+        defaultAppBar(
+          context,
+          widget.title,
+          widget.backgroundColor,
+          widget.child,
+          onNavigateBack: () => widget.onNavigateBack?.call(),
+          getResult: () => permissionsGrantedSuccessfully,
+        );
+
+    final permDataTable = buildPermDataTable(
+      context: context,
+      permDataResource: permDataFile,
+      isFile: widget.isFile ?? isFile,
+      permDataMap: permDataMap,
+      ownerWebId: ownerWebId,
+      parentWidget: widget.child,
+      onDeleteFuncion: _updatePermissions,
+      isExternalRes: widget.isExternalRes,
+    );
+
+    final grantPermissionButton = Padding(
+      padding: const EdgeInsets.all(8),
+      child: ElevatedButton(
+        child: const Text('Grant Permission'),
+        onPressed: () async {
+          if (formKey.currentState!.validate()) {
+            if (selectedRecipientType.type.isNotEmpty) {
+              if (selectedPermList.isNotEmpty) {
+                final dataFile =
+                    widget.resourceName ?? formControllerFileName.text;
+
+                final isFileFlag = widget.isFile ?? isFile;
+
+                SolidFunctionCallStatus result;
+                try {
+                  result = await grantPermission(
+                    fileName: dataFile,
+                    isFile: isFileFlag,
+                    permissionList: selectedPermList,
+                    recipientType: selectedRecipientType,
+                    recipientWebIdList: finalWebIdList as List,
+                    ownerWebId: ownerWebId,
+                    context: context,
+                    child: widget.child,
+                    isExternalRes: widget.isExternalRes,
+                    groupName: selectedRecipientType == RecipientType.group
+                        ? formControllerGroupName.text.trim()
+                        : null,
+                  );
+                } on Object catch (e, stackTrace) {
+                  debugPrint(getExceptionMsg(e));
+                  debugPrint(getStackTraceMsg(stackTrace));
+                  result = SolidFunctionCallStatus.fail;
+                }
+
+                if (result == SolidFunctionCallStatus.success) {
+                  _showSnackBar(successMsg, Colors.green);
+                  await _updatePermissions(dataFile, isFile: isFileFlag);
+
+                  // Mark permissions as granted successfully for callback tracking
+                  setState(() => permissionsGrantedSuccessfully = true);
+
+                  // Trigger the onPermissionGranted callback if provided
+                  widget.onPermissionGranted?.call();
+                } else if (result == SolidFunctionCallStatus.fail) {
+                  // More detailed error message with troubleshooting tips
+                  _showSnackBar(failureMsg, Colors.red);
+
+                  // Also log to console for debugging
+                  debugPrint(getFailureMsg(dataFile));
+                  debugPrint(getRecipientMsg(finalWebIdList));
+                  debugPrint(getPermissionMsg(selectedPermList));
+                } else if (result == SolidFunctionCallStatus.notInitialised) {
+                  _showSnackBar(podNotInitMsg, warnBgColor);
+                } else {
+                  await _alert(
+                      'Please login first to update file access permission');
+                }
+              } else {
+                await _alert(
+                    'Please select one or more file access permissions');
+              }
+            } else {
+              await _alert('Please select a type of recipient');
+            }
+          }
+        },
+      ),
+    );
+
+    final form = Form(
+      key: formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            buildHeading(getWelcomeStr(widget.resourceName), 22),
+            smallGapV,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                if (widget.resourceName == null) ...[
+                  getResourceForm(
+                    formControllerFileName,
+                    isFile,
+                    (bool value) => setState(() => isFile = value),
+                  ),
+                  smallGapV,
+                  retrievePermissionButton,
+                ],
+                largeGapV,
+                getHeading('Select the recipient/s of file access permissions'),
+                getRecipientText(
+                  selectedRecipientType,
+                  selectedRecipientDetails,
+                ),
+                buttonContainer,
+                smallGapV,
+                getHeading('Select the list of file access permissions'),
+                ...getPermissionCheckBoxes(
+                  accessModeList,
+                  modeSwitches: {
+                    AccessMode.read: readChecked,
+                    AccessMode.write: writeChecked,
+                    AccessMode.control: controlChecked,
+                    AccessMode.append: appendChecked,
+                  },
+                  onUpdate: _updateCheckbox,
+                ),
+                grantPermissionButton,
+                largeGapV,
+                getHeading(grantPermissionStr),
+                getFormScrollbar(tableScrollController, permDataTable),
+              ],
+            ),
+          ],
         ),
       ),
+    );
+
+    return Scaffold(
+      appBar: widget.showAppBar ? customAppBar : null,
+
+      // Make Grant Permission UI vertically scrollable
+      // Shows when content exceeds display height
+      body: getPageScrollbar(pageScrollController, form),
     );
   }
 
   @override
-  Widget build(BuildContext context) {
-    // Build as a separate widget with the possibility of adding a FutureBuilder
-    // in the Future
+  Widget build(BuildContext context) =>
+      // Build as a separate widget with the possibility of adding a FutureBuilder
+      // in the Future
 
-    if (widget.resourceName != null) {
-      return FutureBuilder(
-        future: podDataList,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            if (snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn) {
-              return widget.child;
-            } else {
-              return _buildPermPage(context, snapshot.data);
-            }
-          } else {
-            return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
-          }
-        },
-      );
-    } else {
-      return _buildPermPage(context);
-    }
-  }
+      widget.resourceName == null
+          ? _buildPermPage(context)
+          : FutureBuilder(
+              future: podDataList,
+              builder: (context, snapshot) => snapshot.hasData
+                  ? snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn
+                      ? widget.child
+                      : _buildPermPage(context, snapshot.data)
+                  : Scaffold(body: loadingScreen(normalLoadingScreenHeight)),
+            );
 }

@@ -22,7 +22,7 @@
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
 ///
-/// Authors: Anushka Vidanage, Jess Moore, Ashley Tang
+/// Authors: Anushka Vidanage, Jess Moore, Ashley Tang, Dawei Chen
 
 library;
 
@@ -201,12 +201,8 @@ Widget getResourceForm(
             value: isFile,
             onChanged: onResourceTypeChange,
             thumbColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.selected)) {
-                  return Colors.green;
-                }
-                return null;
-              },
+              (Set<WidgetState> states) =>
+                  states.contains(WidgetState.selected) ? Colors.green : null,
             ),
           ),
         ],
