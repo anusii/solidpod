@@ -32,7 +32,6 @@ import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
