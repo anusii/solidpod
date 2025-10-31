@@ -71,7 +71,7 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
       final demoTtlContent = createDemoTtlStr(resourcePath);
 
       if (context.mounted) {
-        SolidFunctionCallStatus result;
+        SolidFunctionCallStatus? result;
         if (_isEncrypted) {
           result = await writePod(resourcePath, demoTtlContent, context, widget,
               encrypted: _isEncrypted,
@@ -80,8 +80,11 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
         } else {
           // First check and create the corresponding directory
           await setInheritKeyDir(parentDirectory);
-          result = await writePod(resourcePath, demoTtlContent, context, widget,
-              encrypted: _isEncrypted, createAcl: false);
+          if (mounted) {
+            result = await writePod(
+                resourcePath, demoTtlContent, context, widget,
+                encrypted: _isEncrypted, createAcl: false);
+          }
         }
 
         if (result == SolidFunctionCallStatus.success) {

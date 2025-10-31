@@ -26,10 +26,6 @@ dependencies:
   pointycastle: ^4.0.0
   rdflib: ^0.2.11
   solid_auth: ^0.1.28
-  solidui:
-    git:
-      url: https://github.com/anusii/solidui.git
-      ref: dev
   universal_io: ^2.2.2
 
 dev_dependencies:
