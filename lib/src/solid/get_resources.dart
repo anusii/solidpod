@@ -36,6 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Get the list of files created by the user in their POD by querying the data directory of the POD.
@@ -52,7 +53,7 @@ Future<List<String>> getResources(
   Widget child,
 ) async {
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to get resources. '
       'Please authenticate before calling getResources().',
     );
@@ -64,9 +65,7 @@ Future<List<String>> getResources(
   final dataDirPath = await getDataDirPath();
   final dataDirUrl = await getDirUrl(dataDirPath);
 
-  // Why do we need the additional `/`? (20250714 gjw)
-
-  final resDirUrl = '$dataDirUrl/';
+  final resDirUrl = dataDirUrl;
 
   // Normalise the file path to use appname/data as base path
   // and handle cross-platform path separators properly.

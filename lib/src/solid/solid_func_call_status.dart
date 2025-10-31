@@ -47,8 +47,17 @@ enum SolidFunctionCallStatus {
   /// When there is no corresponding ACl file
   noAclFound('noAclFound'),
 
+  /// When corresponding ACL file found
+  aclFound('AclFound'),
+
+  /// When file not exists
+  fileNotExists('fileNotExists'),
+
   /// When the call is forbidden
-  forbidden('forbidden');
+  forbidden('forbidden'),
+
+  /// Context not mounted
+  contextNotMounted('contextNotMounted');
 
   /// Constructor
   const SolidFunctionCallStatus(this.value);

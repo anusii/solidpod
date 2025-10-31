@@ -24,83 +24,46 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
-
-// ignore_for_file: use_build_context_synchronously
+/// Authors: Anushka Vidanage, Jess Moore
 
 library;
 
 import 'dart:core';
 
-import 'package:flutter/material.dart' hide Key;
-
-import 'package:solidpod/src/solid/api/common_permission.dart';
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
-/// Read permission given for the [fileName].
+/// Read permission given for the [fileName] from the associated ACL file.
+///
 /// Parameters:
-///   [resourceName] is the name of the resource reading permission from. In case where
-///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
-///   [isFile] is the flag to identify if the resources is a file or not
-///   [child] is the child widget to return to
-///   [isExternalRes] is set to true if reading permissions from an external file
+/// - [fileName] - is the name of the file reading permission from.
+/// - [isFile] - flag describing whether [fileName] is a file or not.
+///
+/// - [isFileUrl] - boolean describing whether [fileName] is the url
+/// of the resource. Default: false.
+/// - [isExternalRes] - flag describing whether [fileName] is an
+/// external resource shared with the user. If it is set to true, the
+/// [fileName] should be the full URL of the file. Default: false.
 
-Future<dynamic> readPermission(
-  String resourceName,
-  bool isFile,
-  BuildContext context,
-  Widget child, {
+Future<Map<dynamic, dynamic>> readPermission({
+  required String fileName,
+  required bool isFile,
+  bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
-  if (!await checkLoggedIn()) {
-    throw Exception(
-      'User must be logged in to read permissions.',
-    );
-  }
+  final resourceUrl = await filenameToResourceUrl(
+    fileName: fileName,
+    isFile: isFile,
+    isExternalRes: isExternalRes,
+    isFileUrl: isFileUrl,
+  );
 
-  await getKeyFromUserIfRequired(context, child);
+  // Read ACL file content
+  final Map<dynamic, dynamic> aclContentMap =
+      await readAcl(resourceUrl, isFile);
 
-  var resourceUrl = resourceName;
-  if (!isExternalRes) {
-    // Get the file path
-    final resourcePath = [await getDataDirPath(), resourceName].join('/');
+  // Extract permission details to a map
+  final Map<dynamic, dynamic> permMap = extractAclPerm(aclContentMap);
 
-    // Get the url of the file
-    resourceUrl = await getFileUrl(resourcePath);
-  }
-  // Check if file exists
-  final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
-
-  if (resStatus == ResourceStatus.exist ||
-      resStatus == ResourceStatus.forbidden) {
-    if (resStatus == ResourceStatus.forbidden) {
-      debugPrint(
-        '[read_permission] Allowing resource\'s ACL to be read when the resource is access forbidden',
-      );
-    }
-
-    // Check if the resource has an ACL
-    bool hasAcl = await resourceHasAcl(resourceUrl, isFile: isFile);
-
-    if (hasAcl) {
-      // Read ACL file content
-      final aclContentMap = await readAcl(resourceUrl, isFile);
-
-      // Extract permission details to a map
-      final permMap = extractAclPerm(aclContentMap);
-
-      return permMap;
-    } else {
-      debugPrint('Resource does not have a corresponding ACL file. '
-          'If the ACL is inherited provide parent directory as the resource name!');
-      return SolidFunctionCallStatus.noAclFound;
-    }
-  } else {
-    return {};
-  }
+  return permMap;
 }

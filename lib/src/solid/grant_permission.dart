@@ -26,8 +26,6 @@
 ///
 /// Authors: Anushka Vidanage
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'dart:core';
@@ -42,60 +40,61 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show RecipientPubKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
 
-/// Grant permission to [fileName] for a given [recipientWebIdList].
+/// Grant access permissions to [fileName] to a given [recipientWebIdList].
+///
 /// Parameters:
-///   [fileName] is the name of the file providing permission to. In case where
-///   [isExternalRes] is set to true, [fileName] should be the full URL of the file
-///   [isFile] is the flag to identify if the resources is a file or not
-///   [permissionList] is the list of permission to be granted
-///   [recipientType] is the type of the recipient
-///   [recipientWebIdList] is the list of webIds of the permission receivers
-///   [ownerWebId] is the web ID of the owner of the file
-///   [child] is the child widget to return to
-///   [isExternalRes] is the flag to identify if the resource is external
-///   [groupName] is the name of the group permission
+/// - [fileName] - is the name of the file that the [recipientWebIdList]
+/// are receiving access to.
+/// - [permissionList] - is the list of permissions to be granted to the
+/// [recipientWebIdList].
+/// - [recipientType] - is the type of the recipient of recipients in the
+/// [recipientWebIdList].
+/// - [recipientWebIdList] - is the list of webIds of the recipients
+/// receiving access permissions to the file.
+/// - [ownerWebId] - is the web ID of the owner of the file.
+/// - [child] - is the child widget to return to.
+/// - [isExternalRes] - Optional flag describing whether the file is an
+/// external resource shared to the user. If set to true, the [fileName]
+/// should be the full URL of the file.
+/// - [isFile] Optional flag describing whether the resources is a file or
+/// not.
+/// - [groupName] - Optional name of the group permission.
 
-Future<dynamic> grantPermission(
-  String fileName,
-  bool isFile,
-  List<dynamic> permissionList,
-  RecipientType recipientType,
-  List<dynamic> recipientWebIdList,
-  String ownerWebId,
-  BuildContext context,
-  Widget child, {
+Future<SolidFunctionCallStatus> grantPermission({
+  required String fileName,
+  required List<dynamic> permissionList,
+  required RecipientType recipientType,
+  required List<dynamic> recipientWebIdList,
+  required String ownerWebId,
+  required BuildContext context,
+  required Widget child,
+  bool isFile = true,
   bool isExternalRes = false,
   String? groupName,
 }) async {
+  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
+
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to grant permissions. '
       'Please authenticate before calling grantPermission().',
     );
   }
 
   try {
+    if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
     await getKeyFromUserIfRequired(context, child);
 
-    var resourceUrl = '';
-
-    if (!isExternalRes) {
-      // Get the file path
-      final filePath = [await getDataDirPath(), fileName].join('/');
-
-      // Get the url of the resource
-      if (isFile) {
-        resourceUrl = await getFileUrl(filePath);
-      } else {
-        resourceUrl = await getDirUrl(filePath);
-      }
-    } else {
-      resourceUrl = fileName;
-    }
+    final resourceUrl = await filenameToResourceUrl(
+      fileName: fileName,
+      isExternalRes: isExternalRes,
+      isFile: isFile,
+    );
 
     // Initially check if the resource has a corresponding ACL file. If not
     // return an error.

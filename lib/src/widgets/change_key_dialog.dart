@@ -34,6 +34,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show verifySecurityKey;
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
@@ -46,7 +47,7 @@ import 'package:solidpod/src/widgets/security_key_ui.dart';
 
 Future<void> changeKeyPopup(BuildContext context, Widget child) async {
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to change security key.',
     );
   }

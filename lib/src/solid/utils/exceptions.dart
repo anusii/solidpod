@@ -45,3 +45,12 @@ class AccessFailedException implements Exception {
   @override
   String toString() => 'AccessFailedException: $message';
 }
+
+class NotLoggedInException implements Exception {
+  final String message;
+
+  NotLoggedInException(this.message);
+
+  @override
+  String toString() => 'NotLoggedInException: $message';
+}

@@ -71,6 +71,12 @@ export 'src/solid/utils/app_info.dart';
 export 'src/solid/utils/key_manager.dart' show KeyManager, setInheritKeyDir;
 
 /// Turtle string to triple map and triple map to turtle string functions
+/// Custom exception classes for better error handling.
+
+export 'src/solid/utils/exceptions.dart'
+    show AccessForbiddenException, AccessFailedException, NotLoggedInException;
+
+/// Includes common TTL conversion functions such as parseTTLMap.
 
 export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 

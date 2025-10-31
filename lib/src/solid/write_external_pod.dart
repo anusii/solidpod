@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIV, hasInheritedKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
@@ -60,7 +61,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   String? inheritKeyFrom,
 }) async {
   if (!await checkLoggedIn()) {
-    throw Exception(
+    throw NotLoggedInException(
       'User must be logged in to write to external POD.',
     );
   }
