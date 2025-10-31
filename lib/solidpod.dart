@@ -68,7 +68,8 @@ export 'src/solid/utils/app_info.dart';
 /// such as Security key, Public key, Private key, and Individual keys.
 /// Also exports the function to set inherited key for a directory
 
-export 'src/solid/utils/key_helper.dart' show setInheritKeyDir;
+export 'package:solidpod/src/solid/utils/key_inheritance.dart'
+    show setInheritKeyDir;
 export 'src/solid/utils/key_manager.dart' show KeyManager;
 
 /// Turtle string to triple map and triple map to turtle string functions
