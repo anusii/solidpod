@@ -62,12 +62,12 @@ access the file.
 ''',
 };
 
-const selectRecipientPermissionStr =
-    'Select the recipient/s of file access permissions';
-const selectFilePermissionStr = 'Select the list of file access permissions';
-const grantPermissionStr = 'Granted file access permissions';
-const selectPermissionMsg = 'Please select one or more file access permissions';
-const selectRecipientTypeMsg = 'Please select a type of recipient';
+// const selectRecipientPermissionStr =
+//    'Select the recipient/s of file access permissions';
+// const selectFilePermissionStr = 'Select the list of file access permissions';
+// const grantPermissionStr = 'Granted file access permissions';
+// const selectPermissionMsg = 'Please select one or more file access permissions';
+// const selectRecipientTypeMsg = 'Please select a type of recipient';
 const updatePermissionMsg =
     'Please login first to update file access permission';
 const podNotInitMsg =

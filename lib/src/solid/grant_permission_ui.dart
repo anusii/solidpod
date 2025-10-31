@@ -498,7 +498,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         ),
         grantPermissionButton,
         largeGapV,
-        getHeading(grantPermissionStr),
+        getHeading('Granted file access permissions'),
         getFormScrollbar(tableScrollController, permDataTable),
       ],
     );
