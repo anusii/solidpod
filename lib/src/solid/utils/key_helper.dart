@@ -39,6 +39,7 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show parseTTLMap, tripleMapToTurtle;
 
