@@ -194,5 +194,5 @@ String getParentDir(
   String fileUrl,
 ) {
   final dataMap = parseTTLMap(fileContent);
-  return dataMap[fileUrl]['$appsTerms$inheritancePred'].first;
+  return dataMap[fileUrl]['$appsTerms$inheritKeyPred'].first;
 }

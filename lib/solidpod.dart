@@ -66,8 +66,9 @@ export 'src/solid/utils/app_info.dart';
 
 /// Includes the KeyManager class which stores all keys and their parameters
 /// such as Security key, Public key, Private key, and Individual keys.
+/// Also exports the function to set inherited key for a directory
 
-export 'src/solid/utils/key_helper.dart' show KeyManager;
+export 'src/solid/utils/key_helper.dart' show KeyManager, setInheritKeyDir;
 
 /// Custom exception classes for better error handling.
 
