@@ -26,13 +26,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Jess Moore, Ashley Tang
+/// Authors: Anushka Vidanage, Jess Moore, Ashley Tang, Dawei Chen
 
 library;
 
 import 'package:flutter/material.dart';
-
-import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
@@ -50,7 +48,6 @@ import 'package:solidpod/src/widgets/file_permission_data_table.dart';
 import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
-import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 /// A widget for the granting access permission to data.
 
@@ -172,13 +169,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   final formKey = GlobalKey<FormState>();
 
   /// Filename text controller
-  final formControllerFileName = TextEditingController();
+  final fileNameController = TextEditingController();
 
   /// Group name text controller
-  final formControllerGroupName = TextEditingController();
+  final groupNameController = TextEditingController();
 
   /// Group of webIds text controller
-  final formControllerGroupWebIds = TextEditingController();
+  final groupWebIdsController = TextEditingController();
 
   /// Permission data map of a file
   Map<dynamic, dynamic> permDataMap = {};
@@ -213,40 +210,35 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
-  Future<List<dynamic>> loadPodData({
-    required String resourceName,
-    bool isFile = true,
-  }) async {
-    final SolidFunctionCallStatus response;
-    if (context.mounted) {
-      response = await chkExistsAndHasAcl(
-        fileName: resourceName,
-        isFile: isFile,
-        context: context,
-        child: widget,
-      );
-    } else {
-      response = SolidFunctionCallStatus.contextNotMounted;
-    }
+  Future<List<dynamic>> loadPodData(String resName, bool isFile) async {
+    final SolidFunctionCallStatus response = context.mounted
+        ? await chkExistsAndHasAcl(
+            fileName: resName,
+            isFile: isFile,
+            context: context,
+            child: widget,
+          )
+        : SolidFunctionCallStatus.contextNotMounted;
 
-    if (response == SolidFunctionCallStatus.aclFound) {
-      final Map<dynamic, dynamic> result = await readPermission(
-        fileName: resourceName,
-        isFile: isFile,
-        isExternalRes: widget.isExternalRes,
-      );
+    switch (response) {
+      case SolidFunctionCallStatus.aclFound:
+        final Map<dynamic, dynamic> result = await readPermission(
+          fileName: resName,
+          isFile: isFile,
+          isExternalRes: widget.isExternalRes,
+        );
 
-      // Get owner's webID
-      final webId = widget.isExternalRes
-          ? widget.externalWebId
-          : await AuthDataManager.getWebId();
-      return [result, webId];
-    } else if (response == SolidFunctionCallStatus.notLoggedIn) {
-      await _alert('Please login first to retrieve permission');
-    } else if (response == SolidFunctionCallStatus.noAclFound) {
-      await _alert(noAclMsg);
-    } else {
-      await _alert('Unknown error');
+        // Get owner's webID
+        final webId = widget.isExternalRes
+            ? widget.externalWebId
+            : await AuthDataManager.getWebId();
+        return [result, webId];
+      case SolidFunctionCallStatus.notLoggedIn:
+        await _alert('Please login first to retrieve permission');
+      case SolidFunctionCallStatus.noAclFound:
+        await _alert(noAclMsg);
+      default:
+        await _alert('Unknown error');
     }
     return [];
   }
@@ -256,10 +248,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load future
     if (widget.resourceName != null) {
-      podDataList = loadPodData(
-        resourceName: widget.resourceName as String,
-        isFile: isFile,
-      );
+      podDataList = loadPodData(widget.resourceName as String, isFile);
     }
 
     // Load access mode list to be displayed
@@ -275,7 +264,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   // Get new permission and update the permission map
   Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
-    final pdata = await loadPodData(resourceName: fileName, isFile: isFile);
+    final pdata = await loadPodData(fileName, isFile);
     if (pdata.isNotEmpty) {
       assert(pdata.length == 2);
       final permissionMap = pdata.first;
@@ -359,7 +348,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     final retrievePermissionButton = ElevatedButton(
       child: const Text('Retrieve permissions'),
       onPressed: () async {
-        final fileName = formControllerFileName.text;
+        final fileName = fileNameController.text;
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
@@ -386,8 +375,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ),
       RecipientType.group: () async => await groupWebIdInputDialog(
             context,
-            formControllerGroupName,
-            formControllerGroupWebIds,
+            groupNameController,
+            groupWebIdsController,
             _updateGroupWebIdInput,
           ),
     };
@@ -406,16 +395,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             ],
     );
 
-    final customAppBar = widget.customAppBar ??
-        defaultAppBar(
-          context,
-          widget.title,
-          widget.backgroundColor,
-          widget.child,
-          onNavigateBack: () => widget.onNavigateBack?.call(),
-          getResult: () => permissionsGrantedSuccessfully,
-        );
-
     final permDataTable = buildPermDataTable(
       context: context,
       permDataResource: permDataFile,
@@ -427,125 +406,112 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       isExternalRes: widget.isExternalRes,
     );
 
-    final grantPermissionButton = Padding(
-      padding: const EdgeInsets.all(8),
-      child: ElevatedButton(
-        child: const Text('Grant Permission'),
-        onPressed: () async {
-          if (formKey.currentState!.validate()) {
-            if (selectedRecipientType.type.isNotEmpty) {
-              if (selectedPermList.isNotEmpty) {
-                final dataFile =
-                    widget.resourceName ?? formControllerFileName.text;
+    final grantPermissionButton = getButton(
+      'Grant Permission',
+      onPressed: () async {
+        if (formKey.currentState!.validate()) {
+          if (selectedRecipientType.type.isNotEmpty) {
+            if (selectedPermList.isNotEmpty) {
+              final dataFile = widget.resourceName ?? fileNameController.text;
 
-                final isFileFlag = widget.isFile ?? isFile;
+              final isFileFlag = widget.isFile ?? isFile;
 
-                SolidFunctionCallStatus result;
-                try {
-                  result = await grantPermission(
-                    fileName: dataFile,
-                    isFile: isFileFlag,
-                    permissionList: selectedPermList,
-                    recipientType: selectedRecipientType,
-                    recipientWebIdList: finalWebIdList as List,
-                    ownerWebId: ownerWebId,
-                    context: context,
-                    child: widget.child,
-                    isExternalRes: widget.isExternalRes,
-                    groupName: selectedRecipientType == RecipientType.group
-                        ? formControllerGroupName.text.trim()
-                        : null,
-                  );
-                } on Object catch (e, stackTrace) {
-                  debugPrint(getExceptionMsg(e));
-                  debugPrint(getStackTraceMsg(stackTrace));
-                  result = SolidFunctionCallStatus.fail;
-                }
+              SolidFunctionCallStatus result;
+              try {
+                result = await grantPermission(
+                  fileName: dataFile,
+                  isFile: isFileFlag,
+                  permissionList: selectedPermList,
+                  recipientType: selectedRecipientType,
+                  recipientWebIdList: finalWebIdList as List,
+                  ownerWebId: ownerWebId,
+                  context: context,
+                  child: widget.child,
+                  isExternalRes: widget.isExternalRes,
+                  groupName: selectedRecipientType == RecipientType.group
+                      ? groupNameController.text.trim()
+                      : null,
+                );
+              } on Object catch (e, stackTrace) {
+                result = SolidFunctionCallStatus.fail;
+                debugPrintException(e, stackTrace);
+              }
 
-                if (result == SolidFunctionCallStatus.success) {
-                  _showSnackBar(successMsg, Colors.green);
-                  await _updatePermissions(dataFile, isFile: isFileFlag);
+              if (result == SolidFunctionCallStatus.success) {
+                _showSnackBar(successMsg, Colors.green);
+                await _updatePermissions(dataFile, isFile: isFileFlag);
 
-                  // Mark permissions as granted successfully for callback tracking
-                  setState(() => permissionsGrantedSuccessfully = true);
+                // Mark permissions as granted successfully for callback tracking
+                setState(() => permissionsGrantedSuccessfully = true);
 
-                  // Trigger the onPermissionGranted callback if provided
-                  widget.onPermissionGranted?.call();
-                } else if (result == SolidFunctionCallStatus.fail) {
-                  // More detailed error message with troubleshooting tips
-                  _showSnackBar(failureMsg, Colors.red);
+                // Trigger the onPermissionGranted callback if provided
+                widget.onPermissionGranted?.call();
+              } else if (result == SolidFunctionCallStatus.fail) {
+                // More detailed error message with troubleshooting tips
+                _showSnackBar(failureMsg, Colors.red);
 
-                  // Also log to console for debugging
-                  debugPrint(getFailureMsg(dataFile));
-                  debugPrint(getRecipientMsg(finalWebIdList));
-                  debugPrint(getPermissionMsg(selectedPermList));
-                } else if (result == SolidFunctionCallStatus.notInitialised) {
-                  _showSnackBar(podNotInitMsg, warnBgColor);
-                } else {
-                  await _alert(
-                      'Please login first to update file access permission');
-                }
+                // Also log to console for debugging
+                debugPrintFailure(dataFile, finalWebIdList, selectedPermList);
+              } else if (result == SolidFunctionCallStatus.notInitialised) {
+                _showSnackBar(podNotInitMsg, warnBgColor);
               } else {
-                await _alert(
-                    'Please select one or more file access permissions');
+                await _alert(updatePermissionMsg);
               }
             } else {
-              await _alert('Please select a type of recipient');
+              await _alert('Please select one or more file access permissions');
             }
+          } else {
+            await _alert('Please select a type of recipient');
           }
-        },
-      ),
+        }
+      },
     );
 
-    final form = Form(
-      key: formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            buildHeading(getWelcomeStr(widget.resourceName), 22),
-            smallGapV,
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                if (widget.resourceName == null) ...[
-                  getResourceForm(
-                    formControllerFileName,
-                    isFile,
-                    (bool value) => setState(() => isFile = value),
-                  ),
-                  smallGapV,
-                  retrievePermissionButton,
-                ],
-                largeGapV,
-                getHeading('Select the recipient/s of file access permissions'),
-                getRecipientText(
-                  selectedRecipientType,
-                  selectedRecipientDetails,
-                ),
-                buttonContainer,
-                smallGapV,
-                getHeading('Select the list of file access permissions'),
-                ...getPermissionCheckBoxes(
-                  accessModeList,
-                  modeSwitches: {
-                    AccessMode.read: readChecked,
-                    AccessMode.write: writeChecked,
-                    AccessMode.control: controlChecked,
-                    AccessMode.append: appendChecked,
-                  },
-                  onUpdate: _updateCheckbox,
-                ),
-                grantPermissionButton,
-                largeGapV,
-                getHeading(grantPermissionStr),
-                getFormScrollbar(tableScrollController, permDataTable),
-              ],
-            ),
-          ],
+    final form = getForm(
+      formKey: formKey,
+      welcomeHeading: buildHeading(getWelcomeStr(widget.resourceName), 22),
+      children: [
+        if (widget.resourceName == null) ...[
+          getResourceForm(
+            formController: fileNameController,
+            isFile: isFile,
+            onResourceTypeChange: (bool v) => setState(() => isFile = v),
+          ),
+          smallGapV,
+          retrievePermissionButton,
+        ],
+        largeGapV,
+        getHeading('Select the recipient/s of file access permissions'),
+        getRecipientText(selectedRecipientType, selectedRecipientDetails),
+        buttonContainer,
+        smallGapV,
+        getHeading('Select the list of file access permissions'),
+        ...getPermissionCheckBoxes(
+          accessModeList,
+          modeSwitches: {
+            AccessMode.read: readChecked,
+            AccessMode.write: writeChecked,
+            AccessMode.control: controlChecked,
+            AccessMode.append: appendChecked,
+          },
+          onUpdate: _updateCheckbox,
         ),
-      ),
+        grantPermissionButton,
+        largeGapV,
+        getHeading(grantPermissionStr),
+        getFormScrollbar(tableScrollController, permDataTable),
+      ],
     );
+
+    final customAppBar = widget.customAppBar ??
+        defaultAppBar(
+          context,
+          widget.title,
+          widget.backgroundColor,
+          widget.child,
+          onNavigateBack: () => widget.onNavigateBack?.call(),
+          getResult: () => permissionsGrantedSuccessfully,
+        );
 
     return Scaffold(
       appBar: widget.showAppBar ? customAppBar : null,

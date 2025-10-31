@@ -82,8 +82,8 @@ const failureMsg =
 String getFailureMsg(String fileName) =>
     '❌ [GrantPermissionUI] Permission granting failed for file: $fileName';
 
-String getRecipientMsg(List<dynamic>? finalList) =>
-    '🎯 [GrantPermissionUI] Recipients: $finalList';
+String getRecipientMsg(List<dynamic>? finalWebIdList) =>
+    '🎯 [GrantPermissionUI] Recipients: $finalWebIdList';
 
 String getPermissionMsg(List<String> permissionList) =>
     '🔐 [GrantPermissionUI] Permissions: $permissionList';
@@ -93,6 +93,21 @@ String getExceptionMsg(Object e) =>
 
 String getStackTraceMsg(StackTrace stackTrace) =>
     '📚 [GrantPermissionUI] Stack trace: $stackTrace';
+
+void debugPrintException(Object e, StackTrace stackTrace) {
+  debugPrint(getExceptionMsg(e));
+  debugPrint(getStackTraceMsg(stackTrace));
+}
+
+void debugPrintFailure(
+  String fileName,
+  List<dynamic>? finalWebIdList,
+  List<String> permissionList,
+) {
+  debugPrint(getFailureMsg(fileName));
+  debugPrint(getRecipientMsg(finalWebIdList));
+  debugPrint(getPermissionMsg(permissionList));
+}
 
 const warnBgColor = Color.fromARGB(255, 204, 99, 1);
 
@@ -141,7 +156,6 @@ Widget getButton(
     Padding(
       padding: const EdgeInsets.all(8),
       child: ElevatedButton(
-        // child: Text(text),
         onPressed: onPressed,
         child: Text(text),
       ),
@@ -168,11 +182,11 @@ Widget getRecipientTypeButton(
   );
 }
 
-Widget getResourceForm(
-  TextEditingController formController,
-  bool isFile,
-  void Function(bool) onResourceTypeChange,
-) =>
+Widget getResourceForm({
+  required TextEditingController formController,
+  required bool isFile,
+  required void Function(bool) onResourceTypeChange,
+}) =>
     Padding(
       padding: const EdgeInsets.all(8),
       child: Column(
@@ -302,22 +316,44 @@ Container getButtonContainer({required List<Widget> buttons}) => Container(
       ),
     );
 
-ElevatedButton getRetrieveButton(
-  BuildContext context,
-  String fileName,
-  bool isFile, {
-  required Future<void> Function(
-    String, {
-    bool isFile,
-  }) onRetrieve,
+// ElevatedButton getRetrieveButton(
+//   BuildContext context,
+//   String fileName,
+//   bool isFile, {
+//   required Future<void> Function(
+//     String, {
+//     bool isFile,
+//   }) onRetrieve,
+// }) =>
+//     ElevatedButton(
+//       child: const Text('Retrieve permissions'),
+//       onPressed: () async {
+//         if (fileName.isEmpty) {
+//           await alert(context, 'Please enter a file name');
+//         } else {
+//           await onRetrieve(fileName, isFile: isFile);
+//         }
+//       },
+//     );
+
+Form getForm({
+  required Key formKey,
+  required Widget welcomeHeading,
+  required List<Widget> children,
 }) =>
-    ElevatedButton(
-      child: const Text('Retrieve permissions'),
-      onPressed: () async {
-        if (fileName.isEmpty) {
-          await alert(context, 'Please enter a file name');
-        } else {
-          await onRetrieve(fileName, isFile: isFile);
-        }
-      },
+    Form(
+      key: formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            welcomeHeading,
+            smallGapV,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: children,
+            ),
+          ],
+        ),
+      ),
     );
