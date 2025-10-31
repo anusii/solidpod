@@ -38,7 +38,6 @@ import 'package:flutter/widgets.dart' hide Key;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
-import 'package:solidpod/solidpod.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show createResource, checkResourceStatus, getResource, deleteResource;
@@ -49,10 +48,14 @@ import 'package:solidpod/src/solid/constants/schema.dart'
 import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
+import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show deleteAclForResource, deleteFile;
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show getDataDirPath, getDirUrl, getFileUrl;
+    show
+        deleteAclForResource,
+        deleteFile,
+        getDataDirPath,
+        getDirUrl,
+        getFileUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
