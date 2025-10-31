@@ -28,9 +28,9 @@ import 'package:solidpod/src/solid/api/rest_api.dart'
 import 'package:solidpod/src/solid/constants/common.dart'
     show inheritKeyPred, ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
-import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey;
+import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
     show getDirUrl, normalizeFilePath;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
