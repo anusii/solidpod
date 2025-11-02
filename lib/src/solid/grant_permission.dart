@@ -38,6 +38,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/models/log_entry.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -191,7 +192,8 @@ Future<SolidFunctionCallStatus> grantPermission({
           final userWebId = await AuthDataManager.getWebId() as String;
 
           for (final recipientWebId in recipientWebIdList) {
-            final logEntryRes = createPermLogEntry(
+            // final logEntryRes = createPermLogEntry(
+            final LogEntry logEntryRes = createPermLogEntry(
               permissionList,
               resourceUrl,
               ownerWebId,
@@ -212,8 +214,10 @@ Future<SolidFunctionCallStatus> grantPermission({
             // Run log entry insert query for the granter
             await addPermLogLine(
               granterLogFileUrl,
-              logEntryRes[0] as String,
-              logEntryRes[1] as String,
+              // logEntryRes[0] as String,
+              // logEntryRes[1] as String,
+              logEntryRes.id,
+              logEntryRes.record,
             );
 
             // If owner and the granter is not the same add another log file entry
@@ -221,8 +225,10 @@ Future<SolidFunctionCallStatus> grantPermission({
             if (ownerLogFileUrl != granterLogFileUrl) {
               await addPermLogLine(
                 ownerLogFileUrl,
-                logEntryRes[0] as String,
-                logEntryRes[1] as String,
+                // logEntryRes[0] as String,
+                // logEntryRes[1] as String,
+                logEntryRes.id,
+                logEntryRes.record,
               );
             }
 
@@ -234,8 +240,10 @@ Future<SolidFunctionCallStatus> grantPermission({
 
               await addPermLogLine(
                 receiverLogFileUrl,
-                logEntryRes[0] as String,
-                logEntryRes[1] as String,
+                // logEntryRes[0] as String,
+                // logEntryRes[1] as String,
+                logEntryRes.id,
+                logEntryRes.record,
               );
             }
           }

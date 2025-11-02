@@ -30,11 +30,13 @@
 
 library;
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
+import 'package:solidpod/src/solid/models/log_entry.dart';
 
 /// A class to represent permission log literals
 enum PermissionLogLiteral {
@@ -80,7 +82,8 @@ enum PermissionLogLiteral {
 ///   - permissionList: List of access types (Read, Write, Control, Append)
 ///
 /// Returns the log entry ID and the log entry string
-List<dynamic> createPermLogEntry(
+// List<dynamic> createPermLogEntry(
+LogEntry createPermLogEntry(
   List<dynamic> permissionList,
   String resourceUrl,
   String ownerWebId,
@@ -88,13 +91,18 @@ List<dynamic> createPermLogEntry(
   String granterWebId,
   String recepientWebId,
 ) {
+  // Create log entry object
+  final LogEntry logEntry;
   final permissionListStr = permissionList.join(',');
   final dateTimeStr = DateFormat('yyyyMMddTHHmmss').format(DateTime.now());
   final logEntryId = DateFormat('yyyyMMddTHHmmssSSS').format(DateTime.now());
   final logEntryStr =
       '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recepientWebId;${permissionListStr.toLowerCase()}';
 
-  return [logEntryId, logEntryStr];
+  logEntry = LogEntry(id: logEntryId, record: logEntryStr);
+
+  // return [logEntryId, logEntryStr];
+  return logEntry;
 }
 
 /// Add permission log line to the log file
@@ -108,6 +116,8 @@ Future<void> addPermLogLine(
   const prefix2 = '$dataPrefix <$appsData>';
   final insertQuery =
       'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix$logEntryId ${dataPrefix}log "<$logEntryStr>"};';
+
+  debugPrint('[addPermLogLine] $insertQuery');
 
   // Update the file using the insert query
   await updateFileByQuery(logFileUrl, insertQuery);
