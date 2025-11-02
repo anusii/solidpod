@@ -56,7 +56,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   BuildContext context,
   Widget child, {
   bool encrypted = true,
-  String? inheritedFrom,
+  String? inheritKeyFrom,
 }) async {
   if (!await checkLoggedIn()) {
     throw NotLoggedInException(
@@ -118,7 +118,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
           await KeyManager.getSharedIndividualKey(parentDirUrl),
           genRandIV(),
           extWebId: fileOwnerWebId,
-          inheritedFrom: parentDirPath,
+          inheritKeyFrom: parentDirPath,
         );
       } else {
         if (!fileUrl.endsWith('.ttl')) {
@@ -145,9 +145,10 @@ Future<SolidFunctionCallStatus> writeExternalPod(
       // If the resource does not exist, if the encrypted flag is set to true,
       // and if inheritedFrom is set, then encrypt the file using the
       // inherited key
-      if (inheritedFrom != null && encrypted) {
+      if (inheritKeyFrom != null) {
         // Get normalised directory path
-        String normalizedDirPath = await normalizeFilePath(inheritedFrom, null);
+        String normalizedDirPath =
+            await normalizeFilePath(inheritKeyFrom, null);
 
         final parentDirUrl = getExtDirUrl(fileUrl, normalizedDirPath);
 
@@ -178,7 +179,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
 
   final aclFileUrl = '$fileUrl.acl';
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&
-      inheritedFrom == null) {
+      inheritKeyFrom == null) {
     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
 

@@ -49,6 +49,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, parseTTLMap;
 
@@ -1005,8 +1006,51 @@ bool hasInheritedKey(
 ) {
   final dataMap = parseTTLMap(fileContent);
   if (dataMap.containsKey(fileUrl)) {
-    return dataMap[fileUrl].containsKey('$appsTerms$inheritancePred');
+    return dataMap[fileUrl].containsKey('$appsTerms$inheritKeyPred');
   } else {
     return false;
+  }
+}
+
+/// Set a key for a given directory so that key can be used to encrypt multiple
+/// resources within the directory. Takes two input parameters
+///   [dirPath] - unnormalised path for the directory
+///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
+/// Directory will be created if not exist
+Future<void> setInheritKeyDir(
+  String dirPath, {
+  bool createAcl = true,
+  String? basePath,
+}) async {
+  final normalizedDirPath = await normalizeFilePath(dirPath, basePath);
+  final dirUrl = await getDirUrl(normalizedDirPath);
+
+  if (await checkResourceStatus(dirUrl, isFile: false) ==
+      ResourceStatus.notExist) {
+    // Create the directory
+    await createResource(
+      dirUrl,
+      isFile: false,
+      contentType: ResourceContentType.directory,
+    );
+  }
+
+  if (createAcl) {
+    // Create the corresponding acl file
+    final aclFileUrl = '$dirUrl.acl';
+    await createResource(
+      aclFileUrl,
+      content: await genAclTurtle(dirUrl, isFile: false),
+    );
+  }
+
+  if (!await KeyManager.hasIndividualKey(dirUrl)) {
+    // Create an individual AES key for the directory. This key will
+    // be used to encrypt all the resources inside the directory
+    await KeyManager.addIndividualKey(
+      normalizedDirPath,
+      genRandIndividualKey(),
+      isFile: false,
+    );
   }
 }
