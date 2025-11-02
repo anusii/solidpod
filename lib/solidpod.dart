@@ -148,9 +148,11 @@ export 'src/solid/api/rest_api.dart'
     show getResourcesInContainer, initialStructureTest;
 
 /// Function to get the latest log enties
+/// Function to create log entry
+/// Function to update log
 
 export 'src/solid/api/common_permission.dart'
-    show PermissionLogLiteral, getLatestLog;
+    show PermissionLogLiteral, getLatestLog, createPermLogEntry, addPermLogLine;
 
 /// Read encrypted/non-encrypted files stored in an external POD
 
