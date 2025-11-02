@@ -40,7 +40,8 @@ import 'package:solidui/solidui.dart'
         InitialSetupScreenBody,
         loginIfRequired,
         logoutPopup,
-        getKeyFromUserIfRequired;
+        getKeyFromUserIfRequired,
+        SolidPopupLogin;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -279,16 +280,27 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context, widget);
+          final loggedIn = await loginIfRequired(
+            context,
+            loginCallback: (ctx) async {
+              await showDialog<bool>(
+                context: ctx,
+                barrierDismissible: false,
+                builder: (dialogContext) => const SolidPopupLogin(),
+              );
+            },
+          );
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
               _webId = webId;
             });
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => FileService(child: widget)));
+            if (context.mounted) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => FileService(child: widget)));
+            }
           }
         },
         child: const Text('Upload / Download Large File'));
@@ -298,32 +310,54 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context, widget);
+          final loggedIn = await loginIfRequired(
+            context,
+            loginCallback: (ctx) async {
+              await showDialog<bool>(
+                context: ctx,
+                barrierDismissible: false,
+                builder: (dialogContext) => const SolidPopupLogin(),
+              );
+            },
+          );
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
               _webId = webId;
             });
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CreateAclInheritedFile()));
+            if (context.mounted) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CreateAclInheritedFile()));
+            }
           }
         },
         child: const Text('Create Resource with ACL Inheritance'));
 
     final inheritanceReadButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await loginIfRequired(context, widget);
+          final loggedIn = await loginIfRequired(
+            context,
+            loginCallback: (ctx) async {
+              await showDialog<bool>(
+                context: ctx,
+                barrierDismissible: false,
+                builder: (dialogContext) => const SolidPopupLogin(),
+              );
+            },
+          );
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
               _webId = webId;
             });
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ReadAclInheritedFile()));
+            if (context.mounted) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ReadAclInheritedFile()));
+            }
           }
         },
         child: const Text('Read Resource with ACL Inheritance'));
