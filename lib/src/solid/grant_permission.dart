@@ -32,8 +32,6 @@ import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
 
-import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
-
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/grant_permission_api.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -88,7 +86,13 @@ Future<SolidFunctionCallStatus> grantPermission({
 
   try {
     if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-    await getKeyFromUserIfRequired(context, child);
+
+    if (!await KeyManager.hasSecurityKey()) {
+      throw SecurityKeyNotAvailableException(
+        'Security key is not available. '
+        'Please ensure the security key is set before calling grantPermission().',
+      );
+    }
 
     final resourceUrl = await filenameToResourceUrl(
       fileName: fileName,

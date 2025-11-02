@@ -74,7 +74,11 @@ export 'src/solid/utils/key_helper.dart'
 /// Custom exception classes for better error handling.
 
 export 'src/solid/utils/exceptions.dart'
-    show AccessForbiddenException, AccessFailedException, NotLoggedInException;
+    show
+        AccessForbiddenException,
+        AccessFailedException,
+        NotLoggedInException,
+        SecurityKeyNotAvailableException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 
@@ -112,6 +116,10 @@ export 'src/solid/utils/misc.dart'
 /// Change security key popup widget
 
 export 'src/widgets/change_key_dialog.dart';
+
+/// Security key UI widget for prompting and displaying security key dialogs
+
+export 'src/widgets/security_key_ui.dart';
 
 /// Read encrypted/non-encrypted files stored in a POD
 

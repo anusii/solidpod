@@ -100,8 +100,6 @@ Future<SolidFunctionCallStatus> writePod(
     }
     final parentDirUrl = await getDirUrl(normalizedDirPath);
 
-    await getKeyFromUserIfRequired(context, child);
-
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
         debugPrint(
