@@ -287,6 +287,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             setState(() {
               _webId = webId;
             });
+
+            await getKeyFromUserIfRequired(context, widget);
+
             if (context.mounted) {
               Navigator.push(
                   context,
@@ -310,6 +313,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             setState(() {
               _webId = webId;
             });
+
+            await getKeyFromUserIfRequired(context, widget);
+
             if (context.mounted) {
               Navigator.push(
                   context,
@@ -330,6 +336,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             setState(() {
               _webId = webId;
             });
+
+            await getKeyFromUserIfRequired(context, widget);
+
             if (context.mounted) {
               Navigator.push(
                   context,
@@ -597,6 +606,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             );
 
                             if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -621,6 +632,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             );
 
                             if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -643,6 +656,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             );
 
                             if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -677,6 +692,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             );
 
                             if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -702,6 +719,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             );
 
                             if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
