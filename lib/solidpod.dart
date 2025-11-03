@@ -170,9 +170,17 @@ export 'src/solid/write_external_pod.dart';
 export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 /// 20250917 gjw Extras that were required for notepod. Not yet documented.
+/// 20251103 jesscmoore In common.dart, only authUserPred is
+/// used by notepod
 
 export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
+
+/// Adds the permission data to a data map for a file in a user's POD
+
 export 'src/solid/get_access_lists.dart';
+
+/// Function to get resources in a user's POD
+
 export 'src/solid/get_resources.dart';
 
 /// 20250917 gjw Extras that were required for the example app! Not yet
