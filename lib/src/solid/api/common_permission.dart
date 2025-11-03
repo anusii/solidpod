@@ -30,7 +30,6 @@
 
 library;
 
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -71,17 +70,22 @@ enum PermissionLogLiteral {
   String get label => _value;
 }
 
-/// Create a log entry for permission
-/// A log entry consists of 7 values
-///   - dateTimeStr: Permission granted/revoked date and time
-///   - resourceUrl: URL of the resource that is being shared/un-shared
-///   - ownerWebId: WebID of the resource owner
-///   - permissionType: Type of permission (grant/revoke)
-///   - granterWebId: WebID of the person who is giving/revoking permission
-///   - recepientWebId: WebID of the person who is reveiving permission
-///   - permissionList: List of access types (Read, Write, Control, Append)
+/// Create a log entry for adding to someone's permission log
+/// to change the level of access of a user to a file in a Pod.
+/// A log entry consists of 7 values, each of which are required
+/// parameters.
 ///
-/// Returns the log entry ID and the log entry string
+/// Parameters:
+///  - [resourceUrl]: URL of the resource that is being shared/un-shared
+///  - [ownerWebId]: WebID of the resource owner
+///  - [permissionType]: Type of permission (grant/revoke)
+///  - [granterWebId]: WebID of the person who is giving/revoking permission
+///   - [recepientWebId]: WebID of the person who is reveiving permission
+///   - [permissionList]: List of access types that is being granted
+/// or revoked (Read, Write, Control, Append).
+///
+/// Returns the log entry object ([LogEntry]) comprising ID and
+/// the log record string.
 LogEntry createPermLogEntry({
   required List<dynamic> permissionList,
   required String resourceUrl,
@@ -103,8 +107,15 @@ LogEntry createPermLogEntry({
   return logEntry;
 }
 
-/// Add permission log line to the log file
-/// TODO: add doc string
+/// Add permission log record to a permission log file
+/// [logFileUrl].
+///
+/// Arguments:
+/// - [logFileUrl] - url of the permission log file that
+/// the record is being appended to.
+/// - [logEntry] - log entry record to append to permission
+/// log.
+
 Future<void> addPermLogLine({
   required String logFileUrl,
   required LogEntry logEntry,
@@ -114,8 +125,6 @@ Future<void> addPermLogLine({
   const prefix2 = '$dataPrefix <$appsData>';
   final insertQuery =
       'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix${logEntry.id} ${dataPrefix}log "<${logEntry.record}>"};';
-
-  debugPrint('[addPermLogLine] $insertQuery');
 
   // Update the file using the insert query
   await updateFileByQuery(logFileUrl, insertQuery);
