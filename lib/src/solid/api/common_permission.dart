@@ -82,15 +82,14 @@ enum PermissionLogLiteral {
 ///   - permissionList: List of access types (Read, Write, Control, Append)
 ///
 /// Returns the log entry ID and the log entry string
-// List<dynamic> createPermLogEntry(
-LogEntry createPermLogEntry(
-  List<dynamic> permissionList,
-  String resourceUrl,
-  String ownerWebId,
-  String permissionType,
-  String granterWebId,
-  String recepientWebId,
-) {
+LogEntry createPermLogEntry({
+  required List<dynamic> permissionList,
+  required String resourceUrl,
+  required String ownerWebId,
+  required String permissionType,
+  required String granterWebId,
+  required String recepientWebId,
+}) {
   // Create log entry object
   final LogEntry logEntry;
   final permissionListStr = permissionList.join(',');
@@ -101,21 +100,20 @@ LogEntry createPermLogEntry(
 
   logEntry = LogEntry(id: logEntryId, record: logEntryStr);
 
-  // return [logEntryId, logEntryStr];
   return logEntry;
 }
 
 /// Add permission log line to the log file
-Future<void> addPermLogLine(
-  String logFileUrl,
-  String logEntryId,
-  String logEntryStr,
-) async {
+/// TODO: add doc string
+Future<void> addPermLogLine({
+  required String logFileUrl,
+  required LogEntry logEntry,
+}) async {
   // Generate insert sparql query for log entry
   const prefix1 = '$logIdPrefix <$appsLogId>';
   const prefix2 = '$dataPrefix <$appsData>';
   final insertQuery =
-      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix$logEntryId ${dataPrefix}log "<$logEntryStr>"};';
+      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix${logEntry.id} ${dataPrefix}log "<${logEntry.record}>"};';
 
   debugPrint('[addPermLogLine] $insertQuery');
 

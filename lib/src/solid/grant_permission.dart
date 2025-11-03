@@ -192,14 +192,13 @@ Future<SolidFunctionCallStatus> grantPermission({
           final userWebId = await AuthDataManager.getWebId() as String;
 
           for (final recipientWebId in recipientWebIdList) {
-            // final logEntryRes = createPermLogEntry(
             final LogEntry logEntryRes = createPermLogEntry(
-              permissionList,
-              resourceUrl,
-              ownerWebId,
-              'grant',
-              userWebId,
-              recipientWebId as String,
+              permissionList: permissionList,
+              resourceUrl: resourceUrl,
+              ownerWebId: ownerWebId,
+              permissionType: 'grant',
+              granterWebId: userWebId,
+              recepientWebId: recipientWebId as String,
             );
 
             // Log file urls of the owner, granter, and receiver
@@ -213,22 +212,16 @@ Future<SolidFunctionCallStatus> grantPermission({
 
             // Run log entry insert query for the granter
             await addPermLogLine(
-              granterLogFileUrl,
-              // logEntryRes[0] as String,
-              // logEntryRes[1] as String,
-              logEntryRes.id,
-              logEntryRes.record,
+              logFileUrl: granterLogFileUrl,
+              logEntry: logEntryRes,
             );
 
             // If owner and the granter is not the same add another log file entry
             // for the owner
             if (ownerLogFileUrl != granterLogFileUrl) {
               await addPermLogLine(
-                ownerLogFileUrl,
-                // logEntryRes[0] as String,
-                // logEntryRes[1] as String,
-                logEntryRes.id,
-                logEntryRes.record,
+                logFileUrl: ownerLogFileUrl,
+                logEntry: logEntryRes,
               );
             }
 
@@ -239,11 +232,8 @@ Future<SolidFunctionCallStatus> grantPermission({
                   await getFileUrl(logFilePath, recipientWebId);
 
               await addPermLogLine(
-                receiverLogFileUrl,
-                // logEntryRes[0] as String,
-                // logEntryRes[1] as String,
-                logEntryRes.id,
-                logEntryRes.record,
+                logFileUrl: receiverLogFileUrl,
+                logEntry: logEntryRes,
               );
             }
           }
