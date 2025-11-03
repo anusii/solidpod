@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.8 Updated API for readPod/writePod
 
++ Revoke access on already deleted files [0.7.18 20251103 jesscmoore]
 + Remove circular dependency with solidui [0.7.17 20251029 tonypioneer]
 + Read shared resource with inheritance [0.7.16 20251027 anushkavidanage]
 + Migrate SolidLogin to solidui [0.7.15 20251027 tonypioneer]
