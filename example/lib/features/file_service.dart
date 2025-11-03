@@ -29,6 +29,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:solidpod/solidpod.dart';
 
 import 'package:demopod/dialogs/alert.dart';
+// import 'package:solidui/solidui.dart';
 
 class FileService extends StatefulWidget {
   const FileService({required this.child, super.key});
@@ -39,7 +40,7 @@ class FileService extends StatefulWidget {
 }
 
 class _FileServiceState extends State<FileService> {
-  String remoteFileName = 'large_file.bin';
+  String defaultRemoteFileName = 'large_file.bin';
   String? uploadFile;
   String? downloadFile;
   // String? remoteFileUrl;
@@ -56,9 +57,14 @@ class _FileServiceState extends State<FileService> {
   bool downloadInProgress = false;
   bool deleteInProgress = false;
 
+  final remoteFolderController = TextEditingController();
+
   final smallGapH = const SizedBox(width: 10);
   final smallGapV = const SizedBox(height: 10);
   final largeGapV = const SizedBox(height: 50);
+
+  String getRemoteFileName() =>
+      '${remoteFolderController.text.trim()}$defaultRemoteFileName';
 
   // Future<String> getRemoteFileUrl() async =>
   //     getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
@@ -96,6 +102,26 @@ class _FileServiceState extends State<FileService> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    remoteFolderController.addListener(() {
+      String folder = remoteFolderController.text.trim();
+      folder = folder.endsWith('/') ? folder : '$folder/';
+      folder = folder.startsWith('/') ? folder.substring(1) : folder;
+
+      remoteFolderController.value = remoteFolderController.value.copyWith(
+        text: folder,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    remoteFolderController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final browseButton = ElevatedButton(
       onPressed: () async {
@@ -126,7 +152,7 @@ class _FileServiceState extends State<FileService> {
                 });
                 await writeLargeFile(
                     localFilePath: uploadFile!,
-                    remoteFileName: remoteFileName,
+                    remoteFileName: getRemoteFileName(),
                     context: context,
                     child: widget.child,
                     onProgress: (sent, total) {
@@ -176,7 +202,7 @@ class _FileServiceState extends State<FileService> {
                   });
                   if (context.mounted) {
                     await readLargeFile(
-                        remoteFileName: remoteFileName,
+                        remoteFileName: getRemoteFileName(),
                         localFilePath: outputFile,
                         context: context,
                         child: widget.child,
@@ -218,7 +244,7 @@ class _FileServiceState extends State<FileService> {
                   deleteInProgress = true;
                 });
                 await deleteLargeFile(
-                    remoteFileName: remoteFileName,
+                    remoteFileName: getRemoteFileName(),
                     context: context,
                     child: widget.child,
                     onProgress: (deleted, total) {
@@ -259,7 +285,7 @@ class _FileServiceState extends State<FileService> {
                 // Upload
 
                 Text(
-                  'Upload a large file and save it as "$remoteFileName" in POD',
+                  'Upload a large file and save it as "$defaultRemoteFileName" in POD',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -269,13 +295,30 @@ class _FileServiceState extends State<FileService> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    const Text('Upload file'),
+                    const Text('Upload local file'),
                     smallGapH,
                     Text(
                       uploadFile ?? 'Click the Browse button to choose a file',
                       style: TextStyle(
                         color: uploadFile == null ? Colors.red : Colors.blue,
-                        // fontStyle: FontStyle.italic,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    smallGapH,
+                    const Text('to remote folder'),
+                    smallGapH,
+                    SizedBox(
+                      width: 200,
+                      child: TextFormField(
+                        controller: remoteFolderController,
+                        enabled: !(uploadInProgress || uploadDone),
+                        decoration: const InputDecoration(
+                          hintText: 'optional, e.g. mydata/',
+                          hintStyle: TextStyle(
+                            color: Colors.red,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
                     ),
                     smallGapH,
@@ -283,6 +326,12 @@ class _FileServiceState extends State<FileService> {
                   ],
                 ),
                 smallGapV,
+                // SizedBox(
+                //   width: 100,
+                //   // height: 10,
+                //   child: remoteFolderInput,
+                // ),
+                // smallGapV,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
@@ -297,7 +346,7 @@ class _FileServiceState extends State<FileService> {
                 // Download
 
                 Text(
-                  'Download the "$remoteFileName" from POD',
+                  'Download the "$defaultRemoteFileName" from POD',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -327,7 +376,7 @@ class _FileServiceState extends State<FileService> {
                 // Delete
 
                 Text(
-                  'Delete the "$remoteFileName" from POD',
+                  'Delete the "$defaultRemoteFileName" from POD',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -341,7 +390,7 @@ class _FileServiceState extends State<FileService> {
                       const Text('Delete remote file'),
                       smallGapH,
                       Text(
-                        remoteFileName,
+                        defaultRemoteFileName,
                         style: const TextStyle(color: Colors.blue),
                       ),
                       smallGapH,
