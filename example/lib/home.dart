@@ -40,8 +40,7 @@ import 'package:solidui/solidui.dart'
         InitialSetupScreenBody,
         loginIfRequired,
         logoutPopup,
-        getKeyFromUserIfRequired,
-        SolidPopupLogin;
+        getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -282,13 +281,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         onPressed: () async {
           final loggedIn = await loginIfRequired(
             context,
-            loginCallback: (ctx) async {
-              await showDialog<bool>(
-                context: ctx,
-                barrierDismissible: false,
-                builder: (dialogContext) => const SolidPopupLogin(),
-              );
-            },
           );
           if (loggedIn) {
             final webId = await getWebId();
@@ -312,13 +304,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         onPressed: () async {
           final loggedIn = await loginIfRequired(
             context,
-            loginCallback: (ctx) async {
-              await showDialog<bool>(
-                context: ctx,
-                barrierDismissible: false,
-                builder: (dialogContext) => const SolidPopupLogin(),
-              );
-            },
           );
           if (loggedIn) {
             final webId = await getWebId();
@@ -339,13 +324,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         onPressed: () async {
           final loggedIn = await loginIfRequired(
             context,
-            loginCallback: (ctx) async {
-              await showDialog<bool>(
-                context: ctx,
-                barrierDismissible: false,
-                builder: (dialogContext) => const SolidPopupLogin(),
-              );
-            },
           );
           if (loggedIn) {
             final webId = await getWebId();
