@@ -33,7 +33,6 @@ library;
 
 import 'package:flutter/material.dart' hide Key;
 
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -137,11 +136,6 @@ Widget buildPermDataTable({
                           TextButton(
                             onPressed: () async {
                               if (ctx.mounted) {
-                                await getKeyFromUserIfRequired(
-                                  ctx,
-                                  parentWidget,
-                                );
-
                                 await revokePermission(
                                   fileName: permDataResource,
                                   isFile: isFile,

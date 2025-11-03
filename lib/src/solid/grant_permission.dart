@@ -35,7 +35,6 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/grant_permission_api.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
@@ -87,7 +86,13 @@ Future<SolidFunctionCallStatus> grantPermission({
 
   try {
     if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-    await getKeyFromUserIfRequired(context, child);
+
+    if (!await KeyManager.hasSecurityKey()) {
+      throw SecurityKeyNotAvailableException(
+        'Security key is not available. '
+        'Please ensure the security key is set before calling grantPermission().',
+      );
+    }
 
     final resourceUrl = await filenameToResourceUrl(
       fileName: fileName,

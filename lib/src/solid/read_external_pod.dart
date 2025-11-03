@@ -72,9 +72,6 @@ Future<dynamic> readExternalPod(
     try {
       final fileContent = await fetchPrvFile(fileUrl);
 
-      // Get master key from the user if required
-      await getKeyFromUserIfRequired(context, child);
-
       Key? indKey;
 
       // Decrypt if reading an encrypted file
