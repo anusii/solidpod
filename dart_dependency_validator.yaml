@@ -1,3 +1,2 @@
 ignore:
   - cupertino_icons  # An asset repository.
-  - solidui          # Only used in example/, which has its own pubspec.yaml.

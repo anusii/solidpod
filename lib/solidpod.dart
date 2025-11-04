@@ -34,6 +34,7 @@ library;
 // name conflicts?
 
 export 'src/solid/constants/common.dart' show foaf, terms;
+export 'src/solid/constants/schema.dart' show appsTerms;
 
 /// Solid authentication function
 
@@ -53,11 +54,15 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 
 /// Includes common functions that are useful such as,
 /// - A dialog for deleting an encrypted file
-/// - Input key from user when required
 /// - Check POD initialisation status
 
 export 'src/solid/common_func.dart'
-    show checkPodInitialization, deleteDataFileDialog, getKeyFromUserIfRequired;
+    show checkPodInitialization, deleteDataFileDialog;
+
+/// Security UI constants including SecurityStrings, SecurityColors, etc.
+
+export 'src/solid/constants/ui.dart'
+    show SecurityStrings, SecurityColors, SecurityTextStyles, SecurityLayout;
 
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.
@@ -71,12 +76,17 @@ export 'src/solid/utils/app_info.dart';
 export 'package:solidpod/src/solid/utils/key_inheritance.dart'
     show setInheritKeyDir;
 export 'src/solid/utils/key_manager.dart' show KeyManager;
+export 'src/solid/utils/key_helper.dart' show verifySecurityKey;
 
 /// Turtle string to triple map and triple map to turtle string functions
 /// Custom exception classes for better error handling.
 
 export 'src/solid/utils/exceptions.dart'
-    show AccessForbiddenException, AccessFailedException, NotLoggedInException;
+    show
+        AccessForbiddenException,
+        AccessFailedException,
+        NotLoggedInException,
+        SecurityKeyNotAvailableException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 
@@ -114,6 +124,10 @@ export 'src/solid/utils/misc.dart'
 /// Change security key popup widget
 
 export 'src/widgets/change_key_dialog.dart';
+
+/// Security key UI widget for prompting and displaying security key dialogs
+
+export 'src/widgets/security_key_ui.dart';
 
 /// Read encrypted/non-encrypted files stored in a POD
 

@@ -33,7 +33,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -102,8 +101,6 @@ Future<SolidFunctionCallStatus> writePod(
       normalizedDirPath += '/';
     }
     final parentDirUrl = await getDirUrl(normalizedDirPath);
-
-    await getKeyFromUserIfRequired(context, child);
 
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:

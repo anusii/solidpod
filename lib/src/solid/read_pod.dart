@@ -95,17 +95,15 @@ Future<String> readPod(
         Key? indKey;
 
         if (await KeyManager.hasIndividualKey(fileUrl)) {
-          await getKeyFromUserIfRequired(context, child);
+          // Get the individual key for the file.
 
-          // Get the individual key for the file
           indKey = await KeyManager.getIndividualKey(fileUrl);
         } else if (hasInheritedKey(
           fileContent,
           fileUrl,
         )) {
-          await getKeyFromUserIfRequired(context, child);
+          // Get the individual key for the file.
 
-          // Get the individual key for the file
           final parentDirPath = getParentDir(
             fileContent,
             fileUrl,
