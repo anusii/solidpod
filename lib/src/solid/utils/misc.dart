@@ -763,7 +763,9 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
 
   // Use provided path or default to appname/data.
 
-  final effectiveBasePath = basePath ?? await getDataDirPath();
+  final effectiveBasePath = basePath == null || basePath.trim().isEmpty
+      ? await getDataDirPath()
+      : basePath;
 
   // Check if path already starts with the correct base path (appname/data/).
 
