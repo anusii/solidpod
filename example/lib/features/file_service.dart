@@ -58,6 +58,7 @@ class _FileServiceState extends State<FileService> {
   bool deleteInProgress = false;
 
   final remoteFolderController = TextEditingController();
+  final keyRefFolderController = TextEditingController();
 
   final smallGapH = const SizedBox(width: 10);
   final smallGapV = const SizedBox(height: 10);
@@ -65,6 +66,11 @@ class _FileServiceState extends State<FileService> {
 
   String getRemoteFileName() =>
       '${remoteFolderController.text.trim()}$defaultRemoteFileName';
+
+  String? getKeyRefPath() {
+    final folder = keyRefFolderController.text.trim();
+    return folder.isNotEmpty ? folder : null;
+  }
 
   // Future<String> getRemoteFileUrl() async =>
   //     getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
@@ -104,15 +110,12 @@ class _FileServiceState extends State<FileService> {
   @override
   void initState() {
     super.initState();
-    remoteFolderController.addListener(() {
-      String folder = remoteFolderController.text.trim();
-      folder = folder.endsWith('/') ? folder : '$folder/';
-      folder = folder.startsWith('/') ? folder.substring(1) : folder;
-
-      remoteFolderController.value = remoteFolderController.value.copyWith(
-        text: folder,
-      );
-    });
+    remoteFolderController.addListener(() => remoteFolderController.value =
+        remoteFolderController.value.copyWith(
+            text: _sanitiseFolderPath(remoteFolderController.text.trim())));
+    keyRefFolderController.addListener(() => keyRefFolderController.value =
+        keyRefFolderController.value.copyWith(
+            text: _sanitiseFolderPath(keyRefFolderController.text.trim())));
   }
 
   @override
@@ -155,6 +158,7 @@ class _FileServiceState extends State<FileService> {
                     remoteFileName: getRemoteFileName(),
                     context: context,
                     child: widget.child,
+                    inheritKeyFrom: getKeyRefPath(),
                     onProgress: (sent, total) {
                       setState(() {
                         uploadDone = sent == total;
@@ -292,40 +296,125 @@ class _FileServiceState extends State<FileService> {
                   ),
                 ),
                 smallGapV,
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    const Text('Upload local file'),
-                    smallGapH,
-                    Text(
-                      uploadFile ?? 'Click the Browse button to choose a file',
-                      style: TextStyle(
-                        color: uploadFile == null ? Colors.red : Colors.blue,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    smallGapH,
-                    const Text('to remote folder'),
-                    smallGapH,
-                    SizedBox(
-                      width: 200,
-                      child: TextFormField(
-                        controller: remoteFolderController,
-                        enabled: !(uploadInProgress || uploadDone),
-                        decoration: const InputDecoration(
-                          hintText: 'optional, e.g. mydata/',
-                          hintStyle: TextStyle(
-                            color: Colors.red,
+                Table(
+                  columnWidths: const <int, TableColumnWidth>{
+                    0: FixedColumnWidth(170),
+                    1: FixedColumnWidth(300),
+                    // 1: FlexColumnWidth(),
+                  },
+                  children: [
+                    TableRow(
+                      children: [
+                        const Text('Upload local file'),
+                        // smallGapH,
+                        Text(
+                          uploadFile ??
+                              'Click the Browse button to choose a file',
+                          style: TextStyle(
+                            color:
+                                uploadFile == null ? Colors.red : Colors.blue,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
-                      ),
+                        // smallGapH,
+                        if (uploadDone)
+                          const Icon(Icons.done, color: Colors.green),
+                      ],
                     ),
-                    smallGapH,
-                    if (uploadDone) const Icon(Icons.done, color: Colors.green),
+                    TableRow(
+                      children: [
+                        const Text('to remote folder'),
+                        // smallGapH,
+                        SizedBox(
+                          width: 200,
+                          child: TextFormField(
+                            controller: remoteFolderController,
+                            enabled: !(uploadInProgress || uploadDone),
+                            decoration: const InputDecoration(
+                              hintText: 'optional, e.g. mydata/',
+                              hintStyle: TextStyle(
+                                color: Colors.red,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (uploadDone) smallGapH,
+                      ],
+                    ),
+                    TableRow(children: [
+                      const Text('by inheriting encryption key of folder'),
+                      // smallGapH,
+                      SizedBox(
+                        width: 200,
+                        child: TextFormField(
+                          controller: keyRefFolderController,
+                          enabled: !(uploadInProgress || uploadDone),
+                          decoration: const InputDecoration(
+                            hintText: 'optional, e.g. mydata/',
+                            hintStyle: TextStyle(
+                              color: Colors.red,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if (uploadDone) smallGapH,
+                    ]),
                   ],
                 ),
-                smallGapV,
+
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: <Widget>[
+                //     const Text('Upload local file'),
+                //     smallGapH,
+                //     Text(
+                //       uploadFile ?? 'Click the Browse button to choose a file',
+                //       style: TextStyle(
+                //         color: uploadFile == null ? Colors.red : Colors.blue,
+                //         fontStyle: FontStyle.italic,
+                //       ),
+                //     ),
+                //     smallGapH,
+                //     const Text('to remote folder'),
+                //     smallGapH,
+                //     SizedBox(
+                //       width: 200,
+                //       child: TextFormField(
+                //         controller: remoteFolderController,
+                //         enabled: !(uploadInProgress || uploadDone),
+                //         decoration: const InputDecoration(
+                //           hintText: 'optional, e.g. mydata/',
+                //           hintStyle: TextStyle(
+                //             color: Colors.red,
+                //             fontStyle: FontStyle.italic,
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //     smallGapH,
+                //     const Text('by inheriting encryption key of folder'),
+                //     smallGapH,
+                //     SizedBox(
+                //       width: 200,
+                //       child: TextFormField(
+                //         controller: keyRefFolderController,
+                //         enabled: !(uploadInProgress || uploadDone),
+                //         decoration: const InputDecoration(
+                //           hintText: 'optional, e.g. mydata/',
+                //           hintStyle: TextStyle(
+                //             color: Colors.red,
+                //             fontStyle: FontStyle.italic,
+                //           ),
+                //         ),
+                //       ),
+                //     ),
+                //     smallGapH,
+                //     if (uploadDone) const Icon(Icons.done, color: Colors.green),
+                //   ],
+                // ),
+                // smallGapV,
                 // SizedBox(
                 //   width: 100,
                 //   // height: 10,
@@ -448,4 +537,9 @@ class _FileServiceState extends State<FileService> {
       ),
     );
   }
+}
+
+String _sanitiseFolderPath(String folderPath) {
+  final folder = folderPath.endsWith('/') ? folderPath : '$folderPath/';
+  return folder.startsWith('/') ? folder.substring(1) : folder;
 }
