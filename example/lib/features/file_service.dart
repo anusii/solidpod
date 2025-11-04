@@ -377,64 +377,6 @@ class _FileServiceState extends State<FileService> {
                   ],
                 ),
                 smallGapV,
-
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: <Widget>[
-                //     const Text('Upload local file'),
-                //     smallGapH,
-                //     Text(
-                //       uploadFile ?? 'Click the Browse button to choose a file',
-                //       style: TextStyle(
-                //         color: uploadFile == null ? Colors.red : Colors.blue,
-                //         fontStyle: FontStyle.italic,
-                //       ),
-                //     ),
-                //     smallGapH,
-                //     const Text('to remote folder'),
-                //     smallGapH,
-                //     SizedBox(
-                //       width: 200,
-                //       child: TextFormField(
-                //         controller: remoteFolderController,
-                //         enabled: !(uploadInProgress || uploadDone),
-                //         decoration: const InputDecoration(
-                //           hintText: 'optional, e.g. mydata/',
-                //           hintStyle: TextStyle(
-                //             color: Colors.red,
-                //             fontStyle: FontStyle.italic,
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //     smallGapH,
-                //     const Text('by inheriting encryption key of folder'),
-                //     smallGapH,
-                //     SizedBox(
-                //       width: 200,
-                //       child: TextFormField(
-                //         controller: keyRefFolderController,
-                //         enabled: !(uploadInProgress || uploadDone),
-                //         decoration: const InputDecoration(
-                //           hintText: 'optional, e.g. mydata/',
-                //           hintStyle: TextStyle(
-                //             color: Colors.red,
-                //             fontStyle: FontStyle.italic,
-                //           ),
-                //         ),
-                //       ),
-                //     ),
-                //     smallGapH,
-                //     if (uploadDone) const Icon(Icons.done, color: Colors.green),
-                //   ],
-                // ),
-                // smallGapV,
-                // SizedBox(
-                //   width: 100,
-                //   // height: 10,
-                //   child: remoteFolderInput,
-                // ),
-                // smallGapV,
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
