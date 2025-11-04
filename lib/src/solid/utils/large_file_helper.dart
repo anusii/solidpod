@@ -47,12 +47,7 @@ import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show
-        deleteAclForResource,
-        deleteFile,
-        getDataDirPath,
-        getDirUrl,
-        getFileUrl;
+    show deleteAclForResource, getDataDirPath, getDirUrl, getFileUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
@@ -90,6 +85,7 @@ Future<void> writeLargeFile({
   required BuildContext context,
   required Widget child,
   String? inheritKeyFrom,
+  bool createAcl = true,
   void Function(int, int)? onProgress,
   bool encrypted = true,
 }) async {
@@ -102,6 +98,7 @@ Future<void> writeLargeFile({
     child: child,
     totalBytes: totalBytes,
     inheritKeyFrom: inheritKeyFrom,
+    createAcl: createAcl,
     onProgress: (sent, total) {
       if (onProgress != null) {
         onProgress(sent, total!);
@@ -176,7 +173,10 @@ Future<void> deleteLargeFile({
 
   // Delete the representing turtle file
 
-  await deleteFile('$remoteFilePath.ttl');
+  await deleteResource(
+    remoteFilePath.endsWith('.ttl') ? remoteFilePath : '$remoteFilePath.ttl',
+    ResourceContentType.turtleText,
+  );
 
   debugPrint('Deleted $remoteFileName');
 }
@@ -354,7 +354,7 @@ Future<void> send({
   if (!context.mounted) return;
 
   await writePod(
-    '$remoteFileName.ttl',
+    remoteFileName.endsWith('.ttl') ? remoteFileName : '$remoteFileName.ttl',
     tripleMapToTurtle(triples, bindNamespaces: bindNS),
     context,
     child,
@@ -362,9 +362,6 @@ Future<void> send({
     inheritKeyFrom: inheritKeyFrom,
     createAcl: createAcl,
   );
-
-  // Create ACL of the Turtle file
-  await createResource('$fileUrl.acl', content: await genAclTurtle(fileUrl));
 }
 
 /// Get a large file previously sent using [writeLargeFile] with name
