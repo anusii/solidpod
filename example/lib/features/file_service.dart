@@ -339,7 +339,7 @@ class _FileServiceState extends State<FileService> {
                             // labelText: 'Remote Folder',
                             // border: OutlineInputBorder(),
                             hintText:
-                                '(Optional) save to remote folder, e.g. mydata/',
+                                '(Optional) save to folder in POD, e.g. dir1/dir2/',
                             hintStyle: TextStyle(
                               color: Colors.brown,
                               fontStyle: FontStyle.italic,
@@ -365,7 +365,7 @@ class _FileServiceState extends State<FileService> {
                         enabled: !(uploadInProgress || uploadDone),
                         decoration: const InputDecoration(
                           hintText:
-                              '(Optional) Inherit encryption key of remote folder, e.g. mydata/',
+                              '(Optional) Inherit encryption key of folder in POD, e.g. dir1/',
                           hintStyle: TextStyle(
                             color: Colors.brown,
                             fontStyle: FontStyle.italic,
