@@ -29,7 +29,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:solidpod/solidpod.dart';
 
 import 'package:demopod/dialogs/alert.dart';
-// import 'package:solidui/solidui.dart';
 
 class FileService extends StatefulWidget {
   const FileService({required this.child, super.key});
@@ -72,9 +71,6 @@ class _FileServiceState extends State<FileService> {
     return folder.isNotEmpty ? folder : null;
   }
 
-  // Future<String> getRemoteFileUrl() async =>
-  //     getFileUrl([await getDataDirPath(), remoteFileName].join('/'));
-
   Widget getProgressBar(String message, bool isDone, double percent) {
     const textStyle = TextStyle(
       color: Colors.green,
@@ -96,7 +92,6 @@ class _FileServiceState extends State<FileService> {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      // crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         prefix,
         smallGapH,
@@ -148,17 +143,25 @@ class _FileServiceState extends State<FileService> {
           ? null
           : () async {
               try {
-                // remoteFileUrl ??= await getRemoteFileUrl();
-
                 setState(() {
                   uploadInProgress = true;
                 });
+
+                final keyPath = getKeyRefPath();
+
+                if (keyPath != null) {
+                  await setInheritKeyDir(keyPath, createAcl: true);
+                }
+
+                if (!context.mounted) return;
+
                 await writeLargeFile(
                     localFilePath: uploadFile!,
                     remoteFileName: getRemoteFileName(),
                     context: context,
                     child: widget.child,
-                    inheritKeyFrom: getKeyRefPath(),
+                    inheritKeyFrom: keyPath,
+                    createAcl: false,
                     onProgress: (sent, total) {
                       setState(() {
                         uploadDone = sent == total;
@@ -289,80 +292,91 @@ class _FileServiceState extends State<FileService> {
                 // Upload
 
                 Text(
-                  'Upload a large file and save it as "$defaultRemoteFileName" in POD',
+                  'Upload a local large file and save it as "$defaultRemoteFileName" in POD',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
                 smallGapV,
                 Table(
                   columnWidths: const <int, TableColumnWidth>{
-                    0: FixedColumnWidth(170),
-                    1: FixedColumnWidth(300),
+                    0: FixedColumnWidth(450),
+                    // 1: FixedColumnWidth(50),
                     // 1: FlexColumnWidth(),
                   },
                   children: [
                     TableRow(
                       children: [
-                        const Text('Upload local file'),
-                        // smallGapH,
-                        Text(
-                          uploadFile ??
-                              'Click the Browse button to choose a file',
-                          style: TextStyle(
-                            color:
-                                uploadFile == null ? Colors.red : Colors.blue,
-                            fontStyle: FontStyle.italic,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              uploadFile ??
+                                  'Click the Browse button to choose a local file',
+                              style: TextStyle(
+                                color: uploadFile == null
+                                    ? Colors.red
+                                    : Colors.blue,
+                                fontStyle: FontStyle.italic,
+                                fontSize: 16,
+                              ),
+                            ),
+                            smallGapH,
+                            if (uploadDone)
+                              const Icon(Icons.done, color: Colors.green),
+                          ],
                         ),
-                        // smallGapH,
-                        if (uploadDone)
-                          const Icon(Icons.done, color: Colors.green),
                       ],
                     ),
                     TableRow(
                       children: [
-                        const Text('to remote folder'),
-                        // smallGapH,
-                        SizedBox(
-                          width: 200,
-                          child: TextFormField(
-                            controller: remoteFolderController,
-                            enabled: !(uploadInProgress || uploadDone),
-                            decoration: const InputDecoration(
-                              hintText: 'optional, e.g. mydata/',
-                              hintStyle: TextStyle(
-                                color: Colors.red,
-                                fontStyle: FontStyle.italic,
-                              ),
+                        TextFormField(
+                          controller: remoteFolderController,
+                          enabled: !(uploadInProgress || uploadDone),
+                          decoration: const InputDecoration(
+                            // labelText: 'Remote Folder',
+                            // border: OutlineInputBorder(),
+                            hintText:
+                                '(Optional) save to remote folder, e.g. mydata/',
+                            hintStyle: TextStyle(
+                              color: Colors.brown,
+                              fontStyle: FontStyle.italic,
+                              fontSize: 15,
                             ),
                           ),
+                          // validator: (value) {
+                          //   if (value != null || value!.trim().isNotEmpty) {
+                          //     if (!value.endsWith('/')) {
+                          //       return 'Folder path must ends with /';
+                          //     }
+                          //   }
+                          //   return null;
+                          // },
                         ),
-                        if (uploadDone) smallGapH,
                       ],
                     ),
                     TableRow(children: [
-                      const Text('by inheriting encryption key of folder'),
+                      // const Text('Inherit encryption key'),
                       // smallGapH,
-                      SizedBox(
-                        width: 200,
-                        child: TextFormField(
-                          controller: keyRefFolderController,
-                          enabled: !(uploadInProgress || uploadDone),
-                          decoration: const InputDecoration(
-                            hintText: 'optional, e.g. mydata/',
-                            hintStyle: TextStyle(
-                              color: Colors.red,
-                              fontStyle: FontStyle.italic,
-                            ),
+                      TextFormField(
+                        controller: keyRefFolderController,
+                        enabled: !(uploadInProgress || uploadDone),
+                        decoration: const InputDecoration(
+                          hintText:
+                              '(Optional) Inherit encryption key of remote folder, e.g. mydata/',
+                          hintStyle: TextStyle(
+                            color: Colors.brown,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 15,
                           ),
                         ),
                       ),
-                      if (uploadDone) smallGapH,
                     ]),
                   ],
                 ),
+                smallGapV,
 
                 // Row(
                 //   mainAxisAlignment: MainAxisAlignment.center,
@@ -541,5 +555,6 @@ class _FileServiceState extends State<FileService> {
 
 String _sanitiseFolderPath(String folderPath) {
   final folder = folderPath.endsWith('/') ? folderPath : '$folderPath/';
+
   return folder.startsWith('/') ? folder.substring(1) : folder;
 }
