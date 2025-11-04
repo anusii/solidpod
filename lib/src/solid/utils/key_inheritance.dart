@@ -59,6 +59,7 @@ Future<void> setInheritKeyDir(
   if (await checkResourceStatus(dirUrl, isFile: false) ==
       ResourceStatus.notExist) {
     // Create the directory
+    // dc 20251105: TBC - Will all nonexist intermediate folders be created by CSS server?
     await createResource(
       dirUrl,
       isFile: false,
