@@ -292,9 +292,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
             if (context.mounted) {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => FileService(child: widget)));
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      FileService(webId: webId!, child: widget),
+                ),
+              );
             }
           }
         },
