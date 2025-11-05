@@ -30,23 +30,14 @@
 
 library;
 
-import 'package:flutter/material.dart' hide Key;
-
-import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 
 /// Read permissions of each file in a list of files,
 /// Note: the list of files are always files owned by the user.
 ///
 /// Parameters:
-/// - [dataMap] - is map of resource data to which access lists are added.
-/// Either [dataMap] or [fileList] must be provided.
-/// - [fileList] - is the list of files in the user's Pod. Either [fileList]
-/// or [dataMap] must be provided.
-/// - [context] - the build context.
-/// - [child] - is the child widget to return to.
+/// - [fileList] - is the list of files in the user's Pod.
 /// - [isFile] - flag describing whether the resource is a file, false if the resource is a directory. (Default: true).
 /// - [isFilePath] - Flag describing whether the filenames provided as keys
 /// in the dataMap provide the filename with the app data dir. (Default: false).
@@ -54,59 +45,31 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 /// are the url of the file. (Default: false).
 
 Future<Map<String, dynamic>> readPermissionFileList({
-  required BuildContext context,
-  required Widget child,
-  Map<String, dynamic>? dataMap,
-  List<String>? fileList,
+  // required BuildContext context,
+  // required Widget child,
+  // Map<String, dynamic>? dataMap,
+  required List<String> fileList,
   bool isFile = true,
   bool isFilePath = false,
   bool isFileUrl = false,
 }) async {
-  assert(
-    dataMap != null || fileList != null,
-    'Either dataMap or fileList must be provided.',
-  );
-  fileList ??= dataMap?.keys.toList();
-  dataMap ??= <String, dynamic>{};
+  // Initialise data map to hold returned permission of each file
+  Map<String, dynamic> dataMap = <String, dynamic>{};
 
   // Read recipients for each file
-  for (final fileName in fileList!) {
-    // Check file exists and has an associated ACL file.
-    final SolidFunctionCallStatus response;
-    if (context.mounted) {
-      response = await chkExistsAndHasAcl(
-        fileName: fileName,
-        isFile: isFile,
-        isFileUrl: isFileUrl,
-        context: context,
-        child: child,
-      );
-    } else {
-      response = SolidFunctionCallStatus.contextNotMounted;
-    }
+  for (final fileName in fileList) {
+    // Read permissions from the ACL.
+    final dynamic permList = await readPermission(
+      fileName: fileName,
+      isFile: isFile,
+      isFileUrl: isFileUrl,
+    );
 
-    if (response == SolidFunctionCallStatus.aclFound) {
-      // Read permissions from the ACL.
-      final dynamic permList = await readPermission(
-        fileName: fileName,
-        isFile: isFile,
-        isFileUrl: isFileUrl,
-      );
+    // Add fileName key
+    dataMap[fileName] = {};
 
-      // Add fileName key if missing
-      if (!dataMap.containsKey(fileName)) {
-        dataMap[fileName] = {};
-      }
-
-      // Add recipients map to dataMap
-      dataMap[fileName][authUserPred] = permList;
-      // debugPrint('adding permission map to dataMap for this file');
-    } else {
-      // Create empty map for each file if acl does not exist
-      dataMap[fileName] = {};
-      // debugPrint(
-      //     'no acl found, adding empty permission map to dataMap for this file',);
-    }
+    // Add recipients map to dataMap
+    dataMap[fileName][authUserPred] = permList;
   }
 
   return dataMap;

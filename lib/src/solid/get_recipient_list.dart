@@ -61,8 +61,6 @@ Future<List<String>> getRecipientList({
       if (!context.mounted) return [];
       dataMapWithPermissions = await readPermissionFileList(
         fileList: fileList,
-        context: context,
-        child: child,
         isFileUrl: true,
       );
 
