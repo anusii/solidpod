@@ -93,6 +93,7 @@ export 'src/solid/utils/misc.dart'
         deleteExternalFile,
         deleteFile,
         deleteLogIn,
+        filenameToResourceUrl,
         getWebId,
         getDataDirPath,
         getAppNameVersion,
