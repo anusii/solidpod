@@ -44,6 +44,8 @@ import 'package:solidpod/src/solid/constants/common.dart'
 import 'package:solidpod/src/solid/constants/schema.dart'
     show siiNS, SIIPredicate;
 import 'package:solidpod/src/solid/read_pod.dart' show readPod;
+import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
 import 'package:solidpod/src/solid/utils/misc.dart'
@@ -60,12 +62,14 @@ Future<void> readLargeFile({
   required String localFilePath,
   required BuildContext context,
   required Widget child,
+  String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
     remoteFileName: remoteFileName,
     context: context,
     child: child,
+    ownerWebId: ownerWebId,
     onProgress: onProgress,
   );
   final sink = File(localFilePath).openWrite();
@@ -173,10 +177,7 @@ Future<void> deleteLargeFile({
 
   // Delete the representing turtle file
 
-  await deleteResource(
-    remoteFilePath.endsWith('.ttl') ? remoteFilePath : '$remoteFilePath.ttl',
-    ResourceContentType.turtleText,
-  );
+  await deleteResource('$remoteFilePath.ttl', ResourceContentType.turtleText);
 
   debugPrint('Deleted $remoteFileName');
 }
@@ -354,7 +355,7 @@ Future<void> send({
   if (!context.mounted) return;
 
   await writePod(
-    remoteFileName.endsWith('.ttl') ? remoteFileName : '$remoteFileName.ttl',
+    '$remoteFileName.ttl',
     tripleMapToTurtle(triples, bindNamespaces: bindNS),
     context,
     child,
@@ -370,13 +371,28 @@ Stream<List<int>> fetch({
   required String remoteFileName,
   required BuildContext context,
   required Widget child,
+  String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async* {
   // Check if the corresponding Turtle file and directory of chunks exist
 
+  String? externWebId;
+  if (ownerWebId != null && ownerWebId != await AuthDataManager.getWebId()) {
+    externWebId = ownerWebId;
+  }
+
   final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
-  final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
-  final fileUrl = await getFileUrl('$remoteFilePath.ttl');
+  final chunkDirUrl = await getDirUrl(
+    _getChunkDirPath(remoteFilePath),
+    externWebId = externWebId,
+  );
+  final fileUrl = await getFileUrl(
+    '$remoteFilePath.ttl',
+    externWebId = externWebId,
+  );
+
+  debugPrint('fileUrl: ${fileUrl}');
+  debugPrint('chunkDirUrl: $chunkDirUrl');
 
   if (await checkResourceStatus(fileUrl, isFile: true) !=
           ResourceStatus.exist ||
@@ -388,11 +404,15 @@ Stream<List<int>> fetch({
   // Parse the Turtle file with metadata of the (chunked) large file
   // on server to get the URLs of individual chunks
 
+  String content;
   if (!context.mounted) return;
+  if (externWebId == null) {
+    content = await readPod(fileUrl, context, child);
+  } else {
+    content = await readExternalPod(fileUrl, context, child);
+  }
 
-  final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl', context, child),
-  );
+  final triples = turtleToTripleMap(content);
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
 
