@@ -45,9 +45,6 @@ import 'package:solidpod/src/solid/read_permission.dart';
 /// are the url of the file. (Default: false).
 
 Future<Map<String, dynamic>> readPermissionFileList({
-  // required BuildContext context,
-  // required Widget child,
-  // Map<String, dynamic>? dataMap,
   required List<String> fileList,
   bool isFile = true,
   bool isFilePath = false,
@@ -55,21 +52,29 @@ Future<Map<String, dynamic>> readPermissionFileList({
 }) async {
   // Initialise data map to hold returned permission of each file
   Map<String, dynamic> dataMap = <String, dynamic>{};
+  List<Future<dynamic>> futures = [];
 
-  // Read recipients for each file
+  // Create a list of future functions
   for (final fileName in fileList) {
-    // Read permissions from the ACL.
-    final dynamic permList = await readPermission(
-      fileName: fileName,
-      isFile: isFile,
-      isFileUrl: isFileUrl,
+    futures.add(
+      readPermission(
+        fileName: fileName,
+        isFile: isFile,
+        isFileUrl: isFileUrl,
+      ),
     );
+  }
 
+  // Wait for permission list futures synchronously
+  List<dynamic> results = await Future.wait(futures);
+
+  // Add returned permission lists to data map
+  for (int i = 0; i < fileList.length; i++) {
     // Add fileName key
-    dataMap[fileName] = {};
+    dataMap[fileList[i]] = {};
 
-    // Add recipients map to dataMap
-    dataMap[fileName][authUserPred] = permList;
+    // Add permission list
+    dataMap[fileList[i]][authUserPred] = results[i];
   }
 
   return dataMap;
