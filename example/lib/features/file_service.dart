@@ -31,7 +31,8 @@ import 'package:solidpod/solidpod.dart';
 import 'package:demopod/dialogs/alert.dart';
 
 class FileService extends StatefulWidget {
-  const FileService({required this.child, super.key});
+  const FileService({required this.child, required this.webId, super.key});
+  final String webId;
   final Widget child;
 
   @override
@@ -42,26 +43,30 @@ class _FileServiceState extends State<FileService> {
   String defaultRemoteFileName = 'large_file.bin';
   String? uploadFile;
   String? downloadFile;
-  // String? remoteFileUrl;
+  String? downloadSharedFile;
 
   double uploadPercent = 0.0;
   double downloadPercent = 0.0;
+  double downloadSharedPercent = 0.0;
   double deletePercent = 0.0;
 
   bool uploadDone = false;
   bool downloadDone = false;
+  bool downloadSharedDone = false;
   bool deleteDone = false;
 
   bool uploadInProgress = false;
   bool downloadInProgress = false;
+  bool downloadSharedInProgress = false;
   bool deleteInProgress = false;
 
   final remoteFolderController = TextEditingController();
   final keyRefFolderController = TextEditingController();
+  final sharedUrlController = TextEditingController();
 
   final smallGapH = const SizedBox(width: 10);
   final smallGapV = const SizedBox(height: 10);
-  final largeGapV = const SizedBox(height: 50);
+  final largeGapV = const SizedBox(height: 30);
 
   String getRemoteFileName() =>
       '${remoteFolderController.text.trim()}$defaultRemoteFileName';
@@ -139,6 +144,7 @@ class _FileServiceState extends State<FileService> {
       onPressed: (uploadFile == null ||
               uploadInProgress ||
               downloadInProgress ||
+              downloadSharedInProgress ||
               deleteInProgress)
           ? null
           : () async {
@@ -188,7 +194,10 @@ class _FileServiceState extends State<FileService> {
     );
 
     final downloadButton = ElevatedButton(
-      onPressed: (uploadInProgress || downloadInProgress || deleteInProgress)
+      onPressed: (uploadInProgress ||
+              downloadInProgress ||
+              downloadSharedInProgress ||
+              deleteInProgress)
           ? null
           : () async {
               String? outputFile = await FilePicker.platform.saveFile(
@@ -241,8 +250,89 @@ class _FileServiceState extends State<FileService> {
       child: const Text('Download'),
     );
 
+    final downloadSharedButton = ElevatedButton(
+      onPressed: (uploadInProgress ||
+              downloadInProgress ||
+              downloadSharedInProgress ||
+              deleteInProgress)
+          ? null
+          : () async {
+              String? outputFile = await FilePicker.platform.saveFile(
+                dialogTitle: 'Please set the output file:',
+              );
+              if (outputFile == null) {
+                // User canceled the picker
+                debugPrint('Download is cancelled');
+              } else {
+                setState(() {
+                  downloadSharedFile = outputFile;
+                });
+                try {
+                  setState(() {
+                    downloadSharedInProgress = true;
+                  });
+
+                  final sharedFileUrl = sharedUrlController.text.trim();
+                  if (sharedFileUrl.isEmpty) {
+                    final msg = 'Shared file URL is empty';
+                    if (context.mounted) await alert(context, msg);
+                    throw Exception(msg);
+                  }
+
+                  // URL format: https://SERVER_URL/POD_NAME/APP_NAME/data/FILE_PATH
+                  final uri = Uri.parse(sharedFileUrl);
+
+                  // [POD_NAME, APP_NAME, data, FILE_PATH]
+                  assert(uri.pathSegments.length > 3);
+
+                  final podName = uri.pathSegments.first;
+                  final ownerWebId =
+                      [uri.origin, podName, 'profile/card#me'].join('/');
+
+                  final fileName = uri.pathSegments
+                      .getRange(3, uri.pathSegments.length)
+                      .join('/');
+
+                  if (context.mounted) {
+                    await readLargeFile(
+                        remoteFileName: fileName,
+                        localFilePath: outputFile,
+                        ownerWebId: ownerWebId,
+                        context: context,
+                        child: widget.child,
+                        onProgress: (received, total) {
+                          setState(() {
+                            downloadSharedDone = received == total;
+                            downloadSharedPercent = received / total;
+                          });
+                        });
+                    if (downloadDone) {
+                      setState(() {
+                        downloadSharedInProgress = false;
+                      });
+                    }
+                  }
+                } on Object catch (e) {
+                  setState(() {
+                    downloadSharedFile = null;
+                    downloadSharedInProgress = false;
+                  });
+                  if (context.mounted) {
+                    await alert(
+                        context, 'Failed to download shared file. $e', 'Error');
+                  }
+                  debugPrint('$e');
+                }
+              }
+            },
+      child: const Text('Download Shared Large File'),
+    );
+
     final deleteButton = ElevatedButton(
-      onPressed: (uploadInProgress || downloadInProgress || deleteInProgress)
+      onPressed: (uploadInProgress ||
+              downloadInProgress ||
+              downloadSharedInProgress ||
+              deleteInProgress)
           ? null
           : () async {
               try {
@@ -399,6 +489,52 @@ class _FileServiceState extends State<FileService> {
       downloadButton,
     ];
 
+    // Widgets of the shared file download section
+    // Widgets of the file download section
+
+    final downloadSharedSection = [
+      Text(
+        'Download a shared large file from an external POD',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      smallGapV,
+      SizedBox(
+        width: 550,
+        child: TextFormField(
+          controller: sharedUrlController,
+          enabled: !(downloadSharedInProgress || downloadSharedDone),
+          decoration: const InputDecoration(
+            hintText: 'URL of shared large file in external POD',
+            hintStyle: TextStyle(
+              color: Colors.brown,
+              fontStyle: FontStyle.italic,
+              fontSize: 15,
+            ),
+          ),
+        ),
+      ),
+      smallGapV,
+      if (downloadSharedFile != null)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text('Save file'),
+            smallGapH,
+            Text(
+              downloadSharedFile!,
+              style: const TextStyle(color: Colors.blue),
+            ),
+            smallGapH,
+            if (downloadSharedDone) const Icon(Icons.done, color: Colors.green),
+          ],
+        ),
+      smallGapV,
+      downloadSharedButton,
+    ];
+
     // Widgets of the file delete section
 
     final deleteSection = [
@@ -454,6 +590,12 @@ class _FileServiceState extends State<FileService> {
                 // Delete
 
                 ...deleteSection,
+
+                largeGapV,
+
+                // Download shared file
+
+                ...downloadSharedSection,
               ],
             ),
 
@@ -478,6 +620,17 @@ class _FileServiceState extends State<FileService> {
                     'Downloading:', downloadDone, downloadPercent),
               ),
 
+            // Downloading shared file progress bar
+
+            if (downloadSharedInProgress)
+              Positioned(
+                top: 20,
+                left: 0,
+                right: 0,
+                child: getProgressBar(
+                    'Downloading:', downloadSharedDone, downloadSharedPercent),
+              ),
+
             // Deleting progress bar
 
             if (deleteInProgress)
@@ -497,6 +650,19 @@ class _FileServiceState extends State<FileService> {
                 child: const Text('Back to Demo'),
               ),
             ),
+
+            // Widget to show Web ID
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: Text(
+                'WEB ID - ${widget.webId}',
+                style: const TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
           ],
         ),
       ),
