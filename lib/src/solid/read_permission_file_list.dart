@@ -37,9 +37,7 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 
-/// Get the access control list data of each file in a map of files, ie.
-/// webIDs and their access permission for each of the files in a map of
-/// data files [dataMap].
+/// Read permissions of each file in a list of files,
 /// Note: the list of files are always files owned by the user.
 ///
 /// Parameters:
@@ -55,7 +53,7 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 /// - [isFileUrl] - Flag describing whether filenames used as keys in dataMap
 /// are the url of the file. (Default: false).
 
-Future<Map<String, dynamic>> getAccessLists({
+Future<Map<String, dynamic>> readPermissionFileList({
   required BuildContext context,
   required Widget child,
   Map<String, dynamic>? dataMap,

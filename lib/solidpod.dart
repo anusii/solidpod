@@ -153,6 +153,10 @@ export 'src/solid/api/rest_api.dart'
 export 'src/solid/api/common_permission.dart'
     show PermissionLogLiteral, getLatestLog;
 
+/// Reads permissions of list of files in a user's POD
+
+export 'src/solid/read_permission_file_list.dart';
+
 /// Function to revoke permission to a deleted file
 
 export 'src/solid/revoke_permission_to_deleted_file.dart'
@@ -175,10 +179,6 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 /// used by notepod
 
 export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
-
-/// Adds the permission data to a data map for a file in a user's POD
-
-export 'src/solid/get_access_lists.dart';
 
 /// Function to get resources in a user's POD
 
