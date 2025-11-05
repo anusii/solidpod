@@ -19,9 +19,11 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://www.gnu.org/licenses/>.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Dawei Chen
 
 library;
+
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show checkResourceStatus, createResource;
@@ -68,11 +70,18 @@ Future<void> setInheritKeyDir(
   }
 
   if (createAcl) {
-    // Create the corresponding acl file
-    await createResource(
-      '$dirUrl.acl',
-      content: await genAclTurtle(dirUrl, isFile: false),
-    );
+    // Create the corresponding acl file if not exists
+
+    final aclUrl = '$dirUrl.acl';
+    if (await checkResourceStatus(aclUrl, isFile: true) ==
+        ResourceStatus.notExist) {
+      await createResource(
+        aclUrl,
+        content: await genAclTurtle(dirUrl, isFile: false),
+      );
+    } else {
+      debugPrint('[setInheritKeyDir] $aclUrl already exists, do nothing.');
+    }
   }
 
   if (!await KeyManager.hasIndividualKey(dirUrl)) {
