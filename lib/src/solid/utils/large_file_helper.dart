@@ -43,8 +43,8 @@ import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/schema.dart'
     show siiNS, SIIPredicate;
-import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
+import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
@@ -391,7 +391,7 @@ Stream<List<int>> fetch({
     externWebId = externWebId,
   );
 
-  debugPrint('fileUrl: ${fileUrl}');
+  debugPrint('fileUrl: $fileUrl');
   debugPrint('chunkDirUrl: $chunkDirUrl');
 
   if (await checkResourceStatus(fileUrl, isFile: true) !=
