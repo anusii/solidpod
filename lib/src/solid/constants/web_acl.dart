@@ -177,6 +177,13 @@ enum AccessMode {
 
   /// Return the description of access mode
   String get description => _description;
+
+  static List<AccessMode> getAllModes() => [
+        AccessMode.read,
+        AccessMode.write,
+        AccessMode.control,
+        AccessMode.append,
+      ];
 }
 
 /// Return access mode based on a given String value
@@ -200,28 +207,43 @@ AccessMode getAccessMode(String mode) {
 
 enum RecipientType {
   /// Public
-  public('Public'),
+  public('public', 'Public'),
 
   /// Authenticated users
-  authUser('Authenticated Users'),
+  authUser('auth', 'Authenticated Users'),
 
   /// Individual WebID
-  individual('Individual'),
+  individual('indi', 'Individual'),
 
   /// Group of WebIDs
-  group('Group'),
+  group('group', 'Group'),
 
   /// No recipient type
-  none('');
+  none('', 'No Recipient');
 
   /// Constructor
-  const RecipientType(this._value);
+  const RecipientType(this._value, this._description);
 
   /// String value of the recipient type
   final String _value;
-
-  /// Return type
   String get type => _value;
+
+  /// Recipient type description
+  final String _description;
+  String get description => _description;
+
+  /// Return the RecipientType with the corresponding value
+  static RecipientType getInstanceByValue(String typeValue) {
+    Map<String, RecipientType> map = {
+      for (var m in RecipientType.values) m._value: m,
+    };
+
+    if (map.containsKey(typeValue)) {
+      return map[typeValue]!;
+    } else {
+      throw Exception('Invalid value for RecipientType: $typeValue');
+    }
+  }
 }
 
 /// Get agent types as a human readable string

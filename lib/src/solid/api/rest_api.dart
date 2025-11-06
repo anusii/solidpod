@@ -44,7 +44,7 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Parse encrypted file content and extract into a map.
@@ -396,11 +396,13 @@ Future<void> updateFileByQuery(
 
 // Updates the initial profile data on the server.
 ///
-/// This function sends a PUT request to update the user's profile information. It constructs the profile URL from the provided `webId`, generates a DPoP token using the RSA key pair and public key in JWK format from `authData`, and then sends the request with the `profBody` as the payload.
+/// This function sends a PUT request to update the user's profile information.
+/// It constructs the profile URL from the `webId`, generates a DPoP token using
+/// the RSA key pair and public key in JWK format, and then sends the request
+/// with the `profBody` as the payload.
 ///
-/// The `authData` map must contain `rsaInfo` (which includes `rsa` key pair and `pubKeyJwk`) and an `accessToken`. The function modifies the `webId` URL to target the appropriate resource on the server.
-///
-/// Throws an Exception if the server does not return a 200 OK or 205 Reset Content response, indicating a failure in updating the profile.
+/// Throws an Exception if the server does not return a 200 OK or 205 Reset
+/// Content response, indicating a failure in updating the profile.
 
 Future<void> initialProfileUpdate(String profBody) async {
   final webId = await AuthDataManager.getWebId();
@@ -423,7 +425,7 @@ Future<void> initialProfileUpdate(String profBody) async {
     body: utf8.encode(profBody),
   );
 
-  if (updateResponse.statusCode != 200 && updateResponse.statusCode != 205) {
+  if (![200, 205].contains(updateResponse.statusCode)) {
     throw Exception('Failed to update resource! Try again in a while.');
   }
 }

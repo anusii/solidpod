@@ -40,7 +40,8 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart' show RecipientPubKey;
+import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Grant access permissions to [fileName] to a given [recipientWebIdList].

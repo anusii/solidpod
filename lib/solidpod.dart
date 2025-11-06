@@ -73,9 +73,12 @@ export 'src/solid/utils/app_info.dart';
 /// such as Security key, Public key, Private key, and Individual keys.
 /// Also exports the function to set inherited key for a directory
 
-export 'src/solid/utils/key_helper.dart'
-    show KeyManager, verifySecurityKey, setInheritKeyDir;
+export 'package:solidpod/src/solid/utils/key_inheritance.dart'
+    show setInheritKeyDir;
+export 'src/solid/utils/key_manager.dart' show KeyManager;
+export 'src/solid/utils/key_helper.dart' show verifySecurityKey;
 
+/// Turtle string to triple map and triple map to turtle string functions
 /// Custom exception classes for better error handling.
 
 export 'src/solid/utils/exceptions.dart'
@@ -87,7 +90,7 @@ export 'src/solid/utils/exceptions.dart'
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 
-export 'src/solid/utils/rdf.dart' show parseTTLMap;
+export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 /// Includes common functions that could be useful for an app such as
 /// - get web id of the user
@@ -149,7 +152,7 @@ export 'src/solid/revoke_permission.dart';
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
-    show sendLargeFile, getLargeFile, deleteLargeFile;
+    show readLargeFile, writeLargeFile, deleteLargeFile;
 
 /// Function to read permission given to the user webID by others
 
@@ -159,7 +162,7 @@ export 'src/solid/shared_resources.dart';
 /// Function to test initial structure
 
 export 'src/solid/api/rest_api.dart'
-    show getResourcesInContainer, initialStructureTest;
+    show getResourcesInContainer, initialStructureTest, updateFileByQuery;
 
 /// Function to get the latest log enties
 
@@ -173,10 +176,6 @@ export 'src/solid/read_external_pod.dart';
 /// Write to encrypted/non-encrypted files in an external POD
 
 export 'src/solid/write_external_pod.dart';
-
-/// Turtle string to triple map and triple map to turtle string functions
-
-export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 /// 20250917 gjw Extras that were required for notepod. Not yet documented.
 

@@ -106,7 +106,7 @@ Widget buildPermDataTable({
               getRecipientType(
                 permDataMap[index][agentStr] as String,
                 index as String,
-              ).type,
+              ).description,
             ),
           ),
           DataCell(
