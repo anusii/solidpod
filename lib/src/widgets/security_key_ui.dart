@@ -34,6 +34,7 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
 import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidpod/src/solid/utils/push_replacement.dart';
 import 'package:solidpod/src/widgets/secret_text_field.dart';
 
 /// Display mode for the SecurityKeyUI widget.
@@ -375,12 +376,13 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
         if (widget.displayMode == SecurityKeyDisplayMode.dialog) {
           Navigator.pop(context);
         } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => widget.child,
-            ),
-          );
+          pushReplacement(context, widget.child);
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (context) => widget.child,
+          //   ),
+          // );
         }
       },
       style: TextButton.styleFrom(

@@ -200,6 +200,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
             // User has entered WebId text that satisfies error checks
             if (receiverWebId.isNotEmpty && _helpText == null) {
               // Check WebId exists
+
               if (await checkResourceStatus(receiverWebId) ==
                   ResourceStatus.exist) {
                 // Save provided WebId
@@ -284,11 +285,9 @@ Future<dynamic> indWebIdInputDialog(
 ) {
   return showDialog(
     context: context,
-    builder: (context) {
-      return IndWebIdInputScreen(
-        onSubmitFunction: onSubmitFunction,
-        dataFilesMap: dataFilesMap,
-      );
-    },
+    builder: (context) => IndWebIdInputScreen(
+      onSubmitFunction: onSubmitFunction,
+      dataFilesMap: dataFilesMap,
+    ),
   );
 }

@@ -54,3 +54,12 @@ class NotLoggedInException implements Exception {
   @override
   String toString() => 'NotLoggedInException: $message';
 }
+
+class SecurityKeyNotAvailableException implements Exception {
+  final String message;
+
+  SecurityKeyNotAvailableException(this.message);
+
+  @override
+  String toString() => 'SecurityKeyNotAvailableException: $message';
+}

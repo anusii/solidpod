@@ -38,7 +38,9 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart' show genRandIV;
+import 'package:solidpod/src/solid/utils/key_inheritance.dart';
+import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
@@ -80,9 +82,6 @@ Future<SolidFunctionCallStatus> writeExternalPod(
     case ResourceStatus.exist:
       final remoteFileContent = await fetchPrvFile(fileUrl);
       if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-        // Get the security key (and cache it in KeyManager)
-        await getKeyFromUserIfRequired(context, child);
-
         // Get file path
         final filePath =
             fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');

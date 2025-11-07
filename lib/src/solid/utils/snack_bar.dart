@@ -41,6 +41,7 @@ void showSnackBar(
   Color bgColor, {
   Duration duration = const Duration(seconds: 4),
 }) {
+  if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(msg),
