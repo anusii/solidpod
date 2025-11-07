@@ -69,34 +69,34 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
       String parentDirectory = _parentDirectoryController.text.trim();
 
       final demoTtlContent = createDemoTtlStr(resourcePath);
+      final messenger = ScaffoldMessenger.of(context);
 
-      if (context.mounted) {
-        SolidFunctionCallStatus result;
-        if (_isEncrypted) {
-          result = await writePod(resourcePath, demoTtlContent, context, widget,
-              encrypted: _isEncrypted,
-              createAcl: false,
-              inheritKeyFrom: parentDirectory);
-        } else {
-          // First check and create the corresponding directory
-          await setInheritKeyDir(parentDirectory);
-          result = await writePod(resourcePath, demoTtlContent, context, widget,
-              encrypted: _isEncrypted, createAcl: false);
-        }
+      SolidFunctionCallStatus result;
+      if (_isEncrypted) {
+        if (!context.mounted) return;
+        result = await writePod(resourcePath, demoTtlContent, context, widget,
+            encrypted: _isEncrypted,
+            createAcl: false,
+            inheritKeyFrom: parentDirectory);
+      } else {
+        // First check and create the corresponding directory
+        await setInheritKeyDir(parentDirectory);
+        if (!context.mounted) return;
+        // ignore: use_build_context_synchronously
+        result = await writePod(resourcePath, demoTtlContent, context, widget,
+            encrypted: _isEncrypted, createAcl: false);
+      }
 
-        if (result == SolidFunctionCallStatus.success) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Resource created successfully!')),
-          );
-        } else {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'There was a problem creating resource! Please try again later.')),
-          );
-        }
+      if (result == SolidFunctionCallStatus.success) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Resource created successfully!')),
+        );
+      } else {
+        messenger.showSnackBar(
+          const SnackBar(
+              content: Text('There was a problem creating resource! '
+                  'Please try again later.')),
+        );
       }
     }
   }

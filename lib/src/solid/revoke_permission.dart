@@ -134,6 +134,7 @@ Future<SolidFunctionCallStatus> revokePermission({
       ownerWebId: ownerWebId,
       removerId: removerIndOrGroupWebId,
       recipientType: recipientType,
+      isFile: isFile,
     );
 
     // Add log entry to owner, granter, and receiver permission log files

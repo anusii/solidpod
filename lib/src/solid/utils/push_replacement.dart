@@ -1,6 +1,4 @@
-/// A default app bar.
-///
-// Time-stamp: <Sunday 2024-07-11 12:55:00 +1000 Anushka Vidange>
+/// Utility function for navigation.
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -26,50 +24,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-///
-/// Authors: Anushka Vidanage, Ashley Tang
+/// Authors: Anushka Vidanage, Dawei Chen
 
 library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/utils/push_replacement.dart';
-
-/// A default app bar that is used when user does not define an app bar for
-/// the UI
-PreferredSizeWidget defaultAppBar(
+Future<void> pushReplacement(
   BuildContext context,
-  String title,
-  Color backgroundColor,
-  Widget child, {
-  VoidCallback? onNavigateBack,
-  bool Function()? getResult,
-}) {
-  return AppBar(
-    leading: IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.black),
-      onPressed: () {
-        // Call the callback if provided.
-
-        onNavigateBack?.call();
-
-        if (getResult != null) {
-          // Pop with result from callback.
-
-          Navigator.pop(context, getResult());
-        } else {
-          // Use the original pushReplacement behaviour.
-
-          pushReplacement(context, child);
-
-          // Navigator.pushReplacement(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => child),
-          // );
-        }
-      },
+  Widget destinationWidget,
+) async {
+  Navigator.pushAndRemoveUntil(
+    context,
+    MaterialPageRoute(
+      builder: (context) => destinationWidget,
     ),
-    backgroundColor: backgroundColor,
-    title: Text(title),
+    (Route<dynamic> route) =>
+        false, // This predicate ensures all previous routes are removed
   );
 }
