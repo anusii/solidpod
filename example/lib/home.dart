@@ -35,7 +35,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:solidui/solidui.dart' show InitialSetupScreenBody, logoutPopup;
+import 'package:solidui/solidui.dart'
+    show
+        InitialSetupScreenBody,
+        loginIfRequired,
+        logoutPopup,
+        getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -170,35 +175,35 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Future<void> _showSecurityKeyPrompt() async {
     // First ensure we are logged in.
 
-    final loggedIn = await checkLoggedIn();
-    if (!loggedIn) {
-      await alert(context, 'Please login to continue');
-      return;
-    }
+    final loggedIn = await loginIfRequired(
+      context,
+    );
 
-    // Forget the security key to ensure the prompt appears.
+    if (loggedIn) {
+      // Forget the security key to ensure the prompt appears.
 
-    await KeyManager.forgetSecurityKey();
+      await KeyManager.forgetSecurityKey();
 
-    // Inform user about what will happen next.
-
-    await alert(context,
-        'The security key has been forgotten locally. The next step will show the security key prompt which you would normally see when accessing secured data after logging in.');
-
-    // Directly show the security key prompt with WebID.
-
-    try {
-      // This will trigger the security key prompt since we've forgotten the key.
-
-      await getKeyFromUserIfRequired(context, widget);
-
-      // Only show this if the user enters the correct key.
+      // Inform user about what will happen next.
 
       await alert(context,
-          'Your security key was entered correctly and has been saved for this session.');
-    } catch (e) {
-      debugPrint('Error: $e');
-      await alert(context, 'Error or cancelled: $e');
+          'The security key has been forgotten locally. The next step will show the security key prompt which you would normally see when accessing secured data after logging in.');
+
+      // Directly show the security key prompt with WebID.
+
+      try {
+        // This will trigger the security key prompt since we've forgotten the key.
+
+        await getKeyFromUserIfRequired(context, widget);
+
+        // Only show this if the user enters the correct key.
+
+        await alert(context,
+            'Your security key was entered correctly and has been saved for this session.');
+      } catch (e) {
+        debugPrint('Error: $e');
+        await alert(context, 'Error or cancelled: $e');
+      }
     }
   }
 
@@ -274,18 +279,26 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await checkLoggedIn();
+          final loggedIn = await loginIfRequired(
+            context,
+          );
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
               _webId = webId;
             });
-            Navigator.push(
+
+            await getKeyFromUserIfRequired(context, widget);
+
+            if (context.mounted) {
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => FileService(child: widget)));
-          } else {
-            await alert(context, 'Please login to continue');
+                  builder: (context) =>
+                      FileService(webId: webId!, child: widget),
+                ),
+              );
+            }
           }
         },
         child: const Text('Upload / Download Large File'));
@@ -295,36 +308,46 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await checkLoggedIn();
+          final loggedIn = await loginIfRequired(
+            context,
+          );
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
               _webId = webId;
             });
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CreateAclInheritedFile()));
-          } else {
-            await alert(context, 'Please login to continue');
+
+            await getKeyFromUserIfRequired(context, widget);
+
+            if (context.mounted) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CreateAclInheritedFile()));
+            }
           }
         },
         child: const Text('Create Resource with ACL Inheritance'));
 
     final inheritanceReadButton = ElevatedButton(
         onPressed: () async {
-          final loggedIn = await checkLoggedIn();
+          final loggedIn = await loginIfRequired(
+            context,
+          );
           if (loggedIn) {
             final webId = await getWebId();
             setState(() {
               _webId = webId;
             });
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ReadAclInheritedFile()));
-          } else {
-            await alert(context, 'Please login to continue');
+
+            await getKeyFromUserIfRequired(context, widget);
+
+            if (context.mounted) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ReadAclInheritedFile()));
+            }
           }
         },
         child: const Text('Read Resource with ACL Inheritance'));
@@ -388,8 +411,14 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
                         // SolidPod API: deleteDataFile()
                         ElevatedButton(
-                            onPressed: () async =>
-                                deleteDataFileDialog(dataFile, context),
+                            onPressed: () async {
+                              final loggedIn = await loginIfRequired(
+                                context,
+                              );
+                              if (loggedIn) {
+                                deleteDataFileDialog(dataFile, context);
+                              }
+                            },
                             child: const Text('Delete Pod Data File')),
                         smallGapV,
 
@@ -574,45 +603,75 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           child: const Text(
                               'Add/Delete Permissions from a Specific Resource'),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const GrantPermissionUi(
-                                backgroundColor: titleBackgroundColor,
-                                resourceName: 'keyvalue/key-value.ttl',
-                                // accessModeList: ['read', 'write'],
-                                // recipientTypeList: ['indi', 'group'],
-                                child: Home(),
-                              ),
-                            ),
-                          ),
+                          onPressed: () async {
+                            final loggedIn = await loginIfRequired(
+                              context,
+                            );
+
+                            if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const GrantPermissionUi(
+                                    backgroundColor: titleBackgroundColor,
+                                    resourceName: 'keyvalue/key-value.ttl',
+                                    // accessModeList: ['read', 'write'],
+                                    // recipientTypeList: ['indi', 'group'],
+                                    child: Home(),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         smallGapV,
                         ElevatedButton(
                           child: const Text('Permission Callback Demo'),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const PermissionCallbackDemo(
-                                child: Home(),
-                              ),
-                            ),
-                          ),
+                          onPressed: () async {
+                            final loggedIn = await loginIfRequired(
+                              context,
+                            );
+
+                            if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PermissionCallbackDemo(
+                                    child: Home(),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         smallGapV,
                         ElevatedButton(
                           child: const Text(
                               'Add/Delete Permissions from any Resource'),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const GrantPermissionUi(
-                                backgroundColor: titleBackgroundColor,
-                                child: Home(),
-                              ),
-                            ),
-                          ),
+                          onPressed: () async {
+                            final loggedIn = await loginIfRequired(
+                              context,
+                            );
+
+                            if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const GrantPermissionUi(
+                                    backgroundColor: titleBackgroundColor,
+                                    child: Home(),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         largeGapV,
                         const Row(
@@ -630,34 +689,54 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           child: const Text(
                               'View specific resource (key-value.ttl) your WebID has access to'),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SharedResourcesUi(
-                                backgroundColor: titleBackgroundColor,
-                                fileName: 'key-value.ttl',
-                                //sourceWebId:
-                                //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
-                                child: Home(),
-                              ),
-                            ),
-                          ),
+                          onPressed: () async {
+                            final loggedIn = await loginIfRequired(
+                              context,
+                            );
+
+                            if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SharedResourcesUi(
+                                    backgroundColor: titleBackgroundColor,
+                                    fileName: 'key-value.ttl',
+                                    //sourceWebId:
+                                    //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
+                                    child: Home(),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         smallGapV,
                         ElevatedButton(
                           child: const Text(
                               'View ALL Resources your WebID has access to'),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SharedResourcesUi(
-                                backgroundColor: titleBackgroundColor,
-                                //sourceWebId:
-                                //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
-                                child: Home(),
-                              ),
-                            ),
-                          ),
+                          onPressed: () async {
+                            final loggedIn = await loginIfRequired(
+                              context,
+                            );
+
+                            if (loggedIn) {
+                              await getKeyFromUserIfRequired(context, widget);
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SharedResourcesUi(
+                                    backgroundColor: titleBackgroundColor,
+                                    //sourceWebId:
+                                    //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
+                                    child: Home(),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         ),
                         smallGapV,
                         largeGapV,

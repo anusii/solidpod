@@ -163,16 +163,13 @@ Future<String> _getResourceUrl(
   bool isContainer, [
   String? extWebId,
 ]) async {
-  String? webId = '';
   // Check if resource url is needed for an external webId
-  if (extWebId != null) {
-    webId = extWebId;
-  } else {
-    webId = await AuthDataManager.getWebId();
-  }
+  final webId = extWebId ?? await AuthDataManager.getWebId();
   assert(webId != null);
   assert(webId!.contains(profCard));
+
   final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+
   if (isContainer && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
   }
@@ -182,15 +179,11 @@ Future<String> _getResourceUrl(
 
 /// Create the URL for a file
 Future<String> getFileUrl(String filePath, [String? extWebId]) async =>
-    (extWebId == null)
-        ? await _getResourceUrl(filePath, false)
-        : await _getResourceUrl(filePath, false, extWebId);
+    await _getResourceUrl(filePath, false, extWebId);
 
 /// Create the URL for a directory (container)
 Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
-    (extWebId == null)
-        ? await _getResourceUrl(dirPath, true)
-        : await _getResourceUrl(dirPath, true, extWebId);
+    await _getResourceUrl(dirPath, true, extWebId);
 
 /// Get resource Url from a filename, with different options for how
 /// the filename is provided. If [isExternalRes] or [isFileUrl] is
@@ -274,14 +267,12 @@ Future<String> getEncTTLStr(
     URIRef(await getFileUrl(filePath, extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
+      if (inheritKeyFrom != null)
+        solidTermsNS.ns.withAttr(inheritKeyPred): inheritKeyFrom,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     },
   };
 
-  if (inheritKeyFrom != null) {
-    triples[URIRef(await getFileUrl(filePath, extWebId))]![
-        solidTermsNS.ns.withAttr(inheritKeyPred)] = inheritKeyFrom;
-  }
   final bindNS = {solidTermsNS.prefix: solidTermsNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
@@ -772,7 +763,9 @@ Future<String> normalizeFilePath(String filePath, String? basePath) async {
 
   // Use provided path or default to appname/data.
 
-  final effectiveBasePath = basePath ?? await getDataDirPath();
+  final effectiveBasePath = basePath == null || basePath.trim().isEmpty
+      ? await getDataDirPath()
+      : basePath;
 
   // Check if path already starts with the correct base path (appname/data/).
 

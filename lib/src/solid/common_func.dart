@@ -30,19 +30,13 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:flutter_form_builder/flutter_form_builder.dart';
-
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/schema.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart'
-    show KeyManager, verifySecurityKey;
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
-import 'package:solidpod/src/widgets/security_key_ui.dart';
 
 /// Check if the user's POD structure is initialised.
 
@@ -55,58 +49,6 @@ Future<(bool, Map<String, dynamic>)> checkPodInitialization() async {
   final missingResources = resCheckList.last as Map<String, dynamic>;
 
   return (allExists, missingResources);
-}
-
-/// Ask for the security key from the user if the security key is not available
-/// or cannot be verfied using the verification key stored in PODs.
-
-Future<void> getKeyFromUserIfRequired(
-  BuildContext context,
-  Widget child,
-) async {
-  if (await KeyManager.hasSecurityKey()) {
-    return;
-  } else {
-    final verificationKey = await KeyManager.getVerificationKey();
-    // Get the webId to display in the security key prompt.
-
-    final webId = await getWebId();
-
-    const inputKey = 'security_key';
-    final inputField = (
-      fieldKey: inputKey,
-      fieldLabel: 'Security Key',
-      validateFunc: (key) {
-        assert(key != null);
-        return verifySecurityKey(key as String, verificationKey)
-            ? null
-            : 'Incorrect Security Key';
-      }
-    );
-
-    // Use the unified SecurityKeyUI widget with the appropriate configuration.
-
-    final securityKeyInput = SecurityKeyUI(
-      webId: webId,
-      title: 'Security Key',
-      message: SecurityStrings.securityKeyPrompt,
-      inputFields: [inputField],
-      formKey: GlobalKey<FormBuilderState>(),
-      submitFunc: (formDataMap) async {
-        await KeyManager.setSecurityKey(formDataMap[inputKey].toString());
-        debugPrint('Security key saved');
-        if (context.mounted) Navigator.pop(context);
-      },
-      child: child,
-    );
-
-    if (context.mounted) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => securityKeyInput),
-      );
-    }
-  }
 }
 
 /// Delete a data file (and its ACL file if exist), remove its individual key

@@ -57,8 +57,8 @@ Future<String> removePermissionAcl({
   required String resourceUrl,
   required String ownerWebId,
   required String removerId,
-  required RecipientType recipientType, //[
-  bool isFile = true, // ]
+  required RecipientType recipientType,
+  bool isFile = true,
 }) async {
   // Read acl content
   final aclContent = await readAcl(resourceUrl);

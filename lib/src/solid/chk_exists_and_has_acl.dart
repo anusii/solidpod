@@ -34,7 +34,6 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -72,7 +71,6 @@ Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
   }
 
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-  await getKeyFromUserIfRequired(context, child);
 
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
