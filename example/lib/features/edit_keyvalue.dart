@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:editable/editable.dart';
 import 'package:solidpod/solidpod.dart'
     show SolidFunctionCallStatus, checkLoggedIn, writePod;
+import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/alert.dart';
@@ -166,6 +167,11 @@ class _KeyValueEditState extends State<KeyValueEdit> {
         if (!await checkLoggedIn()) {
           await _alert('Please login to write data to your POD');
           return false;
+        }
+
+        if (widget.encrypted) {
+          if (!context.mounted) return false;
+          await getKeyFromUserIfRequired(context, widget);
         }
 
         // Generate TTL str with dataMap
