@@ -397,10 +397,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             ],
     );
 
+    bool getIsFile() => widget.resourceName != null ? widget.isFile : isFile;
+
     final permDataTable = buildPermDataTable(
       context: context,
       permDataResource: permDataFile,
-      isFile: widget.resourceName != null ? widget.isFile : isFile,
+      isFile: getIsFile(),
       permDataMap: permDataMap,
       ownerWebId: ownerWebId,
       parentWidget: widget.child,
@@ -416,14 +418,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             if (selectedPermList.isNotEmpty) {
               final dataFile = widget.resourceName ?? fileNameController.text;
 
-              final isFileFlag =
-                  widget.resourceName != null ? widget.isFile : isFile;
-
               SolidFunctionCallStatus result;
               try {
                 result = await grantPermission(
                   fileName: dataFile,
-                  isFile: isFileFlag,
+                  isFile: getIsFile(),
                   permissionList: selectedPermList,
                   recipientType: selectedRecipientType,
                   recipientWebIdList: finalWebIdList as List,
@@ -442,7 +441,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
               if (result == SolidFunctionCallStatus.success) {
                 _showSnackBar(successMsg, Colors.green);
-                await _updatePermissions(dataFile, isFile: isFileFlag);
+                await _updatePermissions(dataFile, isFile: getIsFile());
 
                 // Mark permissions as granted successfully for callback tracking
                 setState(() => permissionsGrantedSuccessfully = true);
