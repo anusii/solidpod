@@ -692,9 +692,10 @@ Future<void> deleteFile(
     // to avoid the permission log of recipients still
     // showing the recipient as having access to the
     // file that is being deleted
-    await revokePermissionToRecipients(
-      fileName: filePath,
-    );
+    // FIXME: uncomment to restore revoking permissions before delete
+    // await revokePermissionToRecipients(
+    //   fileName: filePath,
+    // );
 
     final fileUrl = await getFileUrl(filePath);
     await deleteResource(fileUrl, contentType);
