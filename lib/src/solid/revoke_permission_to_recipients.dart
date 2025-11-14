@@ -30,7 +30,7 @@ library;
 
 import 'dart:core';
 
-import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:solidpod/src/solid/constants/common.dart'
     show agentStr, permStr;
@@ -83,6 +83,8 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
         isFileUrl: isFileUrl,
         isExternalRes: isExternalRes,
       );
+
+      debugPrint('[revokePermissionToRecipients] ${permDataMap.toString()}');
 
       // Extract webIds of users with access
       permDataMap.keys.forEach((key) {
