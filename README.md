@@ -12,18 +12,21 @@
 
 # Solid Pod
 
-**An ANU Software Innovation Institute package for your Data Vault**.
+**An [Australian Solid Community](https://solidcommunity.au) package
+to access your Data Vault**.
 
-Authors: Anushka Vidanage, [Graham
-Williams](https://github.com/gjwgit), [Jessica
+Implemented by the [ANU Software Innovation
+Institute](https://sii.anu.edu.au).
+
+Authors: [Anushka Vidanage](https://github.com/anushkavidanage),
+[Graham Williams](https://github.com/gjwgit), [Jessica
 Moore](https://github.com/jesscmoore), [Dawei
 Chen](https://github.com/cdawei), [Kevin
 Wang](https://github.com/junhaow1), [Zheyuan
 Xu](https://github.com/zheyxu).
 
-[ANU Software Innovation Institute](https://sii.anu.edu.au)
-
-License: [MIT](https://choosealicense.com/licenses/mit/)
+License: Free (as in Libre) and Open Source Software
+[MIT](https://choosealicense.com/licenses/mit/)
 
 ## Introduction
 
@@ -435,16 +438,12 @@ await deleteLargeFile(
 *Solid Pod*'s internal storage structure consists of
 [turtle](https://www.w3.org/TR/turtle/) files containing security
 information about the pod's content (data files) and their access.
-The internal structure is based on the following [ontology](onto),
-which captures essential concepts about the app's security
-information, data files, encryption, shared resources, and access
-control lists.
+The internal structure is based on the solidpod
+[ontology](onto/solid_app_ontology_schema.png), which captures
+essential concepts about the app's security information, data files,
+encryption, shared resources, and access control lists.
 
-<div align="center">
- <img
- src="https://github.com/anusii/solidpod/blob/dev/onto/SOLID-App-Ontology%20(schema).png"
- alt="Ontology's concept map">
-</div>
+![](https://github.com/anusii/solidpod/blob/dev/onto/solid_app_ontology_schema.png)
 
 ## Additional information
 
