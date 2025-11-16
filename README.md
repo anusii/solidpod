@@ -14,130 +14,41 @@
 
 **An ANU Software Innovation Institute package for your Data Vault**.
 
-Time-stamp: <Tuesday 2025-07-22 21:12:19 +1000 Graham Williams>
-
-Authors: Anushka Vidanage, Graham Williams, Jessica Moore
+Authors: Anushka Vidanage, [Graham
+Williams](https://github.com/gjwgit), [Jessica
+Moore](https://github.com/jesscmoore), [Dawei
+Chen](https://github.com/cdawei), [Kevin
+Wang](https://github.com/junhaow1), [Zheyuan
+Xu](https://github.com/zheyxu).
 
 [ANU Software Innovation Institute](https://sii.anu.edu.au)
 
-License: MIT
+License: [MIT](https://choosealicense.com/licenses/mit/)
 
 ## Introduction
 
-The SolidPod package provides functionality to manage a Solid
-personal online data stores (Pods) via a Flutter application.
-It supports high level access for an application to
-authenticate users to their Pods, access the users' data from
-their Pods, and then share the data stored in users' Pods with
-other Pods through Flutter Widgets.
+[SolidPod](https://pub.dev/packages/solidpod) provides functionality
+for dart applications to manage personal online data stores (Pods)
+hosted in a Data Vault on a [Solid
+Server](https://solidproject.org). The package provides underlying
+functionality relied upon by the
+[solidui](https://pub.dev/packages/solidui) package for quickly
+building Flutter-based applications.  It supports high level access
+for an application to authenticate users to their Pods, access the
+users' data from their Pods, and then share the data stored in users'
+Pods with other Pods through Flutter Widgets.
 
 ## What is Solid?
 
-Solid (<https://solidproject.org/>) is an open standard for a server
-to host personal online data stores (Pods). Numerous providers of
-Solid Server hosting are emerging allowing users to host and migrate
-their Pods on any such servers (or to run their own server).
-
-To know more about our work relatd to Solid Pods
-visit <https://solidcommunity.au>
-
-## Features
-
-+ [SolidLogin](#login-example) widget supports authentication against a Solid server:
-
-Default style:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/solid_login.png"
- alt="Solid Login" width="400">
-</div>
-
-Optional version and visit link:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/podnotes_login.png"
- alt="Solid Login" width="400">
-</div>
-
-Changing the image, logo, login text, colour scheme:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/tomy_login.png"
- alt="KeyPod Login" width="400">
-</div>
-
-Change the image, logo, login text, button style, colour scheme:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/keypod_login.png"
- alt="KeyPod Login" width="400">
-</div>
-
-Fine tune to suit the theme of the app:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/innerpod_login.png"
- alt="KeyPod Login" width="400">
-</div>
-
-+ `SolidPopupLogin` widget supports authentication within an
-  application. The widget will trigger authentication if a user action
-  requires authenticated access.
-
-+ [changeKeyPopup](#change-security-key-example) widget supports
-  changing the security key (used to make your data private through
-  encryption):
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/change_security_key.png"
- alt="KeyPod Login" width="400">
-</div>
-
-+ [readPod()](#read-pod-file-example) function reads file content
-  (either encrypted or plaintext) from a Pod.
-
-+ [writePod()](#write-to-pod-file-example) function writes content
-  (either encrypted or plaintext) to a file in a Pod.
-
-+ [GrantPermissionUi](#grant-permission-ui-example) widget supports
-  permission granting/revoking for resources:
-  + For defining specific access mode types or recipient types, use
-    optional parameters `accessModeList` and `recipientTypeList`.
-
-Granting permission:
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/grant_permission.png"
- alt="KeyPod Login" width="400">
-</div>
-
-Revoking permission:
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/revoke_permission.png"
- alt="KeyPod Login" width="400">
-</div>
-
-+ [SharedResourcesUi](#view-permission-ui-example) widget displays
-  resources shared with a Pod by others:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/view_permission.png"
- alt="KeyPod Login" width="400">
-</div>
-
-<!-- TODO dc: This is pending as we are checking if the latest CCS
-server natively supports write large files --> [`sendLargeFile()`,
-`getLargeFile()`, and
-`deleteLargeFile()`](#large-file-manager-example) functions uploads,
-downloads, and deletes large files from a Solid server, respectively.
+[Solid](https://solidproject.org/) is an open standard for a server
+providing Data Vaults  hosting personal online data stores
+(Pods). Numerous providers of Solid Server
+[hosts](https://solidproject.org/get_a_pod) support users host and
+migrate their Pods. Anyone can also host their own [Community Solid
+Server](https://communitysolidserver.github.io/CommunitySolidServer/latest/).
+To know more about our work visit the ANU's [Software Innovation
+Institute](https://sii.anu.edu.au) and the [Australian Solid
+Community](https://solidcommunity.au).
 
 ## Getting started
 
@@ -461,3 +372,13 @@ issues you face at [GitHub
 Issues](https://github.com/anusii/solidpod/issues).  The authors of
 the package will respond to issues as conveniently as possible upon
 creating an issue.
+
+<!-- markdownlint-disable MD036 -->
+*Time-stamp: <Thursday 2025-10-30 15:57:14 +1100 Graham Williams>*
+<!-- markdownlint-enable MD036 -->
+
+<!-- markdownlint-disable MD053 -->
+[comment]: # (Local Variables:)
+[comment]: # (time-stamp-line-limit: -8)
+[comment]: # (End:)
+<!-- markdownlint-enable MD053 -->
