@@ -43,6 +43,8 @@ visit <https://solidcommunity.au>
 
 ## Features
 
++ [solidAuthenticate](#authenticate-example) authenticate a user against a Solid server.
+
 + [SolidLogin](#login-example) widget supports authentication against a Solid server:
 
 Default style:
@@ -134,7 +136,8 @@ Revoking permission:
 </div>
 
 <!-- TODO dc: This is pending as we are checking if the latest CCS
-server natively supports write large files --> [`sendLargeFile()`,
+server natively supports write large files --> 
+[`sendLargeFile()`,
 `getLargeFile()`, and
 `deleteLargeFile()`](#large-file-manager-example) functions uploads,
 downloads, and deletes large files from a Solid server, respectively.
@@ -250,6 +253,19 @@ file.
 Following are the usage of main functionalities supported
 by the package.
 
+### Authenticate Example
+
+A function to authenticate a user against a given Solid server
+`https://pods.solidcommunity.au/`. Return a list containing
+ authentication data.
+
+```dart
+final authData = await solidAuthenticate(
+        'https://pods.solidcommunity.au/',
+        context,
+      );
+```
+
 ### Login Example
 
 A simple login screen to authenticate a user against a Solid server.
@@ -320,6 +336,42 @@ await writePod(
 );
 ```
 
+`writePod()` also supports using inherited encryption keys and 
+`.acl` files. For instance, consider the following use-case. 
+
+*Use-case*: Write two files `parentDir/child-1.ttl` and `parentDir/child-1.ttl` 
+into a single directory `parentDir`. Use a single `.acl` file for both 
+the files and use a single encryption key to encrypt both the files.
+
+Above can be achieved using following lines of code.
+
+```dart
+// Turtle string to be written to the file
+final childDataString = '<Sample TTL Data>';
+
+await writePod(
+ 'parentDir/child-1.ttl',
+ childDataString,
+ context,
+ ReturnPage(),
+ createAcl: false,
+ inheritKeyFrom: 'parentDir/',
+);
+
+await writePod(
+ 'parentDir/child-2.ttl',
+ childDataString,
+ context,
+ ReturnPage(),
+ createAcl: false,
+ inheritKeyFrom: 'parentDir/',
+);
+```
+The above will create a single `.acl` file for the directory 
+`parentDir` and use that as `.acl` file for both `child-1.ttl` and 
+`child-2.ttl` files. Also it will create a single key associated with 
+the directory `parentDir` and encrypt both files using that key.
+
 ### Grant Permission UI Example
 
 Wrap the `GrantPermissionUi` widget around a button to navigate to
@@ -340,18 +392,37 @@ ElevatedButton(
 )
 ```
 
-To add/delete permissions to a specific resource use:
+To add/delete permissions to a specific file use:
 
 ```dart
 ElevatedButton(
  child: const Text(
-  'Add/Delete Permissions from a Specific Resource'),
+  'Add/Delete Permissions from a Specific File'),
  onPressed: () => Navigator.push(
  context,
  MaterialPageRoute(
   builder: (context) => const GrantPermissionUi(
   fileName: 'my-data-file.ttl',
   child: ReturnPage(),
+  ),
+ ),
+ ),
+)
+```
+
+To add/delete permissions to a specific directory use:
+
+```dart
+ElevatedButton(
+ child: const Text(
+  'Add/Delete Permissions from a Specific Directory'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const GrantPermissionUi(
+  fileName: 'parentDir/',
+  child: ReturnPage(),
+  isFile: false,
   ),
  ),
  ),
@@ -402,7 +473,7 @@ ElevatedButton(
 To upload a large file use:
 
 ```dart
-await sendLargeFile(
+await writeLargeFile(
      // Solid server URL of the file
      remoteFileUrl: 'https://pods.solidcommunity.au/'
                     'john-doe/myapp/data/my-large-file.bin',
@@ -414,7 +485,7 @@ await sendLargeFile(
 To download a large file use:
 
 ```dart
-await getLargeFile(
+await readLargeFile(
      // Solid server URL of the file
      remoteFileUrl: 'https://pods.solidcommunity.au/'
                     'john-doe/myapp/data/my-large-file.bin',
