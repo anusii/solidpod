@@ -435,10 +435,10 @@ await deleteLargeFile(
 
 ## Ontology
 
-*Solid Pod*'s internal storage structure consists of
+A Solid Pod's internal storage structure consists of
 [turtle](https://www.w3.org/TR/turtle/) files containing security
-information about the pod's content (data files) and their access.
-The internal structure is based on the solidpod
+information about the pod's content (data files) and access.  The
+internal structure is based on the solidpod
 [ontology](onto/solid_app_ontology_schema.png), which captures
 essential concepts about the app's security information, data files,
 encryption, shared resources, and access control lists.
@@ -453,13 +453,11 @@ expect from the package authors, and more. -->
 
 The source code can be accessed via the [GitHub
 repository](https://github.com/anusii/solidpod).  You can also file
-issues you face at [GitHub
-Issues](https://github.com/anusii/solidpod/issues).  The authors of
-the package will respond to issues as conveniently as possible upon
-creating an issue.
+issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
+The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Monday 2025-11-17 09:14:48 +1100 Graham Williams>*
+*Time-stamp: <Monday 2025-11-17 09:15:51 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
