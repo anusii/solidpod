@@ -443,7 +443,7 @@ internal structure is based on the solidpod
 essential concepts about the app's security information, data files,
 encryption, shared resources, and access control lists.
 
-![](https://github.com/anusii/solidpod/blob/dev/onto/solid_app_ontology_schema.png)
+![Ontolgy](https://github.com/anusii/solidpod/blob/dev/onto/solid_app_ontology_schema.png)
 
 ## Additional information
 
@@ -457,7 +457,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Monday 2025-11-17 09:15:51 +1100 Graham Williams>*
+*Time-stamp: <Monday 2025-11-17 09:16:21 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
