@@ -11,6 +11,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.9 Stabilise
 
++ Publish to pub.dev [0.8.0 20251117 gjwgit]
+
 ## 0.8 Updated API and migrate UI components to solidui
 
 + Review and refine package [0.7.23 20251105 cdawei]
