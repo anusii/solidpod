@@ -30,7 +30,6 @@ import 'package:flutter/material.dart';
 import 'package:editable/editable.dart';
 import 'package:solidpod/solidpod.dart'
     show SolidFunctionCallStatus, checkLoggedIn, writePod;
-import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/alert.dart';
