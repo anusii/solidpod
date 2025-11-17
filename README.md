@@ -55,8 +55,10 @@ visit <https://solidcommunity.au>
 
 - [Authenticate](#authenticate-example) a user against a given Solid server and [login](#login-example).
 - [Manage security key](#change-security-key-example) for data encryption.
-- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files in POD.
-- [View](#view-permission-ui-example) and [manage](#grant-permission-ui-example) file access permissions
+- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files
+in POD.
+- [View](#view-permission-ui-example) and [manage](#grant-permission-ui-example)
+file access permissions.
 - [Read, write and delete](#large-file-manager-example) large data files.
 
 [Solid](https://solidproject.org/) is an open standard for a server
