@@ -9,9 +9,20 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## 0.8 Updated API for readPod/writePod
+## 0.9 Stabilise
 
-+ Revoke access on already deleted files [0.7.18 20251103 jesscmoore]
++ Optimise read permission of file list [0.8.2 20251117 jesscmoore]
++ Revoke access on already deleted files [0.8.1 20251117 jesscmoore]
++ Publish to pub.dev [0.8.0 20251117 gjwgit]
+
+## 0.8 Updated API and migrate UI components to solidui
+
++ Review and refine package [0.7.23 20251105 cdawei]
++ Migrate login and key UI to solidui [0.7.22 20251102 tonypioneer]
++ Migrate GrantPermission UI to solidui [0.7.21 20251031 cdawei]
++ Support key inheritance [0.7.20 20251101 anushkavidanage]
++ Additional parameter for writePod [0.7.19 20251101 anushkavidanage]
++ Refactor to reduce file sizes [0.7.18 20251030 cdawei]
 + Remove circular dependency with solidui [0.7.17 20251029 tonypioneer]
 + Read shared resource with inheritance [0.7.16 20251027 anushkavidanage]
 + Migrate SolidLogin to solidui [0.7.15 20251027 tonypioneer]

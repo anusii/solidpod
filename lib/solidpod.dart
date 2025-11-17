@@ -150,6 +150,9 @@ export 'src/solid/read_permission.dart';
 
 export 'src/solid/revoke_permission.dart';
 
+/// Permission recipient type
+export 'src/solid/constants/web_acl.dart' show RecipientType;
+
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
