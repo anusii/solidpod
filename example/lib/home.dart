@@ -34,7 +34,6 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
-
 import 'package:solidui/solidui.dart'
     show
         InitialSetupScreenBody,
@@ -124,7 +123,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
   }
 
-  Future<void> _writePrivateData() async {
+  Future<void> _readWritePrivateData() async {
     setState(() {
       // Begin loading.
       _isLoading = true;
@@ -137,14 +136,14 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileName = _writeEncrypted ? dataFile : dataFilePlain;
 
-    final dataDirPath = await getDataDirPath();
-    final filePath = [dataDirPath, fileName].join('/');
+    // final dataDirPath = await getDataDirPath();
+    // final filePath = [dataDirPath, fileName].join('/');
 
     List<({String key, dynamic value})>? pairs;
 
     try {
       final fileContent = await readPod(
-        filePath,
+        fileName,
         context,
         widget,
       );
@@ -301,7 +300,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             }
           }
         },
-        child: const Text('Upload / Download Large File'));
+        child: const Text('Upload/Download Large File'));
 
     // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
     // HERE.
@@ -399,12 +398,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         smallGapV,
 
                         ElevatedButton(
-                          child: const Text('Show Pod Data File'),
+                          child: const Text('Read/Write Pod Data File'),
                           onPressed: () async {
-                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
-                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
-                            // FUNCTION TO WIRE PRIVATE DATA?
-                            await _writePrivateData();
+                            await loginIfRequired(context);
+                            await _readWritePrivateData();
                           },
                         ),
                         smallGapV,
@@ -619,6 +616,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                     resourceName: 'keyvalue/key-value.ttl',
                                     // accessModeList: ['read', 'write'],
                                     // recipientTypeList: ['indi', 'group'],
+                                    // isFile: false,
                                     child: Home(),
                                   ),
                                 ),

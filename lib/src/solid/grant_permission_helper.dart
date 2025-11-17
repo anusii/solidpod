@@ -124,8 +124,8 @@ const relevantRecipientTypes = [
 ];
 
 String getWelcomeStr(String? fileName) => fileName != null
-    ? 'Share $fileName file with other PODs'
-    : 'Share your data files with other PODs';
+    ? 'Share $fileName resource with other PODs'
+    : 'Share your data resources with other PODs';
 
 Widget getHeading(String text) => buildHeading(
       text,
