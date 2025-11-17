@@ -33,8 +33,8 @@ library;
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/read_permission_file_list.dart';
 import 'package:solidpod/src/solid/get_resources.dart';
+import 'package:solidpod/src/solid/read_permission_file_list.dart';
 
 /// Retrieve the list of recipients that have access to any file
 /// in the user's POD.
