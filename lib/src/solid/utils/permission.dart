@@ -26,6 +26,8 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -169,6 +171,8 @@ Future<Map<dynamic, dynamic>> readAcl(
   final resourceAclUrl = getResAclFile(resourceUrl, isFile);
 
   final aclContent = await fetchPrvFile(resourceAclUrl);
+
+  debugPrint('readAcl(): $aclContent');
   return parseACL(aclContent);
 }
 

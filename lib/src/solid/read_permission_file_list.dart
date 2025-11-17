@@ -30,6 +30,8 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 
@@ -72,6 +74,8 @@ Future<Map<String, dynamic>> readPermissionFileList({
   for (int i = 0; i < fileList.length; i++) {
     // Add fileName key
     dataMap[fileList[i]] = {};
+
+    debugPrint('readPermissionFileList(): ${results[i].toString()}');
 
     // Add permission list
     dataMap[fileList[i]][authUserPred] = results[i];
