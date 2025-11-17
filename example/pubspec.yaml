@@ -14,9 +14,7 @@ dependencies:
   intl: any
   rdflib: ^0.2.11
   solidpod:
-    git:
-      url: https://github.com/anusii/solidpod.git
-      ref: dev
+    path: ..
   solidui:
     git:
       url: https://github.com/anusii/solidui.git
