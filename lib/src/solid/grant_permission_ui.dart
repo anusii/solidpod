@@ -64,7 +64,7 @@ class GrantPermissionUi extends StatefulWidget {
     this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
     this.externalWebId,
     this.resourceName,
-    this.isFile,
+    this.isFile = true,
     this.dataFilesMap = const {},
     this.customAppBar,
     this.onPermissionGranted,
@@ -102,15 +102,17 @@ class GrantPermissionUi extends StatefulWidget {
 
   /// The name of the file or directory permission is being set to. This is a
   /// non required parameter. If not set there will be a text field to define
-  /// the file name. If [resourceName] is set to true this must be set and the
+  /// the file name. If [isExternalRes] is set to true this must be set and the
   /// value should be the url of the resource.
   final String? resourceName;
 
   /// A flag to determine whether the given resource is a file or not. This is
-  /// a non required parameter. If not set there will be a toggle to define this.
+  /// a parameter with default value true. In the case where [resourceName] is
+  /// not set there will be a toggle to define this parameter.
   /// If [isExternalRes] is set to true this must be set and the value should
-  /// be the url of the resource
-  final bool? isFile;
+  /// be the url of the resource. Also if [resourceName] is set this flag must
+  /// also be set
+  final bool isFile;
 
   /// Map of data files on a user's POD used to extract the
   /// user's recipient list by the WebIdTextInputScreen.
@@ -248,7 +250,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load future
     if (widget.resourceName != null) {
-      podDataList = loadPodData(widget.resourceName as String, isFile);
+      podDataList = loadPodData(widget.resourceName as String, widget.isFile);
     }
 
     // Load access mode list to be displayed
@@ -395,10 +397,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             ],
     );
 
+    bool getIsFile() => widget.resourceName != null ? widget.isFile : isFile;
+
     final permDataTable = buildPermDataTable(
       context: context,
       permDataResource: permDataFile,
-      isFile: widget.isFile ?? isFile,
+      isFile: getIsFile(),
       permDataMap: permDataMap,
       ownerWebId: ownerWebId,
       parentWidget: widget.child,
@@ -414,13 +418,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             if (selectedPermList.isNotEmpty) {
               final dataFile = widget.resourceName ?? fileNameController.text;
 
-              final isFileFlag = widget.isFile ?? isFile;
-
               SolidFunctionCallStatus result;
               try {
                 result = await grantPermission(
                   fileName: dataFile,
-                  isFile: isFileFlag,
+                  isFile: getIsFile(),
                   permissionList: selectedPermList,
                   recipientType: selectedRecipientType,
                   recipientWebIdList: finalWebIdList as List,
@@ -439,7 +441,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
               if (result == SolidFunctionCallStatus.success) {
                 _showSnackBar(successMsg, Colors.green);
-                await _updatePermissions(dataFile, isFile: isFileFlag);
+                await _updatePermissions(dataFile, isFile: getIsFile());
 
                 // Mark permissions as granted successfully for callback tracking
                 setState(() => permissionsGrantedSuccessfully = true);
