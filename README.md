@@ -53,14 +53,12 @@ visit <https://solidcommunity.au>
 
 ## Features
 
-+ [solidAuthenticate](#authenticate-example) authenticate a user against a Solid server.
+- [Authenticate](#authenticate-example) a user against a given Solid server and [login](#login-example).
+- [Manage security key](#change-security-key-example) for data encryption.
+- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files in POD.
+- [View](#view-permission-ui-example) and [manage](#grant-permission-ui-example) file access permissions
+- [Read, write and delete](#large-file-manager-example) large data files.
 
-<!-- TODO dc: This is pending as we are checking if the latest CCS
-server natively supports write large files -->
-[`sendLargeFile()`,
-`getLargeFile()`, and
-`deleteLargeFile()`](#large-file-manager-example) functions uploads,
-downloads, and deletes large files from a Solid server, respectively.
 [Solid](https://solidproject.org/) is an open standard for a server
 providing Data Vaults  hosting personal online data stores
 (Pods). Numerous providers of Solid Server
@@ -296,6 +294,7 @@ await writePod(
  inheritKeyFrom: 'parentDir/',
 );
 ```
+
 The above will create a single `.acl` file for the directory
 `parentDir` and use that as `.acl` file for both `child-1.ttl` and
 `child-2.ttl` files. Also it will create a single key associated with
@@ -399,27 +398,31 @@ ElevatedButton(
 
 ### Large File Manager Example
 
-To upload a large file use:
+To upload a large file in application `myapp`, use:
 
 ```dart
 await writeLargeFile(
-     // Solid server URL of the file
-     remoteFileUrl: 'https://pods.solidcommunity.au/'
-                    'john-doe/myapp/data/my-large-file.bin',
+     // Name of the file in POD
+     remoteFileName: 'my-large-file.bin',
      // Path of the file where it is locally stored
      localFilePath: 'D:/my-large-file.bin',
+     context: context,
+     child: ReturnPage(),
 )
 ```
+
+The uploaded file will be stored in the `myapp/data` folder.
 
 To download a large file use:
 
 ```dart
 await readLargeFile(
-     // Solid server URL of the file
-     remoteFileUrl: 'https://pods.solidcommunity.au/'
-                    'john-doe/myapp/data/my-large-file.bin',
+     // Name of the file in POD
+     remoteFileName: 'my-large-file.bin',
      // Path of the file where it will be locally downloaded
      localFilePath: 'D:/my-large-file.bin',
+     context: context,
+     child: ReturnPage(),
 )
 ```
 
@@ -427,9 +430,10 @@ To delete a large file use:
 
 ```dart
 await deleteLargeFile(
-     // Solid server URL of the file,
-     remoteFileUrl: 'https://pods.solidcommunity.au/'
-                    'john-doe/myapp/data/my-large-file.bin',
+     // Name of the file in POD
+     remoteFileName: 'my-large-file.bin',
+     context: context,
+     child: ReturnPage(),
 )
 ```
 
