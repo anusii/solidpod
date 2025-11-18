@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.9 Stabilise
 
++ Revoke access on already deleted files [0.8.1 20251117 jesscmoore]
 + Publish to pub.dev [0.8.0 20251117 gjwgit]
 
 ## 0.8 Updated API and migrate UI components to solidui

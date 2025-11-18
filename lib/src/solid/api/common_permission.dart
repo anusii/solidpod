@@ -35,6 +35,7 @@ import 'package:intl/intl.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
+import 'package:solidpod/src/solid/models/log_entry.dart';
 
 /// A class to represent permission log literals
 enum PermissionLogLiteral {
@@ -69,45 +70,61 @@ enum PermissionLogLiteral {
   String get label => _value;
 }
 
-/// Create a log entry for permission
-/// A log entry consists of 7 values
-///   - dateTimeStr: Permission granted/revoked date and time
-///   - resourceUrl: URL of the resource that is being shared/un-shared
-///   - ownerWebId: WebID of the resource owner
-///   - permissionType: Type of permission (grant/revoke)
-///   - granterWebId: WebID of the person who is giving/revoking permission
-///   - recepientWebId: WebID of the person who is reveiving permission
-///   - permissionList: List of access types (Read, Write, Control, Append)
+/// Create a log entry for adding to someone's permission log
+/// to change the level of access of a user to a file in a Pod.
+/// A log entry consists of 7 values, each of which are required
+/// parameters.
 ///
-/// Returns the log entry ID and the log entry string
-List<dynamic> createPermLogEntry(
-  List<dynamic> permissionList,
-  String resourceUrl,
-  String ownerWebId,
-  String permissionType,
-  String granterWebId,
-  String recepientWebId,
-) {
+/// Parameters:
+///  - [resourceUrl]: URL of the resource that is being shared/un-shared
+///  - [ownerWebId]: WebID of the resource owner
+///  - [permissionType]: Type of permission (grant/revoke)
+///  - [granterWebId]: WebID of the person who is giving/revoking permission
+///   - [recepientWebId]: WebID of the person who is reveiving permission
+///   - [permissionList]: List of access types that is being granted
+/// or revoked (Read, Write, Control, Append).
+///
+/// Returns the log entry object ([LogEntry]) comprising ID and
+/// the log record string.
+LogEntry createPermLogEntry({
+  required List<dynamic> permissionList,
+  required String resourceUrl,
+  required String ownerWebId,
+  required String permissionType,
+  required String granterWebId,
+  required String recepientWebId,
+}) {
+  // Create log entry object
+  final LogEntry logEntry;
   final permissionListStr = permissionList.join(',');
   final dateTimeStr = DateFormat('yyyyMMddTHHmmss').format(DateTime.now());
   final logEntryId = DateFormat('yyyyMMddTHHmmssSSS').format(DateTime.now());
   final logEntryStr =
       '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recepientWebId;${permissionListStr.toLowerCase()}';
 
-  return [logEntryId, logEntryStr];
+  logEntry = LogEntry(id: logEntryId, record: logEntryStr);
+
+  return logEntry;
 }
 
-/// Add permission log line to the log file
-Future<void> addPermLogLine(
-  String logFileUrl,
-  String logEntryId,
-  String logEntryStr,
-) async {
+/// Add permission log record to a permission log file
+/// [logFileUrl].
+///
+/// Arguments:
+/// - [logFileUrl] - url of the permission log file that
+/// the record is being appended to.
+/// - [logEntry] - log entry record to append to permission
+/// log.
+
+Future<void> addPermLogLine({
+  required String logFileUrl,
+  required LogEntry logEntry,
+}) async {
   // Generate insert sparql query for log entry
   const prefix1 = '$logIdPrefix <$appsLogId>';
   const prefix2 = '$dataPrefix <$appsData>';
   final insertQuery =
-      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix$logEntryId ${dataPrefix}log "<$logEntryStr>"};';
+      'PREFIX $prefix1 PREFIX $prefix2 INSERT DATA {$logIdPrefix${logEntry.id} ${dataPrefix}log "<${logEntry.record}>"};';
 
   // Update the file using the insert query
   await updateFileByQuery(logFileUrl, insertQuery);
