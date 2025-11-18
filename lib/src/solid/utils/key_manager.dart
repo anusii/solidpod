@@ -339,7 +339,10 @@ class KeyManager {
 
   /// Returns true if there is an individual key for a given resource
   static Future<bool> hasIndividualKey(String resourceUrl) async {
-    if (_indKeyMap == null) {
+    // Check _indKeyMap is not empty as when readPod() called
+    // on file list concurrently, _indKeyMap can exist but not yet
+    // have the data map when a prior _loadIndKeyFile is not finished
+    if (_indKeyMap == null || _indKeyMap!.isEmpty) {
       await _loadIndKey();
     }
     assert(_indKeyMap != null);
@@ -348,7 +351,7 @@ class KeyManager {
 
   /// Return the (decrypted) individual key for an existing resource
   static Future<Key> getIndividualKey(String resourceUrl) async {
-    if (_indKeyMap == null) {
+    if (_indKeyMap == null || _indKeyMap!.isEmpty) {
       await _loadIndKey();
     }
 
@@ -441,6 +444,10 @@ class KeyManager {
 
   /// Returns true if there is an individual key for a given resource
   static Future<bool> hasSharedIndividualKey(String resourceUrl) async {
+    // Check whether _sharedIndKeyMap is empty as when
+    // readExternalPod() called on file list concurrently,
+    // _sharedIndKeyMap can exist but not yet have the data
+    // map when a prior _loadSharedIndKeyFile is not finished
     if (_sharedIndKeyMap == null || _sharedIndKeyMap!.isEmpty) {
       await _loadSharedIndKey();
     }
@@ -450,7 +457,11 @@ class KeyManager {
 
   /// Return the (decrypted) individual key for an existing resource
   static Future<Key> getSharedIndividualKey(String resourceUrl) async {
-    if (_sharedIndKeyMap == null) {
+    // Check whether _sharedIndKeyMap is empty as when
+    // readExternalPod() called on file list concurrently,
+    // _sharedIndKeyMap can exist but not yet have the data
+    // map when a prior _loadSharedIndKeyFile is not finished
+    if (_sharedIndKeyMap == null || _sharedIndKeyMap!.isEmpty) {
       await _loadSharedIndKey();
     }
 
