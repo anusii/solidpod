@@ -12,6 +12,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 ## 0.9 Stabilise
 
 + Allow concurrent pod resource reading [0.8.2 20251117 jesscmoore]
++ Optimise read permission of file list [0.8.2 20251117 jesscmoore]
 + Revoke access on already deleted files [0.8.1 20251117 jesscmoore]
 + Publish to pub.dev [0.8.0 20251117 gjwgit]
 
