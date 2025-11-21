@@ -54,9 +54,9 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// Examples:
 /// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
 /// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
-/// - `readPod('appname/data/file.ttl', pathType: FilePathType.relativeToPod)` reads from `appname/data/file.ttl`
-/// - `readPod('custom/file.ttl', pathType: FilePathType.relativeToApp)` reads from `appname/custom/file.ttl`
-/// - `readPod('https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl', pathType: FilePathType.absoluteUrl)`
+/// - `readPod('appname/data/file.ttl', pathType: PathType.relativeToPod)` reads from `appname/data/file.ttl`
+/// - `readPod('custom/file.ttl', pathType: PathType.relativeToApp)` reads from `appname/custom/file.ttl`
+/// - `readPod('https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl', pathType: PathType.absoluteUrl)`
 ///    reads from 'https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl'
 ///
 /// [filePath] - The path to the file to read
@@ -64,7 +64,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 
 Future<String> readPod(
   String filePath, {
-  FilePathType pathType = FilePathType.relativeToData,
+  PathType pathType = PathType.relativeToData,
 }) async {
   if (!await checkLoggedIn()) {
     throw NotLoggedInException(
@@ -72,9 +72,9 @@ Future<String> readPod(
     );
   }
 
-  final fileUrl = await generateFileUrlFromPath(
-    filePath: filePath,
-    filePathType: pathType,
+  final fileUrl = await generateResourceUrlFromPath(
+    resourcePath: filePath,
+    pathType: pathType,
   );
 
   final fileExists = await checkResourceStatus(fileUrl);
