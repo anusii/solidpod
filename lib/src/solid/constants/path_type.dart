@@ -1,4 +1,4 @@
-/// Types of file path in POD.
+/// Types of resource path in POD.
 ///
 /// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
@@ -28,25 +28,25 @@
 
 library;
 
-enum FilePathType {
-  /// file path is relative to the `data` directory of app,
-  /// i.e., the file is in `podName/appDirectory/data/`.
+enum PathType {
+  /// path is relative to the `data` directory of app,
+  /// i.e., the resource is in `podName/appDirectory/data/`.
 
   relativeToData,
 
-  /// file path is relative to the app directory,
-  /// i.e., the file is in `podName/appDirectory/`,
+  /// path is relative to the app directory,
+  /// i.e., the resource is in `podName/appDirectory/`,
   /// e.g., encryption/ind-keys.ttl
 
   relativeToApp,
 
-  /// file path is relative to the specific POD,
-  /// i.e., the file is in `podName/`,
+  /// path is relative to the specific POD,
+  /// i.e., the resource is in `podName/`,
   /// e.g., profile.ttl
 
   relativeToPod,
 
-  /// file path is an absolute URL,
+  /// path is an absolute URL,
   /// e.g., https://pods.solidcommunity.au/podName/appDirectory/data/myfile.ttl
 
   absoluteUrl;
