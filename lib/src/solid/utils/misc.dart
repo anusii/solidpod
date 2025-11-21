@@ -790,22 +790,39 @@ bool isDir(String path) {
   }
 }
 
-/// Generate the URL of file according to its path and the type of the path.
+/// Generate the URL of resource according to its path and the type of the path.
 
-Future<String> generateFileUrlFromPath({
-  required String filePath,
-  required FilePathType filePathType,
+Future<String> generateResourceUrlFromPath({
+  required String resourcePath,
+  required PathType pathType,
+  bool isFile = true,
 }) async {
-  switch (filePathType) {
-    case FilePathType.absoluteUrl:
-      return filePath;
-    case FilePathType.relativeToPod:
-      return await getFileUrl(filePath);
+  final func = isFile ? getFileUrl : getDirUrl;
+  switch (pathType) {
+    case PathType.absoluteUrl:
+      return resourcePath;
+    case PathType.relativeToPod:
+      return await func(resourcePath);
 
-    case FilePathType.relativeToApp:
-      return await getFileUrl([appDirName, filePath].join('/'));
+    case PathType.relativeToApp:
+      return await func([appDirName, resourcePath].join('/'));
 
-    case FilePathType.relativeToData:
-      return await getFileUrl([await getDataDirPath(), filePath].join('/'));
+    case PathType.relativeToData:
+      return await func([await getDataDirPath(), resourcePath].join('/'));
   }
+}
+
+/// Extract resource path from its URL
+
+Future<String> extractResourcePathFromUrl(
+  String resourceUrl, {
+  bool isFile = true,
+}) async {
+  // See https://api.dart.dev/dart-core/Uri-class.html for details
+
+  final segments = Uri.parse(resourceUrl).pathSegments;
+
+  final path = segments.getRange(1, segments.length).join('/');
+
+  return !(isFile || path.endsWith('/')) ? '$path/' : path;
 }
