@@ -46,6 +46,7 @@ import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
@@ -786,5 +787,25 @@ bool isDir(String path) {
     return true;
   } else {
     return false;
+  }
+}
+
+/// Generate the URL of file according to its path and the type of the path.
+
+Future<String> generateFileUrlFromPath({
+  required String filePath,
+  required FilePathType filePathType,
+}) async {
+  switch (filePathType) {
+    case FilePathType.absoluteUrl:
+      return filePath;
+    case FilePathType.relativeToPod:
+      return await getFileUrl(filePath);
+
+    case FilePathType.relativeToApp:
+      return await getFileUrl([appDirName, filePath].join('/'));
+
+    case FilePathType.relativeToData:
+      return await getFileUrl([await getDataDirPath(), filePath].join('/'));
   }
 }
