@@ -142,11 +142,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     List<({String key, dynamic value})>? pairs;
 
     try {
-      final fileContent = await readPod(
-        fileName,
-        context,
-        widget,
-      );
+      final fileContent = await readPod(fileName);
 
       pairs = await parseTTLStr(fileContent);
     } on Exception catch (e) {

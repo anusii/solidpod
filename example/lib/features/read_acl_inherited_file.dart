@@ -63,11 +63,7 @@ class ReadAclInheritedFileState extends State<ReadAclInheritedFile> {
       String resourcePath = _resourcePathController.text.trim();
 
       try {
-        String fileContent = await readPod(
-          resourcePath,
-          context,
-          widget,
-        );
+        String fileContent = await readPod(resourcePath);
 
         setState(() {
           _fileContent = fileContent;
