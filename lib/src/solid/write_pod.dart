@@ -152,6 +152,8 @@ Future<SolidFunctionCallStatus> writePod(
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
 
+      // dc 20251122: Perhaps delegating this (business) logic to app developers?
+      //
       // Ask user to confirm when the encryption status of the file is changed
 
       if (encrypted != existingFileEncrypted) {
