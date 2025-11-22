@@ -230,21 +230,15 @@ ElevatedButton(
 
 ### Read Pod File Example
 
-Read data from the file `data/myfiles/my-data-file.ttl` and return to the
-widget `ReturnPage()`.
+Read data from the file `data/myfiles/my-data-file.ttl`.
 
 ```dart
 final fileContent = await readPod(
         'data/myfiles/my-data-file.ttl',
-        context,
-        ReturnPage(),
       );
 ```
 
 ### Write to Pod File Example
-
-<!-- TODO dc: Do we want to replace the fileName with filePath (just
-like in readPod)? -->
 
 Write data to the file `myfiles/my-data-file.ttl` and return to the
 widget `ReturnPage()`.
