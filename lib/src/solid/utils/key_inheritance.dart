@@ -35,11 +35,7 @@ import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show
-        extractResourcePathFromUrl,
-        generateResourceUrlFromPath,
-        getDirUrl,
-        normalizeFilePath;
+    show extractResourcePathFromUrl, generateResourceUrlFromPath;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 

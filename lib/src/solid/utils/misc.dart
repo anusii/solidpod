@@ -43,15 +43,16 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
-import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
+import 'package:solidpod/src/solid/utils/app_info.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
