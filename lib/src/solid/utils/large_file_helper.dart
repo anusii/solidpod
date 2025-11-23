@@ -140,7 +140,7 @@ Future<void> deleteLargeFile({
   if (!context.mounted) return;
 
   final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl', context, child),
+    await readPod('$remoteFilePath.ttl'),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
@@ -407,7 +407,7 @@ Stream<List<int>> fetch({
   String content;
   if (!context.mounted) return;
   if (externWebId == null) {
-    content = await readPod(fileUrl, context, child);
+    content = await readPod(fileUrl);
   } else {
     content = await readExternalPod(fileUrl, context, child);
   }

@@ -35,6 +35,7 @@ library;
 
 export 'src/solid/constants/common.dart' show foaf, terms;
 export 'src/solid/constants/schema.dart' show appsTerms;
+export 'src/solid/constants/path_type.dart' show PathType;
 
 /// Solid authentication function
 

@@ -37,6 +37,7 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
@@ -51,23 +52,19 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// [basePath] is specified to override the default base path.
 ///
 /// Examples:
-/// - `readPod('abc.ttl', context, widget)` reads from `appname/data/abc.ttl`
-/// - `readPod('movies/abc.ttl', context, widget)` reads from `appname/data/movies/abc.ttl`
-/// - `readPod('appname/data/file.ttl', context, widget)` reads from `appname/data/file.ttl` (already correct path)
-/// - `readPod('file.ttl', context, widget, basePath: 'appname/custom')` reads from `appname/custom/file.ttl`
+/// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
+/// - `readPod('movies/abc.ttl')` reads from `appname/data/movies/abc.ttl`
+/// - `readPod('appname/data/file.ttl', pathType: PathType.relativeToPod)` reads from `appname/data/file.ttl`
+/// - `readPod('custom/file.ttl', pathType: PathType.relativeToApp)` reads from `appname/custom/file.ttl`
+/// - `readPod('https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl', pathType: PathType.absoluteUrl)`
+///    reads from 'https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl'
 ///
 /// [filePath] - The path to the file to read
-/// [context] - The BuildContext for UI interactions (e.g., security key prompts)
-/// [child] - The child widget to return to after UI interactions
-/// [mode] - The file open mode (default: text)
-/// [basePath] - Optional base path to override the default `appname/data` directory
+/// [pathType] - Optional type of file path to override the default (relative to `appname/data` directory)
 
 Future<String> readPod(
-  String filePath,
-  BuildContext context,
-  Widget child, {
-  FileOpenMode mode = FileOpenMode.text,
-  String? basePath,
+  String filePath, {
+  PathType pathType = PathType.relativeToData,
 }) async {
   if (!await checkLoggedIn()) {
     throw NotLoggedInException(
@@ -75,15 +72,11 @@ Future<String> readPod(
     );
   }
 
-  // Normalise the file path using the specified base path
-  // or default to appname/data, and handle cross-platform path separators
-  // properly.
+  final fileUrl = await generateResourceUrlFromPath(
+    resourcePath: filePath,
+    pathType: pathType,
+  );
 
-  final normalizedFilePath = await normalizeFilePath(filePath, basePath);
-
-  // Check if the requested file exists
-
-  final fileUrl = await getFileUrl(normalizedFilePath);
   final fileExists = await checkResourceStatus(fileUrl);
 
   switch (fileExists) {
@@ -131,7 +124,7 @@ Future<String> readPod(
         rethrow;
       }
     case ResourceStatus.notExist:
-      throw Exception('Resource "$normalizedFilePath" does not exist.');
+      throw Exception('Resource "$fileUrl" does not exist.');
     default:
       throw Exception('Unknown error.');
   }

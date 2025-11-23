@@ -43,14 +43,16 @@ import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
 import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
 
-import 'package:solidpod/solidpod.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart'
-    show AuthDataManager;
+import 'package:solidpod/src/solid/utils/app_info.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
@@ -787,4 +789,41 @@ bool isDir(String path) {
   } else {
     return false;
   }
+}
+
+/// Generate the URL of resource according to its path and the type of the path.
+
+Future<String> generateResourceUrlFromPath({
+  required String resourcePath,
+  required PathType pathType,
+  bool isFile = true,
+}) async {
+  final func = isFile ? getFileUrl : getDirUrl;
+  switch (pathType) {
+    case PathType.absoluteUrl:
+      return resourcePath;
+    case PathType.relativeToPod:
+      return await func(resourcePath);
+
+    case PathType.relativeToApp:
+      return await func([appDirName, resourcePath].join('/'));
+
+    case PathType.relativeToData:
+      return await func([await getDataDirPath(), resourcePath].join('/'));
+  }
+}
+
+/// Extract resource path from its URL
+
+Future<String> extractResourcePathFromUrl(
+  String resourceUrl, {
+  bool isFile = true,
+}) async {
+  // See https://api.dart.dev/dart-core/Uri-class.html for details
+
+  final segments = Uri.parse(resourceUrl).pathSegments;
+
+  final path = segments.getRange(1, segments.length).join('/');
+
+  return !(isFile || path.endsWith('/')) ? '$path/' : path;
 }

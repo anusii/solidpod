@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.9 Stabilise
 
++ Add PathType to readPod/WritePod [0.8.4 20251123 cdawei]
 + Cleanup and update [0.8.3 20251121 gjw]
 + Allow concurrent pod resource reading [0.8.2 20251117 jesscmoore]
 + Optimise read permission of file list [0.8.2 20251117 jesscmoore]

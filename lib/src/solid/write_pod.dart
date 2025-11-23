@@ -34,6 +34,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
@@ -61,12 +62,13 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// [child] - The child widget to return to after UI interactions
 /// [encrypted] - Whether to encrypt the file content (default: true)
 /// [createAcl] - Whether to create a separate acl for the resource (default: true)
-/// [basePath] - Optional base path to override the default `appname/data` directory
 /// [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
 ///                   be inherited from. If set a single encryption key associated
 ///                   with the given directory is used to encrypt the resource.
 ///                   If this is set, then content will be encrypted regardless
 ///                   of encrypted flag is True or False.
+/// [pathType] - Optional type of path (for both [fileName] and [inheritKeyFrom]) to override
+///          the default (relative to `appname/data` directory).
 
 Future<SolidFunctionCallStatus> writePod(
   String fileName,
@@ -75,8 +77,8 @@ Future<SolidFunctionCallStatus> writePod(
   Widget child, {
   bool encrypted = true,
   bool createAcl = true,
-  String? basePath,
   String? inheritKeyFrom,
+  PathType pathType = PathType.relativeToData,
 }) async {
   // Sanity check - ensure fileName doesn't end with path separators
   // The normalizeFilePath function will handle path separator normalization
@@ -93,14 +95,11 @@ Future<SolidFunctionCallStatus> writePod(
   // If file key is inherited then check if parent directory exists. If not
   // create parent directory
   if (inheritKeyFrom != null) {
-    String normalizedDirPath =
-        await normalizeFilePath(inheritKeyFrom, basePath);
-    // Following addition is to make sure that the path value added to the
-    // ind-keys.ttl contains / so that can be recognised as a directory
-    if (!normalizedDirPath.endsWith('/')) {
-      normalizedDirPath += '/';
-    }
-    final parentDirUrl = await getDirUrl(normalizedDirPath);
+    final parentDirUrl = await generateResourceUrlFromPath(
+      resourcePath: inheritKeyFrom,
+      pathType: pathType,
+      isFile: false,
+    );
 
     switch (await checkResourceStatus(parentDirUrl, isFile: false)) {
       case ResourceStatus.notExist:
@@ -109,7 +108,7 @@ Future<SolidFunctionCallStatus> writePod(
             'the directory and corresponding acl file, and setting up a new key '
             'for the directory');
         // Create directory and set a new key for the directory
-        await setInheritKeyDir(inheritKeyFrom, basePath: basePath);
+        await setInheritKeyDir(inheritKeyFrom, pathType: pathType);
         break;
       case ResourceStatus.exist:
         if (!await KeyManager.hasIndividualKey(parentDirUrl)) {
@@ -119,7 +118,7 @@ Future<SolidFunctionCallStatus> writePod(
           // Generate a new key for the directory
           await setInheritKeyDir(
             inheritKeyFrom,
-            basePath: basePath,
+            pathType: pathType,
             createAcl: false,
           );
         }
@@ -141,16 +140,20 @@ Future<SolidFunctionCallStatus> writePod(
   // Check if the file already exists
   // The file should exist if its individual key exists
 
-  // Normalise the file path using the specified base path
-  // or default to appname/data, and handle cross-platform path separators properly.
+  final fileUrl = await generateResourceUrlFromPath(
+    resourcePath: fileName,
+    pathType: pathType,
+  );
 
-  final normalizedFilePath = await normalizeFilePath(fileName, basePath);
-  final fileUrl = await getFileUrl(normalizedFilePath);
+  final normalizedFilePath = await extractResourcePathFromUrl(fileUrl);
+
   final existingFileEncrypted = await KeyManager.hasIndividualKey(fileUrl);
 
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
 
+      // dc 20251122: Perhaps delegating this (business) logic to app developers?
+      //
       // Ask user to confirm when the encryption status of the file is changed
 
       if (encrypted != existingFileEncrypted) {
@@ -193,34 +196,50 @@ Future<SolidFunctionCallStatus> writePod(
 
         if (!overwrite) {
           throw Exception(
-            'Not overwriting file "$normalizedFilePath", writePod() aborted',
+            'Not overwriting file "$fileUrl", writePod() aborted',
           );
         } else {
-          debugPrint('Overwrite file "$normalizedFilePath"');
+          debugPrint('Overwrite file "$fileUrl"');
         }
       }
 
     case ResourceStatus.unknown:
       throw Exception(
-        'Unable to determine if file "$normalizedFilePath" exists, writePod() aborted',
+        'Unable to determine if file "$fileUrl" exists, writePod() aborted',
       );
 
     case ResourceStatus.forbidden:
       throw Exception(
-        'Access to file "$normalizedFilePath" is forbidden, writePod() aborted',
+        'Access to file "$fileUrl" is forbidden, writePod() aborted',
       );
 
     case ResourceStatus.notExist: // Empty case falls through.
-      debugPrint('File "$normalizedFilePath" does not exist');
+      debugPrint('File "$fileUrl" does not exist');
   }
 
   var content = fileContent;
   var contentType = ResourceContentType.turtleText;
 
   // If inheritKeyFrom is set, always encrypt the resource
+
+  // dc 20251122: this section can be improved to reuse variable
+  // `parentDirUrl` defined above.
+  // BUT
+  // perhaps postponing this to the code refactor that unifies read/write
+  // of resources in both owner's and external POD.
+
   if (inheritKeyFrom != null) {
-    final normalizedDirPath = await normalizeFilePath(inheritKeyFrom, basePath);
-    final parentDirUrl = await getDirUrl(normalizedDirPath);
+    final parentDirUrl = await generateResourceUrlFromPath(
+      resourcePath: inheritKeyFrom,
+      pathType: pathType,
+      isFile: false,
+    );
+
+    final normalizedDirPath = await extractResourcePathFromUrl(
+      parentDirUrl,
+      isFile: false,
+    );
+
     content = await getEncTTLStr(
       normalizedFilePath,
       fileContent,

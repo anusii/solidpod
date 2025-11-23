@@ -29,12 +29,13 @@ import 'package:solidpod/src/solid/api/rest_api.dart'
     show checkResourceStatus, createResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show inheritKeyPred, ResourceContentType, ResourceStatus;
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show getDirUrl, normalizeFilePath;
+    show extractResourcePathFromUrl, generateResourceUrlFromPath;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 
@@ -53,10 +54,13 @@ bool hasInheritedKey(String fileContent, String fileUrl) {
 Future<void> setInheritKeyDir(
   String dirPath, {
   bool createAcl = true,
-  String? basePath,
+  PathType pathType = PathType.relativeToData,
 }) async {
-  final normalizedDirPath = await normalizeFilePath(dirPath, basePath);
-  final dirUrl = await getDirUrl(normalizedDirPath);
+  final dirUrl = await generateResourceUrlFromPath(
+    resourcePath: dirPath,
+    pathType: pathType,
+    isFile: false,
+  );
 
   if (await checkResourceStatus(dirUrl, isFile: false) ==
       ResourceStatus.notExist) {
@@ -87,6 +91,12 @@ Future<void> setInheritKeyDir(
   if (!await KeyManager.hasIndividualKey(dirUrl)) {
     // Create an individual AES key for the directory. This key will
     // be used to encrypt all the resources inside the directory
+
+    final normalizedDirPath = await extractResourcePathFromUrl(
+      dirUrl,
+      isFile: false,
+    );
+
     await KeyManager.addIndividualKey(
       normalizedDirPath,
       genRandIndividualKey(),
