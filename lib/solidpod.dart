@@ -157,7 +157,7 @@ export 'src/solid/constants/web_acl.dart' show RecipientType;
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
-    show readLargeFile, writeLargeFile, deleteLargeFile;
+    show readLargeFile, readLargeFileAsStr, writeLargeFile, deleteLargeFile;
 
 /// Function to read permission given to the user webID by others
 
