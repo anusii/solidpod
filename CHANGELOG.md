@@ -11,7 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.9 Stabilise
 
-+ Add function to read large file and return file content as bytes [0.8.5 20251201 anushkavid]
++ Function to read large file as bytes [0.8.5 20251201 anushkavid]
 + Add PathType to readPod/WritePod [0.8.4 20251123 cdawei]
 + Cleanup and update [0.8.3 20251121 gjw]
 + Allow concurrent pod resource reading [0.8.2 20251117 jesscmoore]
