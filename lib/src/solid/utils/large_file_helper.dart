@@ -29,7 +29,6 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' show File;
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
@@ -82,8 +81,8 @@ Future<void> readLargeFile({
 }
 
 /// Get a large file previously sent using [writeLargeFile] with name
-/// [remoteFileName] and return it as a String.
-Future<String> readLargeFileAsStr({
+/// [remoteFileName] and return it as bytes.
+Future<Uint8List> readLargeFileAsBytes({
   required String remoteFileName,
   required BuildContext context,
   required Widget child,
@@ -103,7 +102,7 @@ Future<String> readLargeFileAsStr({
     builder.add(chunk);
   }
 
-  return utf8.decode(builder.toBytes());
+  return builder.toBytes();
 }
 
 /// Send a large local file with path [localFilePath] to a remote server
