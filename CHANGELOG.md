@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.9 Stabilise
 
++ Updated dependencies [0.8.6 20251206 gjw]
 + Function to read large file as bytes [0.8.5 20251201 anushkavid]
 + Add PathType to readPod/WritePod [0.8.4 20251123 cdawei]
 + Cleanup and update [0.8.3 20251121 gjw]
