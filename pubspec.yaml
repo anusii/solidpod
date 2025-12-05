@@ -7,6 +7,14 @@ environment:
   sdk: '>=3.2.3 <4.0.0'
   flutter: '>=1.17.0'
 
+# To automatically upgrade package dependencies to the latest versions:
+#
+#   flutter pub upgrade --major-versions
+#
+# To see which dependencies have newer versions available:
+#
+#   flutter pub outdated
+
 dependencies:
   crypto: ^3.0.6
   encrypter_plus: ^5.1.0
@@ -21,7 +29,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   markdown_tooltip: ^0.0.7
   mime: ^2.0.0
-  package_info_plus: ^8.1.4
+  package_info_plus: ^9.0.0
   path: ^1.9.0
   pointycastle: ^4.0.0
   rdflib: ^0.2.11
