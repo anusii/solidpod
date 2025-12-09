@@ -406,8 +406,12 @@ Future<void> updateFileByQuery(
 
 Future<void> initialProfileUpdate(String profBody) async {
   final webId = await AuthDataManager.getWebId();
-  assert(webId != null);
-  final profUrl = webId!.replaceAll('#me', '');
+  
+  if (webId == null || webId.isEmpty) {
+    throw Exception('User not logged in: cannot update profile');
+  }
+  
+  final profUrl = webId.replaceAll('#me', '');
 
   final (:accessToken, :dPopToken) = await getTokensForResource(profUrl, 'PUT');
 

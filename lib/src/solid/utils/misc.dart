@@ -167,10 +167,15 @@ Future<String> _getResourceUrl(
 ]) async {
   // Check if resource url is needed for an external webId
   final webId = extWebId ?? await AuthDataManager.getWebId();
-  assert(webId != null);
-  assert(webId!.contains(profCard));
+  
+  // If webId is null (user logged out), return empty or throw informative error
+  if (webId == null || webId.isEmpty) {
+    throw Exception('User not logged in: cannot access resource URL');
+  }
+  
+  assert(webId.contains(profCard), 'WebId must contain $profCard');
 
-  final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+  final resourceUrl = webId.replaceAll(profCard, resourcePath);
 
   if (isContainer && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
