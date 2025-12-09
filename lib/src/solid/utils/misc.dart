@@ -32,7 +32,7 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
@@ -55,6 +55,11 @@ import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
+
+// Conditional import for web-specific functionality
+import 'web_reload_stub.dart'
+    if (dart.library.html) 'web_reload_web.dart'
+    as web_reload;
 
 // solid-encrypt uses unencrypted local storage and refers to http: //yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
@@ -559,6 +564,16 @@ Future<bool> logoutPod() async {
       }
     } else {
       debugPrint('logoutPod() => No logout URL available, skipping OAuth2 logout');
+    }
+
+    // Step 4: On web platform, reload the page to clear cached UI state
+    // This ensures solidui package's SolidLogin component resets properly
+    if (kIsWeb) {
+      debugPrint('logoutPod() => Reloading web page to clear cached UI state');
+      // Small delay to ensure cleanup completes before reload
+      await Future.delayed(const Duration(milliseconds: 100));
+      web_reload.reloadPage();
+      // Code after reloadPage() won't execute, but keep return for clarity
     }
 
     // Success if we cleared the local data (most important part)
