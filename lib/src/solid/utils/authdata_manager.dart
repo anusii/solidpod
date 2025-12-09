@@ -144,6 +144,12 @@ class AuthDataManager {
   //
   // It seems [String] as the first between the angle brackets does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
+    // If data was explicitly deleted, don't try to reload from storage
+    if (_wasExplicitlyDeleted) {
+      debugPrint('AuthDataManager => loadAuthData() called after explicit deletion, returning null');
+      return null;
+    }
+
     // First, check if any critical state is null - if so, we're not logged in
     if (_logoutUrl == null || _rsaInfo == null || _authResponse == null || _webId == null) {
       debugPrint('AuthDataManager => loadAuthData() detected null state, attempting reload from storage');
@@ -253,6 +259,12 @@ class AuthDataManager {
 
   /// Returns the (refreshed) access token
   static Future<String?> getAccessToken() async {
+    // If data was explicitly deleted, don't try to reload from storage
+    if (_wasExplicitlyDeleted) {
+      debugPrint('AuthDataManager => getAccessToken() called after explicit deletion, returning null');
+      return null;
+    }
+
     final tokenResponse = await _getTokenResponse();
     if (tokenResponse != null) {
       return tokenResponse.accessToken;
@@ -264,6 +276,12 @@ class AuthDataManager {
 
   /// Returns the (updated) token response
   static Future<TokenResponse?> _getTokenResponse() async {
+    // If data was explicitly deleted, don't try to reload from storage
+    if (_wasExplicitlyDeleted) {
+      debugPrint('AuthDataManager => _getTokenResponse() called after explicit deletion, returning null');
+      return null;
+    }
+
     if (_authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
@@ -317,6 +335,12 @@ class AuthDataManager {
 
   /// Returns the logout URL
   static Future<String?> getLogoutUrl() async {
+    // If data was explicitly deleted, don't try to reload from storage
+    if (_wasExplicitlyDeleted) {
+      debugPrint('AuthDataManager => getLogoutUrl() called after explicit deletion, returning null');
+      return null;
+    }
+
     if (_logoutUrl == null) {
       final loaded = await _loadData();
       if (!loaded) {
