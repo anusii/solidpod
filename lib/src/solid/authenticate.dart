@@ -85,16 +85,6 @@ Future<List<dynamic>?> solidAuthenticate(
 
     // If not logged in or load failed, perform new authentication
     if (!loggedIn || authData == null) {
-      // On web platform, when guest user clicks to login, reload page to reset state
-      // This takes them back to homepage where they can properly authenticate
-      if (kIsWeb) {
-        debugPrint('solidAuthenticate() => Guest user requesting login, reloading page...');
-        await Future.delayed(const Duration(milliseconds: 100));
-        web_reload.reloadPage();
-        // Code after reloadPage() won't execute
-        return null;
-      }
-      
       debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
       // Authentication process for the POD issuer.
 
