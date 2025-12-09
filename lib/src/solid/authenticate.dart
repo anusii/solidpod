@@ -39,7 +39,8 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/misc.dart' show checkLoggedIn;
+import 'package:solidpod/src/solid/utils/misc.dart' 
+    show checkLoggedIn, logoutPod;
 
 // Scopes variables used in the authentication process.
 
@@ -72,8 +73,14 @@ Future<List<dynamic>?> solidAuthenticate(
     Map<dynamic, dynamic>? authData;
     if (loggedIn) {
       authData = await AuthDataManager.loadAuthData();
-      assert(authData != null);
-    } else {
+      if (authData == null) {
+        debugPrint('solidAuthenticate() => checkLoggedIn() returned true but loadAuthData() returned null, re-authenticating');
+        // Fall through to re-authenticate
+      }
+    }
+
+    // If not logged in or load failed, perform new authentication
+    if (!loggedIn || authData == null) {
       debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
       // Authentication process for the POD issuer.
 
@@ -107,19 +114,31 @@ Future<List<dynamic>?> solidAuthenticate(
         debugPrint('solidAuthenticate() => Failed to extract webId from JWT token');
         return null;
       }
-    }
 
-    if (!authData!.containsKey('error')) {
-      final webId = await AuthDataManager.getWebId();
-      assert(webId != null);
+      // Proceed to fetch profile data with the authenticated credentials
+      if (authData.containsKey('error')) {
+        debugPrint('solidAuthenticate() => Authentication returned error: ${authData['error']}');
+        return null;
+      }
 
-      final profCardUrl = webId!.replaceAll('#me', '');
+      final profCardUrl = webId.replaceAll('#me', '');
       final profData = await fetchPrvFile(profCardUrl);
 
       return [authData, webId, profData];
-    } else {
+    }
+
+    // Already logged in successfully - fetch profile data
+    final webId = await AuthDataManager.getWebId();
+    if (webId == null || webId.isEmpty) {
+      debugPrint('solidAuthenticate() => No valid webId found, logging out');
+      await logoutPod();
       return null;
     }
+
+    final profCardUrl = webId.replaceAll('#me', '');
+    final profData = await fetchPrvFile(profCardUrl);
+
+    return [authData, webId, profData];
   } on Exception catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;

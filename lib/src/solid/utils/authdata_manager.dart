@@ -138,15 +138,23 @@ class AuthDataManager {
   //
   // It seems [String] as the first between the angle brackets does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
-    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
+    // First, check if any critical state is null - if so, we're not logged in
+    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null || _webId == null) {
+      debugPrint('AuthDataManager => loadAuthData() detected null state, attempting reload from storage');
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => loadAuthData() failed');
+        debugPrint('AuthDataManager => loadAuthData() failed - no auth data in storage');
         return null;
       }
     }
 
-    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
+    // Double check after loading - if still null, definitely not logged in
+    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null || _webId == null) {
+      debugPrint('AuthDataManager => loadAuthData() still has null state after reload');
+      return null;
+    }
+
+    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null && _webId != null);
     try {
       final tokenResponse = await _getTokenResponse();
       if (tokenResponse == null) {
