@@ -62,6 +62,9 @@ class AuthDataManager {
   /// The authentication response
   static Credential? _authResponse;
 
+  /// Flag to track if auth data was explicitly deleted (to prevent reload from storage)
+  static bool _wasExplicitlyDeleted = false;
+
   /// The string key for storing auth data in secure storage
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
@@ -113,6 +116,9 @@ class AuthDataManager {
     _rsaInfo = authData['rsaInfo'] as Map<dynamic,
         dynamic>; // Note that use Map<String, dynamic> does not seem to work
     _authResponse = authData['authResponse'] as Credential;
+
+    // Reset the deletion flag since we're now saving new auth data
+    _wasExplicitlyDeleted = false;
 
     await writeToSecureStorage(
       _authDataSecureStorageKey,
@@ -188,14 +194,18 @@ class AuthDataManager {
   static Future<bool> removeAuthData() async {
     try {
       // Step 1: Clear from secure storage (platform-specific)
+      bool storageCleared = false;
       if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
         try {
           await secureStorage.delete(key: _authDataSecureStorageKey);
           debugPrint('AuthDataManager => removeAuthData() removed from secure storage');
+          storageCleared = true;
         } on Object catch (e) {
           debugPrint('AuthDataManager => removeAuthData() storage removal failed: $e');
           // Continue - memory clearing is still critical
         }
+      } else {
+        storageCleared = true; // Storage already doesn't exist
       }
 
       // Step 2: ALWAYS clear in-memory state (this is the most critical part)
@@ -204,7 +214,24 @@ class AuthDataManager {
       _logoutUrl = null;
       _rsaInfo = null;
       _authResponse = null;
+      _wasExplicitlyDeleted = true; // Mark that data was explicitly deleted
       debugPrint('AuthDataManager => removeAuthData() cleared in-memory state');
+
+      // Step 3: Verify storage was actually deleted by checking again
+      if (storageCleared) {
+        final stillExists = await secureStorage.containsKey(key: _authDataSecureStorageKey);
+        if (stillExists) {
+          debugPrint('AuthDataManager => removeAuthData() WARNING: data still exists in storage after delete, attempting second delete');
+          try {
+            await secureStorage.delete(key: _authDataSecureStorageKey);
+            debugPrint('AuthDataManager => removeAuthData() second delete succeeded');
+          } on Object catch (e) {
+            debugPrint('AuthDataManager => removeAuthData() second delete also failed: $e');
+          }
+        } else {
+          debugPrint('AuthDataManager => removeAuthData() confirmed: data removed from storage');
+        }
+      }
 
       return true;
     } on Object catch (e) {
@@ -215,6 +242,7 @@ class AuthDataManager {
         _logoutUrl = null;
         _rsaInfo = null;
         _authResponse = null;
+        _wasExplicitlyDeleted = true;
         debugPrint('AuthDataManager => removeAuthData() fallback memory clear succeeded');
       } on Object catch (fallbackError) {
         debugPrint('AuthDataManager => removeAuthData() fallback also failed: $fallbackError');
@@ -270,6 +298,12 @@ class AuthDataManager {
 
   /// Returns the web ID
   static Future<String?> getWebId() async {
+    // If data was explicitly deleted, don't try to reload from storage
+    if (_wasExplicitlyDeleted) {
+      debugPrint('AuthDataManager => getWebId() called after explicit deletion, returning null');
+      return null;
+    }
+
     if (_webId == null) {
       final loaded = await _loadData();
       if (!loaded) {
