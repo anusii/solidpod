@@ -32,6 +32,7 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:solid_auth/solid_auth.dart';
@@ -41,6 +42,9 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/misc.dart' 
     show checkLoggedIn, logoutPod;
+import 'package:solidpod/src/solid/utils/web_reload_stub.dart'
+    if (dart.library.html) 'package:solidpod/src/solid/utils/web_reload_web.dart'
+    as web_reload;
 
 // Scopes variables used in the authentication process.
 
@@ -81,6 +85,16 @@ Future<List<dynamic>?> solidAuthenticate(
 
     // If not logged in or load failed, perform new authentication
     if (!loggedIn || authData == null) {
+      // On web platform, when guest user clicks to login, reload page to reset state
+      // This takes them back to homepage where they can properly authenticate
+      if (kIsWeb) {
+        debugPrint('solidAuthenticate() => Guest user requesting login, reloading page...');
+        await Future.delayed(const Duration(milliseconds: 100));
+        web_reload.reloadPage();
+        // Code after reloadPage() won't execute
+        return null;
+      }
+      
       debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
       // Authentication process for the POD issuer.
 
