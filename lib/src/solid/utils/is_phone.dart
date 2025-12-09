@@ -30,12 +30,18 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_io/io.dart' show Platform;
 
 /// Checks the platform type to determine whether running on
 /// a mobile device.
 bool isPhone() {
   /// Returns true if running on iOS or Android
+  /// Returns false on Flutter Web or desktop platforms
+
+  if (kIsWeb) {
+    return false;
+  }
 
   if (Platform.isIOS || Platform.isAndroid) {
     return true;

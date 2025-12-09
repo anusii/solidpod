@@ -97,23 +97,59 @@ class KeyManager {
   static const String _securityKeySecureStorageKey = '_solid_security_key';
 
   /// Remove stored security key and set all cached private members to null
+  /// 
+  /// This function is CRITICAL for logout and COMPLETELY PLATFORM-SAFE:
+  /// - Uses only FlutterSecureStorage (safe on all platforms including web)
+  /// - Clears only in-memory state
+  /// - Never performs file system operations
+  /// - Never uses dart:io or platform-specific APIs
+  /// - Safe to call on Flutter Web, iOS, Android, and desktop
+  /// 
+  /// This ensures all sensitive data (security keys, RSA keys, encryption keys)
+  /// are immediately removed from memory upon logout.
   static Future<void> clear() async {
-    await forgetSecurityKey();
+    try {
+      // Remove security key from storage and memory
+      await forgetSecurityKey();
 
-    _encKeyUrl = null;
-    _indKeyUrl = null;
-    _pubKeyUrl = null;
-    _sharedIndKeyUrl = null;
+      // Clear all encryption-related URLs and cached keys
+      _encKeyUrl = null;
+      _indKeyUrl = null;
+      _pubKeyUrl = null;
+      _sharedIndKeyUrl = null;
 
-    _securityKey = null;
-    _masterKey = null;
-    _verificationKey = null;
+      // Clear sensitive key material from memory
+      _securityKey = null;
+      _masterKey = null;
+      _verificationKey = null;
+      _pubKey = null;
 
-    _pubKey = null;
-    _prvKeyRecord = null;
+      // Clear key records (nullify internal key material)
+      _prvKeyRecord = null;
+      _indKeyMap = null;
+      _sharedIndKeyMap = null;
 
-    _indKeyMap = null;
-    _sharedIndKeyMap = null;
+      debugPrint('KeyManager => clear() completed - all sensitive data cleared');
+    } on Object catch (e) {
+      debugPrint('KeyManager => clear() error during clearing: $e');
+      // Fallback: force-clear all memory state anyway
+      try {
+        _encKeyUrl = null;
+        _indKeyUrl = null;
+        _pubKeyUrl = null;
+        _sharedIndKeyUrl = null;
+        _securityKey = null;
+        _masterKey = null;
+        _verificationKey = null;
+        _pubKey = null;
+        _prvKeyRecord = null;
+        _indKeyMap = null;
+        _sharedIndKeyMap = null;
+        debugPrint('KeyManager => clear() fallback memory clear succeeded');
+      } catch (fallbackError) {
+        debugPrint('KeyManager => clear() fallback also failed: $fallbackError');
+      }
+    }
   }
 
   /// Initialise the encKeyFile, indKeyFile and pubKeyFile
@@ -214,24 +250,59 @@ class KeyManager {
   }
 
   /// Remove the security key from memory and local secure storage
+  /// 
+  /// This function is platform-safe:
+  /// - Uses FlutterSecureStorage which is safe on all platforms including web
+  /// - Only clears memory-based state
+  /// - Never attempts file system operations
+  /// 
+  /// Errors during storage deletion are logged but don't prevent memory cleanup
   static Future<void> forgetSecurityKey() async {
-    if (await secureStorage.containsKey(key: _securityKeySecureStorageKey)) {
-      await secureStorage.delete(key: _securityKeySecureStorageKey);
-    }
+    try {
+      // Step 1: Remove from secure storage (safe on all platforms)
+      if (await secureStorage.containsKey(key: _securityKeySecureStorageKey)) {
+        try {
+          await secureStorage.delete(key: _securityKeySecureStorageKey);
+          debugPrint('KeyManager => forgetSecurityKey() removed from secure storage');
+        } on Object catch (e) {
+          debugPrint('KeyManager => forgetSecurityKey() storage deletion failed (non-critical): $e');
+          // Continue - memory clearing is still done
+        }
+      }
 
-    // Remove the security key, master key, decrypted private key,
-    // and decrypted individual keys from memory (if applicable).
+      // Step 2: ALWAYS clear sensitive data from memory (most critical)
+      // Do this even if storage deletion failed
+      _securityKey = null;
+      _masterKey = null;
 
-    _securityKey = null;
-    _masterKey = null;
+      if (_prvKeyRecord != null) {
+        _prvKeyRecord!.key = null;
+      }
 
-    if (_prvKeyRecord != null) {
-      _prvKeyRecord!.key = null;
-    }
+      if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
+        for (final record in _indKeyMap!.values) {
+          record.key = null;
+        }
+      }
 
-    if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
-      for (final record in _indKeyMap!.values) {
-        record.key = null;
+      debugPrint('KeyManager => forgetSecurityKey() cleared all sensitive data from memory');
+    } on Object catch (e) {
+      debugPrint('KeyManager => forgetSecurityKey() unexpected error: $e');
+      // Fallback: null out everything anyway
+      try {
+        _securityKey = null;
+        _masterKey = null;
+        if (_prvKeyRecord != null) {
+          _prvKeyRecord!.key = null;
+        }
+        if (_indKeyMap != null && _indKeyMap!.isNotEmpty) {
+          for (final record in _indKeyMap!.values) {
+            record.key = null;
+          }
+        }
+        debugPrint('KeyManager => forgetSecurityKey() fallback memory clear succeeded');
+      } catch (fallbackError) {
+        debugPrint('KeyManager => forgetSecurityKey() fallback also failed: $fallbackError');
       }
     }
   }

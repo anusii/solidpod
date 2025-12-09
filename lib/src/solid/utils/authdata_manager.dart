@@ -149,21 +149,48 @@ class AuthDataManager {
   }
 
   /// Remove/delete auth data from secure storage
+  /// 
+  /// This function safely removes authentication data from platform-specific
+  /// secure storage. On Flutter Web, FlutterSecureStorage uses SharedPreferences
+  /// under the hood, so this is safe and won't throw platform exceptions.
+  /// 
+  /// Always clears in-memory state variables regardless of storage removal success.
   static Future<bool> removeAuthData() async {
     try {
+      // Step 1: Clear from secure storage (platform-specific)
       if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
-        await secureStorage.delete(key: _authDataSecureStorageKey);
+        try {
+          await secureStorage.delete(key: _authDataSecureStorageKey);
+          debugPrint('AuthDataManager => removeAuthData() removed from secure storage');
+        } on Object catch (e) {
+          debugPrint('AuthDataManager => removeAuthData() storage removal failed: $e');
+          // Continue - memory clearing is still critical
+        }
+      }
+
+      // Step 2: ALWAYS clear in-memory state (this is the most critical part)
+      // Do this regardless of storage removal success
+      _webId = null;
+      _logoutUrl = null;
+      _rsaInfo = null;
+      _authResponse = null;
+      debugPrint('AuthDataManager => removeAuthData() cleared in-memory state');
+
+      return true;
+    } on Object catch (e) {
+      // Even if something goes wrong, attempt to null out memory state as fallback
+      debugPrint('AuthDataManager => removeAuthData() unexpected error: $e');
+      try {
         _webId = null;
         _logoutUrl = null;
         _rsaInfo = null;
         _authResponse = null;
+        debugPrint('AuthDataManager => removeAuthData() fallback memory clear succeeded');
+      } on Object catch (fallbackError) {
+        debugPrint('AuthDataManager => removeAuthData() fallback also failed: $fallbackError');
       }
-
-      return true;
-    } on Object catch (e) {
-      debugPrint('AuthDataManager => removeAuthData() failed: $e');
+      return false;
     }
-    return false;
   }
 
   /// Returns the (refreshed) access token

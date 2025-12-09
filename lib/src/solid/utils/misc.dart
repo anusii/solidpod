@@ -506,20 +506,64 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
   );
 }
 
-/// Logging out the user
+/// Logging out the user with comprehensive error handling and platform support
+///
+/// This function performs a complete logout that includes:
+/// 1. Clearing all encryption keys from memory
+/// 2. Removing authentication data from secure storage
+/// 3. Calling the OAuth2 logout endpoint (with error tolerance on web)
+///
+/// Returns true if logout succeeds or critical operations complete,
+/// false only if critical operations (key/auth cleanup) fail.
 Future<bool> logoutPod() async {
-  final logoutUrl = await AuthDataManager.getLogoutUrl();
-  if (logoutUrl != null) {
-    try {
-      await KeyManager.clear();
-      return (await AuthDataManager.removeAuthData()) &&
-          (await logout(logoutUrl));
-    } on Exception catch (e) {
-      debugPrint('Exception: $e');
-      return false;
+  try {
+    // Step 1: Clear all cached encryption keys and security data from memory
+    // This is CRITICAL and must be done regardless of other failures
+    await KeyManager.clear();
+    debugPrint('logoutPod() => KeyManager.clear() completed');
+
+    // Step 2: Remove authentication data from secure storage
+    // This is CRITICAL - must succeed
+    final authDataRemoved = await AuthDataManager.removeAuthData();
+    if (!authDataRemoved) {
+      debugPrint('logoutPod() => WARNING: AuthDataManager.removeAuthData() failed');
+      // Don't return false yet - logout endpoint is still needed
     }
+    debugPrint('logoutPod() => AuthDataManager.removeAuthData() completed');
+
+    // Step 3: Get the logout URL and attempt OAuth2 logout
+    // This is OPTIONAL - should not block if it fails
+    final logoutUrl = await AuthDataManager.getLogoutUrl();
+    if (logoutUrl != null && logoutUrl.isNotEmpty) {
+      try {
+        // Call the OAuth2 logout endpoint
+        // On web, this may fail with platform-related exceptions, but we continue anyway
+        await logout(logoutUrl);
+        debugPrint('logoutPod() => OAuth2 logout endpoint called successfully');
+      } on Object catch (e) {
+        // On Flutter Web, platform-related exceptions might occur
+        // This is NOT a critical failure - the local session is already cleared
+        debugPrint('logoutPod() => OAuth2 logout warning (non-critical): $e');
+        // Continue - local data is already cleared which is most important
+      }
+    } else {
+      debugPrint('logoutPod() => No logout URL available, skipping OAuth2 logout');
+    }
+
+    // Success if we cleared the local data (most important part)
+    return authDataRemoved;
+  } on Object catch (e) {
+    // Catch any remaining exceptions
+    debugPrint('logoutPod() => CRITICAL ERROR: $e');
+    // Even if we reach here, attempt to clear auth data as fallback
+    try {
+      await AuthDataManager.removeAuthData();
+      await KeyManager.clear();
+    } catch (fallbackError) {
+      debugPrint('logoutPod() => Fallback cleanup also failed: $fallbackError');
+    }
+    return false;
   }
-  return true;
 }
 
 /// Removes header and footer (which mess up the TTL format) from a PEM-formatted public key string.

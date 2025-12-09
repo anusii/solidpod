@@ -80,10 +80,30 @@ Future<List<dynamic>?> solidAuthenticate(
       final issuerUri = await getIssuer(serverId);
       authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
-      if (!authData.containsKey('error')) {
-        // write authentication data to flutter secure storage
-        await AuthDataManager.saveAuthData(authData);
+      // Validate authentication response before saving
+      if (authData.isEmpty) {
+        debugPrint('solidAuthenticate() => Authentication returned empty response');
+        return null;
       }
+
+      if (authData.containsKey('error')) {
+        debugPrint('solidAuthenticate() => Authentication error: ${authData['error']}');
+        return null;
+      }
+
+      // Validate that required authentication fields are present
+      if (!authData.containsKey('accessToken') || authData['accessToken'] == null) {
+        debugPrint('solidAuthenticate() => Missing accessToken in authentication response');
+        return null;
+      }
+
+      if (!authData.containsKey('webId') || authData['webId'] == null) {
+        debugPrint('solidAuthenticate() => Missing webId in authentication response');
+        return null;
+      }
+
+      // Only save auth data after full validation
+      await AuthDataManager.saveAuthData(authData);
     }
 
     if (!authData!.containsKey('error')) {
