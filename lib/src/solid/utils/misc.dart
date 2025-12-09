@@ -173,7 +173,9 @@ Future<String> _getResourceUrl(
     throw Exception('User not logged in: cannot access resource URL');
   }
   
-  assert(webId.contains(profCard), 'WebId must contain $profCard');
+  if (!webId.contains(profCard)) {
+    throw Exception('Invalid webId format: must contain $profCard');
+  }
 
   final resourceUrl = webId.replaceAll(profCard, resourcePath);
 
@@ -355,7 +357,9 @@ Future<bool> checkLoggedIn() async {
 /// Create a directory with the given URL
 
 Future<void> createDir(String dirUrl) async {
-  assert(dirUrl.endsWith('/'));
+  if (!dirUrl.endsWith('/')) {
+    throw Exception('Directory URL must end with /: $dirUrl');
+  }
   await createResource(
     dirUrl,
     isFile: false,
@@ -499,9 +503,11 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
   String httpMethod,
 ) async {
   final authData = await AuthDataManager.loadAuthData();
-  assert(authData != null);
+  if (authData == null) {
+    throw Exception('No authentication data available');
+  }
 
-  final rsaInfo = authData!['rsaInfo'];
+  final rsaInfo = authData['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
 
@@ -666,7 +672,9 @@ Future<void> initPod(
           publicAccess = {AccessMode.append};
         default:
           debugPrint(fileName);
-          assert(fileName == '.acl');
+          if (fileName != '.acl') {
+            debugPrint('Warning: Unexpected ACL file: $fileName');
+          }
           publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
       }
@@ -680,7 +688,9 @@ Future<void> initPod(
       aclFlag = true;
     } else {
       debugPrint(fileName);
-      assert(fileName == permLogFile);
+      if (fileName != permLogFile) {
+        debugPrint('Warning: Unexpected file: $fileName');
+      }
       fileContent = genPermLogTTLStr(f);
       aclFlag = false;
     }

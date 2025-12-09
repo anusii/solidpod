@@ -58,14 +58,22 @@ Future<String> genAclTurtle(
 
   var ownerWebId = '';
   if (externalWebId.isEmpty) {
-    ownerWebId = await AuthDataManager.getWebId() as String;
+    final webId = await AuthDataManager.getWebId();
+    if (webId == null || webId.isEmpty) {
+      throw Exception('Not logged in: cannot perform permission operation');
+    }
+    ownerWebId = webId;
   } else {
     ownerWebId = externalWebId;
   }
 
-  assert(ownerWebId != '');
+  if (ownerWebId.isEmpty) {
+    throw Exception('Invalid owner WebID: cannot be empty');
+  }
   if (thirdPartyAccess != null) {
-    assert(!thirdPartyAccess.containsKey(ownerWebId));
+    if (thirdPartyAccess.containsKey(ownerWebId)) {
+      throw Exception('Owner WebID cannot also be in third party access list');
+    }
   }
 
   final accessMap = getAccessMap({

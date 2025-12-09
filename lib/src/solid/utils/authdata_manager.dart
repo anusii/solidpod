@@ -166,7 +166,10 @@ class AuthDataManager {
       return null;
     }
 
-    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null && _webId != null);
+    // All critical data is now loaded
+    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null || _webId == null) {
+      throw Exception('Critical authentication data is missing');
+    }
     try {
       final tokenResponse = await _getTokenResponse();
       if (tokenResponse == null) {
@@ -329,7 +332,9 @@ class AuthDataManager {
         return null;
       }
     }
-    assert(_webId != null);
+    if (_webId == null) {
+      throw Exception('WebID is null after loading');
+    }
     return _webId;
   }
 
