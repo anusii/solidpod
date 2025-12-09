@@ -32,7 +32,6 @@
 
 library;
 
-import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:solid_auth/solid_auth.dart';
@@ -42,9 +41,6 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/misc.dart' 
     show checkLoggedIn, logoutPod;
-import 'package:solidpod/src/solid/utils/web_reload_stub.dart'
-    if (dart.library.html) 'package:solidpod/src/solid/utils/web_reload_web.dart'
-    as web_reload;
 
 // Scopes variables used in the authentication process.
 
