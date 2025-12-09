@@ -85,8 +85,30 @@ class AuthDataManager {
       assert(authData.containsKey(key));
     }
 
-    final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
-    _webId = decodedToken['webid'] as String;
+    try {
+      // Try to get webid from accessToken first
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
+      _webId = decodedToken['webid'] as String?;
+
+      // If not found in accessToken, try idToken
+      if (_webId == null) {
+        try {
+          decodedToken = JwtDecoder.decode(authData['idToken'] as String);
+          _webId = decodedToken['webid'] as String?;
+        } catch (e) {
+          debugPrint('AuthDataManager.saveAuthData() => Failed to decode idToken: $e');
+        }
+      }
+
+      if (_webId == null || _webId!.isEmpty) {
+        debugPrint('AuthDataManager.saveAuthData() => webid not found in accessToken or idToken');
+        return;
+      }
+    } catch (e) {
+      debugPrint('AuthDataManager.saveAuthData() => Failed to decode JWT tokens: $e');
+      return;
+    }
+
     _logoutUrl = authData['logoutUrl'] as String;
     _rsaInfo = authData['rsaInfo'] as Map<dynamic,
         dynamic>; // Note that use Map<String, dynamic> does not seem to work

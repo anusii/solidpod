@@ -97,13 +97,16 @@ Future<List<dynamic>?> solidAuthenticate(
         return null;
       }
 
-      if (!authData.containsKey('webId') || authData['webId'] == null) {
-        debugPrint('solidAuthenticate() => Missing webId in authentication response');
+      // Let saveAuthData() decode the JWT and extract webId
+      // If webId extraction fails, saveAuthData() will handle it and skip saving
+      await AuthDataManager.saveAuthData(authData);
+
+      // Verify that webId was successfully extracted and saved
+      final webId = await AuthDataManager.getWebId();
+      if (webId == null || webId.isEmpty) {
+        debugPrint('solidAuthenticate() => Failed to extract webId from JWT token');
         return null;
       }
-
-      // Only save auth data after full validation
-      await AuthDataManager.saveAuthData(authData);
     }
 
     if (!authData!.containsKey('error')) {
