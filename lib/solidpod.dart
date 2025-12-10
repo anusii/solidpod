@@ -123,6 +123,10 @@ export 'src/solid/utils/misc.dart'
         generateDefaultFiles,
         initPod;
 
+/// Export auth state management
+export 'src/solid/utils/authdata_manager.dart'
+    show authStateNotifier, AuthDataManager;
+
 /// Change security key popup widget
 
 export 'src/widgets/change_key_dialog.dart';
