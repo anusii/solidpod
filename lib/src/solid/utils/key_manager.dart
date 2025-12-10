@@ -346,9 +346,6 @@ class KeyManager {
       await _loadIndKey();
     }
     assert(_indKeyMap != null);
-    if (!_indKeyMap!.containsKey(resourceUrl)) {
-      await _loadIndKey(forceReload: true);
-    }
     return _indKeyMap!.containsKey(resourceUrl);
   }
 
@@ -360,13 +357,9 @@ class KeyManager {
 
     assert(_indKeyMap != null);
     if (!_indKeyMap!.containsKey(resourceUrl)) {
-      await _loadIndKey(forceReload: true);
-
-      if (!_indKeyMap!.containsKey(resourceUrl)) {
-        throw Exception(
-          'Unable to locate the individual key for resource:\n$resourceUrl',
-        );
-      }
+      throw Exception(
+        'Unable to locate the individual key for resource:\n$resourceUrl',
+      );
     }
 
     final record = _indKeyMap![resourceUrl];
