@@ -104,8 +104,9 @@ jobs:
         uses: lycheeverse/lychee-action@v2
         with: # Don't fail for now but then create an issue - useful?
           args:
-            --exclude-file .lycheeignore
             --no-progress
+            --exclude 'https://www.gnu.org/licenses/'
+            --exclude 'https://solidcommunity.au/predicates/*'
             '*.md'
             './**/*.dart'
             'assets/**/*.md'
