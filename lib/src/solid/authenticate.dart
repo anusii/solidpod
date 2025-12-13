@@ -39,7 +39,7 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/misc.dart' 
+import 'package:solidpod/src/solid/utils/misc.dart'
     show checkLoggedIn, logoutPod;
 
 // Scopes variables used in the authentication process.
@@ -74,7 +74,8 @@ Future<List<dynamic>?> solidAuthenticate(
     if (loggedIn) {
       authData = await AuthDataManager.loadAuthData();
       if (authData == null) {
-        debugPrint('solidAuthenticate() => checkLoggedIn() returned true but loadAuthData() returned null, re-authenticating');
+        debugPrint(
+            'solidAuthenticate() => checkLoggedIn() returned true but loadAuthData() returned null, re-authenticating');
         // Fall through to re-authenticate
       }
     }
@@ -89,18 +90,22 @@ Future<List<dynamic>?> solidAuthenticate(
 
       // Validate authentication response before saving
       if (authData.isEmpty) {
-        debugPrint('solidAuthenticate() => Authentication returned empty response');
+        debugPrint(
+            'solidAuthenticate() => Authentication returned empty response');
         return null;
       }
 
       if (authData.containsKey('error')) {
-        debugPrint('solidAuthenticate() => Authentication error: ${authData['error']}');
+        debugPrint(
+            'solidAuthenticate() => Authentication error: ${authData['error']}');
         return null;
       }
 
       // Validate that required authentication fields are present
-      if (!authData.containsKey('accessToken') || authData['accessToken'] == null) {
-        debugPrint('solidAuthenticate() => Missing accessToken in authentication response');
+      if (!authData.containsKey('accessToken') ||
+          authData['accessToken'] == null) {
+        debugPrint(
+            'solidAuthenticate() => Missing accessToken in authentication response');
         return null;
       }
 
@@ -111,13 +116,15 @@ Future<List<dynamic>?> solidAuthenticate(
       // Verify that webId was successfully extracted and saved
       final webId = await AuthDataManager.getWebId();
       if (webId == null || webId.isEmpty) {
-        debugPrint('solidAuthenticate() => Failed to extract webId from JWT token');
+        debugPrint(
+            'solidAuthenticate() => Failed to extract webId from JWT token');
         return null;
       }
 
       // Proceed to fetch profile data with the authenticated credentials
       if (authData.containsKey('error')) {
-        debugPrint('solidAuthenticate() => Authentication returned error: ${authData['error']}');
+        debugPrint(
+            'solidAuthenticate() => Authentication returned error: ${authData['error']}');
         return null;
       }
 

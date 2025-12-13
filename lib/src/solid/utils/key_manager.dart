@@ -97,14 +97,14 @@ class KeyManager {
   static const String _securityKeySecureStorageKey = '_solid_security_key';
 
   /// Remove stored security key and set all cached private members to null
-  /// 
+  ///
   /// This function is CRITICAL for logout and COMPLETELY PLATFORM-SAFE:
   /// - Uses only FlutterSecureStorage (safe on all platforms including web)
   /// - Clears only in-memory state
   /// - Never performs file system operations
   /// - Never uses dart:io or platform-specific APIs
   /// - Safe to call on Flutter Web, iOS, Android, and desktop
-  /// 
+  ///
   /// This ensures all sensitive data (security keys, RSA keys, encryption keys)
   /// are immediately removed from memory upon logout.
   static Future<void> clear() async {
@@ -129,7 +129,8 @@ class KeyManager {
       _indKeyMap = null;
       _sharedIndKeyMap = null;
 
-      debugPrint('KeyManager => clear() completed - all sensitive data cleared');
+      debugPrint(
+          'KeyManager => clear() completed - all sensitive data cleared');
     } on Object catch (e) {
       debugPrint('KeyManager => clear() error during clearing: $e');
       // Fallback: force-clear all memory state anyway
@@ -147,7 +148,8 @@ class KeyManager {
         _sharedIndKeyMap = null;
         debugPrint('KeyManager => clear() fallback memory clear succeeded');
       } catch (fallbackError) {
-        debugPrint('KeyManager => clear() fallback also failed: $fallbackError');
+        debugPrint(
+            'KeyManager => clear() fallback also failed: $fallbackError');
       }
     }
   }
@@ -166,7 +168,7 @@ class KeyManager {
       _securityKey = securityKey;
       _masterKey = genMasterKey(_securityKey!);
       _verificationKey = genVerificationKey(_securityKey!);
-      
+
       await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
 
       // Set the public-private key pair
@@ -230,9 +232,9 @@ class KeyManager {
       if (_securityKey == null) {
         return false;
       }
-      
+
       final verificationKey = await getVerificationKey();
-      
+
       if (!verifySecurityKey(_securityKey!, verificationKey)) {
         await forgetSecurityKey();
         return false;
@@ -266,12 +268,12 @@ class KeyManager {
   }
 
   /// Remove the security key from memory and local secure storage
-  /// 
+  ///
   /// This function is platform-safe:
   /// - Uses FlutterSecureStorage which is safe on all platforms including web
   /// - Only clears memory-based state
   /// - Never attempts file system operations
-  /// 
+  ///
   /// Errors during storage deletion are logged but don't prevent memory cleanup
   static Future<void> forgetSecurityKey() async {
     try {
@@ -279,9 +281,11 @@ class KeyManager {
       if (await secureStorage.containsKey(key: _securityKeySecureStorageKey)) {
         try {
           await secureStorage.delete(key: _securityKeySecureStorageKey);
-          debugPrint('KeyManager => forgetSecurityKey() removed from secure storage');
+          debugPrint(
+              'KeyManager => forgetSecurityKey() removed from secure storage');
         } on Object catch (e) {
-          debugPrint('KeyManager => forgetSecurityKey() storage deletion failed (non-critical): $e');
+          debugPrint(
+              'KeyManager => forgetSecurityKey() storage deletion failed (non-critical): $e');
           // Continue - memory clearing is still done
         }
       }
@@ -301,7 +305,8 @@ class KeyManager {
         }
       }
 
-      debugPrint('KeyManager => forgetSecurityKey() cleared all sensitive data from memory');
+      debugPrint(
+          'KeyManager => forgetSecurityKey() cleared all sensitive data from memory');
     } on Object catch (e) {
       debugPrint('KeyManager => forgetSecurityKey() unexpected error: $e');
       // Fallback: null out everything anyway
@@ -316,9 +321,11 @@ class KeyManager {
             record.key = null;
           }
         }
-        debugPrint('KeyManager => forgetSecurityKey() fallback memory clear succeeded');
+        debugPrint(
+            'KeyManager => forgetSecurityKey() fallback memory clear succeeded');
       } catch (fallbackError) {
-        debugPrint('KeyManager => forgetSecurityKey() fallback also failed: $fallbackError');
+        debugPrint(
+            'KeyManager => forgetSecurityKey() fallback also failed: $fallbackError');
       }
     }
   }

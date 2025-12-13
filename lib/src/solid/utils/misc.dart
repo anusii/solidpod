@@ -167,12 +167,12 @@ Future<String> _getResourceUrl(
 ]) async {
   // Check if resource url is needed for an external webId
   final webId = extWebId ?? await AuthDataManager.getWebId();
-  
+
   // If webId is null (user logged out), return empty or throw informative error
   if (webId == null || webId.isEmpty) {
     throw Exception('User not logged in: cannot access resource URL');
   }
-  
+
   if (!webId.contains(profCard)) {
     throw Exception('Invalid webId format: must contain $profCard');
   }
@@ -537,7 +537,8 @@ Future<bool> logoutPod() async {
     // This is CRITICAL - must succeed
     final authDataRemoved = await AuthDataManager.removeAuthData();
     if (!authDataRemoved) {
-      debugPrint('logoutPod() => WARNING: AuthDataManager.removeAuthData() failed');
+      debugPrint(
+          'logoutPod() => WARNING: AuthDataManager.removeAuthData() failed');
       // Don't return false yet - logout endpoint is still needed
     }
     debugPrint('logoutPod() => AuthDataManager.removeAuthData() completed');
@@ -558,7 +559,8 @@ Future<bool> logoutPod() async {
         // Continue - local data is already cleared which is most important
       }
     } else {
-      debugPrint('logoutPod() => No logout URL available, skipping OAuth2 logout');
+      debugPrint(
+          'logoutPod() => No logout URL available, skipping OAuth2 logout');
     }
 
     // Success if we cleared the local data (most important part)

@@ -100,7 +100,7 @@ Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
       encKeyBase64: v[prvKeyPred] as String,
       ivBase64: v[ivPred] as String,
     );
-    
+
     return (verificationKey: verificationKey, record: prvKeyRecord);
   } catch (e) {
     debugPrint('readEncKeyFile() error: $e');
