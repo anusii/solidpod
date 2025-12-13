@@ -178,7 +178,6 @@ Future<String> _getResourceUrl(
   }
 
   final resourceUrl = webId.replaceAll(profCard, resourcePath);
-  debugPrint('_getResourceUrl: webId="$webId", resourcePath="$resourcePath", resourceUrl="$resourceUrl"');
 
   if (isContainer && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
@@ -310,11 +309,7 @@ Future<String> getAuthUserIndKeyPath() async =>
     [appDirName, sharingDir, authUserIndKeyFile].join('/');
 
 /// Returns the path of the data directory
-Future<String> getDataDirPath() async {
-  final path = [appDirName, dataDir].join('/');
-  debugPrint('getDataDirPath: appDirName="$appDirName", dataDir="$dataDir", result="$path"');
-  return path;
-}
+Future<String> getDataDirPath() async => [appDirName, dataDir].join('/');
 
 /// Returns the path of the shared directory
 Future<String> getSharedDirPath() async => [appDirName, sharedDir].join('/');
@@ -438,7 +433,6 @@ Future<void> setAppDirName(String inputAppDirName) async {
   } else {
     appDirName = inputAppDirName;
   }
-  debugPrint('setAppDirName: appDirName set to "$appDirName"');
 }
 
 /// Get resource acl file path
