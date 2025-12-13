@@ -30,6 +30,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:crypto/crypto.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
@@ -76,29 +77,35 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
 
 /// Read file `encryption/enc-keys.ttl' to get verification key and encrypted private key
 Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
-  final encKeyUrl = await getFileUrl(await getEncKeyPath());
+  try {
+    final encKeyPath = await getEncKeyPath();
+    final encKeyUrl = await getFileUrl(encKeyPath);
 
-  // Get and parse the encKeyFile
-  final map = await loadPrvTTL(encKeyUrl);
+    // Get and parse the encKeyFile
+    final map = await loadPrvTTL(encKeyUrl);
 
-  if (!map.containsKey(encKeyUrl)) {
-    throw Exception('Invalid content in file: "$encKeyUrl"');
+    if (!map.containsKey(encKeyUrl)) {
+      throw Exception('Invalid content in file: "$encKeyUrl"');
+    }
+    assert(map.length == 1);
+
+    final v = map[encKeyUrl] as Map;
+    _checkDuplicatedValue(
+      value: v[encKeyPred],
+      errMsg: 'ERROR: Duplicated verification key',
+    );
+    final verificationKey = v[encKeyPred] as String;
+
+    final prvKeyRecord = PrvKeyRecord(
+      encKeyBase64: v[prvKeyPred] as String,
+      ivBase64: v[ivPred] as String,
+    );
+    
+    return (verificationKey: verificationKey, record: prvKeyRecord);
+  } catch (e) {
+    debugPrint('readEncKeyFile() error: $e');
+    rethrow;
   }
-  assert(map.length == 1);
-
-  final v = map[encKeyUrl] as Map;
-  _checkDuplicatedValue(
-    value: v[encKeyPred],
-    errMsg: 'ERROR: Duplicated verification key',
-  );
-  final verificationKey = v[encKeyPred] as String;
-
-  final prvKeyRecord = PrvKeyRecord(
-    encKeyBase64: v[prvKeyPred] as String,
-    ivBase64: v[ivPred] as String,
-  );
-
-  return (verificationKey: verificationKey, record: prvKeyRecord);
 }
 
 /// Read file `encryption/ind-keys.ttl' to get encrypted individual keys

@@ -155,34 +155,40 @@ class KeyManager {
   /// Initialise the encKeyFile, indKeyFile and pubKeyFile
   /// and save them (on server)
   static Future<void> initPodKeys(String securityKey) async {
-    assert(securityKey.trim().isNotEmpty);
+    try {
+      assert(securityKey.trim().isNotEmpty);
 
-    // Clear cached value (if there are any)
-    await clear();
+      // Clear cached value (if there are any)
+      await clear();
 
-    // Set the security key, master key, and verification key
+      // Set the security key, master key, and verification key
 
-    _securityKey = securityKey;
-    _masterKey = genMasterKey(_securityKey!);
-    _verificationKey = genVerificationKey(_securityKey!);
-    await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
+      _securityKey = securityKey;
+      _masterKey = genMasterKey(_securityKey!);
+      _verificationKey = genVerificationKey(_securityKey!);
+      
+      await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
 
-    // Set the public-private key pair
+      // Set the public-private key pair
 
-    final pair = await genRandRSAKeyPair();
-    _pubKey = trimPubKeyStr(pair.publicKey);
-    final iv = genRandIV();
-    _prvKeyRecord = PrvKeyRecord(
-      encKeyBase64: encryptPrivateKey(pair.privateKey, _masterKey!, iv),
-      ivBase64: iv.base64,
-      key: pair.privateKey,
-    );
+      final pair = await genRandRSAKeyPair();
+      _pubKey = trimPubKeyStr(pair.publicKey);
+      final iv = genRandIV();
+      _prvKeyRecord = PrvKeyRecord(
+        encKeyBase64: encryptPrivateKey(pair.privateKey, _masterKey!, iv),
+        ivBase64: iv.base64,
+        key: pair.privateKey,
+      );
 
-    // Save encKeyFile, indKeyFile, and pubKeyFile (on server)
+      // Save encKeyFile, indKeyFile, and pubKeyFile (on server)
 
-    await _saveEncKey();
-    await _saveIndKey();
-    await _savePubKey();
+      await _saveEncKey();
+      await _saveIndKey();
+      await _savePubKey();
+    } catch (e) {
+      debugPrint('KeyManager => initPodKeys() error: $e');
+      rethrow;
+    }
   }
 
   /// Get the master key
@@ -217,19 +223,29 @@ class KeyManager {
 
   /// Check if the security is available
   static Future<bool> hasSecurityKey() async {
-    _securityKey ??=
-        await secureStorage.read(key: _securityKeySecureStorageKey);
+    try {
+      _securityKey ??=
+          await secureStorage.read(key: _securityKeySecureStorageKey);
 
-    if (_securityKey == null) {
-      return false;
-    }
+      if (_securityKey == null) {
+        return false;
+      }
+      
+      final verificationKey = await getVerificationKey();
+      
+      if (!verifySecurityKey(_securityKey!, verificationKey)) {
+        await forgetSecurityKey();
+        return false;
+      }
 
-    if (!verifySecurityKey(_securityKey!, await getVerificationKey())) {
+      return true;
+    } catch (e) {
+      debugPrint('KeyManager => hasSecurityKey() error: $e');
+      // If verification key file doesn't exist, this will throw
+      // In that case, the key in storage is orphaned and should be removed
       await forgetSecurityKey();
       return false;
     }
-
-    return true;
   }
 
   /// Set the security key
@@ -594,13 +610,18 @@ class KeyManager {
 
   /// Load verification key and encrypted private key
   static Future<void> _loadEncKey({bool forceReload = false}) async {
-    if (_verificationKey != null && _prvKeyRecord != null && !forceReload) {
-      return;
-    }
+    try {
+      if (_verificationKey != null && _prvKeyRecord != null && !forceReload) {
+        return;
+      }
 
-    final r = await readEncKeyFile();
-    _verificationKey = r.verificationKey;
-    _prvKeyRecord = r.record;
+      final r = await readEncKeyFile();
+      _verificationKey = r.verificationKey;
+      _prvKeyRecord = r.record;
+    } catch (e) {
+      debugPrint('KeyManager => _loadEncKey() error: $e');
+      rethrow;
+    }
   }
 
   /// Generate the content of indKeyFile and save it (on server)

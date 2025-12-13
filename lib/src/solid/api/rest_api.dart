@@ -489,10 +489,12 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     // final g = Graph();
     // g.parseTurtle(profResponse.body);
 
+    debugPrint('getResourcesInContainer: Parsing response for $url');
+    debugPrint('Response body:\n${profResponse.body}');
     final (:subDirs, :files) = _parseGetContainerResponse(profResponse.body);
 
-    // debugPrint('SubDirs: |${subDirs.join(", ")}|');
-    // debugPrint('Files  : |${files.join(", ")}|');
+    debugPrint('SubDirs: |${subDirs.join(", ")}|');
+    debugPrint('Files  : |${files.join(", ")}|');
 
     return (subDirs: subDirs, files: files);
   } else if (profResponse.statusCode == 403) {
