@@ -761,11 +761,15 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               return;
                             }
 
-                            final sampleDirUrl =
-                                await getDirUrl('data/setup_wizard_demo');
+                            final sampleDirUrl = await getDirUrl([
+                              await getDataDirPath(),
+                              'setup_wizard_demo',
+                            ].join('/'));
                             final sampleFileName = 'setup_wizard_demo.ttl';
-                            final sampleFileUrl =
-                                await getFileUrl(sampleFileName);
+                            final sampleFileUrl = await getFileUrl([
+                              await getDataDirPath(),
+                              'sampleFileName',
+                            ].join('/'));
 
                             Navigator.push(
                               context,
