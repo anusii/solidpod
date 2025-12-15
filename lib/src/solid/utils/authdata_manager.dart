@@ -105,18 +105,21 @@ class AuthDataManager {
           _webId = decodedToken['webid'] as String?;
         } catch (e) {
           debugPrint(
-              'AuthDataManager.saveAuthData() => Failed to decode idToken: $e',);
+            'AuthDataManager.saveAuthData() => Failed to decode idToken: $e',
+          );
         }
       }
 
       if (_webId == null || _webId!.isEmpty) {
         debugPrint(
-            'AuthDataManager.saveAuthData() => webid not found in accessToken or idToken',);
+          'AuthDataManager.saveAuthData() => webid not found in accessToken or idToken',
+        );
         return;
       }
     } catch (e) {
       debugPrint(
-          'AuthDataManager.saveAuthData() => Failed to decode JWT tokens: $e',);
+        'AuthDataManager.saveAuthData() => Failed to decode JWT tokens: $e',
+      );
       return;
     }
 
@@ -158,7 +161,8 @@ class AuthDataManager {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
       debugPrint(
-          'AuthDataManager => loadAuthData() called after explicit deletion, returning null',);
+        'AuthDataManager => loadAuthData() called after explicit deletion, returning null',
+      );
       return null;
     }
 
@@ -168,11 +172,13 @@ class AuthDataManager {
         _authResponse == null ||
         _webId == null) {
       debugPrint(
-          'AuthDataManager => loadAuthData() detected null state, attempting reload from storage',);
+        'AuthDataManager => loadAuthData() detected null state, attempting reload from storage',
+      );
       final loaded = await _loadData();
       if (!loaded) {
         debugPrint(
-            'AuthDataManager => loadAuthData() failed - no auth data in storage',);
+          'AuthDataManager => loadAuthData() failed - no auth data in storage',
+        );
         return null;
       }
     }
@@ -183,7 +189,8 @@ class AuthDataManager {
         _authResponse == null ||
         _webId == null) {
       debugPrint(
-          'AuthDataManager => loadAuthData() still has null state after reload',);
+        'AuthDataManager => loadAuthData() still has null state after reload',
+      );
       return null;
     }
 
@@ -232,11 +239,13 @@ class AuthDataManager {
         try {
           await secureStorage.delete(key: _authDataSecureStorageKey);
           debugPrint(
-              'AuthDataManager => removeAuthData() removed from secure storage',);
+            'AuthDataManager => removeAuthData() removed from secure storage',
+          );
           storageCleared = true;
         } on Object catch (e) {
           debugPrint(
-              'AuthDataManager => removeAuthData() storage removal failed: $e',);
+            'AuthDataManager => removeAuthData() storage removal failed: $e',
+          );
           // Continue - memory clearing is still critical
         }
       } else {
@@ -262,18 +271,22 @@ class AuthDataManager {
             await secureStorage.containsKey(key: _authDataSecureStorageKey);
         if (stillExists) {
           debugPrint(
-              'AuthDataManager => removeAuthData() WARNING: data still exists in storage after delete, attempting second delete',);
+            'AuthDataManager => removeAuthData() WARNING: data still exists in storage after delete, attempting second delete',
+          );
           try {
             await secureStorage.delete(key: _authDataSecureStorageKey);
             debugPrint(
-                'AuthDataManager => removeAuthData() second delete succeeded',);
+              'AuthDataManager => removeAuthData() second delete succeeded',
+            );
           } on Object catch (e) {
             debugPrint(
-                'AuthDataManager => removeAuthData() second delete also failed: $e',);
+              'AuthDataManager => removeAuthData() second delete also failed: $e',
+            );
           }
         } else {
           debugPrint(
-              'AuthDataManager => removeAuthData() confirmed: data removed from storage',);
+            'AuthDataManager => removeAuthData() confirmed: data removed from storage',
+          );
         }
       }
 
@@ -288,10 +301,12 @@ class AuthDataManager {
         _authResponse = null;
         _wasExplicitlyDeleted = true;
         debugPrint(
-            'AuthDataManager => removeAuthData() fallback memory clear succeeded',);
+          'AuthDataManager => removeAuthData() fallback memory clear succeeded',
+        );
       } on Object catch (fallbackError) {
         debugPrint(
-            'AuthDataManager => removeAuthData() fallback also failed: $fallbackError',);
+          'AuthDataManager => removeAuthData() fallback also failed: $fallbackError',
+        );
       }
       return false;
     }
@@ -302,7 +317,8 @@ class AuthDataManager {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
       debugPrint(
-          'AuthDataManager => getAccessToken() called after explicit deletion, returning null',);
+        'AuthDataManager => getAccessToken() called after explicit deletion, returning null',
+      );
       return null;
     }
 
@@ -320,7 +336,8 @@ class AuthDataManager {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
       debugPrint(
-          'AuthDataManager => _getTokenResponse() called after explicit deletion, returning null',);
+        'AuthDataManager => _getTokenResponse() called after explicit deletion, returning null',
+      );
       return null;
     }
 
@@ -361,7 +378,8 @@ class AuthDataManager {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
       debugPrint(
-          'AuthDataManager => getWebId() called after explicit deletion, returning null',);
+        'AuthDataManager => getWebId() called after explicit deletion, returning null',
+      );
       return null;
     }
 
@@ -403,7 +421,8 @@ class AuthDataManager {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
       debugPrint(
-          'AuthDataManager => getLogoutUrl() called after explicit deletion, returning null',);
+        'AuthDataManager => getLogoutUrl() called after explicit deletion, returning null',
+      );
       return null;
     }
 

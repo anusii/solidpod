@@ -130,7 +130,8 @@ class KeyManager {
       _sharedIndKeyMap = null;
 
       debugPrint(
-          'KeyManager => clear() completed - all sensitive data cleared',);
+        'KeyManager => clear() completed - all sensitive data cleared',
+      );
     } on Object catch (e) {
       debugPrint('KeyManager => clear() error during clearing: $e');
       // Fallback: force-clear all memory state anyway
@@ -149,7 +150,8 @@ class KeyManager {
         debugPrint('KeyManager => clear() fallback memory clear succeeded');
       } catch (fallbackError) {
         debugPrint(
-            'KeyManager => clear() fallback also failed: $fallbackError',);
+          'KeyManager => clear() fallback also failed: $fallbackError',
+        );
       }
     }
   }
@@ -162,6 +164,11 @@ class KeyManager {
 
       // Clear cached value (if there are any)
       await clear();
+
+      // Initialize _indKeyMap as empty Map (not null)
+      // This ensures _saveIndKey() generates correct file structure
+      // even when there are no encrypted files yet
+      _indKeyMap = {};
 
       // Set the security key, master key, and verification key
 
@@ -282,10 +289,12 @@ class KeyManager {
         try {
           await secureStorage.delete(key: _securityKeySecureStorageKey);
           debugPrint(
-              'KeyManager => forgetSecurityKey() removed from secure storage',);
+            'KeyManager => forgetSecurityKey() removed from secure storage',
+          );
         } on Object catch (e) {
           debugPrint(
-              'KeyManager => forgetSecurityKey() storage deletion failed (non-critical): $e',);
+            'KeyManager => forgetSecurityKey() storage deletion failed (non-critical): $e',
+          );
           // Continue - memory clearing is still done
         }
       }
@@ -306,7 +315,8 @@ class KeyManager {
       }
 
       debugPrint(
-          'KeyManager => forgetSecurityKey() cleared all sensitive data from memory',);
+        'KeyManager => forgetSecurityKey() cleared all sensitive data from memory',
+      );
     } on Object catch (e) {
       debugPrint('KeyManager => forgetSecurityKey() unexpected error: $e');
       // Fallback: null out everything anyway
@@ -322,10 +332,12 @@ class KeyManager {
           }
         }
         debugPrint(
-            'KeyManager => forgetSecurityKey() fallback memory clear succeeded',);
+          'KeyManager => forgetSecurityKey() fallback memory clear succeeded',
+        );
       } catch (fallbackError) {
         debugPrint(
-            'KeyManager => forgetSecurityKey() fallback also failed: $fallbackError',);
+          'KeyManager => forgetSecurityKey() fallback also failed: $fallbackError',
+        );
       }
     }
   }

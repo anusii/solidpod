@@ -550,7 +550,8 @@ Future<bool> logoutPod() async {
     final authDataRemoved = await AuthDataManager.removeAuthData();
     if (!authDataRemoved) {
       debugPrint(
-          'logoutPod() => WARNING: AuthDataManager.removeAuthData() failed',);
+        'logoutPod() => WARNING: AuthDataManager.removeAuthData() failed',
+      );
       // Don't return false yet - logout endpoint is still needed
     }
     debugPrint('logoutPod() => AuthDataManager.removeAuthData() completed');
@@ -562,15 +563,18 @@ Future<bool> logoutPod() async {
       try {
         await _onLogoutClearCaches!();
         debugPrint(
-            'logoutPod() => Application caches cleared via callback',);
+          'logoutPod() => Application caches cleared via callback',
+        );
       } on Object catch (e) {
         debugPrint(
-            'logoutPod() => WARNING: Application cache callback failed (non-critical): $e',);
+          'logoutPod() => WARNING: Application cache callback failed (non-critical): $e',
+        );
         // Continue - the critical auth data is already cleared
       }
     } else {
       debugPrint(
-          'logoutPod() => No application cache callback registered',);
+        'logoutPod() => No application cache callback registered',
+      );
     }
 
     // Step 3: Get the logout URL and attempt OAuth2 logout
@@ -590,7 +594,8 @@ Future<bool> logoutPod() async {
       }
     } else {
       debugPrint(
-          'logoutPod() => No logout URL available, skipping OAuth2 logout',);
+        'logoutPod() => No logout URL available, skipping OAuth2 logout',
+      );
     }
 
     // Success if we cleared the local data (most important part)
