@@ -105,10 +105,6 @@ jobs:
         with: # Don't fail for now but then create an issue - useful?
           args:
             --no-progress
-            --exclude 'https://www.gnu.org/licenses/'
-            --exclude 'http://xmlns.com/foaf/0.1/'
-            --exclude 'http://purl.org/dc/terms/'
-            --exclude 'https://solidcommunity.au/predicates/*'
             '*.md'
             './**/*.dart'
             'assets/**/*.md'

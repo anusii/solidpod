@@ -25,3 +25,13 @@ https://sii.anu.edu.au/
 # Ignore the template index file.
 
 web/**
+
+# License
+
+https://www.gnu.org/licenses/
+
+# Ontology definitions
+
+http://xmlns.com/foaf/0.1/
+http://purl.org/dc/terms/
+https://solidcommunity.au/predicates/*
