@@ -56,6 +56,18 @@ import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
+/// Global callback for clearing application-specific caches during logout.
+/// Apps should register their cache clearing logic here.
+/// This ensures caches are cleared BEFORE any blocking network operations.
+Future<void> Function()? _onLogoutClearCaches;
+
+/// Register a callback to clear application-specific caches during logout.
+/// This callback will be invoked BEFORE the OAuth2 logout endpoint call,
+/// preventing race conditions where cached data might be visible during logout.
+void registerLogoutCacheCallback(Future<void> Function() callback) {
+  _onLogoutClearCaches = callback;
+}
+
 // solid-encrypt uses unencrypted local storage and refers to http: //yarrabah.net/ for predicates definition,
 // do not use it before it is updated (same as what the gurriny project does)
 // import 'package:solid_encrypt/solid_encrypt.dart' as solid_encrypt;
@@ -538,10 +550,28 @@ Future<bool> logoutPod() async {
     final authDataRemoved = await AuthDataManager.removeAuthData();
     if (!authDataRemoved) {
       debugPrint(
-          'logoutPod() => WARNING: AuthDataManager.removeAuthData() failed');
+          'logoutPod() => WARNING: AuthDataManager.removeAuthData() failed',);
       // Don't return false yet - logout endpoint is still needed
     }
     debugPrint('logoutPod() => AuthDataManager.removeAuthData() completed');
+
+    // Step 2.5: Clear application-specific caches BEFORE network call
+    // This is CRITICAL to prevent race conditions where UI reads stale cache
+    // during logout, especially when network is slow
+    if (_onLogoutClearCaches != null) {
+      try {
+        await _onLogoutClearCaches!();
+        debugPrint(
+            'logoutPod() => Application caches cleared via callback',);
+      } on Object catch (e) {
+        debugPrint(
+            'logoutPod() => WARNING: Application cache callback failed (non-critical): $e',);
+        // Continue - the critical auth data is already cleared
+      }
+    } else {
+      debugPrint(
+          'logoutPod() => No application cache callback registered',);
+    }
 
     // Step 3: Get the logout URL and attempt OAuth2 logout
     // This is OPTIONAL - should not block if it fails
@@ -560,7 +590,7 @@ Future<bool> logoutPod() async {
       }
     } else {
       debugPrint(
-          'logoutPod() => No logout URL available, skipping OAuth2 logout');
+          'logoutPod() => No logout URL available, skipping OAuth2 logout',);
     }
 
     // Success if we cleared the local data (most important part)

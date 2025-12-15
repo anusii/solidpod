@@ -118,6 +118,7 @@ export 'src/solid/utils/misc.dart'
         getEncKeyPath,
         readEncryptionKeyContent,
         logoutPod,
+        registerLogoutCacheCallback,
         setAppDirName,
         generateDefaultFolders,
         generateDefaultFiles,
