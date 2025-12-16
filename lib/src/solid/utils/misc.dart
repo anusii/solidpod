@@ -99,19 +99,19 @@ String decryptData(
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
 
 /// Load and parse a private TTL file from POD
-Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
-  // final fileUrl = await getFileUrl(filePath);
-  try {
-    if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
-      final rawContent = await fetchPrvFile(fileUrl);
-      return parseTTL(rawContent);
-    } else {
-      return {};
-    }
-  } on Exception catch (e) {
-    throw Exception(e);
-  }
-}
+// Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
+//   // final fileUrl = await getFileUrl(filePath);
+//   try {
+//     if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
+//       final rawContent = await fetchPrvFile(fileUrl);
+//       return parseTTL(rawContent);
+//     } else {
+//       return {};
+//     }
+//   } on Exception catch (e) {
+//     throw Exception(e);
+//   }
+// }
 
 /// Read the encryption key file content for display purposes.
 ///
