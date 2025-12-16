@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
@@ -38,6 +40,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
@@ -77,55 +80,101 @@ Future<String> readPod(
     pathType: pathType,
   );
 
-  final fileExists = await checkResourceStatus(fileUrl);
+  final fileStatus = await checkResourceStatus(fileUrl);
 
-  switch (fileExists) {
-    case ResourceStatus.exist:
-      try {
-        final fileContent = await fetchPrvFile(fileUrl);
+  if (fileStatus != ResourceStatus.exist) {
+    switch (fileStatus) {
+      case ResourceStatus.notExist:
+        throw ResourceNotExistException('$fileUrl does not exist');
+      case ResourceStatus.forbidden:
+        throw AccessForbiddenException('Access to $fileUrl is not allowed');
+      case ResourceStatus.unknown:
+        throw Exception('Unknown error.');
+      default:
+        {}
+    }
+  }
 
-        // Decrypt if reading an encrypted file
-        Key? indKey;
+  try {
+    // Retrieve raw content
 
-        if (await KeyManager.hasIndividualKey(fileUrl)) {
-          // Get the individual key for the file.
+    // final fileContent = await fetchPrvFile(fileUrl);
 
-          indKey = await KeyManager.getIndividualKey(fileUrl);
-        } else if (hasInheritedKey(
-          fileContent,
-          fileUrl,
-        )) {
-          // Get the individual key for the file.
+    final fileContent = utf8.decode(
+      await getResource(fileUrl),
+    );
 
-          final parentDirPath = getParentDir(
-            fileContent,
-            fileUrl,
-          );
-          final parentDirUrl = await getDirUrl(parentDirPath);
-          indKey = await KeyManager.getIndividualKey(parentDirUrl);
-        }
+    // Parse raw content if its turtle
 
-        if (indKey != null) {
-          // Decrypt the file content
+    if (!fileUrl.toLowerCase().endsWith('.ttl')) {
+      return fileContent;
+    }
 
-          final dataMap = parseTTL(fileContent);
-          assert(dataMap.containsKey(fileUrl));
+    // final tripleMap = turtleToTripleMap(fileContent);
+    // assert(tripleMap.containsKey(fileUrl));
 
-          return decryptData(
-            dataMap[fileUrl][encDataPred] as String,
-            indKey,
-            IV.fromBase64(dataMap[fileUrl][ivPred] as String),
-          );
-        } else {
-          return fileContent;
-        }
-      } on Object catch (e) {
-        debugPrint(e.toString());
-        rethrow;
-      }
-    case ResourceStatus.notExist:
-      throw Exception('Resource "$fileUrl" does not exist.');
-    default:
-      throw Exception('Unknown error.');
+    // // Retrieve encryption key if available
+
+    // final map = tripleMap[fileUrl]!;
+    // String? inheritKeyPath = map[solidTermsNS.ns.withAttr(inheritKeyPred).value];
+    Key? encKey;
+
+    // if (await KeyManager.hasIndividualKey(fileUrl)) {
+    //   encKey = await KeyManager.getIndividualKey(fileUrl);
+    // } else if (inheritKeyPath != null) {
+
+    //   encKey = await KeyManager.getIndividualKey(await getDirUrl(inheritKeyPath) );
+    // } else {
+    //   if (pathType == PathType.absoluteUrl) {
+    //     if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
+    //       encKey = await KeyManager.getSharedIndividualKey(fileUrl);
+
+    //   }
+    // }
+
+    // }
+
+    // IV? iv = map[solidTermsNS.ns.withAttr(ivPred).value];
+    // String? encData = map[solidTermsNS.ns.withAttr(encDataPred).value];
+
+    if (await KeyManager.hasIndividualKey(fileUrl)) {
+      // Get the individual key for the file.
+
+      encKey = await KeyManager.getIndividualKey(fileUrl);
+    } else if (hasInheritedKey(
+      fileContent,
+      fileUrl,
+    )) {
+      // Get the individual key for the file.
+
+      final parentDirPath = getParentDir(
+        fileContent,
+        fileUrl,
+      );
+      final parentDirUrl = await getDirUrl(parentDirPath);
+      encKey = await KeyManager.getIndividualKey(parentDirUrl);
+    }
+
+    if (encKey != null) {
+      // Decrypt the file content
+
+      final tripleMap = turtleToTripleMap(fileContent);
+
+      assert(tripleMap.containsKey(fileUrl));
+
+      String getVal(String pred) =>
+          tripleMap[fileUrl]![solidTermsNS.ns.withAttr(pred).value] as String;
+
+      return decryptData(
+        getVal(encDataPred),
+        encKey,
+        IV.fromBase64(getVal(ivPred)),
+      );
+    } else {
+      return fileContent;
+    }
+  } on Object catch (e) {
+    debugPrint(e.toString());
+    rethrow;
   }
 }
