@@ -245,11 +245,8 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   onPressed: () async {
                                     final filePath =
                                         '${widget.folderPath}$item';
-                                    final fileContent = await readExternalPod(
-                                      filePath,
-                                      context,
-                                      widget.child,
-                                    );
+                                    final fileContent =
+                                        await readExternalPod(filePath);
 
                                     final TextEditingController editController =
                                         TextEditingController(
@@ -374,11 +371,8 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                               );
                             } else {
                               final filePath = '${widget.folderPath}$item';
-                              final fileContent = await readExternalPod(
-                                filePath,
-                                context,
-                                widget.child,
-                              );
+                              final fileContent =
+                                  await readExternalPod(filePath);
 
                               if (fileContent != null &&
                                   fileContent !=

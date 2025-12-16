@@ -430,11 +430,10 @@ Stream<List<int>> fetch({
   // on server to get the URLs of individual chunks
 
   String content;
-  if (!context.mounted) return;
   if (externWebId == null) {
     content = await readPod(fileUrl);
   } else {
-    content = await readExternalPod(fileUrl, context, child);
+    content = await readExternalPod(fileUrl);
   }
 
   final triples = turtleToTripleMap(content);
