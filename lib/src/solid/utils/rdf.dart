@@ -34,31 +34,32 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 
 /// Parse the Turtle string into triples stored in a map:
-/// {subject: {predicate: {object}}}
+/// {subject: {predicate: object(s)}
 /// - subject: URIRef String
 /// - predicate: URIRef String
-/// - object: {dynamic}
-Map<String, Map<String, List<dynamic>>> turtleToTripleMap(String turtleString) {
+/// - object: dynamic
+Map<String, Map<String, dynamic>> turtleToTripleMap(String turtleStr) {
   final g = Graph();
-  g.parseTurtle(turtleString);
-  final triples = <String, Map<String, List<dynamic>>>{};
+  g.parseTurtle(turtleStr);
+  final tripleMap = <String, Map<String, dynamic>>{};
   for (final t in g.triples) {
     final sub = t.sub.value as String;
     final pre = t.pre.value as String;
-    final obj = t.obj.value as String;
-    if (triples.containsKey(sub)) {
-      if (triples[sub]!.containsKey(pre)) {
-        triples[sub]![pre]!.add(obj);
+    final obj = t.obj.value;
+    if (tripleMap.containsKey(sub)) {
+      if (tripleMap[sub]!.containsKey(pre)) {
+        final objs = tripleMap[sub]![pre]!;
+        tripleMap[sub]![pre] = objs is List ? objs + [obj] : [objs, obj];
       } else {
-        triples[sub]![pre] = [obj];
+        tripleMap[sub]![pre] = obj;
       }
     } else {
-      triples[sub] = {
-        pre: [obj],
+      tripleMap[sub] = {
+        pre: obj,
       };
     }
   }
-  return triples;
+  return tripleMap;
 }
 
 /// Generate Turtle string from triples stored in a map:
@@ -101,19 +102,19 @@ String tripleMapToTurtle(
 
 // TODO (dc): Unify parseTTL() and parseACL()
 /// Parse TTL content into a map {subject: {predicate: object}}
-Map<String, dynamic> parseTTL(String ttlContent) {
-  final triples = turtleToTripleMap(ttlContent);
-  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
-  return {
-    for (final sub in triples.keys)
-      extract(sub): {
-        for (final pre in triples[sub]!.keys)
-          extract(pre): triples[sub]![pre]!.length > 1
-              ? [for (final obj in triples[sub]![pre]!) extract(obj as String)]
-              : extract(triples[sub]![pre]!.first as String),
-      },
-  };
-}
+// Map<String, dynamic> parseTTL(String ttlContent) {
+//   final triples = turtleToTripleMap(ttlContent);
+//   String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
+//   return {
+//     for (final sub in triples.keys)
+//       extract(sub): {
+//         for (final pre in triples[sub]!.keys)
+//           extract(pre): triples[sub]![pre]! is Iterable
+//               ? [for (final obj in triples[sub]![pre]!) extract(obj as String)]
+//               : extract(triples[sub]![pre]! as String),
+//       },
+//   };
+// }
 
 // TODO av: The function parseTTL needs to be converted to parseTTLMap in all
 // places where it has been used. A TTl can contain multiple objects with same
