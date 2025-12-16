@@ -35,11 +35,13 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
 import 'package:pointycastle/asymmetric/api.dart';
 import 'package:rdflib/rdflib.dart';
+import 'package:solidpod/src/solid/api/rest_api.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart' show tripleMapToTurtle;
+import 'package:solidpod/src/solid/utils/rdf.dart'
+    show tripleMapToTurtle, turtleToTripleMap;
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
@@ -74,28 +76,35 @@ String encryptPrivateKey(String privateKey, Key masterKey, IV iv) =>
 String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
     decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
 
+/// Get full predicate URL
+String _getPred(String pred) => solidTermsNS.ns.withAttr(pred).value;
+
 /// Read file `encryption/enc-keys.ttl' to get verification key and encrypted private key
 Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
   final encKeyUrl = await getFileUrl(await getEncKeyPath());
 
-  // Get and parse the encKeyFile
-  final map = await loadPrvTTL(encKeyUrl);
+  final tripleMap = turtleToTripleMap(
+    utf8.decode(
+      await getResource(encKeyUrl),
+    ),
+  );
 
-  if (!map.containsKey(encKeyUrl)) {
+  if (!tripleMap.containsKey(encKeyUrl)) {
     throw Exception('Invalid content in file: "$encKeyUrl"');
   }
-  assert(map.length == 1);
+  assert(tripleMap.length == 1);
 
-  final v = map[encKeyUrl] as Map;
+  dynamic getVal(String pred) => tripleMap[encKeyUrl]![_getPred(pred)];
+
   _checkDuplicatedValue(
-    value: v[encKeyPred],
+    value: getVal(encKeyPred),
     errMsg: 'ERROR: Duplicated verification key',
   );
-  final verificationKey = v[encKeyPred] as String;
+  final verificationKey = getVal(encKeyPred) as String;
 
   final prvKeyRecord = PrvKeyRecord(
-    encKeyBase64: v[prvKeyPred] as String,
-    ivBase64: v[ivPred] as String,
+    encKeyBase64: getVal(prvKeyPred) as String,
+    ivBase64: getVal(ivPred) as String,
   );
 
   return (verificationKey: verificationKey, record: prvKeyRecord);
@@ -106,32 +115,38 @@ Future<Map<String, IndKeyRecord>> readIndKeyFile() async {
   final indKeyUrl = await getFileUrl(await getIndKeyPath());
   final indKeyMap = <String, IndKeyRecord>{};
 
-  final map = await loadPrvTTL(indKeyUrl);
+  final tripleMap = turtleToTripleMap(
+    utf8.decode(
+      await getResource(indKeyUrl),
+    ),
+  );
 
-  for (final entry in map.entries) {
+  dynamic getVal(Map<String, dynamic> map, String pred) => map[_getPred(pred)];
+
+  for (final entry in tripleMap.entries) {
     // `k' is changed from a URL to a relative path in new version of CSS (e.g v7.1.7)
     // if triples are inserted using SPARQL queries.
     final k = entry.key;
-    final v = entry.value as Map;
-    if (v.containsKey(sessionKeyPred)) {
+    final v = entry.value;
+    if (v.containsKey(_getPred(sessionKeyPred))) {
       _checkDuplicatedValue(
-        value: v[sessionKeyPred],
+        value: getVal(v, sessionKeyPred),
         errMsg: 'ERROR: Duplicated encryption key for resource "$k"',
       );
       _checkDuplicatedValue(
-        value: v[ivPred],
+        value: getVal(v, ivPred),
         errMsg: 'ERROR: Duplicated IV for resource "$k"',
       );
       _checkDuplicatedValue(
-        value: v[pathPred],
+        value: getVal(v, pathPred),
         errMsg: 'ERROR: Duplicated path for resource "$k"',
       );
 
       // Use resource URL as key instead of relative path (in new version of CSS)
-      indKeyMap[await getFileUrl(v[pathPred] as String)] = IndKeyRecord(
-        encKeyBase64: v[sessionKeyPred] as String,
-        ivBase64: v[ivPred] as String,
-        resourcePath: v[pathPred] as String,
+      indKeyMap[await getFileUrl(getVal(v, pathPred) as String)] = IndKeyRecord(
+        encKeyBase64: getVal(v, sessionKeyPred) as String,
+        ivBase64: getVal(v, ivPred) as String,
+        resourcePath: getVal(v, pathPred) as String,
       );
     }
   }
@@ -144,18 +159,27 @@ Future<String> readPubKeyFile() async {
   final pubKeyUrl = await getFileUrl(await getPubKeyPath());
 
   // Get and parse the pubKeyFile
-  final map = await loadPrvTTL(pubKeyUrl);
+  // final map = await loadPrvTTL(pubKeyUrl);
 
-  if (!map.containsKey(pubKeyUrl)) {
+  final tripleMap = turtleToTripleMap(
+    utf8.decode(
+      await getResource(pubKeyUrl),
+    ),
+  );
+
+  if (!tripleMap.containsKey(pubKeyUrl)) {
     throw Exception('Invalid content in file: "$pubKeyUrl"');
   }
+  assert(tripleMap.length == 1);
+
+  dynamic getVal(String pred) => tripleMap[pubKeyUrl]![_getPred(pred)];
 
   _checkDuplicatedValue(
-    value: map[pubKeyUrl][pubKeyPred],
+    value: getVal(pubKeyPred),
     errMsg: 'ERROR: Duplicated public key',
   );
 
-  final pubKey = map[pubKeyUrl][pubKeyPred] as String;
+  final pubKey = getVal(pubKeyPred) as String;
   return pubKey;
 }
 
@@ -168,22 +192,33 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
   final sharedIndKeyMap = <String, SharedIndKeyRecord>{};
   Encrypter? encrypter;
 
-  final map = await loadPrvTTL(sharedIndKeyUrl);
+  final tripleMap = turtleToTripleMap(
+    utf8.decode(
+      await getResource(sharedIndKeyUrl),
+    ),
+  );
 
-  for (final entry in map.entries) {
-    final v = entry.value as Map;
-    if (v.containsKey(sharedKeyPred)) {
+  // shared-keys.ttl seems to use predicates defined in a different space
+  // compared to enc-key.ttl and ind-keys.ttl
+
+  String getPred(String pred) => '$appsData$pred';
+
+  dynamic getVal(Map<String, dynamic> map, String pred) => map[getPred(pred)];
+
+  for (final entry in tripleMap.entries) {
+    final v = entry.value;
+    if (v.containsKey(getPred(sharedKeyPred))) {
       encrypter ??= Encrypter(
         RSA(
           privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey,
         ),
       );
 
-      sharedIndKeyMap[encrypter.decrypt64(v[pathPred] as String)] =
+      sharedIndKeyMap[encrypter.decrypt64(getVal(v, pathPred) as String)] =
           SharedIndKeyRecord(
-        encResourcePath: v[pathPred] as String,
-        encAccessList: v[accessListPred] as String,
-        encKey: v[sharedKeyPred] as String,
+        encResourcePath: getVal(v, pathPred) as String,
+        encAccessList: getVal(v, accessListPred) as String,
+        encKey: getVal(v, sharedKeyPred) as String,
       );
     }
   }
@@ -440,13 +475,20 @@ class RecipientPubKey {
         recipientWebId.replaceAll(profCard, await getPubKeyPath());
 
     // Get and parse the pubKeyFile
-    final map = await loadPrvTTL(recipientPubKeyUrl);
+    //final map = await loadPrvTTL(recipientPubKeyUrl);
 
-    if (!map.containsKey(recipientPubKeyUrl)) {
+    final tripleMap = turtleToTripleMap(
+      utf8.decode(
+        await getResource(recipientPubKeyUrl),
+      ),
+    );
+
+    if (!tripleMap.containsKey(recipientPubKeyUrl)) {
       throw Exception('Invalid content in file: "$recipientPubKeyUrl"');
     }
 
-    _recipientPubKeyContent = map[recipientPubKeyUrl][pubKeyPred] as String;
+    _recipientPubKeyContent =
+        tripleMap[recipientPubKeyUrl]![_getPred(pubKeyPred)] as String;
 
     final recipientPubKeyStr = genPubKeyStr(_recipientPubKeyContent as String);
 
