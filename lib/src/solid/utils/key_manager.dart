@@ -165,11 +165,6 @@ class KeyManager {
       // Clear cached value (if there are any)
       await clear();
 
-      // Initialize _indKeyMap as empty Map (not null)
-      // This ensures _saveIndKey() generates correct file structure
-      // even when there are no encrypted files yet
-      _indKeyMap = {};
-
       // Set the security key, master key, and verification key
 
       _securityKey = securityKey;
