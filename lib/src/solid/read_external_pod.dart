@@ -30,6 +30,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
@@ -37,6 +39,7 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
@@ -50,16 +53,8 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// content.
 ///
 /// [fileUrl] - The path to the external file to read
-/// [context] - The build context
-/// [child] - The child widget
-/// [mode] - The file open mode (default: text)
 
-Future<dynamic> readExternalPod(
-  String fileUrl,
-  BuildContext context,
-  Widget child, {
-  FileOpenMode mode = FileOpenMode.text,
-}) async {
+Future<dynamic> readExternalPod(String fileUrl) async {
   if (!await checkLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to read external POD.',
@@ -72,7 +67,11 @@ Future<dynamic> readExternalPod(
 
   if (fileExists == ResourceStatus.exist) {
     try {
-      final fileContent = await fetchPrvFile(fileUrl);
+      // final fileContent = await fetchPrvFile(fileUrl);
+
+      final fileContent = utf8.decode(
+        await getResource(fileUrl),
+      );
 
       Key? indKey;
 
@@ -96,13 +95,17 @@ Future<dynamic> readExternalPod(
       if (indKey != null) {
         // Decrypt the file content
 
-        final dataMap = parseTTL(fileContent);
-        assert(dataMap.containsKey(fileUrl));
+        final tripleMap = turtleToTripleMap(fileContent);
+
+        assert(tripleMap.containsKey(fileUrl));
+
+        String getVal(String pred) =>
+            tripleMap[fileUrl]![solidTermsNS.ns.withAttr(pred).value] as String;
 
         return decryptData(
-          dataMap[fileUrl][encDataPred] as String,
+          getVal(encDataPred),
           indKey,
-          IV.fromBase64(dataMap[fileUrl][ivPred] as String),
+          IV.fromBase64(getVal(ivPred)),
         );
       } else {
         return fileContent;
