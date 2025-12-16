@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Tony Chen, Dawei Chen
 
 library;
 
@@ -44,6 +44,15 @@ class AccessFailedException implements Exception {
 
   @override
   String toString() => 'AccessFailedException: $message';
+}
+
+class ResourceNotExistException implements Exception {
+  final String message;
+
+  ResourceNotExistException(this.message);
+
+  @override
+  String toString() => 'ResourceNotExistException: $message';
 }
 
 class NotLoggedInException implements Exception {
