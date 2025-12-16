@@ -697,8 +697,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   builder: (context) => const SharedResourcesUi(
                                     backgroundColor: titleBackgroundColor,
                                     fileName: 'key-value.ttl',
-                                    //sourceWebId:
-                                    //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
                                     child: Home(),
                                   ),
                                 ),
@@ -723,8 +721,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 MaterialPageRoute(
                                   builder: (context) => const SharedResourcesUi(
                                     backgroundColor: titleBackgroundColor,
-                                    //sourceWebId:
-                                    //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
                                     child: Home(),
                                   ),
                                 ),
@@ -752,6 +748,29 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             // Now that the back button issue is fixed in InitialSetupScreenBody,
                             // we can use it directly without any custom wrapper.
 
+                            final loggedIn = await loginIfRequired(context);
+
+                            if (!loggedIn) {
+                              debugPrint('Please login to run the demo');
+                              return;
+                            }
+
+                            final webId = await getWebId();
+                            if (webId == null) {
+                              debugPrint('web ID is not available');
+                              return;
+                            }
+
+                            final sampleDirUrl = await getDirUrl([
+                              await getDataDirPath(),
+                              'setup_wizard_demo',
+                            ].join('/'));
+                            final sampleFileName = 'setup_wizard_demo.ttl';
+                            final sampleFileUrl = await getFileUrl([
+                              await getDataDirPath(),
+                              'sampleFileName',
+                            ].join('/'));
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -761,16 +780,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                       // Sample resources that would need to be created.
 
                                       resNeedToCreate: {
-                                        'folders': [
-                                          'https://example.pod/exampleApp/public/',
-                                          'https://example.pod/exampleApp/data/',
-                                        ],
-                                        'files': [
-                                          'https://example.pod/exampleApp/data/key-value.ttl',
-                                        ],
-                                        'fileNames': [
-                                          'key-value.ttl',
-                                        ],
+                                        'folders': [sampleDirUrl],
+                                        'files': [sampleFileUrl],
+                                        'fileNames': [sampleFileName],
                                       },
                                       child: const Home(),
                                     ),
