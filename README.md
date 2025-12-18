@@ -12,11 +12,10 @@
 
 # Solid Pod
 
-**An [Australian Solid Community](https://solidcommunity.au) package
-to access your Data Vault**.
-
-Implemented by the [ANU Software Innovation
-Institute](https://sii.anu.edu.au).
+A package to support access to your Data Vault hosted on a Solid
+Server, implemented by the [ANU Software Innovation
+Institute](https://sii.anu.edu.au) supporting the [Australian Solid
+Community](https://solidcommunity.au).
 
 Authors: [Anushka Vidanage](https://github.com/anushkavidanage),
 [Graham Williams](https://github.com/gjwgit), [Jessica
@@ -25,7 +24,7 @@ Chen](https://github.com/cdawei), [Kevin
 Wang](https://github.com/junhaow1), [Zheyuan
 Xu](https://github.com/zheyxu).
 
-License: Free (as in Libre) and Open Source Software
+Free (as in Libre) and Open Source Software License:
 [MIT](https://choosealicense.com/licenses/mit/)
 
 ## Introduction
@@ -457,7 +456,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Monday 2025-11-17 09:16:21 +1100 Graham Williams>*
+*Time-stamp: <Monday 2025-12-01 11:57:26 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
