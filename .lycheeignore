@@ -5,8 +5,6 @@
 
 http://localhost:44007/
 
-#
-
 http://localhost:8000/
 
 # POD OAuth endpoints that require authentication parameters
@@ -42,7 +40,7 @@ https://.*\.tile-cyclosm\.openstreetmap\.fr/.*
 
 web/**
 
-# License
+# Licenses. Note that gnu.org is throttled so do not check it.
 
 https://www.gnu.org/licenses/
 https://opensource.org/license/gpl-3-0
