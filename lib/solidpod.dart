@@ -33,7 +33,7 @@ library;
 // 20250915 TODO These constants should be inside a constants structure to avoid
 // name conflicts?
 
-export 'src/solid/constants/common.dart' show foaf, terms;
+export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
 
@@ -168,11 +168,18 @@ export 'src/solid/utils/large_file_helper.dart'
 
 export 'src/solid/shared_resources.dart';
 
-/// Function to get resources in a container
-/// Function to test initial structure
+/// Functions to
+/// - check the status of a resource
+/// - get resources in a container
+/// - test initial structure
+/// - update TTL file by SPARQL query
 
 export 'src/solid/api/rest_api.dart'
-    show getResourcesInContainer, initialStructureTest, updateFileByQuery;
+    show
+        checkResourceStatus,
+        getResourcesInContainer,
+        initialStructureTest,
+        updateFileByQuery;
 
 /// Function to get the latest log enties
 

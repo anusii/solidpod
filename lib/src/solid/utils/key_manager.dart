@@ -568,6 +568,9 @@ class KeyManager {
       await _loadSharedIndKey();
     }
     assert(_sharedIndKeyMap != null);
+    if (!_sharedIndKeyMap!.containsKey(resourceUrl)) {
+      await _loadSharedIndKey(forceReload: true);
+    }
     return _sharedIndKeyMap!.containsKey(resourceUrl);
   }
 
@@ -583,9 +586,13 @@ class KeyManager {
 
     assert(_sharedIndKeyMap != null);
     if (!_sharedIndKeyMap!.containsKey(resourceUrl)) {
-      throw Exception(
-        'Unable to locate the individual key for resource:\n$resourceUrl',
-      );
+      await _loadSharedIndKey(forceReload: true);
+
+      if (!_sharedIndKeyMap!.containsKey(resourceUrl)) {
+        throw Exception(
+          'Unable to locate the shared individual key for resource:\n$resourceUrl',
+        );
+      }
     }
 
     final record = _sharedIndKeyMap![resourceUrl];
