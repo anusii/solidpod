@@ -160,9 +160,6 @@ class AuthDataManager {
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
-      debugPrint(
-        'AuthDataManager => loadAuthData() called after explicit deletion, returning null',
-      );
       return null;
     }
 
@@ -316,9 +313,6 @@ class AuthDataManager {
   static Future<String?> getAccessToken() async {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
-      debugPrint(
-        'AuthDataManager => getAccessToken() called after explicit deletion, returning null',
-      );
       return null;
     }
 
@@ -335,9 +329,6 @@ class AuthDataManager {
   static Future<TokenResponse?> _getTokenResponse() async {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
-      debugPrint(
-        'AuthDataManager => _getTokenResponse() called after explicit deletion, returning null',
-      );
       return null;
     }
 
@@ -377,9 +368,6 @@ class AuthDataManager {
   static Future<String?> getWebId() async {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
-      debugPrint(
-        'AuthDataManager => getWebId() called after explicit deletion, returning null',
-      );
       return null;
     }
 
@@ -420,9 +408,6 @@ class AuthDataManager {
   static Future<String?> getLogoutUrl() async {
     // If data was explicitly deleted, don't try to reload from storage
     if (_wasExplicitlyDeleted) {
-      debugPrint(
-        'AuthDataManager => getLogoutUrl() called after explicit deletion, returning null',
-      );
       return null;
     }
 
