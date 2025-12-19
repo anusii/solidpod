@@ -554,7 +554,6 @@ Future<bool> logoutPod() async {
       );
       // Don't return false yet - logout endpoint is still needed
     }
-    debugPrint('logoutPod() => AuthDataManager.removeAuthData() completed');
 
     // Step 2.5: Clear application-specific caches BEFORE network call
     // This is CRITICAL to prevent race conditions where UI reads stale cache
@@ -562,9 +561,6 @@ Future<bool> logoutPod() async {
     if (_onLogoutClearCaches != null) {
       try {
         await _onLogoutClearCaches!();
-        debugPrint(
-          'logoutPod() => Application caches cleared via callback',
-        );
       } on Object catch (e) {
         debugPrint(
           'logoutPod() => WARNING: Application cache callback failed (non-critical): $e',
