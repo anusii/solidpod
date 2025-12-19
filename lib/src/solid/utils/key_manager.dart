@@ -158,22 +158,23 @@ class KeyManager {
 
   /// Initialise the encKeyFile, indKeyFile and pubKeyFile
   /// and save them (on server)
+
   static Future<void> initPodKeys(String securityKey) async {
     try {
       assert(securityKey.trim().isNotEmpty);
 
-      // Clear cached value (if there are any)
+      // Clear cached value (if there are any).
+
       await clear();
 
-      // Set the security key, master key, and verification key
+      // Set the security key, master key, and verification key in memory first.
+      // NOTE: Do NOT save to local storage yet - must save to server first.
 
       _securityKey = securityKey;
       _masterKey = genMasterKey(_securityKey!);
       _verificationKey = genVerificationKey(_securityKey!);
 
-      await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
-
-      // Set the public-private key pair
+      // Set the public-private key pair.
 
       final pair = await genRandRSAKeyPair();
       _pubKey = trimPubKeyStr(pair.publicKey);
@@ -184,13 +185,27 @@ class KeyManager {
         key: pair.privateKey,
       );
 
-      // Save encKeyFile, indKeyFile, and pubKeyFile (on server)
+      // Save encKeyFile, indKeyFile, and pubKeyFile (on server) FIRST.
+      // This ensures server has the verification key before we save locally.
 
       await _saveEncKey();
       await _saveIndKey();
       await _savePubKey();
+
+      // Only save to local storage AFTER server save succeeds.
+      // This prevents orphaned local keys when server save fails.
+
+      await writeToSecureStorage(_securityKeySecureStorageKey, _securityKey!);
     } catch (e) {
       debugPrint('KeyManager => initPodKeys() error: $e');
+
+      // Clear memory state on failure to prevent inconsistent state.
+
+      _securityKey = null;
+      _masterKey = null;
+      _verificationKey = null;
+      _pubKey = null;
+      _prvKeyRecord = null;
       rethrow;
     }
   }
