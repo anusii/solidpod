@@ -814,6 +814,9 @@ Future<String> generateResourceUrlFromPath({
 }
 
 /// Extract resource path from its URL
+/// path format:
+/// - appDir/path/to/file
+/// - appDir/path/to/dir/
 
 Future<String> extractResourcePathFromUrl(
   String resourceUrl, {
@@ -826,4 +829,11 @@ Future<String> extractResourcePathFromUrl(
   final path = segments.getRange(1, segments.length).join('/');
 
   return !(isFile || path.endsWith('/')) ? '$path/' : path;
+}
+
+/// Generate the Web ID of from resource URL
+
+Future<String> generateWebIdFromResourceUrl(String resourceUrl) async {
+  final uri = Uri.parse(resourceUrl);
+  return [uri.origin, uri.pathSegments.first, profCard].join('/');
 }
