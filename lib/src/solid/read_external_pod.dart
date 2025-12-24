@@ -26,96 +26,19 @@
 ///
 /// Authors: Anushka Vidanage, Dawei Chen
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
-import 'dart:convert';
+import 'package:solidpod/src/solid/constants/path_type.dart';
+import 'package:solidpod/src/solid/read_pod.dart';
 
-import 'package:flutter/material.dart' hide Key;
-
-import 'package:encrypter_plus/encrypter_plus.dart';
-
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
-import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/schema.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/key_inheritance.dart';
-import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
-import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/rdf.dart';
-
-/// Read [fileUrl] from an external POD with file [mode] (default is text).
+/// Read [fileUrl] from an external POD.
 ///
 /// We first check if the user is logged in and then read and parse the file
 /// content.
 ///
-/// [fileUrl] - The path to the external file to read
+/// [fileUrl] - The URL to the external file to read
 
-Future<dynamic> readExternalPod(String fileUrl) async {
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to read external POD.',
+Future<dynamic> readExternalPod(String fileUrl) async => await readPod(
+      fileUrl,
+      pathType: PathType.absoluteUrl,
     );
-  }
-
-  // Check if the requested file exists
-
-  final fileExists = await checkResourceStatus(fileUrl);
-
-  if (fileExists == ResourceStatus.exist) {
-    try {
-      // final fileContent = await fetchPrvFile(fileUrl);
-
-      final fileContent = utf8.decode(
-        await getResource(fileUrl),
-      );
-
-      Key? indKey;
-
-      // Decrypt if reading an encrypted file
-      if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-        // Get the individual key for the file
-        indKey = await KeyManager.getSharedIndividualKey(fileUrl);
-      } else if (hasInheritedKey(
-        fileContent,
-        fileUrl,
-      )) {
-        // Get the individual key for the file
-        final parentDirPath = getParentDir(
-          fileContent,
-          fileUrl,
-        );
-        final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
-        indKey = await KeyManager.getSharedIndividualKey(parentDirUrl);
-      }
-
-      if (indKey != null) {
-        // Decrypt the file content
-
-        final tripleMap = turtleToTripleMap(fileContent);
-
-        assert(tripleMap.containsKey(fileUrl));
-
-        String getVal(String pred) =>
-            tripleMap[fileUrl]![solidTermsNS.ns.withAttr(pred).value] as String;
-
-        return decryptData(
-          getVal(encDataPred),
-          indKey,
-          IV.fromBase64(getVal(ivPred)),
-        );
-      } else {
-        return fileContent;
-      }
-    } on Object catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  debugPrint('Resource "$fileUrl" does not exist.');
-  // return null;
-  return SolidFunctionCallStatus.fileNotExists;
-}
