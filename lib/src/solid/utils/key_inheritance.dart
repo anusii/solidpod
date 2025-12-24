@@ -24,6 +24,7 @@
 library;
 
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:encrypter_plus/encrypter_plus.dart' show Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show checkResourceStatus, createResource;
@@ -35,7 +36,11 @@ import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show extractResourcePathFromUrl, generateResourceUrlFromPath;
+    show
+        getDirUrl,
+        extractResourcePathFromUrl,
+        generateResourceUrlFromPath,
+        generateWebIdFromResourceUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 
@@ -103,4 +108,36 @@ Future<void> setInheritKeyDir(
       isFile: false,
     );
   }
+}
+
+/// Retrieve the encryption key of a (shared) resource
+
+Future<Key?> retrieveKey(
+  String resourceUrl, {
+  String? inheritKeyFrom,
+}) async {
+  final keyUrl = inheritKeyFrom == null
+      ? resourceUrl
+      : await getDirUrl(
+          inheritKeyFrom,
+        );
+
+  if (await KeyManager.hasIndividualKey(keyUrl)) {
+    return await KeyManager.getIndividualKey(keyUrl);
+  }
+
+  // shared resource
+
+  final sharedKeyUrl = inheritKeyFrom == null
+      ? resourceUrl
+      : await getDirUrl(
+          inheritKeyFrom,
+          await generateWebIdFromResourceUrl(resourceUrl),
+        );
+
+  if (await KeyManager.hasSharedIndividualKey(sharedKeyUrl)) {
+    return await KeyManager.getSharedIndividualKey(sharedKeyUrl);
+  }
+
+  return null;
 }
