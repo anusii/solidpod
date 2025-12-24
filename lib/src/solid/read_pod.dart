@@ -32,27 +32,20 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart' hide Key;
+import 'package:flutter/material.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
-import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
-import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read [filePath] from POD with file [mode] (default is text).
-///
-/// Check if the user is logged in and then read and parse the file content.
-///
-/// The file will be read from the `appname/data` directory by default, unless
-/// [basePath] is specified to override the default base path.
+/// Read a (shared) file from POD..
 ///
 /// Examples:
 /// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
@@ -62,8 +55,9 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// - `readPod('https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl', pathType: PathType.absoluteUrl)`
 ///    reads from 'https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl'
 ///
-/// [filePath] - The path to the file to read
-/// [pathType] - Optional type of file path to override the default (relative to `appname/data` directory)
+/// Arguments:
+/// - [filePath]: The path to the file to read
+/// - [pathType]: Optional type of file path to override the default (relative to `appname/data` directory)
 
 Future<String> readPod(
   String filePath, {
@@ -98,81 +92,47 @@ Future<String> readPod(
   try {
     // Retrieve raw content
 
-    // final fileContent = await fetchPrvFile(fileUrl);
-
     final fileContent = utf8.decode(
       await getResource(fileUrl),
     );
-
-    // Parse raw content if its turtle
 
     if (!fileUrl.toLowerCase().endsWith('.ttl')) {
       return fileContent;
     }
 
-    // final tripleMap = turtleToTripleMap(fileContent);
-    // assert(tripleMap.containsKey(fileUrl));
+    // Parse raw content if its turtle
 
-    // // Retrieve encryption key if available
+    final tripleMap = turtleToTripleMap(fileContent);
+    assert(tripleMap.containsKey(fileUrl));
 
-    // final map = tripleMap[fileUrl]!;
-    // String? inheritKeyPath = map[solidTermsNS.ns.withAttr(inheritKeyPred).value];
-    Key? encKey;
+    final map = tripleMap[fileUrl]!;
+    String? ivStr = map[getPredicateUrl(ivPred)];
+    String? encDataStr = map[getPredicateUrl(encDataPred)];
 
-    // if (await KeyManager.hasIndividualKey(fileUrl)) {
-    //   encKey = await KeyManager.getIndividualKey(fileUrl);
-    // } else if (inheritKeyPath != null) {
+    // Plaintext turtle
 
-    //   encKey = await KeyManager.getIndividualKey(await getDirUrl(inheritKeyPath) );
-    // } else {
-    //   if (pathType == PathType.absoluteUrl) {
-    //     if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-    //       encKey = await KeyManager.getSharedIndividualKey(fileUrl);
-
-    //   }
-    // }
-
-    // }
-
-    // IV? iv = map[solidTermsNS.ns.withAttr(ivPred).value];
-    // String? encData = map[solidTermsNS.ns.withAttr(encDataPred).value];
-
-    if (await KeyManager.hasIndividualKey(fileUrl)) {
-      // Get the individual key for the file.
-
-      encKey = await KeyManager.getIndividualKey(fileUrl);
-    } else if (hasInheritedKey(
-      fileContent,
-      fileUrl,
-    )) {
-      // Get the individual key for the file.
-
-      final parentDirPath = getParentDir(
-        fileContent,
-        fileUrl,
-      );
-      final parentDirUrl = await getDirUrl(parentDirPath);
-      encKey = await KeyManager.getIndividualKey(parentDirUrl);
-    }
-
-    if (encKey != null) {
-      // Decrypt the file content
-
-      final tripleMap = turtleToTripleMap(fileContent);
-
-      assert(tripleMap.containsKey(fileUrl));
-
-      String getVal(String pred) =>
-          tripleMap[fileUrl]![solidTermsNS.ns.withAttr(pred).value] as String;
-
-      return decryptData(
-        getVal(encDataPred),
-        encKey,
-        IV.fromBase64(getVal(ivPred)),
-      );
-    } else {
+    if (ivStr == null && encDataStr == null) {
       return fileContent;
     }
+
+    // Retrieve encryption key if available
+
+    Key? encKey = await retrieveKey(
+      fileUrl,
+      inheritKeyFrom: map[getPredicateUrl(inheritKeyPred)],
+    );
+
+    assert(ivStr != null && encDataStr != null);
+
+    // Return (decrypted) text
+
+    return encKey != null
+        ? decryptData(
+            encDataStr!,
+            encKey,
+            IV.fromBase64(ivStr!),
+          )
+        : fileContent;
   } on Object catch (e) {
     debugPrint(e.toString());
     rethrow;
