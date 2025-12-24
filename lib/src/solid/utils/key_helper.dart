@@ -77,7 +77,11 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
     decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
 
 /// Get full predicate URL
-String _getPred(String pred) => solidTermsNS.ns.withAttr(pred).value;
+String getPredicateUrl(
+  String pred, {
+  Namespace? ns,
+}) =>
+    (ns ?? solidTermsNS.ns).withAttr(pred).value;
 
 /// Read file `encryption/enc-keys.ttl' to get verification key and encrypted private key
 Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
@@ -94,7 +98,7 @@ Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
   }
   assert(tripleMap.length == 1);
 
-  dynamic getVal(String pred) => tripleMap[encKeyUrl]![_getPred(pred)];
+  dynamic getVal(String pred) => tripleMap[encKeyUrl]![getPredicateUrl(pred)];
 
   _checkDuplicatedValue(
     value: getVal(encKeyPred),
@@ -121,14 +125,15 @@ Future<Map<String, IndKeyRecord>> readIndKeyFile() async {
     ),
   );
 
-  dynamic getVal(Map<String, dynamic> map, String pred) => map[_getPred(pred)];
+  dynamic getVal(Map<String, dynamic> map, String pred) =>
+      map[getPredicateUrl(pred)];
 
   for (final entry in tripleMap.entries) {
     // `k' is changed from a URL to a relative path in new version of CSS (e.g v7.1.7)
     // if triples are inserted using SPARQL queries.
     final k = entry.key;
     final v = entry.value;
-    if (v.containsKey(_getPred(sessionKeyPred))) {
+    if (v.containsKey(getPredicateUrl(sessionKeyPred))) {
       _checkDuplicatedValue(
         value: getVal(v, sessionKeyPred),
         errMsg: 'ERROR: Duplicated encryption key for resource "$k"',
@@ -172,7 +177,7 @@ Future<String> readPubKeyFile() async {
   }
   assert(tripleMap.length == 1);
 
-  dynamic getVal(String pred) => tripleMap[pubKeyUrl]![_getPred(pred)];
+  dynamic getVal(String pred) => tripleMap[pubKeyUrl]![getPredicateUrl(pred)];
 
   _checkDuplicatedValue(
     value: getVal(pubKeyPred),
@@ -201,7 +206,8 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
   // shared-keys.ttl seems to use predicates defined in a different space
   // compared to enc-key.ttl and ind-keys.ttl
 
-  String getPred(String pred) => '$appsData$pred';
+  String getPred(String pred) =>
+      getPredicateUrl(pred, ns: Namespace(ns: appsData));
 
   dynamic getVal(Map<String, dynamic> map, String pred) => map[getPred(pred)];
 
@@ -488,7 +494,7 @@ class RecipientPubKey {
     }
 
     _recipientPubKeyContent =
-        tripleMap[recipientPubKeyUrl]![_getPred(pubKeyPred)] as String;
+        tripleMap[recipientPubKeyUrl]![getPredicateUrl(pubKeyPred)] as String;
 
     final recipientPubKeyStr = genPubKeyStr(_recipientPubKeyContent as String);
 
