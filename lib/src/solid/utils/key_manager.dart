@@ -240,36 +240,7 @@ class KeyManager {
     return _verificationKey!;
   }
 
-  /// Check if the security key exists locally without server verification.
-  /// 
-  /// This method only checks if a security key is stored in local secure storage.
-  /// It does NOT validate the key against the server's verification key.
-  /// Use this for quick local checks (e.g., UI status updates).
-  /// 
-  /// For full validation including server verification, use [hasSecurityKey()].
-  static Future<bool> hasSecurityKeyLocally() async {
-    try {
-      if (_securityKey != null) {
-        return true;
-      }
-      
-      final storedKey = await secureStorage.read(key: _securityKeySecureStorageKey);
-      return storedKey != null && storedKey.isNotEmpty;
-    } catch (e) {
-      debugPrint('KeyManager => hasSecurityKeyLocally() error: $e');
-      return false;
-    }
-  }
-
-  /// Check if the security key is available and valid.
-  /// 
-  /// This method performs full validation:
-  /// 1. Checks if key exists locally
-  /// 2. Fetches verification key from server
-  /// 3. Validates the security key against verification key
-  /// 
-  /// Note: This requires network access. Use [hasSecurityKeyLocally()] 
-  /// for offline checks.
+  /// Check if the security is available
   static Future<bool> hasSecurityKey() async {
     try {
       _securityKey ??=
@@ -282,7 +253,6 @@ class KeyManager {
       final verificationKey = await getVerificationKey();
 
       if (!verifySecurityKey(_securityKey!, verificationKey)) {
-        // Only clear key if verification explicitly fails (wrong key)
         await forgetSecurityKey();
         return false;
       }
@@ -290,24 +260,10 @@ class KeyManager {
       return true;
     } catch (e) {
       debugPrint('KeyManager => hasSecurityKey() error: $e');
-      
-      // Check if this is a network/file access error vs a validation error
-      final errorMsg = e.toString().toLowerCase();
-      final isNetworkError = errorMsg.contains('failed to fetch') ||
-          errorMsg.contains('network') ||
-          errorMsg.contains('connection') ||
-          errorMsg.contains('timeout');
-      
-      if (isNetworkError) {
-        // Don't delete key on network errors - just return false
-        debugPrint('KeyManager => Network error, keeping local key');
-        return false;
-      } else {
-        // File doesn't exist or other critical error - remove orphaned key
-        debugPrint('KeyManager => Critical error, removing local key');
-        await forgetSecurityKey();
-        return false;
-      }
+      // If verification key file doesn't exist, this will throw
+      // In that case, the key in storage is orphaned and should be removed
+      await forgetSecurityKey();
+      return false;
     }
   }
 
