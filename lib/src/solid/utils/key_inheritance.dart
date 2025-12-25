@@ -24,6 +24,7 @@
 library;
 
 import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:encrypter_plus/encrypter_plus.dart' show Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'
@@ -31,24 +32,24 @@ import 'package:solidpod/src/solid/api/rest_api.dart'
 import 'package:solidpod/src/solid/constants/common.dart'
     show inheritKeyPred, ResourceContentType, ResourceStatus;
 import 'package:solidpod/src/solid/constants/path_type.dart';
-import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
-    show genRandIndividualKey;
+    show genRandIndividualKey, getPredicateUrl;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
     show
-        getDirUrl,
         extractResourcePathFromUrl,
         generateResourceUrlFromPath,
-        generateWebIdFromResourceUrl;
+        generateWebIdFromResourceUrl,
+        getDirUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
-import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
+import 'package:solidpod/src/solid/utils/rdf.dart' show turtleToTripleMap;
 
 /// Returns true if there is an individual key for a given resource
 bool hasInheritedKey(String fileContent, String fileUrl) {
-  final dataMap = parseTTLMap(fileContent);
-  return dataMap.containsKey(fileUrl) &&
-      dataMap[fileUrl].containsKey('$appsTerms$inheritKeyPred');
+  final map = turtleToTripleMap(fileContent);
+  return map.containsKey(fileUrl) &&
+      map[fileUrl]!.containsKey(getPredicateUrl(inheritKeyPred));
 }
 
 /// Set a key for a given directory so that key can be used to encrypt multiple
@@ -112,7 +113,7 @@ Future<void> setInheritKeyDir(
 
 /// Retrieve the encryption key of a (shared) resource
 
-Future<Key?> retrieveKey(
+Future<Key?> retrieveEncKey(
   String resourceUrl, {
   String? inheritKeyFrom,
 }) async {
@@ -140,4 +141,59 @@ Future<Key?> retrieveKey(
   }
 
   return null;
+}
+
+/// Configure / set-up the encryption key for a file.
+/// If the encryption key is inherited then check whether the corresponding
+/// directory exists, and create it if not.
+
+Future<Key> configureEncKey(String fileUrl, String? inheritKeyFrom) async {
+  if (inheritKeyFrom == null) {
+    if (!await KeyManager.hasIndividualKey(fileUrl)) {
+      await KeyManager.addIndividualKey(fileUrl, genRandIndividualKey());
+    }
+    return KeyManager.getIndividualKey(fileUrl);
+  }
+
+  final dirUrl = await generateResourceUrlFromPath(
+    resourcePath: inheritKeyFrom,
+    pathType: PathType.relativeToData,
+    isFile: false,
+  );
+
+  switch (await checkResourceStatus(dirUrl, isFile: false)) {
+    case ResourceStatus.notExist:
+      debugPrint('WARNING: Directory $inheritKeyFrom does not exist. '
+          'Creating the directory and corresponding acl file, '
+          'and setting up a new key for the directory');
+      // Create directory and set a new key for the directory
+      await setInheritKeyDir(inheritKeyFrom, pathType: PathType.relativeToData);
+
+    case ResourceStatus.exist:
+      if (!await KeyManager.hasIndividualKey(dirUrl)) {
+        debugPrint('WARNING: Directory $inheritKeyFrom does not have a key. '
+            'Setting up a new key for the directory');
+        // Generate a new key for the directory
+        await setInheritKeyDir(
+          inheritKeyFrom,
+          pathType: PathType.relativeToData,
+          createAcl: false,
+        );
+      }
+      debugPrint(
+        'Directory "$dirUrl" and key exists. Continuing the process...',
+      );
+
+    case ResourceStatus.unknown:
+      throw Exception(
+        'Unable to determine if directory "$dirUrl" exists, writePod() aborted',
+      );
+    case ResourceStatus.forbidden:
+      throw AccessForbiddenException(
+        'Access to directory "$dirUrl" is forbidden, writePod() aborted',
+      );
+  }
+
+  assert(await KeyManager.hasIndividualKey(dirUrl));
+  return KeyManager.getIndividualKey(dirUrl);
 }
