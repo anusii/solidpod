@@ -26,13 +26,11 @@
 ///
 /// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang, Graham Williams
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 
@@ -117,7 +115,7 @@ Future<String> readPod(
 
     // Retrieve encryption key if available
 
-    Key? encKey = await retrieveKey(
+    Key? encKey = await retrieveEncKey(
       fileUrl,
       inheritKeyFrom: map[getPredicateUrl(inheritKeyPred)],
     );
@@ -127,14 +125,11 @@ Future<String> readPod(
     // Return (decrypted) text
 
     return encKey != null
-        ? decryptData(
-            encDataStr!,
-            encKey,
-            IV.fromBase64(ivStr!),
-          )
+        ? decryptData(encDataStr!, encKey, IV.fromBase64(ivStr!))
         : fileContent;
-  } on Object catch (e) {
+  } on Object catch (e, trace) {
     debugPrint(e.toString());
+    debugPrint(trace.toString());
     rethrow;
   }
 }
