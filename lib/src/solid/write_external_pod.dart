@@ -31,12 +31,13 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show genRandIV;
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
@@ -51,12 +52,10 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// av: 20250522 - Future work - extend this functionality to write new files
 ///                to external PODs with encrypted functionality.
 
-Future<SolidFunctionCallStatus> writeExternalPod(
+Future<void> writeExternalPod(
   String fileUrl,
   String fileContent,
-  String fileOwnerWebId,
-  BuildContext context,
-  Widget child, {
+  String fileOwnerWebId, {
   bool encrypted = true,
   String? inheritKeyFrom,
 }) async {
@@ -80,7 +79,10 @@ Future<SolidFunctionCallStatus> writeExternalPod(
   // Check if the file already exists
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
-      final remoteFileContent = await fetchPrvFile(fileUrl);
+      final remoteFileContent = utf8.decode(
+        await getResource(fileUrl),
+      );
+
       if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
         // Get file path
         final filePath =
@@ -142,7 +144,7 @@ Future<SolidFunctionCallStatus> writeExternalPod(
       );
 
     case ResourceStatus.notExist: // Empty case falls through.
-      debugPrint('File "$fileUrl" does not exist');
+      // debugPrint('File "$fileUrl" does not exist');
 
       // If the resource does not exist, if the encrypted flag is set to true,
       // and if inheritedFrom is set, then encrypt the file using the
@@ -184,6 +186,4 @@ Future<SolidFunctionCallStatus> writeExternalPod(
       inheritKeyFrom == null) {
     await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
   }
-
-  return SolidFunctionCallStatus.success;
 }
