@@ -382,8 +382,6 @@ Future<void> send({
   await writePod(
     '$remoteFileName.ttl',
     tripleMapToTurtle(triples, bindNamespaces: bindNS),
-    context,
-    child,
     encrypted: encrypted,
     inheritKeyFrom: inheritKeyFrom,
     createAcl: createAcl,

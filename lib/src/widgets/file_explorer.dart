@@ -295,30 +295,24 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                                     editController.text;
                                                 // Check if the content has changed
                                                 if (newContent != fileContent) {
-                                                  final writeFileStatus =
-                                                      await writeExternalPod(
-                                                    filePath,
-                                                    newContent,
-                                                    widget.ownerWebId,
-                                                    context,
-                                                    widget.child,
-                                                  );
+                                                  try {
+                                                    await writeExternalPod(
+                                                      filePath,
+                                                      newContent,
+                                                      widget.ownerWebId,
+                                                    );
 
-                                                  if (writeFileStatus ==
-                                                      SolidFunctionCallStatus
-                                                          .success) {
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
                                                     showSnackBar(
                                                       context,
                                                       'Changes saved successfully!',
                                                       Colors.green,
                                                     );
-                                                  } else {
+                                                  } on Object catch (e, trace) {
                                                     if (!context.mounted) {
                                                       return;
                                                     }
+                                                    debugPrint('$e');
+                                                    debugPrint('$trace');
                                                     showSnackBar(
                                                       context,
                                                       'Something went wrong! Please try again.',

@@ -28,8 +28,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:editable/editable.dart';
-import 'package:solidpod/solidpod.dart'
-    show SolidFunctionCallStatus, checkLoggedIn, writePod;
+import 'package:solidpod/solidpod.dart' show checkLoggedIn, writePod;
 import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
@@ -178,21 +177,17 @@ class _KeyValueEditState extends State<KeyValueEdit> {
         final ttlStr = await genTTLStr(pairs!);
         if (context.mounted) {
           try {
-            final result = await writePod(
-                widget.fileName, ttlStr, context, widget.child,
+            await writePod(widget.fileName, ttlStr,
                 encrypted: widget.encrypted);
 
-            if (result == SolidFunctionCallStatus.success) {
-              await _alert(
-                  'Successfully saved ${dataMap.length} key-value pairs'
-                  ' to "${widget.fileName}" in PODs');
-              return true;
-            } else {
-              await _alert('Something went wrong. Please try again!');
-              return false;
-            }
-          } on Exception {
-            await _alert('Please login to write data to your POD');
+            await _alert('Successfully saved ${dataMap.length} key-value pairs'
+                ' to "${widget.fileName}" in PODs');
+            return true;
+          } on Object catch (e, trace) {
+            debugPrint(e.toString());
+            debugPrint(trace.toString());
+
+            await _alert('Something went wrong. Please try again!');
             return false;
           }
         }
