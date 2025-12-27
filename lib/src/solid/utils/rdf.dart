@@ -99,8 +99,104 @@ String tripleMapToTurtle(
   return g.serializedString;
 }
 
-// TODO (dc): Unify parseTTL() and parseACL()
+/// Options for parsing TTL content.
+enum TtlParseMode {
+  /// Extract fragment from URIs (e.g., 'http://example.org#name' -> 'name')
+  extractFragment,
+
+  /// Keep full URIs for agent/agentClass predicates, extract fragment for others
+  aclMode,
+
+  /// Keep full URIs without extraction
+  fullUri,
+}
+
+/// Unified TTL parser that replaces both parseTTL() and parseACL().
+///
+/// [ttlContent] - The TTL/Turtle content to parse.
+/// [mode] - How to handle URI extraction (default: extractFragment).
+///
+/// Returns a map {subject: {predicate: object}} where object can be
+/// a single value or a list if multiple values exist for the same predicate.
+///
+/// Example:
+/// ```dart
+/// // For general TTL parsing (replaces parseTTL)
+/// final data = parseTtlContent(ttlContent);
+///
+/// // For ACL file parsing (replaces parseACL)
+/// final aclData = parseTtlContent(aclContent, mode: TtlParseMode.aclMode);
+/// ```
+Map<String, dynamic> parseTtlContent(
+  String ttlContent, {
+  TtlParseMode mode = TtlParseMode.extractFragment,
+}) {
+  final g = Graph();
+  g.parseTurtle(ttlContent);
+  final dataMap = <String, dynamic>{};
+
+  String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
+
+  String processUri(String uri, String predicate) {
+    switch (mode) {
+      case TtlParseMode.extractFragment:
+        return extract(uri);
+      case TtlParseMode.aclMode:
+        // Keep full URI for agent/agentClass, extract fragment for others
+        if (['agent', 'agentClass'].contains(predicate)) {
+          return uri;
+        }
+        return extract(uri);
+      case TtlParseMode.fullUri:
+        return uri;
+    }
+  }
+
+  for (final t in g.triples) {
+    final rawSub = t.sub.value as String;
+    final rawPre = t.pre.value as String;
+    final rawObj = t.obj.value as String;
+
+    final sub = mode == TtlParseMode.fullUri ? rawSub : extract(rawSub);
+    final pre = mode == TtlParseMode.fullUri ? rawPre : extract(rawPre);
+    final obj = processUri(rawObj, pre);
+
+    if (dataMap.containsKey(sub)) {
+      if ((dataMap[sub] as Map).containsKey(pre)) {
+        final existing = dataMap[sub][pre];
+        if (existing is List) {
+          existing.add(obj);
+        } else {
+          dataMap[sub][pre] = [existing, obj];
+        }
+      } else {
+        dataMap[sub][pre] = obj;
+      }
+    } else {
+      dataMap[sub] = {pre: obj};
+    }
+  }
+
+  // Convert single-item results to match original parseTTL behavior
+  if (mode == TtlParseMode.extractFragment) {
+    for (final sub in dataMap.keys) {
+      final predMap = dataMap[sub] as Map;
+      for (final pre in predMap.keys) {
+        final val = predMap[pre];
+        if (val is List && val.length == 1) {
+          predMap[pre] = val.first;
+        }
+      }
+    }
+  }
+
+  return dataMap;
+}
+
+// Backward compatible wrapper functions
+
 /// Parse TTL content into a map {subject: {predicate: object}}
+/// @deprecated Use [parseTtlContent] instead.
 Map<String, dynamic> parseTTL(String ttlContent) {
   final triples = turtleToTripleMap(ttlContent);
   String extract(String str) => str.contains('#') ? str.split('#')[1] : str;
@@ -115,10 +211,11 @@ Map<String, dynamic> parseTTL(String ttlContent) {
   };
 }
 
-// TODO av: The function parseTTL needs to be converted to parseTTLMap in all
-// places where it has been used. A TTl can contain multiple objects with same
-// predicate. Also the function extract() can be removed when we have properly
-// defined our namespaces
+// NOTE: Migration completed - all parseTTL() calls have been migrated to
+// parseTtlContent(). The parseTTL() function is kept for backward compatibility
+// but is deprecated. New code should use parseTtlContent() with appropriate
+// TtlParseMode. For full URIs without fragment extraction, use TtlParseMode.fullUri.
+
 /// Parse TTL content into a map {subject: {predicate: {objects}}}
 Map<String, dynamic> parseTTLMap(String ttlContent) {
   final g = Graph();
@@ -143,7 +240,8 @@ Map<String, dynamic> parseTTLMap(String ttlContent) {
   return dataMap;
 }
 
-/// Parse ACL content into a map {subject: {predicate: object}}
+/// Parse ACL content into a map {subject: {predicate: [objects]}}
+/// @deprecated Use [parseTtlContent] with [TtlParseMode.aclMode] instead.
 Map<String, dynamic> parseACL(String aclContent) {
   final g = Graph();
   g.parseTurtle(aclContent);

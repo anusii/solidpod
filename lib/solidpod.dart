@@ -30,9 +30,11 @@
 
 library;
 
-// 20250915 TODO These constants should be inside a constants structure to avoid
-// name conflicts?
+/// Organized constants structure to avoid name conflicts.
+/// Use `SolidConstants.namespaces.foaf`, `SolidConstants.directories.data`, etc.
+export 'src/solid/constants/solid_constants.dart';
 
+// Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;

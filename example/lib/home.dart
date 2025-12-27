@@ -298,9 +298,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         },
         child: const Text('Upload/Download Large File'));
 
-    // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
-    // HERE.
-
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
           final loggedIn = await loginIfRequired(

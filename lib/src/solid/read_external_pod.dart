@@ -96,7 +96,7 @@ Future<dynamic> readExternalPod(
       if (indKey != null) {
         // Decrypt the file content
 
-        final dataMap = parseTTL(fileContent);
+        final dataMap = parseTtlContent(fileContent);
         assert(dataMap.containsKey(fileUrl));
 
         return decryptData(

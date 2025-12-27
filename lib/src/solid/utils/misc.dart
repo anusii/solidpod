@@ -116,7 +116,7 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
   try {
     if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
       final rawContent = await fetchPrvFile(fileUrl);
-      return parseTTL(rawContent);
+      return parseTtlContent(rawContent);
     } else {
       return {};
     }
