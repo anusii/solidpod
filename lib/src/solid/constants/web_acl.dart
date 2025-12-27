@@ -41,6 +41,18 @@ import 'package:solidpod/src/solid/constants/common.dart'
         rdf,
         terms,
         vcard;
+import 'package:solidpod/src/solid/constants/predicates.dart'
+    show PredicateBase;
+// Re-export common predicates for convenience
+export 'package:solidpod/src/solid/constants/predicates.dart'
+    show
+        CommonAclPredicate,
+        DcTermsPredicate,
+        FoafPredicate,
+        PredicateBase,
+        RdfPredicate,
+        VcardPredicate,
+        XsdDatatype;
 import 'package:solidpod/src/solid/constants/schema.dart'
     show NS, aclNS, appsTerms, solidTermsNS, termsNS, vcardNS;
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -60,16 +72,27 @@ final bindAclNamespaces = {
   // rdfNS.prefix: rdfNS.ns // already binded in rdflib
 };
 
-/// TODO:av - Move the class Predicate to a common location and
-/// add all the other relavant predicates
+// NOTE: Common predicates (RdfPredicate, FoafPredicate, VcardPredicate,
+// DcTermsPredicate, XsdDatatype, CommonAclPredicate) have been defined in
+// predicates.dart and are re-exported from this file for convenience.
+// The AclPredicate enum below is kept for backward compatibility and combines
+// predicates from multiple namespaces for ACL operations.
 
-/// Predicates for web access control
-
-enum AclPredicate {
-  /// Predicate of acl:Authorization
+/// Predicates for web access control operations.
+/// This enum combines predicates from multiple namespaces (ACL, FOAF, VCard,
+/// DC Terms, RDF) for convenience in ACL file generation.
+///
+/// For namespace-specific predicates, see the re-exported enums:
+/// - [CommonAclPredicate] - Pure ACL predicates
+/// - [VcardPredicate] - VCard predicates
+/// - [FoafPredicate] - FOAF predicates
+/// - [DcTermsPredicate] - Dublin Core Terms predicates
+/// - [RdfPredicate] - RDF predicates
+enum AclPredicate with PredicateBase {
+  /// Predicate of rdf:type (alias for convenience)
   aclRdfType('${rdf}type'),
 
-  /// Operations the agents can perform on a resource
+  /// Operations the agents can perform on a resource (alias)
   aclMode('${acl}mode'),
 
   /// Vcard group predicate
@@ -113,10 +136,7 @@ enum AclPredicate {
   /// String value of access predicate
   final String _value;
 
-  /// Return the URIRef of predicate
-  URIRef get uriRef => URIRef(_value);
-
-  /// Return the string of predicate
+  @override
   String get value => _value;
 }
 
