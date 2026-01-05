@@ -32,11 +32,11 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
+import 'package:solidpod/src/solid/utils/exceptions.dart'
+    show NotLoggedInException;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show verifySecurityKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
-import 'package:solidpod/src/solid/utils/exceptions.dart'
-    show NotLoggedInException;
 import 'package:solidpod/src/solid/utils/misc.dart'
     show isUserLoggedIn, getWebId;
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
