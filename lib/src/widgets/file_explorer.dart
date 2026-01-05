@@ -302,17 +302,21 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                                       widget.ownerWebId,
                                                     );
 
+                                                    if (!context.mounted) {
+                                                      return;
+                                                    }
+
                                                     showSnackBar(
                                                       context,
                                                       'Changes saved successfully!',
                                                       Colors.green,
                                                     );
                                                   } on Object catch (e, trace) {
+                                                    debugPrint('$e');
+                                                    debugPrint('$trace');
                                                     if (!context.mounted) {
                                                       return;
                                                     }
-                                                    debugPrint('$e');
-                                                    debugPrint('$trace');
                                                     showSnackBar(
                                                       context,
                                                       'Something went wrong! Please try again.',
@@ -320,9 +324,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                                     );
                                                   }
                                                 } else {
-                                                  if (!context.mounted) {
-                                                    return;
-                                                  }
+                                                  if (!context.mounted) return;
                                                   showSnackBar(
                                                     context,
                                                     'Content has not changed',
