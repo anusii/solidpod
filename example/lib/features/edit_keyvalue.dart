@@ -28,7 +28,8 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:editable/editable.dart';
-import 'package:solidpod/solidpod.dart' show checkLoggedIn, writePod;
+import 'package:solidpod/solidpod.dart'
+    show NotLoggedInException, checkLoggedIn, writePod;
 import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
 
 import 'package:demopod/constants/app.dart';
@@ -163,8 +164,11 @@ class _KeyValueEditState extends State<KeyValueEdit> {
     try {
       // Write to POD
       if (context.mounted) {
-        if (!await checkLoggedIn()) {
-          await _alert('Please login to write data to your POD');
+        final errMsg = 'Please login to write data to your POD';
+        try {
+          await checkLoggedIn(errorMessage: errMsg);
+        } on NotLoggedInException {
+          await _alert(errMsg);
           return false;
         }
 

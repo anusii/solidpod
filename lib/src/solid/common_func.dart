@@ -34,7 +34,6 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
 import 'package:solidpod/src/solid/utils/alert.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 
@@ -59,12 +58,10 @@ Future<void> deleteDataFileDialog(
   BuildContext context, {
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to delete files. '
-      'Please authenticate before calling this function.',
-    );
-  }
+  await checkLoggedIn(
+    errorMessage: 'User must be logged in to delete files. '
+        'Please authenticate before calling this function.',
+  );
 
   const smallGapH = SizedBox(width: 10);
   String msg;

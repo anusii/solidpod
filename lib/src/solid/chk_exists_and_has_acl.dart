@@ -36,7 +36,6 @@ import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Check [fileName] exists and has the associated ACL file. Requires user
@@ -63,12 +62,10 @@ Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
 }) async {
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to check resource ACL. '
-      'Please authenticate before calling chkExistsAndHasAcl().',
-    );
-  }
+  await checkLoggedIn(
+    errorMessage: 'User must be logged in to check resource ACL. '
+        'Please authenticate before calling chkExistsAndHasAcl().',
+  );
 
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
