@@ -38,6 +38,7 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show genRandIV;
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
@@ -58,9 +59,11 @@ Future<void> writeExternalPod(
   bool encrypted = true,
   String? inheritKeyFrom,
 }) async {
-  await checkLoggedIn(
-    errorMessage: 'User must be logged in to write to external POD.',
-  );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to write to external POD.',
+    );
+  }
 
   // Check if the file already exists
   // The file should exist if its individual key exists

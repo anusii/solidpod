@@ -36,6 +36,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Get the list of files created by the user in their POD by querying the data directory of the POD.
@@ -51,10 +52,12 @@ Future<List<String>> getResources(
   BuildContext context,
   Widget child,
 ) async {
-  await checkLoggedIn(
-    errorMessage: 'User must be logged in to get resources. '
-        'Please authenticate before calling getResources().',
-  );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to get resources. '
+      'Please authenticate before calling getResources().',
+    );
+  }
 
   var webId = await getWebId() as String;
   webId = webId.replaceAll(profCard, '');

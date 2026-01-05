@@ -61,9 +61,9 @@ Future<String> readPod(
   String filePath, {
   PathType pathType = PathType.relativeToData,
 }) async {
-  await checkLoggedIn(
-    errorMessage: 'User must be logged in to read from POD.',
-  );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('User must be logged in to read from POD');
+  }
 
   final fileUrl = await generateResourceUrlFromPath(
     resourcePath: filePath,

@@ -333,19 +333,17 @@ Future<String?> getWebId() async => AuthDataManager.getWebId();
 /// details of the user and also check whether the
 /// access token is expired or not
 
-Future<void> checkLoggedIn({
-  String errorMessage = 'User must login',
-}) async {
+Future<bool> isUserLoggedIn() async {
   final webId = await AuthDataManager.getWebId();
 
   if (webId != null && webId.isNotEmpty) {
     final accessToken = await AuthDataManager.getAccessToken();
     if (accessToken != null && !JwtDecoder.isExpired(accessToken)) {
-      return;
+      return true;
     }
   }
 
-  throw NotLoggedInException(errorMessage);
+  return false;
 }
 
 /// Create a directory with the given URL
@@ -549,9 +547,9 @@ Future<void> initPod(
 }) async {
   // Check if the user has logged in
 
-  await checkLoggedIn(
-    errorMessage: 'Can not initialise POD without logging in',
-  );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('Can not initialise POD without logging in');
+  }
 
   // Check (and generate) the directory URLs
 

@@ -62,10 +62,9 @@ Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
 }) async {
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
-  await checkLoggedIn(
-    errorMessage: 'User must be logged in to check resource ACL. '
-        'Please authenticate before calling chkExistsAndHasAcl().',
-  );
+  if (!await isUserLoggedIn()) {
+    return SolidFunctionCallStatus.notLoggedIn;
+  }
 
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 

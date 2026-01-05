@@ -39,9 +39,7 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/exceptions.dart'
-    show NotLoggedInException;
-import 'package:solidpod/src/solid/utils/misc.dart' show checkLoggedIn;
+import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 // Scopes variables used in the authentication process.
 
@@ -70,11 +68,10 @@ Future<List<dynamic>?> solidAuthenticate(
 ) async {
   Map<dynamic, dynamic>? authData;
 
-  try {
-    await checkLoggedIn();
+  if (await isUserLoggedIn()) {
     authData = await AuthDataManager.loadAuthData();
     assert(authData != null);
-  } on NotLoggedInException {
+  } else {
     debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
     // Authentication process for the POD issuer.
 

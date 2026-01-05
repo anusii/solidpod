@@ -103,7 +103,7 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
-        checkLoggedIn,
+        isUserLoggedIn,
         deleteExternalFile,
         deleteFile,
         deleteLogIn,

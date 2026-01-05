@@ -79,10 +79,12 @@ Future<SolidFunctionCallStatus> grantPermission({
 }) async {
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
-  await checkLoggedIn(
-    errorMessage: 'User must be logged in to grant permissions. '
-        'Please authenticate before calling grantPermission().',
-  );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException(
+      'User must be logged in to grant permissions. '
+      'Please authenticate before calling grantPermission().',
+    );
+  }
 
   try {
     if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;

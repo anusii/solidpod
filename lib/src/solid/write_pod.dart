@@ -78,9 +78,9 @@ Future<void> writePod(
   PathType pathType = PathType.relativeToData,
   String? inheritKeyFrom,
 }) async {
-  await checkLoggedIn(
-    errorMessage: 'User must be logged in to write to POD',
-  );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('User must be logged in to write to POD');
+  }
 
   final fileUrl = await generateResourceUrlFromPath(
     resourcePath: filePath,
