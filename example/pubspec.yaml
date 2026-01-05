@@ -12,11 +12,11 @@ dependencies:
   flutter:
     sdk: flutter
   intl: any
-  rdflib: ^0.2.11
+  rdflib: ^0.2.12
   solidpod:
     path: ..
-  solidui: ^0.0.18
-  universal_io: ^2.2.2
+  solidui: ^0.0.19
+  universal_io: ^2.3.1
   window_manager: ^0.5.1
 
 dev_dependencies:
