@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -53,12 +54,15 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 ///   writes to `appname/data/movies/classical/abc.ttl` and uses the encryption key
 ///   for `appname/data/movies/` to encrypt the content.
 ///
-/// [filePath] - The path (relative to appname/data/) of the file to write
-/// [fileContent] - The content to write to the file
-/// [encrypted] - Whether to encrypt the file content (default: true)
-/// [createAcl] - Whether to create a separate acl for the resource (default: true)
-/// [overwrite] - Whether to overwrite the content of an existing file (default: true)
-/// [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
+/// Arguments:
+/// - [filePath]: The path (relative to appname/data/) of the file to write
+/// - [fileContent]: The content to write to the file
+/// - [encrypted]: Whether to encrypt the file content (default: true)
+/// - [createAcl]: Whether to create a separate acl for the resource (default: true)
+/// - [overwrite]: Whether to overwrite the content of an existing file (default: true)
+/// - [pathType]: Optional type of file path (for both [filePath] and [inheritKeyFrom])
+///     to override the default (relative to `appname/data` directory)
+/// - [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
 ///     be inherited from. If this is set
 ///     1. a single encryption key associated with the given directory is used to
 ///        encrypt the resource.
@@ -71,16 +75,21 @@ Future<void> writePod(
   bool encrypted = true,
   bool createAcl = true,
   bool overwrite = false,
+  PathType pathType = PathType.relativeToData,
   String? inheritKeyFrom,
 }) async {
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException('User must be logged in to write to POD');
-  }
+  await checkLoggedIn(
+    errorMessage: 'User must be logged in to write to POD',
+  );
 
   final fileUrl = await generateResourceUrlFromPath(
     resourcePath: filePath,
-    pathType: PathType.relativeToData,
+    pathType: pathType,
   );
+
+  if (await isFileProtected(fileUrl)) {
+    throw Exception('Write to protected file is not allowed');
+  }
 
   if (mime.lookupMimeType(fileUrl) == null) {
     throw Exception('Unable to determine content type of file $filePath');
@@ -89,12 +98,12 @@ Future<void> writePod(
   Key? encKey;
 
   if (encrypted || inheritKeyFrom != null) {
-    encKey = await configureEncKey(fileUrl, inheritKeyFrom);
-
     if (!fileUrl.endsWith('.ttl')) {
-      debugPrint('WARNING: Encrypted text file should be in turtle format, '
+      throw Exception('Encrypted text file should be in turtle format, '
           'but the extension of provided filename "$filePath" is not ".ttl"');
     }
+
+    encKey = await configureEncKey(fileUrl, inheritKeyFrom);
   }
 
   switch (await checkResourceStatus(fileUrl)) {
