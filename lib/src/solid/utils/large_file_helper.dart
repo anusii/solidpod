@@ -140,6 +140,10 @@ Future<void> deleteLargeFile({
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(filePath));
   final fileUrl = await getFileUrl('$filePath.ttl');
 
+  print(remoteFilePath);
+  print(chunkDirUrl);
+  print(fileUrl);
+
   if (await checkResourceStatus(fileUrl, isFile: true) !=
           ResourceStatus.exist &&
       await checkResourceStatus(chunkDirUrl, isFile: false) !=
@@ -152,7 +156,7 @@ Future<void> deleteLargeFile({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod('$filePath.ttl'),
+    await readPod(fileUrl, pathType: PathType.absoluteUrl),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
@@ -189,7 +193,7 @@ Future<void> deleteLargeFile({
 
   // Delete the representing turtle file
 
-  await deleteResource('$filePath.ttl', ResourceContentType.turtleText);
+  await deleteResource(fileUrl, ResourceContentType.turtleText);
 
   debugPrint('Deleted $remoteFilePath');
 }
