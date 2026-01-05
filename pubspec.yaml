@@ -4,8 +4,8 @@ version: 0.8.9
 homepage: https://github.com/anusii/solidpod
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
-  flutter: '>=1.17.0'
+  sdk: ">=3.2.3 <4.0.0"
+  flutter: ">=1.17.0"
 
 # To automatically upgrade package dependencies to the latest versions:
 #
