@@ -37,7 +37,6 @@ import 'package:flutter/material.dart' hide Key;
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
@@ -53,11 +52,9 @@ Future<dynamic> sharedResources(
   String? fileName,
   String? sourceWebId,
 ]) async {
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to access shared resources.',
-    );
-  }
+  await checkLoggedIn(
+    errorMessage: 'User must be logged in to access shared resources.',
+  );
 
   // Get user webID
   final userWebId = await AuthDataManager.getWebId() as String;
