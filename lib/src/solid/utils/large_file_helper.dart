@@ -41,6 +41,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart'
     show createResource, checkResourceStatus, getResource, deleteResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show ResourceContentType, ResourceStatus;
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/constants/schema.dart'
     show siiNS, SIIPredicate;
 import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
@@ -56,15 +57,16 @@ import 'package:solidpod/src/solid/utils/rdf.dart'
 import 'package:solidpod/src/solid/write_pod.dart' show writePod;
 
 /// Get a large file previously sent using [writeLargeFile] with name
-/// [remoteFileName] and save it to a local file with path [localFilePath].
+/// [remoteFilePath] (relative to appname/data directory) and save it
+/// to a local file with path [localFilePath].
 Future<void> readLargeFile({
-  required String remoteFileName,
+  required String remoteFilePath,
   required String localFilePath,
   String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
-    remoteFileName: remoteFileName,
+    remoteFilePath: remoteFilePath,
     ownerWebId: ownerWebId,
     onProgress: onProgress,
   );
@@ -77,14 +79,15 @@ Future<void> readLargeFile({
 }
 
 /// Get a large file previously sent using [writeLargeFile] with name
-/// [remoteFileName] and return it as bytes.
+/// [remoteFilePath] (relative to appname/data directory) and return
+/// it as bytes.
 Future<Uint8List> readLargeFileAsBytes({
-  required String remoteFileName,
+  required String remoteFilePath,
   String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
-    remoteFileName: remoteFileName,
+    remoteFilePath: remoteFilePath,
     ownerWebId: ownerWebId,
     onProgress: onProgress,
   );
@@ -98,11 +101,11 @@ Future<Uint8List> readLargeFileAsBytes({
 }
 
 /// Send a large local file with path [localFilePath] to a remote server
-/// using name [remoteFileName],
+/// using name [remoteFilePath] (relative to appname/data directory),
 /// encrypt the file content if [encrypted] is true.
 Future<void> writeLargeFile({
   required String localFilePath,
-  required String remoteFileName,
+  required String remoteFilePath,
   String? inheritKeyFrom,
   bool createAcl = true,
   void Function(int, int)? onProgress,
@@ -112,7 +115,7 @@ Future<void> writeLargeFile({
   final totalBytes = file.lengthSync();
   await send(
     dataStream: file.openRead(),
-    remoteFileName: remoteFileName,
+    remoteFilePath: remoteFilePath,
     totalBytes: totalBytes,
     inheritKeyFrom: inheritKeyFrom,
     createAcl: createAcl,
@@ -126,16 +129,16 @@ Future<void> writeLargeFile({
 }
 
 /// Delete a large file previously sent using [sendLargeFile] with URL
-/// [remoteFileName] in POD
+/// [remoteFilePath] (relative to appname/data directory) in POD.
 Future<void> deleteLargeFile({
-  required String remoteFileName,
+  required String remoteFilePath,
   void Function(int, int)? onProgress,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
 
-  final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
-  final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
-  final fileUrl = await getFileUrl('$remoteFilePath.ttl');
+  final filePath = [await getDataDirPath(), remoteFilePath].join('/');
+  final chunkDirUrl = await getDirUrl(_getChunkDirPath(filePath));
+  final fileUrl = await getFileUrl('$filePath.ttl');
 
   if (await checkResourceStatus(fileUrl, isFile: true) !=
           ResourceStatus.exist &&
@@ -149,7 +152,7 @@ Future<void> deleteLargeFile({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod('$remoteFilePath.ttl'),
+    await readPod('$filePath.ttl'),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
@@ -186,9 +189,9 @@ Future<void> deleteLargeFile({
 
   // Delete the representing turtle file
 
-  await deleteResource('$remoteFilePath.ttl', ResourceContentType.turtleText);
+  await deleteResource('$filePath.ttl', ResourceContentType.turtleText);
 
-  debugPrint('Deleted $remoteFileName');
+  debugPrint('Deleted $remoteFilePath');
 }
 
 // Return the URL of directory storing the chunked data
@@ -251,11 +254,11 @@ Uint8List _decryptBytes(Uint8List encData, Encrypter encrypter, IV iv) =>
     Uint8List.fromList(encrypter.decryptBytes(Encrypted(encData), iv: iv));
 
 /// Send a stream of data [dataStream] to a remote server
-/// using name [remoteFileName],
+/// using name [remoteFilePath],
 /// encrypt the file content if [encrypted] is true.
 Future<void> send({
   required Stream<List<int>> dataStream,
-  required String remoteFileName,
+  required String remoteFilePath,
   int? totalBytes,
   String? inheritKeyFrom,
   bool createAcl = true,
@@ -268,15 +271,15 @@ Future<void> send({
       'totalBytes is required in order to use the onProgress() callback',
     );
   }
-  final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
-  final chunkDirUrl = await getDirUrl(_getChunkDirPath(remoteFilePath));
-  final fileUrl = await getFileUrl('$remoteFilePath.ttl');
+  final filePath = [await getDataDirPath(), remoteFilePath].join('/');
+  final chunkDirUrl = await getDirUrl(_getChunkDirPath(filePath));
+  final fileUrl = await getFileUrl('$filePath.ttl');
 
   if (await checkResourceStatus(fileUrl, isFile: true) ==
           ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl, isFile: false) ==
           ResourceStatus.exist) {
-    throw Exception('ERROR: $remoteFileName already exists.');
+    throw Exception('ERROR: $remoteFilePath already exists.');
   }
 
   // Create the directory for storing chunked data
@@ -360,7 +363,7 @@ Future<void> send({
   };
 
   await writePod(
-    '$remoteFileName.ttl',
+    '$remoteFilePath.ttl',
     tripleMapToTurtle(triples, bindNamespaces: bindNS),
     encrypted: encrypted,
     inheritKeyFrom: inheritKeyFrom,
@@ -369,9 +372,9 @@ Future<void> send({
 }
 
 /// Get a large file previously sent using [writeLargeFile] with name
-/// [remoteFileName] and return a stream of bytes.
+/// [remoteFilePath] and return a stream of bytes.
 Stream<List<int>> fetch({
-  required String remoteFileName,
+  required String remoteFilePath,
   String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async* {
@@ -382,13 +385,14 @@ Stream<List<int>> fetch({
     externWebId = ownerWebId;
   }
 
-  final remoteFilePath = [await getDataDirPath(), remoteFileName].join('/');
+  final filePath = [await getDataDirPath(), remoteFilePath].join('/');
   final chunkDirUrl = await getDirUrl(
-    _getChunkDirPath(remoteFilePath),
+    _getChunkDirPath(filePath),
     externWebId = externWebId,
   );
+
   final fileUrl = await getFileUrl(
-    '$remoteFilePath.ttl',
+    '$filePath.ttl',
     externWebId = externWebId,
   );
 
@@ -399,7 +403,7 @@ Stream<List<int>> fetch({
           ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl, isFile: false) !=
           ResourceStatus.exist) {
-    throw Exception('Failed to get the requested file "$remoteFileName');
+    throw Exception('Failed to get the requested file "$remoteFilePath');
   }
 
   // Parse the Turtle file with metadata of the (chunked) large file
@@ -407,7 +411,7 @@ Stream<List<int>> fetch({
 
   String content;
   if (externWebId == null) {
-    content = await readPod(fileUrl);
+    content = await readPod(fileUrl, pathType: PathType.absoluteUrl);
   } else {
     content = await readExternalPod(fileUrl);
   }
@@ -431,13 +435,13 @@ Stream<List<int>> fetch({
 
   if (map!.containsKey(keyPred)) {
     assert(map.containsKey(ivPred));
-    encrypter = _getEncrypter(Key.fromBase64(map[keyPred]!.first as String));
-    iv = IV.fromBase64(map[ivPred]!.first as String);
+    encrypter = _getEncrypter(Key.fromBase64(map[keyPred] as String));
+    iv = IV.fromBase64(map[ivPred] as String);
   }
 
   // Get the individual chunks, combine them, and save combined to file
 
-  final totalBytes = int.parse(map[sizePred]!.first as String);
+  final totalBytes = int.parse(map[sizePred] as String);
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
   for (final url in chunkUrls!) {
