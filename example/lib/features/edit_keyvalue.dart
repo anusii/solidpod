@@ -175,21 +175,24 @@ class _KeyValueEditState extends State<KeyValueEdit> {
 
         // Generate TTL str with dataMap
         final ttlStr = await genTTLStr(pairs!);
-        if (context.mounted) {
-          try {
-            await writePod(widget.fileName, ttlStr,
-                encrypted: widget.encrypted);
 
-            await _alert('Successfully saved ${dataMap.length} key-value pairs'
-                ' to "${widget.fileName}" in PODs');
-            return true;
-          } on Object catch (e, trace) {
-            debugPrint(e.toString());
-            debugPrint(trace.toString());
+        try {
+          await writePod(
+            widget.fileName,
+            ttlStr,
+            encrypted: widget.encrypted,
+            overwrite: true,
+          );
 
-            await _alert('Something went wrong. Please try again!');
-            return false;
-          }
+          await _alert('Successfully saved ${dataMap.length} key-value pairs'
+              ' to "${widget.fileName}" in PODs');
+          return true;
+        } on Object catch (e, trace) {
+          debugPrint(e.toString());
+          debugPrint(trace.toString());
+
+          await _alert('Something went wrong. Please try again!');
+          return false;
         }
       }
     } on Exception catch (e) {
