@@ -24,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen
+/// Authors: Dawei Chen, Anushka Vidanage
 
 library;
 
@@ -60,15 +60,11 @@ import 'package:solidpod/src/solid/write_pod.dart' show writePod;
 Future<void> readLargeFile({
   required String remoteFileName,
   required String localFilePath,
-  required BuildContext context,
-  required Widget child,
   String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
     remoteFileName: remoteFileName,
-    context: context,
-    child: child,
     ownerWebId: ownerWebId,
     onProgress: onProgress,
   );
@@ -84,15 +80,11 @@ Future<void> readLargeFile({
 /// [remoteFileName] and return it as bytes.
 Future<Uint8List> readLargeFileAsBytes({
   required String remoteFileName,
-  required BuildContext context,
-  required Widget child,
   String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
     remoteFileName: remoteFileName,
-    context: context,
-    child: child,
     ownerWebId: ownerWebId,
     onProgress: onProgress,
   );
@@ -111,8 +103,6 @@ Future<Uint8List> readLargeFileAsBytes({
 Future<void> writeLargeFile({
   required String localFilePath,
   required String remoteFileName,
-  required BuildContext context,
-  required Widget child,
   String? inheritKeyFrom,
   bool createAcl = true,
   void Function(int, int)? onProgress,
@@ -123,8 +113,6 @@ Future<void> writeLargeFile({
   await send(
     dataStream: file.openRead(),
     remoteFileName: remoteFileName,
-    context: context,
-    child: child,
     totalBytes: totalBytes,
     inheritKeyFrom: inheritKeyFrom,
     createAcl: createAcl,
@@ -141,8 +129,6 @@ Future<void> writeLargeFile({
 /// [remoteFileName] in POD
 Future<void> deleteLargeFile({
   required String remoteFileName,
-  required BuildContext context,
-  required Widget child,
   void Function(int, int)? onProgress,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
@@ -161,8 +147,6 @@ Future<void> deleteLargeFile({
 
   // Parse the Turtle file with metadata of the (chunked) large file
   // on server to get the URLs of individual chunks
-
-  if (!context.mounted) return;
 
   final triples = turtleToTripleMap(
     await readPod('$remoteFilePath.ttl'),
@@ -272,8 +256,6 @@ Uint8List _decryptBytes(Uint8List encData, Encrypter encrypter, IV iv) =>
 Future<void> send({
   required Stream<List<int>> dataStream,
   required String remoteFileName,
-  required BuildContext context,
-  required Widget child,
   int? totalBytes,
   String? inheritKeyFrom,
   bool createAcl = true,
@@ -377,8 +359,6 @@ Future<void> send({
     'c': Namespace(ns: chunkDirUrl),
   };
 
-  if (!context.mounted) return;
-
   await writePod(
     '$remoteFileName.ttl',
     tripleMapToTurtle(triples, bindNamespaces: bindNS),
@@ -392,8 +372,6 @@ Future<void> send({
 /// [remoteFileName] and return a stream of bytes.
 Stream<List<int>> fetch({
   required String remoteFileName,
-  required BuildContext context,
-  required Widget child,
   String? ownerWebId,
   void Function(int, int)? onProgress,
 }) async* {
