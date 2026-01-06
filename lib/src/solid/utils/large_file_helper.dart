@@ -140,10 +140,6 @@ Future<void> deleteLargeFile({
   final chunkDirUrl = await getDirUrl(_getChunkDirPath(filePath));
   final fileUrl = await getFileUrl('$filePath.ttl');
 
-  print(remoteFilePath);
-  print(chunkDirUrl);
-  print(fileUrl);
-
   if (await checkResourceStatus(fileUrl, isFile: true) !=
           ResourceStatus.exist &&
       await checkResourceStatus(chunkDirUrl, isFile: false) !=
