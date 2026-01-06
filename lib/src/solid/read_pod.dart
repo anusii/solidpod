@@ -70,6 +70,8 @@ Future<String> readPod(
     pathType: pathType,
   );
 
+  debugPrint('readPod: fileUrl=$fileUrl');
+
   final fileStatus = await checkResourceStatus(fileUrl);
 
   if (fileStatus != ResourceStatus.exist) {
@@ -92,6 +94,8 @@ Future<String> readPod(
       await getResource(fileUrl),
     );
 
+    // Return raw content for non-turtle files
+
     if (!fileUrl.toLowerCase().endsWith('.ttl')) {
       return fileContent;
     }
@@ -99,7 +103,13 @@ Future<String> readPod(
     // Parse raw content if its turtle
 
     final tripleMap = turtleToTripleMap(fileContent);
-    assert(tripleMap.containsKey(fileUrl));
+
+    // Return raw content for turtle files that are not
+    // encrypted by solidpod
+
+    if (!tripleMap.containsKey(fileUrl)) {
+      return fileContent;
+    }
 
     final map = tripleMap[fileUrl]!;
     String? ivStr = map[getPredicateUrl(ivPred)];
@@ -107,7 +117,7 @@ Future<String> readPod(
 
     // Plaintext turtle
 
-    if (ivStr == null && encDataStr == null) {
+    if (ivStr == null || encDataStr == null) {
       return fileContent;
     }
 
@@ -118,12 +128,10 @@ Future<String> readPod(
       inheritKeyFrom: map[getPredicateUrl(inheritKeyPred)],
     );
 
-    assert(ivStr != null && encDataStr != null);
-
     // Return (decrypted) text
 
     return encKey != null
-        ? decryptData(encDataStr!, encKey, IV.fromBase64(ivStr!))
+        ? decryptData(encDataStr, encKey, IV.fromBase64(ivStr))
         : fileContent;
   } on Object catch (e, trace) {
     debugPrint(e.toString());
