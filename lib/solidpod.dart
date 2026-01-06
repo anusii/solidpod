@@ -116,7 +116,6 @@ export 'src/solid/utils/misc.dart'
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
-        readEncryptionKeyContent,
         logoutPod,
         setAppDirName,
         generateDefaultFolders,
@@ -172,6 +171,7 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        getResource,
         getResourcesInContainer,
         initialStructureTest,
         updateFileByQuery;
