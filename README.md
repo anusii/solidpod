@@ -239,8 +239,7 @@ final fileContent = await readPod(
 
 ### Write to Pod File Example
 
-Write data to the file `myfiles/my-data-file.ttl` and return to the
-widget `ReturnPage()`.
+Write data to the file `myfiles/my-data-file.ttl`.
 
 ```dart
 // Turtle string to be written to the file
@@ -252,8 +251,6 @@ final turtleString =
 await writePod(
  'myfiles/my-data-file.ttl',
  turtleString,
- context,
- ReturnPage(),
  encrypted: false // non-required parameter. By default set to true
 );
 ```
@@ -274,8 +271,6 @@ final childDataString = '<Sample TTL Data>';
 await writePod(
  'parentDir/child-1.ttl',
  childDataString,
- context,
- ReturnPage(),
  createAcl: false,
  inheritKeyFrom: 'parentDir/',
 );
@@ -283,8 +278,6 @@ await writePod(
 await writePod(
  'parentDir/child-2.ttl',
  childDataString,
- context,
- ReturnPage(),
  createAcl: false,
  inheritKeyFrom: 'parentDir/',
 );
@@ -398,11 +391,9 @@ To upload a large file in application `myapp`, use:
 ```dart
 await writeLargeFile(
      // Name of the file in POD
-     remoteFileName: 'my-large-file.bin',
+     remoteFilePath: 'my-large-file.bin',
      // Path of the file where it is locally stored
      localFilePath: 'D:/my-large-file.bin',
-     context: context,
-     child: ReturnPage(),
 )
 ```
 
@@ -413,11 +404,9 @@ To download a large file use:
 ```dart
 await readLargeFile(
      // Name of the file in POD
-     remoteFileName: 'my-large-file.bin',
+     remoteFilePath: 'my-large-file.bin',
      // Path of the file where it will be locally downloaded
      localFilePath: 'D:/my-large-file.bin',
-     context: context,
-     child: ReturnPage(),
 )
 ```
 
@@ -426,9 +415,7 @@ To delete a large file use:
 ```dart
 await deleteLargeFile(
      // Name of the file in POD
-     remoteFileName: 'my-large-file.bin',
-     context: context,
-     child: ReturnPage(),
+     remoteFilePath: 'my-large-file.bin',
 )
 ```
 
