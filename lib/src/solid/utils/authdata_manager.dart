@@ -203,6 +203,7 @@ class AuthDataManager {
             genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
         tokenResponse = await _authResponse!
             .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+        // TODO dc 20250106: Save refreshed token in secure storage
       }
       return tokenResponse;
     } on Object catch (e) {
