@@ -89,6 +89,14 @@ Map<dynamic, dynamic> getEncFileContent(String fileInfo) {
 /// [accessToken] (used for authorization), and [dPopToken] (another form
 /// of token used in headers for enhanced security).
 
+// dc 20260106: Use `readPod()` instead of the low-level function
+// `fetchPrvFile()`. If it has to be used, please consider the code below.
+// ```
+// final fileContent = utf8.decode(
+//   await getResource(fileUrl),
+// );
+// ```
+
 // Future<String> fetchPrvFile(String prvFileUrl) async {
 //   final (:accessToken, :dPopToken) =
 //       await getTokensForResource(prvFileUrl, 'GET');
