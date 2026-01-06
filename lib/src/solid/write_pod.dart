@@ -60,14 +60,13 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// - [encrypted]: Whether to encrypt the file content (default: true)
 /// - [createAcl]: Whether to create a separate acl for the resource (default: true)
 /// - [overwrite]: Whether to overwrite the content of an existing file (default: true)
-/// - [pathType]: Optional type of file path (for both [filePath] and [inheritKeyFrom])
+/// - [pathType]: Optional type of relative path (for both [filePath] and [inheritKeyFrom])
 ///     to override the default (relative to `appname/data` directory)
 /// - [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
-///     be inherited from. If this is set
+///     be inherited from. If this is set, then
 ///     1. a single encryption key associated with the given directory is used to
 ///        encrypt the resource.
 ///     2. [fileContent] will be encrypted regardless of [encrypted] is True or False.
-///     3. [inheritKeyFrom] is assumed to be a path relative to appname/data/
 
 Future<void> writePod(
   String filePath,
@@ -96,6 +95,14 @@ Future<void> writePod(
   }
 
   Key? encKey;
+  String? inheritKeyUrl;
+  if (inheritKeyFrom != null) {
+    inheritKeyUrl = await generateResourceUrlFromPath(
+      resourcePath: inheritKeyFrom,
+      pathType: pathType,
+      isFile: false,
+    );
+  }
 
   if (encrypted || inheritKeyFrom != null) {
     if (!fileUrl.endsWith('.ttl')) {
@@ -103,7 +110,7 @@ Future<void> writePod(
           'but the extension of provided filename "$filePath" is not ".ttl"');
     }
 
-    encKey = await configureEncKey(fileUrl, inheritKeyFrom);
+    encKey = await configureEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
   }
 
   switch (await checkResourceStatus(fileUrl)) {
@@ -111,8 +118,10 @@ Future<void> writePod(
       if (overwrite) {
         debugPrint('WARNING: Overwrite existing file "$filePath"');
       } else {
-        throw Exception('File "$filePath" already exists and '
-            'overwrite=$overwrite, writePod() aborted');
+        throw Exception(
+          'File "$filePath" already exists and '
+          'overwrite=$overwrite, writePod() aborted',
+        );
       }
 
     case ResourceStatus.unknown:
@@ -133,13 +142,13 @@ Future<void> writePod(
   final content = encKey == null
       ? fileContent
       : await getEncTTLStr(
-          [await getDataDirPath(), filePath].join('/'),
+          await extractResourcePathFromUrl(fileUrl),
           fileContent,
           encKey,
           genRandIV(),
           inheritKeyFrom: inheritKeyFrom == null
               ? null
-              : [await getDataDirPath(), inheritKeyFrom].join('/'),
+              : await extractResourcePathFromUrl(inheritKeyUrl!),
         );
 
   // Create file on server

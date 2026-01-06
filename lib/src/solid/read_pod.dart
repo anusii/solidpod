@@ -55,7 +55,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 ///
 /// Arguments:
 /// - [filePath]: The path to the file to read
-/// - [pathType]: Optional type of file path to override the default (relative to `appname/data` directory)
+/// - [pathType]: Optional type of relative file path to override the default (relative to `appname/data` directory)
 
 Future<String> readPod(
   String filePath, {
@@ -114,6 +114,7 @@ Future<String> readPod(
     final map = tripleMap[fileUrl]!;
     String? ivStr = map[getPredicateUrl(ivPred)];
     String? encDataStr = map[getPredicateUrl(encDataPred)];
+    String? inheritKeyPath = map[getPredicateUrl(inheritKeyPred)];
 
     // Plaintext turtle
 
@@ -123,10 +124,16 @@ Future<String> readPod(
 
     // Retrieve encryption key if available
 
-    Key? encKey = await retrieveEncKey(
-      fileUrl,
-      inheritKeyFrom: map[getPredicateUrl(inheritKeyPred)],
-    );
+    String? inheritKeyUrl;
+    if (inheritKeyPath != null) {
+      inheritKeyUrl = await generateResourceUrlFromPath(
+        resourcePath: inheritKeyPath,
+        pathType: PathType.relativeToPod,
+        webId: await generateWebIdFromResourceUrl(fileUrl),
+      );
+    }
+
+    final encKey = await retrieveEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
 
     // Return (decrypted) text
 
