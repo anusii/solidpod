@@ -59,7 +59,7 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// - [fileContent]: The content to write to the file
 /// - [encrypted]: Whether to encrypt the file content (default: true)
 /// - [createAcl]: Whether to create a separate acl for the resource (default: true)
-/// - [overwrite]: Whether to overwrite the content of an existing file (default: true)
+/// - [overwrite]: Whether to overwrite the content of an existing file (default: false)
 /// - [pathType]: Optional type of relative path (for both [filePath] and [inheritKeyFrom])
 ///     to override the default (relative to `appname/data` directory)
 /// - [inheritKeyFrom] - Optional parameter to set a parent directory for the key to
