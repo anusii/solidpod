@@ -157,22 +157,25 @@ String getUniqueIdResUrl(String resourceUrl, String receiverWebId) {
 }
 
 /// From a given resource path [resourcePath] create its URL
-/// [isContainer] should be true if the resource is a directory, otherwise false
+/// [resourcePath] should be relative to the POD, e.g., `myapp/data/abc.ttl`.
+/// [isFile] should be true if the resource is a file, otherwise false if it
+/// is a directory.
+/// [webId] (optionally) specifies the resource's POD (could be external).
 /// returns the full resource URL
 
 Future<String> _getResourceUrl(
-  String resourcePath,
-  bool isContainer, [
-  String? extWebId,
-]) async {
-  // Check if resource url is needed for an external webId
-  final webId = extWebId ?? await AuthDataManager.getWebId();
-  assert(webId != null);
-  assert(webId!.contains(profCard));
+  String resourcePath, {
+  required bool isFile,
+  String? webId,
+}) async {
+  final wId = webId ?? await AuthDataManager.getWebId();
 
-  final resourceUrl = webId!.replaceAll(profCard, resourcePath);
+  assert(wId != null);
+  assert(wId!.contains(profCard));
 
-  if (isContainer && !resourceUrl.endsWith('/')) {
+  final resourceUrl = wId!.replaceAll(profCard, resourcePath);
+
+  if (!isFile && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
   }
 
@@ -180,12 +183,12 @@ Future<String> _getResourceUrl(
 }
 
 /// Create the URL for a file
-Future<String> getFileUrl(String filePath, [String? extWebId]) async =>
-    await _getResourceUrl(filePath, false, extWebId);
+Future<String> getFileUrl(String filePath, {String? webId}) async =>
+    await _getResourceUrl(filePath, isFile: true, webId: webId);
 
 /// Create the URL for a directory (container)
-Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
-    await _getResourceUrl(dirPath, true, extWebId);
+Future<String> getDirUrl(String dirPath, {String? webId}) async =>
+    await _getResourceUrl(dirPath, isFile: false, webId: webId);
 
 /// Get resource Url from a filename, with different options for how
 /// the filename is provided. If [isExternalRes] or [isFileUrl] is
@@ -266,7 +269,7 @@ Future<String> getEncTTLStr(
   String? inheritKeyFrom,
 }) async {
   final triples = {
-    URIRef(await getFileUrl(filePath, extWebId)): {
+    URIRef(await getFileUrl(filePath, webId: extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
       if (inheritKeyFrom != null)
@@ -795,19 +798,30 @@ Future<String> generateResourceUrlFromPath({
   required String resourcePath,
   required PathType pathType,
   bool isFile = true,
+  String? webId,
 }) async {
   final func = isFile ? getFileUrl : getDirUrl;
   switch (pathType) {
     case PathType.absoluteUrl:
       return resourcePath;
+
     case PathType.relativeToPod:
-      return await func(resourcePath);
+      return await func(
+        resourcePath,
+        webId: webId,
+      );
 
     case PathType.relativeToApp:
-      return await func([appDirName, resourcePath].join('/'));
+      return await func(
+        [appDirName, resourcePath].join('/'),
+        webId: webId,
+      );
 
     case PathType.relativeToData:
-      return await func([await getDataDirPath(), resourcePath].join('/'));
+      return await func(
+        [await getDataDirPath(), resourcePath].join('/'),
+        webId: webId,
+      );
   }
 }
 

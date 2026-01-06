@@ -392,12 +392,12 @@ Stream<List<int>> fetch({
   final filePath = [await getDataDirPath(), remoteFilePath].join('/');
   final chunkDirUrl = await getDirUrl(
     _getChunkDirPath(filePath),
-    externWebId = externWebId,
+    webId: externWebId,
   );
 
   final fileUrl = await getFileUrl(
     '$filePath.ttl',
-    externWebId = externWebId,
+    webId: externWebId,
   );
 
   debugPrint('fileUrl: $fileUrl');

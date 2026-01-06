@@ -211,7 +211,8 @@ Future<SolidFunctionCallStatus> grantPermission({
             final logFilePath = await getPermLogFilePath();
 
             // Owner
-            final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
+            final ownerLogFileUrl =
+                await getFileUrl(logFilePath, webId: ownerWebId);
 
             // Granter
             final granterLogFileUrl = await getFileUrl(logFilePath);
@@ -235,7 +236,7 @@ Future<SolidFunctionCallStatus> grantPermission({
             if ([RecipientType.individual, RecipientType.group]
                 .contains(recipientType)) {
               final receiverLogFileUrl =
-                  await getFileUrl(logFilePath, recipientWebId);
+                  await getFileUrl(logFilePath, webId: recipientWebId);
 
               await addPermLogLine(
                 logFileUrl: receiverLogFileUrl,
