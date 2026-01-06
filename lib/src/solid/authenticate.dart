@@ -32,6 +32,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:solid_auth/solid_auth.dart';
@@ -90,7 +92,9 @@ Future<List<dynamic>?> solidAuthenticate(
       assert(webId != null);
 
       final profCardUrl = webId!.replaceAll('#me', '');
-      final profData = await fetchPrvFile(profCardUrl);
+      final profData = utf8.decode(
+        await getResource(profCardUrl),
+      );
 
       return [authData, webId, profData];
     } else {

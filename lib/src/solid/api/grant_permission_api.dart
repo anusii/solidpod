@@ -32,6 +32,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:rdflib/rdflib.dart';
 
@@ -202,7 +204,10 @@ Future<void> copySharedKey(
   } else {
     /// Update the file
     /// First check if the file already contain the same value
-    final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
+    final keyFileContent = utf8.decode(
+      await getResource(receiverSharedKeyFileUrl),
+    );
+
     final keyFileDataMap = getEncFileContent(keyFileContent);
 
     /// Define query parameters

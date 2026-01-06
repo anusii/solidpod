@@ -89,30 +89,30 @@ Map<dynamic, dynamic> getEncFileContent(String fileInfo) {
 /// [accessToken] (used for authorization), and [dPopToken] (another form
 /// of token used in headers for enhanced security).
 
-Future<String> fetchPrvFile(String prvFileUrl) async {
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(prvFileUrl, 'GET');
-  final profResponse = await http.get(
-    Uri.parse(prvFileUrl),
-    headers: <String, String>{
-      'Accept': '*/*',
-      'Authorization': 'DPoP $accessToken',
-      'Connection': 'keep-alive',
-      'DPoP': dPopToken,
-    },
-  );
+// Future<String> fetchPrvFile(String prvFileUrl) async {
+//   final (:accessToken, :dPopToken) =
+//       await getTokensForResource(prvFileUrl, 'GET');
+//   final profResponse = await http.get(
+//     Uri.parse(prvFileUrl),
+//     headers: <String, String>{
+//       'Accept': '*/*',
+//       'Authorization': 'DPoP $accessToken',
+//       'Connection': 'keep-alive',
+//       'DPoP': dPopToken,
+//     },
+//   );
 
-  if (profResponse.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    // return profResponse.bodyBytes;
-    return profResponse.body;
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to load profile data! Try again in a while.');
-  }
-}
+//   if (profResponse.statusCode == 200) {
+//     // If the server did return a 200 OK response,
+//     // then parse the JSON.
+//     // return profResponse.bodyBytes;
+//     return profResponse.body;
+//   } else {
+//     // If the server did not return a 200 OK response,
+//     // then throw an exception.
+//     throw Exception('Failed to load profile data! Try again in a while.');
+//   }
+// }
 
 /// Tests the initial structure of a user's resources in a Solid Pod by checking the existence of specified folders and files.
 ///
