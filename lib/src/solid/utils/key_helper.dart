@@ -195,6 +195,14 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
 ) async {
   final sharedIndKeyUrl = await getFileUrl(await getSharedKeyFilePath());
   final sharedIndKeyMap = <String, SharedIndKeyRecord>{};
+
+  // dc 20250105: It seems shared/shared-key.ttl is not created during
+  // POD initialisation, see `generateDefaultFiles()`. Why?
+
+  if (await checkResourceStatus(sharedIndKeyUrl) != ResourceStatus.exist) {
+    return sharedIndKeyMap;
+  }
+
   Encrypter? encrypter;
 
   final tripleMap = turtleToTripleMap(
