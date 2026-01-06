@@ -119,20 +119,24 @@ String decryptData(
 /// making it suitable for accessing files outside the appname/data directory.
 ///
 /// Returns the raw TTL content of the encryption key file.
-Future<String> readEncryptionKeyContent() async {
-  final encKeyPath = await getEncKeyPath();
-  final encKeyUrl = await getFileUrl(encKeyPath);
+// Future<String> readEncryptionKeyContent() async {
+//   final encKeyPath = await getEncKeyPath();
+//   final encKeyUrl = await getFileUrl(encKeyPath);
 
-  try {
-    if (await checkResourceStatus(encKeyUrl) == ResourceStatus.exist) {
-      return await fetchPrvFile(encKeyUrl);
-    } else {
-      throw Exception('Encryption key file does not exist at: $encKeyPath');
-    }
-  } on Exception catch (e) {
-    throw Exception('Failed to read encryption key file: $e');
-  }
-}
+//   try {
+//     if (await checkResourceStatus(encKeyUrl) == ResourceStatus.exist) {
+//       return utf8.decode(
+//         await getResource(encKeyUrl),
+//       );
+
+//       return await fetchPrvFile(encKeyUrl);
+//     } else {
+//       throw Exception('Encryption key file does not exist at: $encKeyPath');
+//     }
+//   } on Exception catch (e) {
+//     throw Exception('Failed to read encryption key file: $e');
+//   }
+// }
 
 /// Generates a public key block from a given key content.
 String genPubKeyStr(String pubKeyContent) =>
