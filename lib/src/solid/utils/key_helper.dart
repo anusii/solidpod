@@ -164,7 +164,6 @@ Future<String> readPubKeyFile() async {
   final pubKeyUrl = await getFileUrl(await getPubKeyPath());
 
   // Get and parse the pubKeyFile
-  // final map = await loadPrvTTL(pubKeyUrl);
 
   final tripleMap = turtleToTripleMap(
     utf8.decode(
@@ -489,7 +488,6 @@ class RecipientPubKey {
         recipientWebId.replaceAll(profCard, await getPubKeyPath());
 
     // Get and parse the pubKeyFile
-    //final map = await loadPrvTTL(recipientPubKeyUrl);
 
     final tripleMap = turtleToTripleMap(
       utf8.decode(
