@@ -245,11 +245,8 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   onPressed: () async {
                                     final filePath =
                                         '${widget.folderPath}$item';
-                                    final fileContent = await readExternalPod(
-                                      filePath,
-                                      context,
-                                      widget.child,
-                                    );
+                                    final fileContent =
+                                        await readExternalPod(filePath);
 
                                     final TextEditingController editController =
                                         TextEditingController(
@@ -298,27 +295,25 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                                     editController.text;
                                                 // Check if the content has changed
                                                 if (newContent != fileContent) {
-                                                  final writeFileStatus =
-                                                      await writeExternalPod(
-                                                    filePath,
-                                                    newContent,
-                                                    widget.ownerWebId,
-                                                    context,
-                                                    widget.child,
-                                                  );
+                                                  try {
+                                                    await writeExternalPod(
+                                                      filePath,
+                                                      newContent,
+                                                      widget.ownerWebId,
+                                                    );
 
-                                                  if (writeFileStatus ==
-                                                      SolidFunctionCallStatus
-                                                          .success) {
                                                     if (!context.mounted) {
                                                       return;
                                                     }
+
                                                     showSnackBar(
                                                       context,
                                                       'Changes saved successfully!',
                                                       Colors.green,
                                                     );
-                                                  } else {
+                                                  } on Object catch (e, trace) {
+                                                    debugPrint('$e');
+                                                    debugPrint('$trace');
                                                     if (!context.mounted) {
                                                       return;
                                                     }
@@ -329,9 +324,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                                     );
                                                   }
                                                 } else {
-                                                  if (!context.mounted) {
-                                                    return;
-                                                  }
+                                                  if (!context.mounted) return;
                                                   showSnackBar(
                                                     context,
                                                     'Content has not changed',
@@ -374,11 +367,8 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                               );
                             } else {
                               final filePath = '${widget.folderPath}$item';
-                              final fileContent = await readExternalPod(
-                                filePath,
-                                context,
-                                widget.child,
-                              );
+                              final fileContent =
+                                  await readExternalPod(filePath);
 
                               if (fileContent != null &&
                                   fileContent !=

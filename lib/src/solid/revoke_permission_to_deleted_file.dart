@@ -116,7 +116,8 @@ Future<SolidFunctionCallStatus> revokePermissionToDelFile({
 
     // Add log entry to recipient's log
     if (await checkPodInitialised(removerWebId)) {
-      final receiverLogFileUrl = await getFileUrl(logFilePath, removerWebId);
+      final receiverLogFileUrl =
+          await getFileUrl(logFilePath, webId: removerWebId);
       await addPermLogLine(
         logFileUrl: receiverLogFileUrl,
         logEntry: logEntryRes,

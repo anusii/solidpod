@@ -25,43 +25,37 @@ library;
 
 import 'package:flutter/foundation.dart' show debugPrint;
 
+import 'package:encrypter_plus/encrypter_plus.dart' show Key;
+
 import 'package:solidpod/src/solid/api/rest_api.dart'
     show checkResourceStatus, createResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show inheritKeyPred, ResourceContentType, ResourceStatus;
-import 'package:solidpod/src/solid/constants/path_type.dart';
-import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
-    show genRandIndividualKey;
+    show genRandIndividualKey, getPredicateUrl;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show extractResourcePathFromUrl, generateResourceUrlFromPath;
+    show extractResourcePathFromUrl;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
-import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
+import 'package:solidpod/src/solid/utils/rdf.dart' show turtleToTripleMap;
 
 /// Returns true if there is an individual key for a given resource
 bool hasInheritedKey(String fileContent, String fileUrl) {
-  final dataMap = parseTTLMap(fileContent);
-  return dataMap.containsKey(fileUrl) &&
-      dataMap[fileUrl].containsKey('$appsTerms$inheritKeyPred');
+  final map = turtleToTripleMap(fileContent);
+  return map.containsKey(fileUrl) &&
+      map[fileUrl]!.containsKey(getPredicateUrl(inheritKeyPred));
 }
 
 /// Set a key for a given directory so that key can be used to encrypt multiple
 /// resources within the directory. Takes two input parameters
-///   [dirPath] - unnormalised path for the directory
+///   [dirUrl] - URL of the directory
 ///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
 /// Directory will be created if not exist
 Future<void> setInheritKeyDir(
-  String dirPath, {
+  String dirUrl, {
   bool createAcl = true,
-  PathType pathType = PathType.relativeToData,
 }) async {
-  final dirUrl = await generateResourceUrlFromPath(
-    resourcePath: dirPath,
-    pathType: pathType,
-    isFile: false,
-  );
-
   if (await checkResourceStatus(dirUrl, isFile: false) ==
       ResourceStatus.notExist) {
     // Create the directory
@@ -103,4 +97,72 @@ Future<void> setInheritKeyDir(
       isFile: false,
     );
   }
+}
+
+/// Retrieve the encryption key of a (shared) resource
+
+Future<Key?> retrieveEncKey(
+  String resourceUrl, {
+  String? inheritKeyUrl,
+}) async {
+  final keyUrl = inheritKeyUrl ?? resourceUrl;
+
+  if (await KeyManager.hasIndividualKey(keyUrl)) {
+    return await KeyManager.getIndividualKey(keyUrl);
+  }
+
+  if (await KeyManager.hasSharedIndividualKey(keyUrl)) {
+    return await KeyManager.getSharedIndividualKey(keyUrl);
+  }
+
+  return null;
+}
+
+/// Configure / set-up the encryption key for a file with URL [fileUrl].
+/// If the encryption key is inherited (as specified by [inheritKeyUrl])
+/// then check whether the corresponding directory exists, and create it
+/// if not.
+
+Future<Key> configureEncKey(
+  String fileUrl, {
+  String? inheritKeyUrl,
+}) async {
+  if (inheritKeyUrl == null) {
+    if (!await KeyManager.hasIndividualKey(fileUrl)) {
+      await KeyManager.addIndividualKey(fileUrl, genRandIndividualKey());
+    }
+    return KeyManager.getIndividualKey(fileUrl);
+  }
+
+  switch (await checkResourceStatus(inheritKeyUrl, isFile: false)) {
+    case ResourceStatus.notExist:
+      debugPrint('WARNING: Directory $inheritKeyUrl does not exist. '
+          'Creating the directory and corresponding acl file, '
+          'and setting up a new key for the directory');
+      // Create directory and set a new key for the directory
+      await setInheritKeyDir(inheritKeyUrl);
+
+    case ResourceStatus.exist:
+      if (!await KeyManager.hasIndividualKey(inheritKeyUrl)) {
+        debugPrint('WARNING: Directory $inheritKeyUrl does not have a key. '
+            'Setting up a new key for the directory');
+        // Generate a new key for the directory
+        await setInheritKeyDir(inheritKeyUrl, createAcl: false);
+      }
+      debugPrint(
+        'Directory "$inheritKeyUrl" and key exists. Continuing the process...',
+      );
+
+    case ResourceStatus.unknown:
+      throw Exception(
+        'Unable to determine if directory "$inheritKeyUrl" exists, writePod() aborted',
+      );
+    case ResourceStatus.forbidden:
+      throw AccessForbiddenException(
+        'Access to directory "$inheritKeyUrl" is forbidden, writePod() aborted',
+      );
+  }
+
+  assert(await KeyManager.hasIndividualKey(inheritKeyUrl));
+  return KeyManager.getIndividualKey(inheritKeyUrl);
 }

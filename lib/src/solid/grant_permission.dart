@@ -79,7 +79,7 @@ Future<SolidFunctionCallStatus> grantPermission({
 }) async {
   if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
-  if (!await checkLoggedIn()) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to grant permissions. '
       'Please authenticate before calling grantPermission().',
@@ -211,7 +211,8 @@ Future<SolidFunctionCallStatus> grantPermission({
             final logFilePath = await getPermLogFilePath();
 
             // Owner
-            final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
+            final ownerLogFileUrl =
+                await getFileUrl(logFilePath, webId: ownerWebId);
 
             // Granter
             final granterLogFileUrl = await getFileUrl(logFilePath);
@@ -235,7 +236,7 @@ Future<SolidFunctionCallStatus> grantPermission({
             if ([RecipientType.individual, RecipientType.group]
                 .contains(recipientType)) {
               final receiverLogFileUrl =
-                  await getFileUrl(logFilePath, recipientWebId);
+                  await getFileUrl(logFilePath, webId: recipientWebId);
 
               await addPermLogLine(
                 logFileUrl: receiverLogFileUrl,

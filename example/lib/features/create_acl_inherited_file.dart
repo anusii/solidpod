@@ -25,8 +25,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/solidpod.dart'
-    show SolidFunctionCallStatus, writePod, setInheritKeyDir;
+import 'package:solidpod/solidpod.dart' show writePod, setInheritKeyDir;
 
 import 'package:demopod/constants/app.dart';
 
@@ -72,27 +71,29 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
       final demoTtlContent = createDemoTtlStr(resourcePath);
       final messenger = ScaffoldMessenger.of(context);
 
-      SolidFunctionCallStatus result;
-      if (_isEncrypted) {
-        if (!context.mounted) return;
-        result = await writePod(resourcePath, demoTtlContent, context, widget,
-            encrypted: _isEncrypted,
-            createAcl: false,
-            inheritKeyFrom: parentDirectory);
-      } else {
-        // First check and create the corresponding directory
-        await setInheritKeyDir(parentDirectory);
-        if (!context.mounted) return;
-        // ignore: use_build_context_synchronously
-        result = await writePod(resourcePath, demoTtlContent, context, widget,
-            encrypted: _isEncrypted, createAcl: false);
-      }
+      try {
+        if (_isEncrypted) {
+          if (!context.mounted) return;
+          await writePod(resourcePath, demoTtlContent,
+              encrypted: _isEncrypted,
+              createAcl: false,
+              inheritKeyFrom: parentDirectory);
+        } else {
+          // First check and create the corresponding directory
+          await setInheritKeyDir(parentDirectory);
+          if (!context.mounted) return;
+          // ignore: use_build_context_synchronously
+          await writePod(resourcePath, demoTtlContent,
+              encrypted: _isEncrypted, createAcl: false);
+        }
 
-      if (result == SolidFunctionCallStatus.success) {
         messenger.showSnackBar(
           const SnackBar(content: Text('Resource created successfully!')),
         );
-      } else {
+      } on Object catch (e, trace) {
+        debugPrint(e.toString());
+        debugPrint(trace.toString());
+
         messenger.showSnackBar(
           const SnackBar(
               content: Text('There was a problem creating resource! '

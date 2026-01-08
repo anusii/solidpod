@@ -59,7 +59,7 @@ Future<void> deleteDataFileDialog(
   BuildContext context, {
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
-  if (!await checkLoggedIn()) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to delete files. '
       'Please authenticate before calling this function.',

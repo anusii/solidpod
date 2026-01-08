@@ -163,9 +163,7 @@ class _FileServiceState extends State<FileService> {
 
                 await writeLargeFile(
                     localFilePath: uploadFile!,
-                    remoteFileName: getRemoteFileName(),
-                    context: context,
-                    child: widget.child,
+                    remoteFilePath: getRemoteFileName(),
                     inheritKeyFrom: keyPath,
                     createAcl: false,
                     onProgress: (sent, total) {
@@ -204,6 +202,7 @@ class _FileServiceState extends State<FileService> {
                 dialogTitle: 'Please set the output file:',
                 // fileName: 'download.bin',
               );
+
               if (outputFile == null) {
                 // User canceled the picker
                 debugPrint('Download is cancelled');
@@ -216,23 +215,21 @@ class _FileServiceState extends State<FileService> {
                   setState(() {
                     downloadInProgress = true;
                   });
-                  if (context.mounted) {
-                    await readLargeFile(
-                        remoteFileName: getRemoteFileName(),
-                        localFilePath: outputFile,
-                        context: context,
-                        child: widget.child,
-                        onProgress: (received, total) {
-                          setState(() {
-                            downloadDone = received == total;
-                            downloadPercent = received / total;
-                          });
+
+                  await readLargeFile(
+                      remoteFilePath: getRemoteFileName(),
+                      localFilePath: outputFile,
+                      onProgress: (received, total) {
+                        setState(() {
+                          downloadDone = received == total;
+                          downloadPercent = received / total;
                         });
-                    if (downloadDone) {
-                      setState(() {
-                        downloadInProgress = false;
                       });
-                    }
+
+                  if (downloadDone) {
+                    setState(() {
+                      downloadInProgress = false;
+                    });
                   }
                 } on Object catch (e) {
                   setState(() {
@@ -295,11 +292,9 @@ class _FileServiceState extends State<FileService> {
 
                   if (context.mounted) {
                     await readLargeFile(
-                        remoteFileName: fileName,
+                        remoteFilePath: fileName,
                         localFilePath: outputFile,
                         ownerWebId: ownerWebId,
-                        context: context,
-                        child: widget.child,
                         onProgress: (received, total) {
                           setState(() {
                             downloadSharedDone = received == total;
@@ -341,9 +336,7 @@ class _FileServiceState extends State<FileService> {
                   deleteInProgress = true;
                 });
                 await deleteLargeFile(
-                    remoteFileName: getRemoteFileName(),
-                    context: context,
-                    child: widget.child,
+                    remoteFilePath: getRemoteFileName(),
                     onProgress: (deleted, total) {
                       setState(() {
                         deleteDone = deleted == total;

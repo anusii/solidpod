@@ -52,7 +52,7 @@ Future<List<String>> getResources(
   BuildContext context,
   Widget child,
 ) async {
-  if (!await checkLoggedIn()) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to get resources. '
       'Please authenticate before calling getResources().',
