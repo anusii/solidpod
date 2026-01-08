@@ -15,7 +15,7 @@ dependencies:
   rdflib: ^0.2.12
   solidpod:
     path: ..
-  solidui: ^0.0.22
+  solidui: ^0.0.21
   universal_io: ^2.3.1
   window_manager: ^0.5.1
 
