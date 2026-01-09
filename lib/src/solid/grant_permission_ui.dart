@@ -272,7 +272,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       accessModeList.add(getAccessMode(accessModeStr));
     }
 
-    // Load recipient list to be displayed
+    // Load recipient type list to be displayed
     for (final recTypeStr in widget.recipientTypeList) {
       recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
     }
@@ -411,9 +411,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     final recipientButtonContainer = getButtonContainer(
       buttons: widget.isExternalRes
-          ? []
+          ? [
+              for (final rtype in granterRecipientTypes)
+                if (recipientTypeList.contains(rtype))
+                  getRecipientTypeButton(
+                    rtype,
+                    onPressed: recipientTypeActions[rtype]!,
+                    padding: getPadding(rtype),
+                  ),
+            ]
           : [
-              for (final rtype in relevantRecipientTypes)
+              for (final rtype in ownerRecipientTypes)
                 if (recipientTypeList.contains(rtype))
                   getRecipientTypeButton(
                     rtype,
