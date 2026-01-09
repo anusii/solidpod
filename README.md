@@ -308,7 +308,7 @@ ElevatedButton(
 )
 ```
 
-To add/delete permissions to a specific file use:
+To add/delete permissions of a recipient to a specific user owned file use:
 
 ```dart
 ElevatedButton(
@@ -318,7 +318,7 @@ ElevatedButton(
  context,
  MaterialPageRoute(
   builder: (context) => const GrantPermissionUi(
-  fileName: 'my-data-file.ttl',
+  resourceName: 'my-data-file.ttl',
   child: ReturnPage(),
   ),
  ),
@@ -326,7 +326,7 @@ ElevatedButton(
 )
 ```
 
-To add/delete permissions to a specific directory use:
+To add/delete permissions of a recipient to a specific user owned directory use:
 
 ```dart
 ElevatedButton(
@@ -336,9 +336,30 @@ ElevatedButton(
  context,
  MaterialPageRoute(
   builder: (context) => const GrantPermissionUi(
-  fileName: 'parentDir/',
+  resourceName: 'parentDir/',
   child: ReturnPage(),
   isFile: false,
+  ),
+ ),
+ ),
+)
+```
+
+To add/delete permissions of a recipient to a specific externally owned
+file (that user has control access to) use:
+
+```dart
+ElevatedButton(
+ child: const Text(
+  'Add/Delete Permissions from a Specific File'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const GrantPermissionUi(
+  resourceName: 'my-data-file.ttl',
+  isExternalRes: true,
+  externalWebId: ownerWebId,
+  child: ReturnPage(),
   ),
  ),
  ),
