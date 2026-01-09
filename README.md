@@ -12,24 +12,33 @@
 
 # Solid Pod
 
-**An ANU Software Innovation Institute package for your Data Vault**.
+A package to support access to your Data Vault hosted on a Solid
+Server, implemented by the [ANU Software Innovation
+Institute](https://sii.anu.edu.au) supporting the [Australian Solid
+Community](https://solidcommunity.au).
 
-Time-stamp: <Tuesday 2025-07-22 21:12:19 +1000 Graham Williams>
+Authors: [Anushka Vidanage](https://github.com/anushkavidanage),
+[Graham Williams](https://github.com/gjwgit), [Jessica
+Moore](https://github.com/jesscmoore), [Dawei
+Chen](https://github.com/cdawei), [Kevin
+Wang](https://github.com/junhaow1), [Zheyuan
+Xu](https://github.com/zheyxu).
 
-Authors: Anushka Vidanage, Graham Williams, Jessica Moore
-
-[ANU Software Innovation Institute](https://sii.anu.edu.au)
-
-License: MIT
+Free (as in Libre) and Open Source Software License:
+[MIT](https://choosealicense.com/licenses/mit/)
 
 ## Introduction
 
-The SolidPod package provides functionality to manage a Solid
-personal online data stores (Pods) via a Flutter application.
-It supports high level access for an application to
-authenticate users to their Pods, access the users' data from
-their Pods, and then share the data stored in users' Pods with
-other Pods through Flutter Widgets.
+[SolidPod](https://pub.dev/packages/solidpod) provides functionality
+for dart applications to manage personal online data stores (Pods)
+hosted in a Data Vault on a [Solid
+Server](https://solidproject.org). The package provides underlying
+functionality relied upon by the
+[solidui](https://pub.dev/packages/solidui) package for quickly
+building Flutter-based applications.  It supports high level access
+for an application to authenticate users to their Pods, access the
+users' data from their Pods, and then share the data stored in users'
+Pods with other Pods through Flutter Widgets.
 
 ## What is Solid?
 
@@ -43,101 +52,23 @@ visit <https://solidcommunity.au>
 
 ## Features
 
-+ [SolidLogin](#login-example) widget supports authentication against a Solid server:
+- [Authenticate](#authenticate-example) a user against a given Solid server and [login](#login-example).
+- [Manage security key](#change-security-key-example) for data encryption.
+- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files
+in POD.
+- [View](#view-permission-ui-example) and [manage](#grant-permission-ui-example)
+file access permissions.
+- [Read, write and delete](#large-file-manager-example) large data files.
 
-Default style:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/solid_login.png"
- alt="Solid Login" width="400">
-</div>
-
-Optional version and visit link:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/podnotes_login.png"
- alt="Solid Login" width="400">
-</div>
-
-Changing the image, logo, login text, colour scheme:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/tomy_login.png"
- alt="KeyPod Login" width="400">
-</div>
-
-Change the image, logo, login text, button style, colour scheme:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/keypod_login.png"
- alt="KeyPod Login" width="400">
-</div>
-
-Fine tune to suit the theme of the app:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/innerpod_login.png"
- alt="KeyPod Login" width="400">
-</div>
-
-+ `SolidPopupLogin` widget supports authentication within an
-  application. The widget will trigger authentication if a user action
-  requires authenticated access.
-
-+ [changeKeyPopup](#change-security-key-example) widget supports
-  changing the security key (used to make your data private through
-  encryption):
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/change_security_key.png"
- alt="KeyPod Login" width="400">
-</div>
-
-+ [readPod()](#read-pod-file-example) function reads file content
-  (either encrypted or plaintext) from a Pod.
-
-+ [writePod()](#write-to-pod-file-example) function writes content
-  (either encrypted or plaintext) to a file in a Pod.
-
-+ [GrantPermissionUi](#grant-permission-ui-example) widget supports
-  permission granting/revoking for resources:
-  + For defining specific access mode types or recipient types, use
-    optional parameters `accessModeList` and `recipientTypeList`.
-
-Granting permission:
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/grant_permission.png"
- alt="KeyPod Login" width="400">
-</div>
-
-Revoking permission:
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/revoke_permission.png"
- alt="KeyPod Login" width="400">
-</div>
-
-+ [SharedResourcesUi](#view-permission-ui-example) widget displays
-  resources shared with a Pod by others:
-
-<div align="center">
- <img
- src="https://raw.githubusercontent.com/anusii/solidpod/main/images/view_permission.png"
- alt="KeyPod Login" width="400">
-</div>
-
-<!-- TODO dc: This is pending as we are checking if the latest CCS
-server natively supports write large files --> [`sendLargeFile()`,
-`getLargeFile()`, and
-`deleteLargeFile()`](#large-file-manager-example) functions uploads,
-downloads, and deletes large files from a Solid server, respectively.
+[Solid](https://solidproject.org/) is an open standard for a server
+providing Data Vaults  hosting personal online data stores
+(Pods). Numerous providers of Solid Server
+[hosts](https://solidproject.org/get_a_pod) support users host and
+migrate their Pods. Anyone can also host their own [Community Solid
+Server](https://communitysolidserver.github.io/CommunitySolidServer/latest/).
+To know more about our work visit the ANU's [Software Innovation
+Institute](https://sii.anu.edu.au) and the [Australian Solid
+Community](https://solidcommunity.au).
 
 ## Getting started
 
@@ -250,6 +181,19 @@ file.
 Following are the usage of main functionalities supported
 by the package.
 
+### Authenticate Example
+
+A function to authenticate a user against a given Solid server
+`https://pods.solidcommunity.au/`. Return a list containing
+ authentication data.
+
+```dart
+final authData = await solidAuthenticate(
+        'https://pods.solidcommunity.au/',
+        context,
+      );
+```
+
 ### Login Example
 
 A simple login screen to authenticate a user against a Solid server.
@@ -285,24 +229,17 @@ ElevatedButton(
 
 ### Read Pod File Example
 
-Read data from the file `data/myfiles/my-data-file.ttl` and return to the
-widget `ReturnPage()`.
+Read data from the file `data/myfiles/my-data-file.ttl`.
 
 ```dart
 final fileContent = await readPod(
         'data/myfiles/my-data-file.ttl',
-        context,
-        ReturnPage(),
       );
 ```
 
 ### Write to Pod File Example
 
-<!-- TODO dc: Do we want to replace the fileName with filePath (just
-like in readPod)? -->
-
-Write data to the file `myfiles/my-data-file.ttl` and return to the
-widget `ReturnPage()`.
+Write data to the file `myfiles/my-data-file.ttl`.
 
 ```dart
 // Turtle string to be written to the file
@@ -314,11 +251,42 @@ final turtleString =
 await writePod(
  'myfiles/my-data-file.ttl',
  turtleString,
- context,
- ReturnPage(),
  encrypted: false // non-required parameter. By default set to true
 );
 ```
+
+`writePod()` also supports using inherited encryption keys and
+`.acl` files. For instance, consider the following use-case.
+
+*Use-case*: Write two files `parentDir/child-1.ttl` and `parentDir/child-1.ttl`
+into a single directory `parentDir`. Use a single `.acl` file for both
+the files and use a single encryption key to encrypt both the files.
+
+Above can be achieved using following lines of code.
+
+```dart
+// Turtle string to be written to the file
+final childDataString = '<Sample TTL Data>';
+
+await writePod(
+ 'parentDir/child-1.ttl',
+ childDataString,
+ createAcl: false,
+ inheritKeyFrom: 'parentDir/',
+);
+
+await writePod(
+ 'parentDir/child-2.ttl',
+ childDataString,
+ createAcl: false,
+ inheritKeyFrom: 'parentDir/',
+);
+```
+
+The above will create a single `.acl` file for the directory
+`parentDir` and use that as `.acl` file for both `child-1.ttl` and
+`child-2.ttl` files. Also it will create a single key associated with
+the directory `parentDir` and encrypt both files using that key.
 
 ### Grant Permission UI Example
 
@@ -340,18 +308,37 @@ ElevatedButton(
 )
 ```
 
-To add/delete permissions to a specific resource use:
+To add/delete permissions to a specific file use:
 
 ```dart
 ElevatedButton(
  child: const Text(
-  'Add/Delete Permissions from a Specific Resource'),
+  'Add/Delete Permissions from a Specific File'),
  onPressed: () => Navigator.push(
  context,
  MaterialPageRoute(
   builder: (context) => const GrantPermissionUi(
   fileName: 'my-data-file.ttl',
   child: ReturnPage(),
+  ),
+ ),
+ ),
+)
+```
+
+To add/delete permissions to a specific directory use:
+
+```dart
+ElevatedButton(
+ child: const Text(
+  'Add/Delete Permissions from a Specific Directory'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const GrantPermissionUi(
+  fileName: 'parentDir/',
+  child: ReturnPage(),
+  isFile: false,
   ),
  ),
  ),
@@ -399,25 +386,25 @@ ElevatedButton(
 
 ### Large File Manager Example
 
-To upload a large file use:
+To upload a large file in application `myapp`, use:
 
 ```dart
-await sendLargeFile(
-     // Solid server URL of the file
-     remoteFileUrl: 'https://pods.solidcommunity.au/'
-                    'john-doe/myapp/data/my-large-file.bin',
+await writeLargeFile(
+     // Name of the file in POD
+     remoteFilePath: 'my-large-file.bin',
      // Path of the file where it is locally stored
      localFilePath: 'D:/my-large-file.bin',
 )
 ```
 
+The uploaded file will be stored in the `myapp/data` folder.
+
 To download a large file use:
 
 ```dart
-await getLargeFile(
-     // Solid server URL of the file
-     remoteFileUrl: 'https://pods.solidcommunity.au/'
-                    'john-doe/myapp/data/my-large-file.bin',
+await readLargeFile(
+     // Name of the file in POD
+     remoteFilePath: 'my-large-file.bin',
      // Path of the file where it will be locally downloaded
      localFilePath: 'D:/my-large-file.bin',
 )
@@ -427,27 +414,22 @@ To delete a large file use:
 
 ```dart
 await deleteLargeFile(
-     // Solid server URL of the file,
-     remoteFileUrl: 'https://pods.solidcommunity.au/'
-                    'john-doe/myapp/data/my-large-file.bin',
+     // Name of the file in POD
+     remoteFilePath: 'my-large-file.bin',
 )
 ```
 
 ## Ontology
 
-*Solid Pod*'s internal storage structure consists of
+A Solid Pod's internal storage structure consists of
 [turtle](https://www.w3.org/TR/turtle/) files containing security
-information about the pod's content (data files) and their access.
-The internal structure is based on the following [ontology](onto),
-which captures essential concepts about the app's security
-information, data files, encryption, shared resources, and access
-control lists.
+information about the pod's content (data files) and access.  The
+internal structure is based on the solidpod
+[ontology](onto/solid_app_ontology_schema.png), which captures
+essential concepts about the app's security information, data files,
+encryption, shared resources, and access control lists.
 
-<div align="center">
- <img
- src="https://github.com/anusii/solidpod/blob/dev/onto/SOLID-App-Ontology%20(schema).png"
- alt="Ontology's concept map">
-</div>
+![Ontolgy](https://github.com/anusii/solidpod/blob/dev/onto/solid_app_ontology_schema.png)
 
 ## Additional information
 
@@ -457,7 +439,15 @@ expect from the package authors, and more. -->
 
 The source code can be accessed via the [GitHub
 repository](https://github.com/anusii/solidpod).  You can also file
-issues you face at [GitHub
-Issues](https://github.com/anusii/solidpod/issues).  The authors of
-the package will respond to issues as conveniently as possible upon
-creating an issue.
+issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
+The authors of the package will respond to issues as best we can but.
+
+<!-- markdownlint-disable MD036 -->
+*Time-stamp: <Monday 2025-12-01 11:57:26 +1100 Graham Williams>*
+<!-- markdownlint-enable MD036 -->
+
+<!-- markdownlint-disable MD053 -->
+[comment]: # (Local Variables:)
+[comment]: # (time-stamp-line-limit: -8)
+[comment]: # (End:)
+<!-- markdownlint-enable MD053 -->

@@ -82,26 +82,26 @@ String httpDcTerms = terms;
 
 /// Resource ID predicate
 
-const String appsResId = 'https://solidcommunity.au' '/predicates/resourceid#';
+const String appsResId = 'https://solidcommunity.au/predicates/resourceid#';
 
 /// Terms predicate
 
-const String appsTerms = 'https://solidcommunity.au' '/predicates/terms#';
+const String appsTerms = 'https://solidcommunity.au/predicates/terms#';
 
 /// Log ID predicate
 
-const String appsLogId = 'https://solidcommunity.au' '/predicates/logid#';
+const String appsLogId = 'https://solidcommunity.au/predicates/logid#';
 
 /// Data predicate
 
-const String appsData = 'https://solidcommunity.au' '/predicates/data#';
+const String appsData = 'https://solidcommunity.au/predicates/data#';
 
 // /// Http XMLS schema.
 
 // const String httpXMLSchema = 'http://www.w3.org/2001/XMLSchema#';
 
 /// Placeholder of namespace for SII customised predicates
-const String sii = 'https://solidproject.au' '/sii/';
+const String sii = 'https://solidproject.au/sii/';
 
 /// SII namespace
 final NS siiNS = (prefix: 'sii', ns: Namespace(ns: sii));

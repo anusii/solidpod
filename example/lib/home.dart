@@ -34,7 +34,6 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 import 'package:solidpod/solidpod.dart';
-
 import 'package:solidui/solidui.dart'
     show
         InitialSetupScreenBody,
@@ -96,9 +95,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
 
     try {
-      // Use the new readEncryptionKeyContent function instead of readPod.
-
-      final fileContent = await readEncryptionKeyContent();
+      final fileContent = await readPod(
+        await getEncKeyPath(),
+        pathType: PathType.relativeToPod,
+      );
 
       //await Navigator.pushReplacement( // this won't show the file content if POD initialisation has just been performed
       await Navigator.push(
@@ -124,7 +124,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
   }
 
-  Future<void> _writePrivateData() async {
+  Future<void> _readWritePrivateData() async {
     setState(() {
       // Begin loading.
       _isLoading = true;
@@ -137,17 +137,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     final fileName = _writeEncrypted ? dataFile : dataFilePlain;
 
-    final dataDirPath = await getDataDirPath();
-    final filePath = [dataDirPath, fileName].join('/');
+    // final dataDirPath = await getDataDirPath();
+    // final filePath = [dataDirPath, fileName].join('/');
 
     List<({String key, dynamic value})>? pairs;
 
     try {
-      final fileContent = await readPod(
-        filePath,
-        context,
-        widget,
-      );
+      final fileContent = await readPod(fileName);
 
       pairs = await parseTTLStr(fileContent);
     } on Exception catch (e) {
@@ -301,7 +297,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             }
           }
         },
-        child: const Text('Upload / Download Large File'));
+        child: const Text('Upload/Download Large File'));
 
     // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
     // HERE.
@@ -399,12 +395,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         smallGapV,
 
                         ElevatedButton(
-                          child: const Text('Show Pod Data File'),
+                          child: const Text('Read/Write Pod Data File'),
                           onPressed: () async {
-                            // TODO 20240627 gjw LOGICALLY THIS SEEMS ODD. I
-                            // WANT TO SHOW THE POD DATA FILE BUT I CALL A
-                            // FUNCTION TO WIRE PRIVATE DATA?
-                            await _writePrivateData();
+                            await loginIfRequired(context);
+                            await _readWritePrivateData();
                           },
                         ),
                         smallGapV,
@@ -619,6 +613,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                     resourceName: 'keyvalue/key-value.ttl',
                                     // accessModeList: ['read', 'write'],
                                     // recipientTypeList: ['indi', 'group'],
+                                    // isFile: false,
                                     child: Home(),
                                   ),
                                 ),
@@ -703,8 +698,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   builder: (context) => const SharedResourcesUi(
                                     backgroundColor: titleBackgroundColor,
                                     fileName: 'key-value.ttl',
-                                    //sourceWebId:
-                                    //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
                                     child: Home(),
                                   ),
                                 ),
@@ -729,8 +722,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 MaterialPageRoute(
                                   builder: (context) => const SharedResourcesUi(
                                     backgroundColor: titleBackgroundColor,
-                                    //sourceWebId:
-                                    //    'https://pods.solidcommunity.au/Gerry-Tonga/profile/card#me',
                                     child: Home(),
                                   ),
                                 ),
@@ -758,6 +749,29 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             // Now that the back button issue is fixed in InitialSetupScreenBody,
                             // we can use it directly without any custom wrapper.
 
+                            final loggedIn = await loginIfRequired(context);
+
+                            if (!loggedIn) {
+                              debugPrint('Please login to run the demo');
+                              return;
+                            }
+
+                            final webId = await getWebId();
+                            if (webId == null) {
+                              debugPrint('web ID is not available');
+                              return;
+                            }
+
+                            final sampleDirUrl = await getDirUrl([
+                              await getDataDirPath(),
+                              'setup_wizard_demo',
+                            ].join('/'));
+                            final sampleFileName = 'setup_wizard_demo.ttl';
+                            final sampleFileUrl = await getFileUrl([
+                              await getDataDirPath(),
+                              'sampleFileName',
+                            ].join('/'));
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -767,16 +781,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                       // Sample resources that would need to be created.
 
                                       resNeedToCreate: {
-                                        'folders': [
-                                          'https://example.pod/exampleApp/public/',
-                                          'https://example.pod/exampleApp/data/',
-                                        ],
-                                        'files': [
-                                          'https://example.pod/exampleApp/data/key-value.ttl',
-                                        ],
-                                        'fileNames': [
-                                          'key-value.ttl',
-                                        ],
+                                        'folders': [sampleDirUrl],
+                                        'files': [sampleFileUrl],
+                                        'fileNames': [sampleFileName],
                                       },
                                       child: const Home(),
                                     ),

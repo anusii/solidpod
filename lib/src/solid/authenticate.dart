@@ -32,6 +32,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:solid_auth/solid_auth.dart';
@@ -39,7 +41,7 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/misc.dart' show checkLoggedIn;
+import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 // Scopes variables used in the authentication process.
 
@@ -66,38 +68,39 @@ Future<List<dynamic>?> solidAuthenticate(
   String serverId,
   BuildContext context,
 ) async {
-  try {
-    final loggedIn = await checkLoggedIn();
-    //debugPrint('solidAuthenticate() => checkLoggedIn() => $loggedIn');
-    Map<dynamic, dynamic>? authData;
-    if (loggedIn) {
-      authData = await AuthDataManager.loadAuthData();
-      assert(authData != null);
-    } else {
-      debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
-      // Authentication process for the POD issuer.
+  Map<dynamic, dynamic>? authData;
 
-      final issuerUri = await getIssuer(serverId);
-      authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
+  if (await isUserLoggedIn()) {
+    authData = await AuthDataManager.loadAuthData();
+    assert(authData != null);
+  } else {
+    debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
+    // Authentication process for the POD issuer.
 
-      if (!authData.containsKey('error')) {
-        // write authentication data to flutter secure storage
-        await AuthDataManager.saveAuthData(authData);
-      }
+    final issuerUri = await getIssuer(serverId);
+    authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
+
+    if (!authData.containsKey('error')) {
+      // write authentication data to flutter secure storage
+      await AuthDataManager.saveAuthData(authData);
     }
+  }
 
+  try {
     if (!authData!.containsKey('error')) {
       final webId = await AuthDataManager.getWebId();
       assert(webId != null);
 
       final profCardUrl = webId!.replaceAll('#me', '');
-      final profData = await fetchPrvFile(profCardUrl);
+      final profData = utf8.decode(
+        await getResource(profCardUrl),
+      );
 
       return [authData, webId, profData];
     } else {
       return null;
     }
-  } on Exception catch (e) {
+  } on Object catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;
   }

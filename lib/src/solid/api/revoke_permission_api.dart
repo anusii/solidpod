@@ -32,6 +32,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -163,7 +165,10 @@ Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
     // Update the file
 
     // Check if the file contains the shared key values for the given resource
-    final keyFileContent = await fetchPrvFile(receiverSharedKeyFileUrl);
+    final keyFileContent = utf8.decode(
+      await getResource(receiverSharedKeyFileUrl),
+    );
+
     final keyFileDataMap = getEncFileContent(keyFileContent);
 
     if (keyFileDataMap.containsKey(resUniqueId)) {

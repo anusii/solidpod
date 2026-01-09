@@ -28,8 +28,6 @@ library;
 
 import 'dart:convert' show jsonEncode, jsonDecode;
 
-import 'package:flutter/foundation.dart' show debugPrint;
-
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:solid_auth/solid_auth.dart';
@@ -109,7 +107,7 @@ class AuthDataManager {
       }),
     );
 
-    debugPrint('AuthDataManager => saveAuthData() done');
+    // debugPrint('AuthDataManager => saveAuthData() done');
   }
 
   /// Retrieve (and reconstruct) auth data from secure storage
@@ -119,7 +117,7 @@ class AuthDataManager {
     if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => loadAuthData() failed');
+        // debugPrint('AuthDataManager => loadAuthData() failed');
         return null;
       }
     }
@@ -141,9 +139,9 @@ class AuthDataManager {
         'expiresIn': tokenResponse.expiresIn,
         'logoutUrl': _logoutUrl,
       };
-    } on Object catch (e) {
+    } on Object {
       // Catch any object thrown (Dart programs can throw any non-null object)
-      debugPrint('AuthDataManager => loadAuthData() failed: $e');
+      // debugPrint('AuthDataManager => loadAuthData() failed: $e');
     }
     return null;
   }
@@ -160,8 +158,8 @@ class AuthDataManager {
       }
 
       return true;
-    } on Object catch (e) {
-      debugPrint('AuthDataManager => removeAuthData() failed: $e');
+    } on Object {
+      // debugPrint('AuthDataManager => removeAuthData() failed: $e');
     }
     return false;
   }
@@ -172,7 +170,7 @@ class AuthDataManager {
     if (tokenResponse != null) {
       return tokenResponse.accessToken;
     } else {
-      debugPrint('AuthDataManager => getAccessToken() failed');
+      // debugPrint('AuthDataManager => getAccessToken() failed');
     }
     return null;
   }
@@ -182,7 +180,7 @@ class AuthDataManager {
     if (_authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => _getTokenResponse() failed');
+        // debugPrint('AuthDataManager => _getTokenResponse() failed');
         return null;
       }
     }
@@ -203,10 +201,11 @@ class AuthDataManager {
             genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
         tokenResponse = await _authResponse!
             .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+        // TODO dc 20250106: Save refreshed token in secure storage
       }
       return tokenResponse;
-    } on Object catch (e) {
-      debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
+    } on Object {
+      // debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
     }
     return null;
   }
@@ -216,7 +215,7 @@ class AuthDataManager {
     if (_webId == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => getWebId() failed');
+        // debugPrint('AuthDataManager => getWebId() failed');
         return null;
       }
     }
@@ -229,7 +228,7 @@ class AuthDataManager {
     if (_logoutUrl == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => getLogoutUrl() failed');
+        // debugPrint('AuthDataManager => getLogoutUrl() failed');
         return null;
       }
     }
@@ -260,8 +259,8 @@ class AuthDataManager {
             Credential.fromJson((dataMap['auth_response'] as Map).cast());
 
         return true;
-      } on Object catch (e) {
-        debugPrint('AuthDataManager => _loadData() failed: $e');
+      } on Object {
+        // debugPrint('AuthDataManager => _loadData() failed: $e');
         return false;
       }
     }

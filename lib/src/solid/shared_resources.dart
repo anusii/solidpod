@@ -30,7 +30,7 @@
 
 library;
 
-import 'dart:core';
+import 'dart:convert';
 
 import 'package:flutter/material.dart' hide Key;
 
@@ -53,7 +53,7 @@ Future<dynamic> sharedResources(
   String? fileName,
   String? sourceWebId,
 ]) async {
-  if (!await checkLoggedIn()) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to access shared resources.',
     );
@@ -67,7 +67,9 @@ Future<dynamic> sharedResources(
   final logFileUrl = await getFileUrl(logFilePath);
 
   // Read log file
-  final logContent = await fetchPrvFile(logFileUrl);
+  final logContent = utf8.decode(
+    await getResource(logFileUrl),
+  );
 
   final logDataMap = parseTTLMap(logContent);
 

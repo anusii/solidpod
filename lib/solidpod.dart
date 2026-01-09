@@ -33,8 +33,9 @@ library;
 // 20250915 TODO These constants should be inside a constants structure to avoid
 // name conflicts?
 
-export 'src/solid/constants/common.dart' show foaf, terms;
+export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
 export 'src/solid/constants/schema.dart' show appsTerms;
+export 'src/solid/constants/path_type.dart' show PathType;
 
 /// Solid authentication function
 
@@ -102,7 +103,7 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
-        checkLoggedIn,
+        isUserLoggedIn,
         deleteExternalFile,
         deleteFile,
         deleteLogIn,
@@ -115,7 +116,6 @@ export 'src/solid/utils/misc.dart'
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
-        readEncryptionKeyContent,
         logoutPod,
         setAppDirName,
         generateDefaultFolders,
@@ -150,20 +150,31 @@ export 'src/solid/read_permission.dart';
 
 export 'src/solid/revoke_permission.dart';
 
+/// Permission recipient type
+export 'src/solid/constants/web_acl.dart' show RecipientType;
+
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
-    show readLargeFile, writeLargeFile, deleteLargeFile;
+    show readLargeFile, readLargeFileAsBytes, writeLargeFile, deleteLargeFile;
 
 /// Function to read permission given to the user webID by others
 
 export 'src/solid/shared_resources.dart';
 
-/// Function to get resources in a container
-/// Function to test initial structure
+/// Functions to
+/// - check the status of a resource
+/// - get resources in a container
+/// - test initial structure
+/// - update TTL file by SPARQL query
 
 export 'src/solid/api/rest_api.dart'
-    show getResourcesInContainer, initialStructureTest, updateFileByQuery;
+    show
+        checkResourceStatus,
+        getResource,
+        getResourcesInContainer,
+        initialStructureTest,
+        updateFileByQuery;
 
 /// Function to get the latest log enties
 

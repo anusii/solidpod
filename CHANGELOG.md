@@ -3,15 +3,36 @@
 Recorded here are the high level changes for the SolidPod package.
 
 Guide: Each version update is recorded here with a short user-oriented
-description of the update. Updates in the 0.6.n series are heading
-toward a 0.7 release. The `[version timestamp user]` string is
+description of the update. Updates in the 0.9.n series are heading
+toward a 0.10 release. The `[version timestamp user]` string is
 utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## 0.8 Updated API for readPod/writePod
+## 0.10 Further UI migrations
 
-+ Revoke access on already deleted files [0.7.18 20251103 jesscmoore]
++ Updated read/write to remove context and widget [0.9.0 20260108 dc]
+
+## 0.9 Stabilise
+
++ Enable in-app shared file reload [0.8.7 20251211 anushkavid]
++ Updated dependencies [0.8.6 20251206 gjw]
++ Function to read large file as bytes [0.8.5 20251201 anushkavid]
++ Add PathType to readPod/WritePod [0.8.4 20251123 cdawei]
++ Cleanup and update [0.8.3 20251121 gjw]
++ Allow concurrent pod resource reading [0.8.2 20251117 jesscmoore]
++ Optimise read permission of file list [0.8.2 20251117 jesscmoore]
++ Revoke access on already deleted files [0.8.1 20251117 jesscmoore]
++ Publish to pub.dev [0.8.0 20251117 gjwgit]
+
+## 0.8 Updated API and migrate UI components to solidui
+
++ Review and refine package [0.7.23 20251105 cdawei]
++ Migrate login and key UI to solidui [0.7.22 20251102 tonypioneer]
++ Migrate GrantPermission UI to solidui [0.7.21 20251031 cdawei]
++ Support key inheritance [0.7.20 20251101 anushkavidanage]
++ Additional parameter for writePod [0.7.19 20251101 anushkavidanage]
++ Refactor to reduce file sizes [0.7.18 20251030 cdawei]
 + Remove circular dependency with solidui [0.7.17 20251029 tonypioneer]
 + Read shared resource with inheritance [0.7.16 20251027 anushkavidanage]
 + Migrate SolidLogin to solidui [0.7.15 20251027 tonypioneer]

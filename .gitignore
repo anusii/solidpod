@@ -98,16 +98,6 @@ migrate_working_dir/
 
 .vscode/
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-
 # Symbolication related
 app.*.symbols
 
@@ -158,6 +148,7 @@ analysis_benchmark.json
 .flutter-plugins-dependencies
 **/generated_plugin_registrant.dart
 .packages
+.pub-cache/
 .pub-preload-cache/
 .pub/
 build/
@@ -237,11 +228,16 @@ android/app/.cxx/
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 
+# ios/macos generated project files
 ios/Flutter/
 ios/Runner.xcodeproj/
 ios/Runner.xcworkspace/
 ios/Runner/
 ios/RunnerTests/
+
+# Backups of ios/macos project config yml and Podfile
+ios/Podfile-*
+ios/project-*.yml
 
 #-----------------------------------------------------------------------
 # macOS
@@ -252,6 +248,14 @@ ios/RunnerTests/
 **/macos/Flutter/GeneratedPluginRegistrant.swift
 **/macos/Flutter/ephemeral
 **/xcuserdata/
+
+# ios/macos generated project files
+macos/Runner.xcodeproj/
+macos/Runner.xcworkspace/
+
+# Backups of ios/macos project config yml and Podfile
+macos/Podfile-*
+macos/project-*.yml
 
 #-----------------------------------------------------------------------
 # Windows

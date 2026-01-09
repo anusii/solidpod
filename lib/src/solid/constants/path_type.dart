@@ -1,4 +1,4 @@
-/// Custom exception classes
+/// Types of resource path in POD.
 ///
 /// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
@@ -23,52 +23,31 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-///
-/// Authors: Anushka Vidanage, Tony Chen, Dawei Chen
+//
+// Authors: Dawei Chen
 
 library;
 
-class AccessForbiddenException implements Exception {
-  final String message;
+enum PathType {
+  /// path is relative to the `data` directory of app,
+  /// i.e., the resource is in `podName/appDirectory/data/`.
 
-  AccessForbiddenException(this.message);
+  relativeToData,
 
-  @override
-  String toString() => 'AccessForbiddenException: $message';
-}
+  /// path is relative to the app directory,
+  /// i.e., the resource is in `podName/appDirectory/`,
+  /// e.g., encryption/ind-keys.ttl
 
-class AccessFailedException implements Exception {
-  final String message;
+  relativeToApp,
 
-  AccessFailedException(this.message);
+  /// path is relative to the specific POD,
+  /// i.e., the resource is in `podName/`,
+  /// e.g., profile.ttl
 
-  @override
-  String toString() => 'AccessFailedException: $message';
-}
+  relativeToPod,
 
-class ResourceNotExistException implements Exception {
-  final String message;
+  /// path is an absolute URL,
+  /// e.g., https://pods.solidcommunity.au/podName/appDirectory/data/myfile.ttl
 
-  ResourceNotExistException(this.message);
-
-  @override
-  String toString() => 'ResourceNotExistException: $message';
-}
-
-class NotLoggedInException implements Exception {
-  final String message;
-
-  NotLoggedInException(this.message);
-
-  @override
-  String toString() => 'NotLoggedInException: $message';
-}
-
-class SecurityKeyNotAvailableException implements Exception {
-  final String message;
-
-  SecurityKeyNotAvailableException(this.message);
-
-  @override
-  String toString() => 'SecurityKeyNotAvailableException: $message';
+  absoluteUrl;
 }
