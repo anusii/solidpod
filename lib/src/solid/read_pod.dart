@@ -70,8 +70,6 @@ Future<String> readPod(
     pathType: pathType,
   );
 
-  debugPrint('readPod: fileUrl=$fileUrl');
-
   final fileStatus = await checkResourceStatus(fileUrl);
 
   if (fileStatus != ResourceStatus.exist) {
