@@ -212,15 +212,24 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
-  Future<List<dynamic>> loadPodData(String resName, bool isFile) async {
+  Future<List<dynamic>> loadPodData(
+    String resName, {
+    bool isFile = true,
+    bool isExternalRes = false,
+  }) async {
+    debugPrint('loadPodData(): resName: $resName');
+    debugPrint('loadPodData(): isFile: $isFile');
+    debugPrint('loadPodData(): isExternalRes: $isExternalRes');
     final SolidFunctionCallStatus response = context.mounted
         ? await chkExistsAndHasAcl(
             fileName: resName,
             isFile: isFile,
+            isExternalRes: widget.isExternalRes,
             context: context,
             child: widget,
           )
         : SolidFunctionCallStatus.contextNotMounted;
+    debugPrint('grantPermissionUi(): response: ${response.toString()}');
 
     switch (response) {
       case SolidFunctionCallStatus.aclFound:
@@ -234,6 +243,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         final webId = widget.isExternalRes
             ? widget.externalWebId
             : await AuthDataManager.getWebId();
+        debugPrint('GrantPermissionUi(): $webId');
         return [result, webId];
       case SolidFunctionCallStatus.notLoggedIn:
         await _alert('Please login first to retrieve permission');
@@ -250,7 +260,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load future
     if (widget.resourceName != null) {
-      podDataList = loadPodData(widget.resourceName as String, widget.isFile);
+      podDataList = loadPodData(
+        widget.resourceName as String,
+        isFile: widget.isFile,
+        isExternalRes: widget.isExternalRes,
+      );
     }
 
     // Load access mode list to be displayed
@@ -265,8 +279,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   }
 
   // Get new permission and update the permission map
-  Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
-    final pdata = await loadPodData(fileName, isFile);
+  Future<void> _updatePermissions(
+    String fileName, {
+    bool isFile = true,
+    bool isExternalRes = false,
+  }) async {
+    final pdata = await loadPodData(
+      fileName,
+      isFile: isFile,
+      isExternalRes: isExternalRes,
+    );
     if (pdata.isNotEmpty) {
       assert(pdata.length == 2);
       final permissionMap = pdata.first;
@@ -354,7 +376,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
-          await _updatePermissions(fileName, isFile: isFile);
+          await _updatePermissions(
+            fileName,
+            isFile: isFile,
+            isExternalRes: widget.isExternalRes,
+          );
         }
       },
     );
@@ -383,7 +409,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ),
     };
 
-    final buttonContainer = getButtonContainer(
+    final recipientButtonContainer = getButtonContainer(
       buttons: widget.isExternalRes
           ? []
           : [
@@ -485,7 +511,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         largeGapV,
         getHeading('Select the recipient/s of file access permissions'),
         getRecipientText(selectedRecipientType, selectedRecipientDetails),
-        buttonContainer,
+        recipientButtonContainer,
         smallGapV,
         getHeading('Select the list of file access permissions'),
         ...getPermissionCheckBoxes(
