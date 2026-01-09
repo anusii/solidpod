@@ -409,8 +409,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ),
     };
 
+    // 20260109 jesscmoore Added capability for granters to share
+    // resources, as well as resource owners
     final recipientButtonContainer = getButtonContainer(
       buttons: widget.isExternalRes
+          // Recipient type buttons for resource granter
           ? [
               for (final rtype in granterRecipientTypes)
                 if (recipientTypeList.contains(rtype))
@@ -420,6 +423,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     padding: getPadding(rtype),
                   ),
             ]
+          // Recipient type buttons for resource owner
           : [
               for (final rtype in ownerRecipientTypes)
                 if (recipientTypeList.contains(rtype))
