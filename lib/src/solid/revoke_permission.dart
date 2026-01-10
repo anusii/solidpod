@@ -159,32 +159,6 @@ Future<SolidFunctionCallStatus> revokePermission({
       // Log file urls of the owner, granter, and receiver
       final logFilePath = await getPermLogFilePath();
 
-      // Scenario 1
-      // PersonA = owner has granted access to PersonB
-      // PersonA then revokes access to PersonB
-      // PersonA = owner = granter = user
-
-      // Scenario 2
-      // PersonA = recipient with control and has granted
-      // access to Person B.
-      // PersonA then revokes access to PersonB.
-      // PersonA = granter = user != owner
-
-      // Scenario 3
-      // PersonA = owner is deleting own file and revoking access
-      // before delete.
-      // PersonA = owner = granter = user
-
-      // Scenario 4
-      // PersonA = recipient with control who is deleting external
-      // file and revoking access before delete.
-      // PersonA = granter = user != owner
-
-      // Scenario 5
-      // PersonA = recipient who is revoking access to already
-      // deleted file.
-      // PersonA = user != granter && user != owner
-
       // Owner
       // [20251029 jesscmoore] Assumes user = owner and uses
       // AuthDataManager.getWebId() to fetch user webId
