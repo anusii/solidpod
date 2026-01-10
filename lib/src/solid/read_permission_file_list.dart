@@ -30,6 +30,8 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 
@@ -69,12 +71,16 @@ Future<Map<String, dynamic>> readPermissionFileList({
   List<dynamic> results = await Future.wait(futures);
 
   // Add returned permission lists to data map
+  debugPrint(
+    'readPermissionFileList(): read permissions from ACL of each file',
+  );
   for (int i = 0; i < fileList.length; i++) {
     // Add fileName key
     dataMap[fileList[i]] = {};
 
     // Add permission list
     dataMap[fileList[i]][authUserPred] = results[i];
+    debugPrint('${fileList[i]}: ${results[i]}');
   }
 
   return dataMap;
