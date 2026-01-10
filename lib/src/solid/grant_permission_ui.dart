@@ -222,9 +222,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     bool isFile = true,
     bool isExternalRes = false,
   }) async {
-    debugPrint('loadPodData(): resName: $resName');
-    debugPrint('loadPodData(): isFile: $isFile');
-    debugPrint('loadPodData(): isExternalRes: $isExternalRes');
     final SolidFunctionCallStatus response = context.mounted
         ? await chkExistsAndHasAcl(
             fileName: resName,
@@ -234,7 +231,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             child: widget,
           )
         : SolidFunctionCallStatus.contextNotMounted;
-    debugPrint('grantPermissionUi(): response: ${response.toString()}');
 
     switch (response) {
       case SolidFunctionCallStatus.aclFound:
@@ -248,7 +244,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         final webId = widget.isExternalRes
             ? widget.externalWebId
             : await AuthDataManager.getWebId();
-        debugPrint('GrantPermissionUi(): $webId');
         return [result, webId];
       case SolidFunctionCallStatus.notLoggedIn:
         await _alert('Please login first to retrieve permission');

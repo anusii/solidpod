@@ -84,8 +84,6 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
         isExternalRes: isExternalRes,
       );
 
-      debugPrint('[revokePermissionToRecipients] ${permDataMap.toString()}');
-
       // Extract webIds of recipients with access
       // where recipients are keys to the permission records
       permDataMap.keys.forEach((key) {
