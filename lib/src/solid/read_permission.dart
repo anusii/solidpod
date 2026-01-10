@@ -30,8 +30,6 @@ library;
 
 import 'dart:core';
 
-import 'package:flutter/foundation.dart' show debugPrint;
-
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
@@ -63,8 +61,6 @@ Future<Map<dynamic, dynamic>> readPermission({
   // Read ACL file content
   final Map<dynamic, dynamic> aclContentMap =
       await readAcl(resourceUrl, isFile);
-
-  debugPrint('readPermission(): ${aclContentMap.toString()}');
 
   // Extract permission details to a map
   final Map<dynamic, dynamic> permMap = extractAclPerm(aclContentMap);

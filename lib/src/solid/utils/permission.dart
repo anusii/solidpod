@@ -26,7 +26,6 @@
 
 library;
 
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'dart:convert';
 
 import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
@@ -174,7 +173,6 @@ Future<Map<dynamic, dynamic>> readAcl(
   final aclContent = utf8.decode(
     await getResource(resourceAclUrl),
   );
-  debugPrint('readAcl(): $aclContent');
 
   return parseACL(aclContent);
 }
