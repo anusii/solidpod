@@ -32,6 +32,8 @@ library;
 
 import 'package:intl/intl.dart';
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
@@ -138,10 +140,15 @@ Map<dynamic, dynamic> getLatestLog(
   String? userWebId,
 ]) {
   final uniqueLogMap = <dynamic, dynamic>{};
+  debugPrint('getLatestLog(): appsLogId: $appsLogId');
 
   // Loop through logs and get the latest for each resource
   for (final dataKey in logDataMap.keys) {
+    debugPrint('getLatestLog(): key: $dataKey');
     if ((dataKey as String).contains(appsLogId)) {
+      debugPrint(
+        'getLatestLog(): logEntry full: ${logDataMap[dataKey]['${appsData}log'].toString()}',
+      );
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
       final logEntryList = logEntry.split(';');
 

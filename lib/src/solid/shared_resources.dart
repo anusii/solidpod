@@ -72,8 +72,13 @@ Future<dynamic> sharedResources(
   );
 
   final logDataMap = parseTTLMap(logContent);
+  debugPrint('');
+  debugPrint('sharedResources(): logDataMap: ${logDataMap.toString()}');
 
   var uniqueLogMap = getLatestLog(logDataMap, userWebId);
+  debugPrint('');
+  debugPrint('After filtering out log entries where userWebId = ownerWebId');
+  debugPrint('sharedResources(): uniqueLogMap: ${uniqueLogMap.toString()}');
 
   // Filer log entried based on defined file name
   if (fileName != null) {

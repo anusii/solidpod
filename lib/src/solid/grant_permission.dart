@@ -209,13 +209,18 @@ Future<SolidFunctionCallStatus> grantPermission({
 
             // Log file urls of the owner, granter, and receiver
             final logFilePath = await getPermLogFilePath();
+            debugPrint('grantPermission(): logFilePath: $logFilePath');
 
             // Owner
             final ownerLogFileUrl =
                 await getFileUrl(logFilePath, webId: ownerWebId);
+            debugPrint('grantPermission(): owner logFileUrl: $ownerLogFileUrl');
 
             // Granter
             final granterLogFileUrl = await getFileUrl(logFilePath);
+            debugPrint(
+              'grantPermission(): granter logFileUrl: $granterLogFileUrl',
+            );
 
             // Run log entry insert query for the granter
             await addPermLogLine(
