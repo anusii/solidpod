@@ -26,13 +26,9 @@
 ///
 /// Authors: Anushka Vidanage
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
 import 'dart:convert';
-
-import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -42,14 +38,12 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Read permission given for the [fileName].
+///
 /// Parameters:
-///   [child] is the child widget to return to
-///   [fileName] is the name of the file reading permission from
-///   [sourceWebId] is the source WebID
+/// - [fileName] is the name of the file reading permission from
+/// - [sourceWebId] is the source WebID
 
-Future<dynamic> sharedResources(
-  BuildContext context,
-  Widget child, [
+Future<dynamic> sharedResources([
   String? fileName,
   String? sourceWebId,
 ]) async {

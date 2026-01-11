@@ -38,27 +38,18 @@ import 'package:solidpod/src/solid/read_permission_file_list.dart';
 
 /// Retrieve the list of recipients that have access to any file
 /// in the user's POD.
-///
-/// Parameters:
-/// - [context] - the build context.
-/// - [child] - is the child widget to return to.
 
-Future<List<String>> getRecipientList({
-  required BuildContext context,
-  required Widget child,
-}) async {
+Future<List<String>> getRecipientList() async {
   // Initialise the resource list and data
   final List<String> fileList;
   final Map<String, dynamic> dataMapWithPermissions;
 
   try {
-    // Get file list (note: getResources() returns urls of files)
-    if (!context.mounted) return [];
-    fileList = await getResources(context, child);
+    // Get list of file urls
+    fileList = await getResources();
 
     if (fileList.isNotEmpty) {
       // Retrieve ACLs for each file
-      if (!context.mounted) return [];
       dataMapWithPermissions = await readPermissionFileList(
         fileList: fileList,
         isFileUrl: true,
