@@ -153,12 +153,12 @@ Map<dynamic, dynamic> getLatestLog(
         }
       }
 
-      final resoruceUrl = logEntryList[1];
+      final resourceUrl = logEntryList[1];
       var replaceExist = false;
 
-      if (uniqueLogMap.containsKey(resoruceUrl)) {
+      if (uniqueLogMap.containsKey(resourceUrl)) {
         final prevDateTime =
-            uniqueLogMap[resoruceUrl][PermissionLogLiteral.logtime];
+            uniqueLogMap[resourceUrl][PermissionLogLiteral.logtime];
         if ([0, 1].contains(
           DateTime.parse(logEntryList.first as String)
               .compareTo(DateTime.parse(prevDateTime as String)),
@@ -170,9 +170,9 @@ Map<dynamic, dynamic> getLatestLog(
       }
 
       if (replaceExist) {
-        uniqueLogMap[resoruceUrl] = {
+        uniqueLogMap[resourceUrl] = {
           PermissionLogLiteral.logtime: logEntryList.first,
-          PermissionLogLiteral.resource: resoruceUrl,
+          PermissionLogLiteral.resource: resourceUrl,
           PermissionLogLiteral.owner: logEntryList[2],
           PermissionLogLiteral.granter: logEntryList[4],
           PermissionLogLiteral.recepient: logEntryList[5],
