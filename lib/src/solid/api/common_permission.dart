@@ -80,7 +80,7 @@ enum PermissionLogLiteral {
 ///  - [ownerWebId]: WebID of the resource owner
 ///  - [permissionType]: Type of permission (grant/revoke)
 ///  - [granterWebId]: WebID of the person who is giving/revoking permission
-///   - [recepientWebId]: WebID of the person who is reveiving permission
+///   - [recipientWebId]: WebID of the person who is reveiving permission
 ///   - [permissionList]: List of access types that is being granted
 /// or revoked (Read, Write, Control, Append).
 ///
@@ -92,7 +92,7 @@ LogEntry createPermLogEntry({
   required String ownerWebId,
   required String permissionType,
   required String granterWebId,
-  required String recepientWebId,
+  required String recipientWebId,
 }) {
   // Create log entry object
   final LogEntry logEntry;
@@ -100,7 +100,7 @@ LogEntry createPermLogEntry({
   final dateTimeStr = DateFormat('yyyyMMddTHHmmss').format(DateTime.now());
   final logEntryId = DateFormat('yyyyMMddTHHmmssSSS').format(DateTime.now());
   final logEntryStr =
-      '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recepientWebId;${permissionListStr.toLowerCase()}';
+      '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recipientWebId;${permissionListStr.toLowerCase()}';
 
   logEntry = LogEntry(id: logEntryId, record: logEntryStr);
 
@@ -145,10 +145,10 @@ Map<dynamic, dynamic> getLatestLog(
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
       final logEntryList = logEntry.split(';');
 
-      final recepientWebId = logEntryList[5];
+      final recipientWebId = logEntryList[5];
 
       if (userWebId != null) {
-        if (recepientWebId != userWebId) {
+        if (recipientWebId != userWebId) {
           continue;
         }
       }

@@ -204,7 +204,7 @@ Future<SolidFunctionCallStatus> grantPermission({
               ownerWebId: ownerWebId,
               permissionType: 'grant',
               granterWebId: userWebId,
-              recepientWebId: recipientWebId as String,
+              recipientWebId: recipientWebId as String,
             );
 
             // Log file urls of the owner, granter, and receiver
