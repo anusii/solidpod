@@ -222,15 +222,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     bool isFile = true,
     bool isExternalRes = false,
   }) async {
-    final SolidFunctionCallStatus response = context.mounted
-        ? await chkExistsAndHasAcl(
-            fileName: resName,
-            isFile: isFile,
-            isExternalRes: widget.isExternalRes,
-            context: context,
-            child: widget,
-          )
-        : SolidFunctionCallStatus.contextNotMounted;
+    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
+      fileName: resName,
+      isFile: isFile,
+      isExternalRes: widget.isExternalRes,
+    );
 
     switch (response) {
       case SolidFunctionCallStatus.aclFound:
@@ -465,8 +461,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   recipientType: selectedRecipientType,
                   recipientWebIdList: finalWebIdList as List,
                   ownerWebId: ownerWebId,
-                  context: context,
-                  child: widget.child,
                   isExternalRes: widget.isExternalRes,
                   groupName: selectedRecipientType == RecipientType.group
                       ? groupNameController.text.trim()
