@@ -359,7 +359,8 @@ ElevatedButton(
   builder: (context) => const GrantPermissionUi(
   resourceName: 'my-data-file.ttl',
   isExternalRes: true,
-  externalWebId: ownerWebId,
+  ownerWebId: ownerWebId,
+  granterWebId: granterWebId,
   child: ReturnPage(),
   ),
  ),
