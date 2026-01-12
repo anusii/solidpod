@@ -140,7 +140,7 @@ Widget buildPermDataTable({
                                 isFile: isFile,
                                 permissionList:
                                     permDataMap[index][permStr] as List,
-                                removerIndOrGroupWebId: index,
+                                recipientIndOrGroupWebId: index,
                                 ownerWebId: ownerWebId,
                                 recipientType: getRecipientType(
                                   permDataMap[index][agentStr] as String,

@@ -114,7 +114,7 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
             isFile: isFile,
             isFileUrl: isFileUrl,
             permissionList: permDataMap[recipientWebId][permStr] as List,
-            removerIndOrGroupWebId: recipientWebId,
+            recipientIndOrGroupWebId: recipientWebId,
             ownerWebId: userWebId,
             recipientType: getRecipientType(
               permDataMap[recipientWebId][agentStr] as String,
