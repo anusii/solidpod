@@ -26,6 +26,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -176,7 +178,10 @@ Future<Map<dynamic, dynamic>> readAcl(
 ]) async {
   final resourceAclUrl = getResAclFile(resourceUrl, isFile);
 
-  final aclContent = await fetchPrvFile(resourceAclUrl);
+  final aclContent = utf8.decode(
+    await getResource(resourceAclUrl),
+  );
+
   return parseACL(aclContent);
 }
 
@@ -184,7 +189,9 @@ Future<Map<dynamic, dynamic>> readAcl(
 ///
 /// Returns a Future that completes with a List containing the list of WebIDs.
 Future<List<dynamic>> readGroupTtl(String groupFileUrl) async {
-  final groupContent = await fetchPrvFile(groupFileUrl);
+  final groupContent = utf8.decode(
+    await getResource(groupFileUrl),
+  );
 
   final groupDataMap = parseTTLMap(groupContent);
 

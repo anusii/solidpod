@@ -239,8 +239,7 @@ final fileContent = await readPod(
 
 ### Write to Pod File Example
 
-Write data to the file `myfiles/my-data-file.ttl` and return to the
-widget `ReturnPage()`.
+Write data to the file `myfiles/my-data-file.ttl`.
 
 ```dart
 // Turtle string to be written to the file
@@ -252,8 +251,6 @@ final turtleString =
 await writePod(
  'myfiles/my-data-file.ttl',
  turtleString,
- context,
- ReturnPage(),
  encrypted: false // non-required parameter. By default set to true
 );
 ```
@@ -274,8 +271,6 @@ final childDataString = '<Sample TTL Data>';
 await writePod(
  'parentDir/child-1.ttl',
  childDataString,
- context,
- ReturnPage(),
  createAcl: false,
  inheritKeyFrom: 'parentDir/',
 );
@@ -283,8 +278,6 @@ await writePod(
 await writePod(
  'parentDir/child-2.ttl',
  childDataString,
- context,
- ReturnPage(),
  createAcl: false,
  inheritKeyFrom: 'parentDir/',
 );
@@ -315,7 +308,7 @@ ElevatedButton(
 )
 ```
 
-To add/delete permissions to a specific file use:
+To add/delete permissions of a recipient to a specific user owned file use:
 
 ```dart
 ElevatedButton(
@@ -325,7 +318,7 @@ ElevatedButton(
  context,
  MaterialPageRoute(
   builder: (context) => const GrantPermissionUi(
-  fileName: 'my-data-file.ttl',
+  resourceName: 'my-data-file.ttl',
   child: ReturnPage(),
   ),
  ),
@@ -333,7 +326,7 @@ ElevatedButton(
 )
 ```
 
-To add/delete permissions to a specific directory use:
+To add/delete permissions of a recipient to a specific user owned directory use:
 
 ```dart
 ElevatedButton(
@@ -343,9 +336,30 @@ ElevatedButton(
  context,
  MaterialPageRoute(
   builder: (context) => const GrantPermissionUi(
-  fileName: 'parentDir/',
+  resourceName: 'parentDir/',
   child: ReturnPage(),
   isFile: false,
+  ),
+ ),
+ ),
+)
+```
+
+To add/delete permissions of a recipient to a specific externally owned
+file (that user has control access to) use:
+
+```dart
+ElevatedButton(
+ child: const Text(
+  'Add/Delete Permissions from a Specific File'),
+ onPressed: () => Navigator.push(
+ context,
+ MaterialPageRoute(
+  builder: (context) => const GrantPermissionUi(
+  resourceName: 'my-data-file.ttl',
+  isExternalRes: true,
+  externalWebId: ownerWebId,
+  child: ReturnPage(),
   ),
  ),
  ),
@@ -398,11 +412,9 @@ To upload a large file in application `myapp`, use:
 ```dart
 await writeLargeFile(
      // Name of the file in POD
-     remoteFileName: 'my-large-file.bin',
+     remoteFilePath: 'my-large-file.bin',
      // Path of the file where it is locally stored
      localFilePath: 'D:/my-large-file.bin',
-     context: context,
-     child: ReturnPage(),
 )
 ```
 
@@ -413,11 +425,9 @@ To download a large file use:
 ```dart
 await readLargeFile(
      // Name of the file in POD
-     remoteFileName: 'my-large-file.bin',
+     remoteFilePath: 'my-large-file.bin',
      // Path of the file where it will be locally downloaded
      localFilePath: 'D:/my-large-file.bin',
-     context: context,
-     child: ReturnPage(),
 )
 ```
 
@@ -426,9 +436,7 @@ To delete a large file use:
 ```dart
 await deleteLargeFile(
      // Name of the file in POD
-     remoteFileName: 'my-large-file.bin',
-     context: context,
-     child: ReturnPage(),
+     remoteFilePath: 'my-large-file.bin',
 )
 ```
 

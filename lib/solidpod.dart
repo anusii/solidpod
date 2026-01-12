@@ -105,7 +105,7 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
-        checkLoggedIn,
+        isUserLoggedIn,
         deleteExternalFile,
         deleteFile,
         deleteLogIn,
@@ -118,7 +118,6 @@ export 'src/solid/utils/misc.dart'
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
-        readEncryptionKeyContent,
         logoutPod,
         registerLogoutCacheCallback,
         setAppDirName,
@@ -179,6 +178,7 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        getResource,
         getResourcesInContainer,
         initialStructureTest,
         updateFileByQuery;

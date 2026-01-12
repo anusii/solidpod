@@ -26,30 +26,24 @@
 ///
 /// Authors: Anushka Vidanage, Dawei Chen, Ashley Tang, Graham Williams
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
-import 'package:flutter/material.dart' hide Key;
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
-import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read [filePath] from POD with file [mode] (default is text).
-///
-/// Check if the user is logged in and then read and parse the file content.
-///
-/// The file will be read from the `appname/data` directory by default, unless
-/// [basePath] is specified to override the default base path.
+/// Read a (shared) file from POD..
 ///
 /// Examples:
 /// - `readPod('abc.ttl')` reads from `appname/data/abc.ttl`
@@ -59,17 +53,16 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// - `readPod('https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl', pathType: PathType.absoluteUrl)`
 ///    reads from 'https://pods.solidcommunity.au/podName/appDirectory/data/file.ttl'
 ///
-/// [filePath] - The path to the file to read
-/// [pathType] - Optional type of file path to override the default (relative to `appname/data` directory)
+/// Arguments:
+/// - [filePath]: The path to the file to read
+/// - [pathType]: Optional type of relative file path to override the default (relative to `appname/data` directory)
 
 Future<String> readPod(
   String filePath, {
   PathType pathType = PathType.relativeToData,
 }) async {
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to read from POD.',
-    );
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('User must be logged in to read from POD');
   }
 
   final fileUrl = await generateResourceUrlFromPath(
@@ -77,55 +70,77 @@ Future<String> readPod(
     pathType: pathType,
   );
 
-  final fileExists = await checkResourceStatus(fileUrl);
+  final fileStatus = await checkResourceStatus(fileUrl);
 
-  switch (fileExists) {
-    case ResourceStatus.exist:
-      try {
-        final fileContent = await fetchPrvFile(fileUrl);
+  if (fileStatus != ResourceStatus.exist) {
+    switch (fileStatus) {
+      case ResourceStatus.notExist:
+        throw ResourceNotExistException('$fileUrl does not exist');
+      case ResourceStatus.forbidden:
+        throw AccessForbiddenException('Access to $fileUrl is not allowed');
+      case ResourceStatus.unknown:
+        throw Exception('Unknown error.');
+      default:
+        {}
+    }
+  }
 
-        // Decrypt if reading an encrypted file
-        Key? indKey;
+  try {
+    // Retrieve raw content
 
-        if (await KeyManager.hasIndividualKey(fileUrl)) {
-          // Get the individual key for the file.
+    final fileContent = utf8.decode(
+      await getResource(fileUrl),
+    );
 
-          indKey = await KeyManager.getIndividualKey(fileUrl);
-        } else if (hasInheritedKey(
-          fileContent,
-          fileUrl,
-        )) {
-          // Get the individual key for the file.
+    // Return raw content for non-turtle files
 
-          final parentDirPath = getParentDir(
-            fileContent,
-            fileUrl,
-          );
-          final parentDirUrl = await getDirUrl(parentDirPath);
-          indKey = await KeyManager.getIndividualKey(parentDirUrl);
-        }
+    if (!fileUrl.toLowerCase().endsWith('.ttl')) {
+      return fileContent;
+    }
 
-        if (indKey != null) {
-          // Decrypt the file content
+    // Parse raw content if its turtle
 
-          final dataMap = parseTtlContent(fileContent);
-          assert(dataMap.containsKey(fileUrl));
+    final tripleMap = turtleToTripleMap(fileContent);
 
-          return decryptData(
-            dataMap[fileUrl][encDataPred] as String,
-            indKey,
-            IV.fromBase64(dataMap[fileUrl][ivPred] as String),
-          );
-        } else {
-          return fileContent;
-        }
-      } on Object catch (e) {
-        debugPrint(e.toString());
-        rethrow;
-      }
-    case ResourceStatus.notExist:
-      throw Exception('Resource "$fileUrl" does not exist.');
-    default:
-      throw Exception('Unknown error.');
+    // Return raw content for turtle files that are not
+    // encrypted by solidpod
+
+    if (!tripleMap.containsKey(fileUrl)) {
+      return fileContent;
+    }
+
+    final map = tripleMap[fileUrl]!;
+    String? ivStr = map[getPredicateUrl(ivPred)];
+    String? encDataStr = map[getPredicateUrl(encDataPred)];
+    String? inheritKeyPath = map[getPredicateUrl(inheritKeyPred)];
+
+    // Plaintext turtle
+
+    if (ivStr == null || encDataStr == null) {
+      return fileContent;
+    }
+
+    // Retrieve encryption key if available
+
+    String? inheritKeyUrl;
+    if (inheritKeyPath != null) {
+      inheritKeyUrl = await generateResourceUrlFromPath(
+        resourcePath: inheritKeyPath,
+        pathType: PathType.relativeToPod,
+        webId: await generateWebIdFromResourceUrl(fileUrl),
+      );
+    }
+
+    final encKey = await retrieveEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
+
+    // Return (decrypted) text
+
+    return encKey != null
+        ? decryptData(encDataStr, encKey, IV.fromBase64(ivStr))
+        : fileContent;
+  } on Object catch (e, trace) {
+    debugPrint(e.toString());
+    debugPrint(trace.toString());
+    rethrow;
   }
 }

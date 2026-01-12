@@ -32,6 +32,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 import 'package:solid_auth/solid_auth.dart';
@@ -40,7 +42,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show checkLoggedIn, logoutPod;
+    show isUserLoggedIn, logoutPod;
 
 // Scopes variables used in the authentication process.
 
@@ -68,7 +70,7 @@ Future<List<dynamic>?> solidAuthenticate(
   BuildContext context,
 ) async {
   try {
-    final loggedIn = await checkLoggedIn();
+    final loggedIn = await isUserLoggedIn();
     Map<dynamic, dynamic>? authData;
     if (loggedIn) {
       authData = await AuthDataManager.loadAuthData();
@@ -79,6 +81,7 @@ Future<List<dynamic>?> solidAuthenticate(
 
     // If not logged in or load failed, perform new authentication
     if (!loggedIn || authData == null) {
+      debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
       // Authentication process for the POD issuer.
 
       final issuerUri = await getIssuer(serverId);
@@ -110,12 +113,10 @@ Future<List<dynamic>?> solidAuthenticate(
       }
 
       // Proceed to fetch profile data with the authenticated credentials
-      if (authData.containsKey('error')) {
-        return null;
-      }
-
       final profCardUrl = webId.replaceAll('#me', '');
-      final profData = await fetchPrvFile(profCardUrl);
+      final profData = utf8.decode(
+        await getResource(profCardUrl),
+      );
 
       return [authData, webId, profData];
     }
@@ -128,10 +129,13 @@ Future<List<dynamic>?> solidAuthenticate(
     }
 
     final profCardUrl = webId.replaceAll('#me', '');
-    final profData = await fetchPrvFile(profCardUrl);
+    final profData = utf8.decode(
+      await getResource(profCardUrl),
+    );
 
     return [authData, webId, profData];
-  } on Exception {
+  } on Object catch (e) {
+    debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
 }

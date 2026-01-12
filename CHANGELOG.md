@@ -3,11 +3,17 @@
 Recorded here are the high level changes for the SolidPod package.
 
 Guide: Each version update is recorded here with a short user-oriented
-description of the update. Updates in the 0.6.n series are heading
-toward a 0.7 release. The `[version timestamp user]` string is
+description of the update. Updates in the 0.9.n series are heading
+toward a 0.10 release. The `[version timestamp user]` string is
 utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
+
+## 0.10 Further UI migrations
+
++ Fixes key creation for encrypting files [0.9.2 20260112 dc]
++ Code cleanup: typos, context checks, remove context/child [0.9.1 20260112 jesscmoore]
++ Updated read/write to remove context and widget [0.9.0 20260108 dc]
 
 ## 0.9 Stabilise
 

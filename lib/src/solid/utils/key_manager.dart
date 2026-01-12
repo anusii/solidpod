@@ -495,9 +495,9 @@ class KeyManager {
   }
 
   /// Add the (encrypted) individual key for file
-  static Future<void> addIndividualKey(
-    String resourcePath,
-    Key indKey, {
+  static Future<void> addIndividualKey({
+    required String resourcePath,
+    required Key indKey,
     bool isFile = true,
   }) async {
     final resourceUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);
@@ -528,8 +528,8 @@ class KeyManager {
   }
 
   /// Remove the (encrypted) individual key for file
-  static Future<void> removeIndividualKey(
-    String resourcePath, {
+  static Future<void> removeIndividualKey({
+    required String resourcePath,
     bool isFile = true,
   }) async {
     final resourceUrl = await (isFile ? getFileUrl : getDirUrl)(resourcePath);

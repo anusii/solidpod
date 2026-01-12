@@ -191,11 +191,7 @@ Widget buildSharedResourcesTable(
                             ),
                             onPressed: () async {
                               // Get file content
-                              final fileContent = await readExternalPod(
-                                index,
-                                context,
-                                parentWidget,
-                              );
+                              final fileContent = await readExternalPod(index);
 
                               if (fileContent != null &&
                                   fileContent !=

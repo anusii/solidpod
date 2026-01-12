@@ -1,6 +1,6 @@
-/// Custom exception classes
+/// Helper functions for reading and writing files in PODs.
 ///
-/// Copyright (C) 2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2026, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -24,51 +24,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Tony Chen, Dawei Chen
+/// Authors: Dawei Chen
 
 library;
 
-class AccessForbiddenException implements Exception {
-  final String message;
+import 'package:solidpod/src/solid/utils/misc.dart';
 
-  AccessForbiddenException(this.message);
+final _protectedFiles = <String>{};
 
-  @override
-  String toString() => 'AccessForbiddenException: $message';
-}
+Future<bool> isFileProtected(String fileUrl) async {
+  if (_protectedFiles.isEmpty) {
+    // TODO: dc 20260105 - double check if these are all the protected files
 
-class AccessFailedException implements Exception {
-  final String message;
+    final fileUrls = [
+      for (final f in [
+        await getEncKeyPath(),
+        await getIndKeyPath(),
+        await getPubKeyPath(),
+        await getPubIndKeyPath(),
+        await getAuthUserIndKeyPath(),
+        await getSharedKeyFilePath(),
+        await getPermLogFilePath(),
+      ])
+        await getFileUrl(f),
+    ];
 
-  AccessFailedException(this.message);
+    _protectedFiles.addAll(fileUrls);
+    _protectedFiles.addAll(fileUrls.map((f) => '$f.acl'));
+    _protectedFiles.addAll([
+      for (final d in await generateDefaultFolders())
+        '${await getDirUrl(d)}.acl',
+    ]);
+  }
 
-  @override
-  String toString() => 'AccessFailedException: $message';
-}
-
-class ResourceNotExistException implements Exception {
-  final String message;
-
-  ResourceNotExistException(this.message);
-
-  @override
-  String toString() => 'ResourceNotExistException: $message';
-}
-
-class NotLoggedInException implements Exception {
-  final String message;
-
-  NotLoggedInException(this.message);
-
-  @override
-  String toString() => 'NotLoggedInException: $message';
-}
-
-class SecurityKeyNotAvailableException implements Exception {
-  final String message;
-
-  SecurityKeyNotAvailableException(this.message);
-
-  @override
-  String toString() => 'SecurityKeyNotAvailableException: $message';
+  return _protectedFiles.contains(fileUrl);
 }

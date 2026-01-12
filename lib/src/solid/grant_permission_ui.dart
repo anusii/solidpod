@@ -70,7 +70,12 @@ class GrantPermissionUi extends StatefulWidget {
     this.onPermissionGranted,
     this.onNavigateBack,
     super.key,
-  });
+  }) : assert(
+          // Requires externalWebId of resource owner to be provided if resource
+          // is an externally owned resource.
+          isExternalRes == false || externalWebId != null,
+          'externalWebId must be provided if isExternalRes == true',
+        );
 
   /// The child widget to return to when back button is pressed and/or when
   /// page is reloaded after a permission is granted or revoked.
@@ -213,14 +218,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
   Future<List<dynamic>> loadPodData(String resName, bool isFile) async {
-    final SolidFunctionCallStatus response = context.mounted
-        ? await chkExistsAndHasAcl(
-            fileName: resName,
-            isFile: isFile,
-            context: context,
-            child: widget,
-          )
-        : SolidFunctionCallStatus.contextNotMounted;
+    final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
+      fileName: resName,
+      isFile: isFile,
+    );
 
     switch (response) {
       case SolidFunctionCallStatus.aclFound:
@@ -427,8 +428,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   recipientType: selectedRecipientType,
                   recipientWebIdList: finalWebIdList as List,
                   ownerWebId: ownerWebId,
-                  context: context,
-                  child: widget.child,
                   isExternalRes: widget.isExternalRes,
                   groupName: selectedRecipientType == RecipientType.group
                       ? groupNameController.text.trim()

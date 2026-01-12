@@ -111,19 +111,19 @@ String decryptData(
     Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);
 
 /// Load and parse a private TTL file from POD
-Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
-  // final fileUrl = await getFileUrl(filePath);
-  try {
-    if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
-      final rawContent = await fetchPrvFile(fileUrl);
-      return parseTtlContent(rawContent);
-    } else {
-      return {};
-    }
-  } on Exception catch (e) {
-    throw Exception(e);
-  }
-}
+// Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
+//   // final fileUrl = await getFileUrl(filePath);
+//   try {
+//     if (await checkResourceStatus(fileUrl) == ResourceStatus.exist) {
+//       final rawContent = await fetchPrvFile(fileUrl);
+//       return parseTTL(rawContent);
+//     } else {
+//       return {};
+//     }
+//   } on Exception catch (e) {
+//     throw Exception(e);
+//   }
+// }
 
 /// Read the encryption key file content for display purposes.
 ///
@@ -131,20 +131,24 @@ Future<Map<String, dynamic>> loadPrvTTL(String fileUrl) async {
 /// making it suitable for accessing files outside the appname/data directory.
 ///
 /// Returns the raw TTL content of the encryption key file.
-Future<String> readEncryptionKeyContent() async {
-  final encKeyPath = await getEncKeyPath();
-  final encKeyUrl = await getFileUrl(encKeyPath);
+// Future<String> readEncryptionKeyContent() async {
+//   final encKeyPath = await getEncKeyPath();
+//   final encKeyUrl = await getFileUrl(encKeyPath);
 
-  try {
-    if (await checkResourceStatus(encKeyUrl) == ResourceStatus.exist) {
-      return await fetchPrvFile(encKeyUrl);
-    } else {
-      throw Exception('Encryption key file does not exist at: $encKeyPath');
-    }
-  } on Exception catch (e) {
-    throw Exception('Failed to read encryption key file: $e');
-  }
-}
+//   try {
+//     if (await checkResourceStatus(encKeyUrl) == ResourceStatus.exist) {
+//       return utf8.decode(
+//         await getResource(encKeyUrl),
+//       );
+
+//       return await fetchPrvFile(encKeyUrl);
+//     } else {
+//       throw Exception('Encryption key file does not exist at: $encKeyPath');
+//     }
+//   } on Exception catch (e) {
+//     throw Exception('Failed to read encryption key file: $e');
+//   }
+// }
 
 /// Generates a public key block from a given key content.
 String genPubKeyStr(String pubKeyContent) =>
@@ -169,29 +173,25 @@ String getUniqueIdResUrl(String resourceUrl, String receiverWebId) {
 }
 
 /// From a given resource path [resourcePath] create its URL
-/// [isContainer] should be true if the resource is a directory, otherwise false
+/// [resourcePath] should be relative to the POD, e.g., `myapp/data/abc.ttl`.
+/// [isFile] should be true if the resource is a file, otherwise false if it
+/// is a directory.
+/// [webId] (optionally) specifies the resource's POD (could be external).
 /// returns the full resource URL
 
 Future<String> _getResourceUrl(
-  String resourcePath,
-  bool isContainer, [
-  String? extWebId,
-]) async {
-  // Check if resource url is needed for an external webId
-  final webId = extWebId ?? await AuthDataManager.getWebId();
+  String resourcePath, {
+  required bool isFile,
+  String? webId,
+}) async {
+  final wId = webId ?? await AuthDataManager.getWebId();
 
-  // If webId is null (user logged out), return empty or throw informative error
-  if (webId == null || webId.isEmpty) {
-    throw Exception('User not logged in: cannot access resource URL');
-  }
+  assert(wId != null);
+  assert(wId!.contains(profCard));
 
-  if (!webId.contains(profCard)) {
-    throw Exception('Invalid webId format: must contain $profCard');
-  }
+  final resourceUrl = wId!.replaceAll(profCard, resourcePath);
 
-  final resourceUrl = webId.replaceAll(profCard, resourcePath);
-
-  if (isContainer && !resourceUrl.endsWith('/')) {
+  if (!isFile && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
   }
 
@@ -199,12 +199,12 @@ Future<String> _getResourceUrl(
 }
 
 /// Create the URL for a file
-Future<String> getFileUrl(String filePath, [String? extWebId]) async =>
-    await _getResourceUrl(filePath, false, extWebId);
+Future<String> getFileUrl(String filePath, {String? webId}) async =>
+    await _getResourceUrl(filePath, isFile: true, webId: webId);
 
 /// Create the URL for a directory (container)
-Future<String> getDirUrl(String dirPath, [String? extWebId]) async =>
-    await _getResourceUrl(dirPath, true, extWebId);
+Future<String> getDirUrl(String dirPath, {String? webId}) async =>
+    await _getResourceUrl(dirPath, isFile: false, webId: webId);
 
 /// Get resource Url from a filename, with different options for how
 /// the filename is provided. If [isExternalRes] or [isFileUrl] is
@@ -285,7 +285,7 @@ Future<String> getEncTTLStr(
   String? inheritKeyFrom,
 }) async {
   final triples = {
-    URIRef(await getFileUrl(filePath, extWebId)): {
+    URIRef(await getFileUrl(filePath, webId: extWebId)): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
       if (inheritKeyFrom != null)
@@ -351,9 +351,8 @@ Future<String?> getWebId() async => AuthDataManager.getWebId();
 /// Check if the local storage has authentication
 /// details of the user and also check whether the
 /// access token is expired or not
-/// returns boolean
 
-Future<bool> checkLoggedIn() async {
+Future<bool> isUserLoggedIn() async {
   final webId = await AuthDataManager.getWebId();
 
   if (webId != null && webId.isNotEmpty) {
@@ -369,9 +368,7 @@ Future<bool> checkLoggedIn() async {
 /// Create a directory with the given URL
 
 Future<void> createDir(String dirUrl) async {
-  if (!dirUrl.endsWith('/')) {
-    throw Exception('Directory URL must end with /: $dirUrl');
-  }
+  assert(dirUrl.endsWith('/'));
   await createResource(
     dirUrl,
     isFile: false,
@@ -515,11 +512,9 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
   String httpMethod,
 ) async {
   final authData = await AuthDataManager.loadAuthData();
-  if (authData == null) {
-    throw Exception('No authentication data available');
-  }
+  assert(authData != null);
 
-  final rsaInfo = authData['rsaInfo'];
+  final rsaInfo = authData!['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
 
@@ -636,8 +631,7 @@ Future<void> initPod(
 }) async {
   // Check if the user has logged in
 
-  final loggedIn = await checkLoggedIn();
-  if (!loggedIn) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException('Can not initialise POD without logging in');
   }
 
@@ -705,9 +699,7 @@ Future<void> initPod(
           publicAccess = {AccessMode.append};
         default:
           debugPrint(fileName);
-          if (fileName != '.acl') {
-            debugPrint('Warning: Unexpected ACL file: $fileName');
-          }
+          assert(fileName == '.acl');
           publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
       }
@@ -721,9 +713,7 @@ Future<void> initPod(
       aclFlag = true;
     } else {
       debugPrint(fileName);
-      if (fileName != permLogFile) {
-        debugPrint('Warning: Unexpected file: $fileName');
-      }
+      assert(fileName == permLogFile);
       fileContent = genPermLogTTLStr(f);
       aclFlag = false;
     }
@@ -794,7 +784,7 @@ Future<void> deleteFile(
     await deleteResource(fileUrl, contentType);
     await deleteAclForResource(fileUrl);
     if (await KeyManager.hasIndividualKey(fileUrl)) {
-      await KeyManager.removeIndividualKey(filePath);
+      await KeyManager.removeIndividualKey(resourcePath: filePath);
     }
   } else {
     // File to be deleted == key => perform delete only
@@ -889,23 +879,37 @@ Future<String> generateResourceUrlFromPath({
   required String resourcePath,
   required PathType pathType,
   bool isFile = true,
+  String? webId,
 }) async {
   final func = isFile ? getFileUrl : getDirUrl;
   switch (pathType) {
     case PathType.absoluteUrl:
       return resourcePath;
+
     case PathType.relativeToPod:
-      return await func(resourcePath);
+      return await func(
+        resourcePath,
+        webId: webId,
+      );
 
     case PathType.relativeToApp:
-      return await func([appDirName, resourcePath].join('/'));
+      return await func(
+        [appDirName, resourcePath].join('/'),
+        webId: webId,
+      );
 
     case PathType.relativeToData:
-      return await func([await getDataDirPath(), resourcePath].join('/'));
+      return await func(
+        [await getDataDirPath(), resourcePath].join('/'),
+        webId: webId,
+      );
   }
 }
 
 /// Extract resource path from its URL
+/// path format:
+/// - appDir/path/to/file
+/// - appDir/path/to/dir/
 
 Future<String> extractResourcePathFromUrl(
   String resourceUrl, {
@@ -918,4 +922,11 @@ Future<String> extractResourcePathFromUrl(
   final path = segments.getRange(1, segments.length).join('/');
 
   return !(isFile || path.endsWith('/')) ? '$path/' : path;
+}
+
+/// Generate the Web ID of from resource URL
+
+Future<String> generateWebIdFromResourceUrl(String resourceUrl) async {
+  final uri = Uri.parse(resourceUrl);
+  return [uri.origin, uri.pathSegments.first, profCard].join('/');
 }

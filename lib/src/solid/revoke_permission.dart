@@ -153,7 +153,7 @@ Future<SolidFunctionCallStatus> revokePermission({
         ownerWebId: ownerWebId,
         permissionType: 'revoke',
         granterWebId: userWebId,
-        recepientWebId: removerWebId as String,
+        recipientWebId: removerWebId as String,
       );
 
       // Log file urls of the owner, granter, and receiver
@@ -162,7 +162,7 @@ Future<SolidFunctionCallStatus> revokePermission({
       // Owner
       // [20251029 jesscmoore] Assumes user = owner and uses
       // AuthDataManager.getWebId() to fetch user webId
-      final ownerLogFileUrl = await getFileUrl(logFilePath, ownerWebId);
+      final ownerLogFileUrl = await getFileUrl(logFilePath, webId: ownerWebId);
 
       // Granter
       // [20251029 jesscmoore] Assumes user = granter and uses
@@ -189,7 +189,7 @@ Future<SolidFunctionCallStatus> revokePermission({
           .contains(recipientType)) {
         if (await checkPodInitialised(removerWebId)) {
           final receiverLogFileUrl =
-              await getFileUrl(logFilePath, removerWebId);
+              await getFileUrl(logFilePath, webId: removerWebId);
           await addPermLogLine(
             logFileUrl: receiverLogFileUrl,
             logEntry: logEntryRes,

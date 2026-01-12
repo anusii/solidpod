@@ -32,12 +32,13 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 
-import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart'
+    show NotLoggedInException;
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show verifySecurityKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show checkLoggedIn, getWebId;
+    show isUserLoggedIn, getWebId;
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/security_key_ui.dart';
 
@@ -45,13 +46,11 @@ import 'package:solidpod/src/widgets/security_key_ui.dart';
 /// [context] is the BuildContext from which this function is called.
 
 Future<void> changeKeyPopup(BuildContext context, Widget child) async {
-  if (!await checkLoggedIn()) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to change security key.',
     );
-  }
-
-  {
+  } else {
     final verificationKey = await KeyManager.getVerificationKey();
     final webId = await getWebId();
 

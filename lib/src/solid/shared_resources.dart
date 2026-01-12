@@ -26,13 +26,9 @@
 ///
 /// Authors: Anushka Vidanage
 
-// ignore_for_file: use_build_context_synchronously
-
 library;
 
-import 'dart:core';
-
-import 'package:flutter/material.dart' hide Key;
+import 'dart:convert';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -42,18 +38,16 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Read permission given for the [fileName].
+///
 /// Parameters:
-///   [child] is the child widget to return to
-///   [fileName] is the name of the file reading permission from
-///   [sourceWebId] is the source WebID
+/// - [fileName] is the name of the file reading permission from
+/// - [sourceWebId] is the source WebID
 
-Future<dynamic> sharedResources(
-  BuildContext context,
-  Widget child, [
+Future<dynamic> sharedResources([
   String? fileName,
   String? sourceWebId,
 ]) async {
-  if (!await checkLoggedIn()) {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to access shared resources.',
     );
@@ -67,7 +61,9 @@ Future<dynamic> sharedResources(
   final logFileUrl = await getFileUrl(logFilePath);
 
   // Read log file
-  final logContent = await fetchPrvFile(logFileUrl);
+  final logContent = utf8.decode(
+    await getResource(logFileUrl),
+  );
 
   final logDataMap = parseTTLMap(logContent);
 

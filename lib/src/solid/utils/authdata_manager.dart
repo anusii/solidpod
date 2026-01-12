@@ -28,9 +28,8 @@ library;
 
 import 'dart:convert' show jsonEncode, jsonDecode;
 
-import 'package:flutter/foundation.dart' show debugPrint, ValueNotifier;
-
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
+import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:solid_auth/solid_auth.dart';
 // ignore: implementation_imports
@@ -66,9 +65,6 @@ class AuthDataManager {
   /// The authentication response
   static Credential? _authResponse;
 
-  /// Flag to track if auth data was explicitly deleted (to prevent reload from storage)
-  static bool _wasExplicitlyDeleted = false;
-
   /// The string key for storing auth data in secure storage
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
@@ -92,44 +88,12 @@ class AuthDataManager {
       assert(authData.containsKey(key));
     }
 
-    try {
-      // Try to get webid from accessToken first
-      Map<String, dynamic> decodedToken =
-          JwtDecoder.decode(authData['accessToken'] as String);
-      _webId = decodedToken['webid'] as String?;
-
-      // If not found in accessToken, try idToken
-      if (_webId == null) {
-        try {
-          decodedToken = JwtDecoder.decode(authData['idToken'] as String);
-          _webId = decodedToken['webid'] as String?;
-        } catch (e) {
-          debugPrint(
-            'AuthDataManager.saveAuthData() => Failed to decode idToken: $e',
-          );
-        }
-      }
-
-      if (_webId == null || _webId!.isEmpty) {
-        debugPrint(
-          'AuthDataManager.saveAuthData() => webid not found in accessToken or idToken',
-        );
-        return;
-      }
-    } catch (e) {
-      debugPrint(
-        'AuthDataManager.saveAuthData() => Failed to decode JWT tokens: $e',
-      );
-      return;
-    }
-
+    final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
+    _webId = decodedToken['webid'] as String;
     _logoutUrl = authData['logoutUrl'] as String;
     _rsaInfo = authData['rsaInfo'] as Map<dynamic,
         dynamic>; // Note that use Map<String, dynamic> does not seem to work
     _authResponse = authData['authResponse'] as Credential;
-
-    // Reset the deletion flag since we're now saving new auth data
-    _wasExplicitlyDeleted = false;
 
     await writeToSecureStorage(
       _authDataSecureStorageKey,
@@ -151,53 +115,22 @@ class AuthDataManager {
     // Notify listeners that auth state has changed
     authStateNotifier.value = true;
 
-    debugPrint('AuthDataManager => saveAuthData() done');
+    // debugPrint('AuthDataManager => saveAuthData() done');
   }
 
   /// Retrieve (and reconstruct) auth data from secure storage
   //
   // It seems [String] as the first between the angle brackets does not work
   static Future<Map<dynamic, dynamic>?> loadAuthData() async {
-    // If data was explicitly deleted, don't try to reload from storage
-    if (_wasExplicitlyDeleted) {
-      return null;
-    }
-
-    // First, check if any critical state is null - if so, we're not logged in
-    if (_logoutUrl == null ||
-        _rsaInfo == null ||
-        _authResponse == null ||
-        _webId == null) {
-      debugPrint(
-        'AuthDataManager => loadAuthData() detected null state, attempting reload from storage',
-      );
+    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint(
-          'AuthDataManager => loadAuthData() failed - no auth data in storage',
-        );
+        // debugPrint('AuthDataManager => loadAuthData() failed');
         return null;
       }
     }
 
-    // Double check after loading - if still null, definitely not logged in
-    if (_logoutUrl == null ||
-        _rsaInfo == null ||
-        _authResponse == null ||
-        _webId == null) {
-      debugPrint(
-        'AuthDataManager => loadAuthData() still has null state after reload',
-      );
-      return null;
-    }
-
-    // All critical data is now loaded
-    if (_logoutUrl == null ||
-        _rsaInfo == null ||
-        _authResponse == null ||
-        _webId == null) {
-      throw Exception('Critical authentication data is missing');
-    }
+    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
     try {
       final tokenResponse = await _getTokenResponse();
       if (tokenResponse == null) {
@@ -214,128 +147,51 @@ class AuthDataManager {
         'expiresIn': tokenResponse.expiresIn,
         'logoutUrl': _logoutUrl,
       };
-    } on Object catch (e) {
+    } on Object {
       // Catch any object thrown (Dart programs can throw any non-null object)
-      debugPrint('AuthDataManager => loadAuthData() failed: $e');
+      // debugPrint('AuthDataManager => loadAuthData() failed: $e');
     }
     return null;
   }
 
   /// Remove/delete auth data from secure storage
-  ///
-  /// This function safely removes authentication data from platform-specific
-  /// secure storage. On Flutter Web, FlutterSecureStorage uses SharedPreferences
-  /// under the hood, so this is safe and won't throw platform exceptions.
-  ///
-  /// Always clears in-memory state variables regardless of storage removal success.
   static Future<bool> removeAuthData() async {
     try {
-      // Step 1: Clear from secure storage (platform-specific)
-      bool storageCleared = false;
       if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
-        try {
-          await secureStorage.delete(key: _authDataSecureStorageKey);
-          debugPrint(
-            'AuthDataManager => removeAuthData() removed from secure storage',
-          );
-          storageCleared = true;
-        } on Object catch (e) {
-          debugPrint(
-            'AuthDataManager => removeAuthData() storage removal failed: $e',
-          );
-          // Continue - memory clearing is still critical
-        }
-      } else {
-        storageCleared = true; // Storage already doesn't exist
-      }
-
-      // Step 2: ALWAYS clear in-memory state (this is the most critical part)
-      // Do this regardless of storage removal success
-      _webId = null;
-      _logoutUrl = null;
-      _rsaInfo = null;
-      _authResponse = null;
-      _wasExplicitlyDeleted = true; // Mark that data was explicitly deleted
-
-      // Notify listeners that auth state has changed
-      authStateNotifier.value = false;
-
-      debugPrint('AuthDataManager => removeAuthData() cleared in-memory state');
-
-      // Step 3: Verify storage was actually deleted by checking again
-      if (storageCleared) {
-        final stillExists =
-            await secureStorage.containsKey(key: _authDataSecureStorageKey);
-        if (stillExists) {
-          debugPrint(
-            'AuthDataManager => removeAuthData() WARNING: data still exists in storage after delete, attempting second delete',
-          );
-          try {
-            await secureStorage.delete(key: _authDataSecureStorageKey);
-            debugPrint(
-              'AuthDataManager => removeAuthData() second delete succeeded',
-            );
-          } on Object catch (e) {
-            debugPrint(
-              'AuthDataManager => removeAuthData() second delete also failed: $e',
-            );
-          }
-        } else {
-          debugPrint(
-            'AuthDataManager => removeAuthData() confirmed: data removed from storage',
-          );
-        }
-      }
-
-      return true;
-    } on Object catch (e) {
-      // Even if something goes wrong, attempt to null out memory state as fallback
-      debugPrint('AuthDataManager => removeAuthData() unexpected error: $e');
-      try {
+        await secureStorage.delete(key: _authDataSecureStorageKey);
         _webId = null;
         _logoutUrl = null;
         _rsaInfo = null;
         _authResponse = null;
-        _wasExplicitlyDeleted = true;
-        debugPrint(
-          'AuthDataManager => removeAuthData() fallback memory clear succeeded',
-        );
-      } on Object catch (fallbackError) {
-        debugPrint(
-          'AuthDataManager => removeAuthData() fallback also failed: $fallbackError',
-        );
       }
-      return false;
+
+      // Notify listeners that auth state has changed
+      authStateNotifier.value = false;
+
+      return true;
+    } on Object {
+      // debugPrint('AuthDataManager => removeAuthData() failed: $e');
     }
+    return false;
   }
 
   /// Returns the (refreshed) access token
   static Future<String?> getAccessToken() async {
-    // If data was explicitly deleted, don't try to reload from storage
-    if (_wasExplicitlyDeleted) {
-      return null;
-    }
-
     final tokenResponse = await _getTokenResponse();
     if (tokenResponse != null) {
       return tokenResponse.accessToken;
     } else {
-      debugPrint('AuthDataManager => getAccessToken() failed');
+      // debugPrint('AuthDataManager => getAccessToken() failed');
     }
     return null;
   }
 
   /// Returns the (updated) token response
   static Future<TokenResponse?> _getTokenResponse() async {
-    // If data was explicitly deleted, don't try to reload from storage
-    if (_wasExplicitlyDeleted) {
-      return null;
-    }
-
     if (_authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => _getTokenResponse() failed');
+        // debugPrint('AuthDataManager => _getTokenResponse() failed');
         return null;
       }
     }
@@ -356,65 +212,34 @@ class AuthDataManager {
             genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
         tokenResponse = await _authResponse!
             .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+        // TODO dc 20250106: Save refreshed token in secure storage
       }
       return tokenResponse;
-    } on Object catch (e) {
-      debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
+    } on Object {
+      // debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
     }
     return null;
   }
 
   /// Returns the web ID
   static Future<String?> getWebId() async {
-    // If data was explicitly deleted, don't try to reload from storage
-    if (_wasExplicitlyDeleted) {
-      return null;
-    }
-
     if (_webId == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => getWebId() failed');
+        // debugPrint('AuthDataManager => getWebId() failed');
         return null;
       }
     }
-    if (_webId == null) {
-      throw Exception('WebID is null after loading');
-    }
+    assert(_webId != null);
     return _webId;
-  }
-
-  /// Returns the cached web ID synchronously (null if not loaded yet).
-  /// This is fast (no async) but requires that auth data was loaded before.
-  /// Use this for UI checks that need instant response.
-  static String? getCachedWebId() {
-    if (_wasExplicitlyDeleted) {
-      return null;
-    }
-    return _webId;
-  }
-
-  /// Returns whether user is currently logged in (synchronous check).
-  /// Uses cached data only, no storage access.
-  /// Returns false if auth data hasn't been loaded yet.
-  static bool isLoggedInSync() {
-    if (_wasExplicitlyDeleted) {
-      return false;
-    }
-    return _webId != null && _webId!.isNotEmpty;
   }
 
   /// Returns the logout URL
   static Future<String?> getLogoutUrl() async {
-    // If data was explicitly deleted, don't try to reload from storage
-    if (_wasExplicitlyDeleted) {
-      return null;
-    }
-
     if (_logoutUrl == null) {
       final loaded = await _loadData();
       if (!loaded) {
-        debugPrint('AuthDataManager => getLogoutUrl() failed');
+        // debugPrint('AuthDataManager => getLogoutUrl() failed');
         return null;
       }
     }
@@ -445,8 +270,8 @@ class AuthDataManager {
             Credential.fromJson((dataMap['auth_response'] as Map).cast());
 
         return true;
-      } on Object catch (e) {
-        debugPrint('AuthDataManager => _loadData() failed: $e');
+      } on Object {
+        // debugPrint('AuthDataManager => _loadData() failed: $e');
         return false;
       }
     }

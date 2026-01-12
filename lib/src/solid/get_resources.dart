@@ -43,16 +43,10 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 ///
 /// We first check if the user is logged in and get the list of resources in the container.
 ///
-/// Examples:
-/// - `getResources('appname/data')` reads from `appname/data` directory.
-///
 /// Note: Only `appname/data/` paths are supported for the readPod operations called by getResources().
 
-Future<List<String>> getResources(
-  BuildContext context,
-  Widget child,
-) async {
-  if (!await checkLoggedIn()) {
+Future<List<String>> getResources() async {
+  if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to get resources. '
       'Please authenticate before calling getResources().',
@@ -79,9 +73,7 @@ Future<List<String>> getResources(
   switch (dirExists) {
     case ResourceStatus.exist:
       try {
-        //debugPrint('Data: $dataDirUrl');
         final res = await getResourcesInContainer(resDirUrl);
-        // debugPrint(res.toString());
 
         return res.files;
       } on Object catch (e) {

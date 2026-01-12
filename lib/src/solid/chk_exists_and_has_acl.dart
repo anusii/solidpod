@@ -36,7 +36,6 @@ import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Check [fileName] exists and has the associated ACL file. Requires user
@@ -50,27 +49,16 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// the url of the resource. (Default: false).
 /// - [isExternalRes] - flag describing whether the resource is an
 /// external file shared with the user. (Default: false).
-/// - [child] - is the child widget to return to.
-/// - [context] - The build context.
 
 Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
   required String fileName,
   required bool isFile,
-  required BuildContext context,
-  required Widget child,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
-  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-
-  if (!await checkLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to check resource ACL. '
-      'Please authenticate before calling chkExistsAndHasAcl().',
-    );
+  if (!await isUserLoggedIn()) {
+    return SolidFunctionCallStatus.notLoggedIn;
   }
-
-  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
