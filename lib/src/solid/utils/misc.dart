@@ -707,7 +707,7 @@ Future<void> deleteFile(
     await deleteResource(fileUrl, contentType);
     await deleteAclForResource(fileUrl);
     if (await KeyManager.hasIndividualKey(fileUrl)) {
-      await KeyManager.removeIndividualKey(filePath);
+      await KeyManager.removeIndividualKey(resourcePath: filePath);
     }
   } else {
     // File to be deleted == key => perform delete only
