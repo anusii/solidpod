@@ -378,7 +378,9 @@ class KeyManager {
     return record.key!;
   }
 
-  /// Add the (encrypted) individual key for file
+  /// Add the (encrypted) individual key [indKey] for file
+  /// located at [resourcePath] (relative to podname/, e.g.,
+  /// myapp/data/abc.ttl).
   static Future<void> addIndividualKey({
     required String resourcePath,
     required Key indKey,
@@ -412,6 +414,8 @@ class KeyManager {
   }
 
   /// Remove the (encrypted) individual key for file
+  /// located at [resourcePath] (relative to podname/, e.g.,
+  /// myapp/data/abc.ttl).
   static Future<void> removeIndividualKey({
     required String resourcePath,
     bool isFile = true,
