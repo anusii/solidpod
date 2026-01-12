@@ -44,7 +44,8 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 /// Adds a log entry to the permission log of each recipient
 /// of [fileName] that revokes their access to the file
 /// and removes the permission entry from the associated
-/// ACL file.
+/// ACL file. Assumes userWebId == ownerWebId, which is true
+/// when this function is called by deleteFile().
 ///
 /// Parameters:
 ///
@@ -69,9 +70,11 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
 
       final List<String> recipientWebIdList;
 
-      // Get user webID
-      final userWebId = await AuthDataManager.getWebId() as String;
-      debugPrint('user webID: $userWebId');
+      // 20260112 jesscmoore: assume userWebId = ownerWebId which is
+      // always true when revokePermissionToRecipients() is called from
+      // deleteFile().
+      final ownerWebId = await AuthDataManager.getWebId() as String;
+      debugPrint('owner webID: $ownerWebId');
 
       // Initialise webID list
       final webIdList = <String>[];
@@ -97,7 +100,7 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
       // owner
       final List<String> uniqueWebIdList = webIdList.toSet().toList();
       recipientWebIdList = uniqueWebIdList;
-      recipientWebIdList.removeWhere((element) => element == userWebId);
+      recipientWebIdList.removeWhere((element) => element == ownerWebId);
 
       if (recipientWebIdList.isNotEmpty) {
         debugPrint(
@@ -115,7 +118,7 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
             isFileUrl: isFileUrl,
             permissionList: permDataMap[recipientWebId][permStr] as List,
             recipientIndOrGroupWebId: recipientWebId,
-            ownerWebId: userWebId,
+            ownerWebId: ownerWebId,
             recipientType: getRecipientType(
               permDataMap[recipientWebId][agentStr] as String,
               recipientWebId,
