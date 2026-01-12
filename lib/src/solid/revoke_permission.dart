@@ -153,7 +153,7 @@ Future<SolidFunctionCallStatus> revokePermission({
         ownerWebId: ownerWebId,
         permissionType: 'revoke',
         granterWebId: userWebId,
-        recepientWebId: removerWebId as String,
+        recipientWebId: removerWebId as String,
       );
 
       // Log file urls of the owner, granter, and receiver
