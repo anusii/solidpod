@@ -176,7 +176,10 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
         widget.sourceWebId != null ? widget.sourceWebId as String : null;
     return FutureBuilder(
       future: Future.wait([
-        sharedResources(context, widget, fileName, sourceWebId),
+        sharedResources(
+          fileName,
+          sourceWebId,
+        ),
         AuthDataManager.getWebId(),
       ]),
       builder: (context, snapshot) {

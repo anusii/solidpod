@@ -49,24 +49,16 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// the url of the resource. (Default: false).
 /// - [isExternalRes] - flag describing whether the resource is an
 /// external file shared with the user. (Default: false).
-/// - [child] - is the child widget to return to.
-/// - [context] - The build context.
 
 Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
   required String fileName,
   required bool isFile,
-  required BuildContext context,
-  required Widget child,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
-  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-
   if (!await isUserLoggedIn()) {
     return SolidFunctionCallStatus.notLoggedIn;
   }
-
-  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
 
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
