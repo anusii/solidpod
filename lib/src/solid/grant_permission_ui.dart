@@ -480,7 +480,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       ownerWebId: _ownerWebId,
       granterWebId: _granterWebId,
       parentWidget: widget.child,
-      onDeleteFuncion: _updatePermissions,
+      updatePermissionsFunction: _updatePermissions,
       isExternalRes: widget.isExternalRes,
     );
 
@@ -514,7 +514,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
               if (result == SolidFunctionCallStatus.success) {
                 _showSnackBar(successMsg, Colors.green);
-                await _updatePermissions(dataFile, isFile: getIsFile());
+                await _updatePermissions(
+                  dataFile,
+                  isFile: getIsFile(),
+                  isExternalRes: widget.isExternalRes,
+                );
 
                 // Mark permissions as granted successfully for callback tracking
                 setState(() => permissionsGrantedSuccessfully = true);

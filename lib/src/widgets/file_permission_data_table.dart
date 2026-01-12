@@ -51,7 +51,7 @@ import 'package:solidpod/src/solid/utils/snack_bar.dart';
 /// - [permDataMap] is the map of permission data for the [permDataResource]
 /// - [parentWidget] is the widget to return to after an action Eg: deletion of a
 /// permission
-/// - [onDeleteFuncion] is the function to be called on delete
+/// - [updatePermissionsFunction] is the function to be called to refresh the permission table.
 ///
 Widget buildPermDataTable({
   required BuildContext context,
@@ -61,7 +61,7 @@ Widget buildPermDataTable({
   required String ownerWebId,
   required String granterWebId,
   required Widget parentWidget,
-  required Function onDeleteFuncion,
+  required Function updatePermissionsFunction,
   bool isExternalRes = false,
 }) {
   DataColumn buildDataColumn(String title, String tooltip) {
@@ -167,7 +167,7 @@ Widget buildPermDataTable({
                                   Colors.red,
                                 );
                               }
-                              await onDeleteFuncion(
+                              await updatePermissionsFunction(
                                 permDataResource,
                                 isFile: isFile,
                               );
