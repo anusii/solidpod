@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Code cleanup: typos, context checks, remove context/child [0.9.1 20260112 jesscmoore]
 + Updated read/write to remove context and widget [0.9.0 20260108 dc]
 
 ## 0.9 Stabilise

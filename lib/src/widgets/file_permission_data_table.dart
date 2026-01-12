@@ -135,21 +135,19 @@ Widget buildPermDataTable({
                           // The "Yes" button
                           TextButton(
                             onPressed: () async {
-                              if (ctx.mounted) {
-                                await revokePermission(
-                                  fileName: permDataResource,
-                                  isFile: isFile,
-                                  permissionList:
-                                      permDataMap[index][permStr] as List,
-                                  removerIndOrGroupWebId: index,
-                                  ownerWebId: ownerWebId,
-                                  recipientType: getRecipientType(
-                                    permDataMap[index][agentStr] as String,
-                                    index,
-                                  ),
-                                  isExternalRes: isExternalRes,
-                                );
-                              }
+                              await revokePermission(
+                                fileName: permDataResource,
+                                isFile: isFile,
+                                permissionList:
+                                    permDataMap[index][permStr] as List,
+                                removerIndOrGroupWebId: index,
+                                ownerWebId: ownerWebId,
+                                recipientType: getRecipientType(
+                                  permDataMap[index][agentStr] as String,
+                                  index,
+                                ),
+                                isExternalRes: isExternalRes,
+                              );
 
                               if (ctx.mounted) {
                                 Navigator.pop(ctx);
