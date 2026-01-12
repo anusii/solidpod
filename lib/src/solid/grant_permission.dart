@@ -144,6 +144,7 @@ Future<SolidFunctionCallStatus> grantPermission({
                 ? await KeyManager.getSharedIndividualKey(resourceUrl)
                 : await KeyManager.getIndividualKey(resourceUrl);
 
+            // If permission granted to specific recipients
             if (specificRecipientTypeList.contains(recipientType)) {
               // For each recipient share the individual encryption key
 
