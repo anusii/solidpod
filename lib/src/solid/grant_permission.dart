@@ -144,8 +144,7 @@ Future<SolidFunctionCallStatus> grantPermission({
                 ? await KeyManager.getSharedIndividualKey(resourceUrl)
                 : await KeyManager.getIndividualKey(resourceUrl);
 
-            if ([RecipientType.individual, RecipientType.group]
-                .contains(recipientType)) {
+            if (specificRecipientTypeList.contains(recipientType)) {
               // For each recipient share the individual encryption key
 
               for (final recipientWebId in recipientWebIdList) {
@@ -236,8 +235,7 @@ Future<SolidFunctionCallStatus> grantPermission({
             }
 
             // Add log entry if the recipient is either an individual or group of WebIDs
-            if ([RecipientType.individual, RecipientType.group]
-                .contains(recipientType)) {
+            if (specificRecipientTypeList.contains(recipientType)) {
               final receiverLogFileUrl =
                   await getFileUrl(logFilePath, webId: recipientWebId);
 

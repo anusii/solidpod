@@ -112,8 +112,9 @@ Future<SolidFunctionCallStatus> revokePermission({
     // If the file is encrypted then remove the individual key from relavant
     // users/ user classes
     if (fileIsEncrypted) {
-      if ([RecipientType.individual, RecipientType.group]
-          .contains(recipientType)) {
+      // If access revoked for specific recipients, remove key
+      // from recipient's POD
+      if (specificRecipientTypeList.contains(recipientType)) {
         for (final recipientWebId in recipientWebIdList) {
           // Check if POD file structure is still there
           if (await checkPodInitialised(recipientWebId as String)) {
@@ -178,11 +179,9 @@ Future<SolidFunctionCallStatus> revokePermission({
         );
       }
 
-      // Append log entry to recipient, if the recipient is either an individual or group of WebIDs
-      // recipient type has a specific recipient/s
-      // FIXME: change this to specificRecipientTypeList
-      if ([RecipientType.individual, RecipientType.group]
-          .contains(recipientType)) {
+      // Append log entry to recipient, if revoking access to
+      // specific recipient/s
+      if (specificRecipientTypeList.contains(recipientType)) {
         if (await checkPodInitialised(recipientWebId)) {
           final receiverLogFileUrl =
               await getFileUrl(logFilePath, webId: recipientWebId);
