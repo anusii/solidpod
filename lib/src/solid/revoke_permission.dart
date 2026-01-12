@@ -73,8 +73,6 @@ Future<SolidFunctionCallStatus> revokePermission({
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
-  // debugPrint('[revokePermissions] revoking permissions for: $recipientIndOrGroupWebId');
-
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
     isFile: isFile,

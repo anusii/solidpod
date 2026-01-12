@@ -66,8 +66,6 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
 }) async {
   if (!isExternalRes) {
     try {
-      debugPrint('[revokePermissionsToRecipients] fileName: $fileName');
-
       final List<String> recipientWebIdList;
 
       // For user owned files, user = granter = owner
