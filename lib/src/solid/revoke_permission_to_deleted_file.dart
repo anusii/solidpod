@@ -108,7 +108,7 @@ Future<SolidFunctionCallStatus> revokePermissionToDelFile({
       ownerWebId: ownerWebId,
       permissionType: 'revoke',
       granterWebId: granterWebId,
-      recepientWebId: removerWebId,
+      recipientWebId: removerWebId,
     );
 
     // Log file urls of the owner, granter, and receiver

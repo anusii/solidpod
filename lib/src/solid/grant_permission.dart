@@ -57,7 +57,6 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// - [recipientWebIdList] - is the list of webIds of the recipients
 /// receiving access permissions to the file.
 /// - [ownerWebId] - is the web ID of the owner of the file.
-/// - [child] - is the child widget to return to.
 /// - [isExternalRes] - Optional flag describing whether the file is an
 /// external resource shared to the user. If set to true, the [fileName]
 /// should be the full URL of the file.
@@ -71,14 +70,10 @@ Future<SolidFunctionCallStatus> grantPermission({
   required RecipientType recipientType,
   required List<dynamic> recipientWebIdList,
   required String ownerWebId,
-  required BuildContext context,
-  required Widget child,
   bool isFile = true,
   bool isExternalRes = false,
   String? groupName,
 }) async {
-  if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to grant permissions. '
@@ -87,8 +82,6 @@ Future<SolidFunctionCallStatus> grantPermission({
   }
 
   try {
-    if (!context.mounted) return SolidFunctionCallStatus.contextNotMounted;
-
     if (!await KeyManager.hasSecurityKey()) {
       throw SecurityKeyNotAvailableException(
         'Security key is not available. '
@@ -204,7 +197,7 @@ Future<SolidFunctionCallStatus> grantPermission({
               ownerWebId: ownerWebId,
               permissionType: 'grant',
               granterWebId: userWebId,
-              recepientWebId: recipientWebId as String,
+              recipientWebId: recipientWebId as String,
             );
 
             // Log file urls of the owner, granter, and receiver

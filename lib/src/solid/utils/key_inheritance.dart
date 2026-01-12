@@ -92,8 +92,8 @@ Future<void> setInheritKeyDir(
     );
 
     await KeyManager.addIndividualKey(
-      normalizedDirPath,
-      genRandIndividualKey(),
+      resourcePath: normalizedDirPath,
+      indKey: genRandIndividualKey(),
       isFile: false,
     );
   }
@@ -129,7 +129,10 @@ Future<Key> configureEncKey(
 }) async {
   if (inheritKeyUrl == null) {
     if (!await KeyManager.hasIndividualKey(fileUrl)) {
-      await KeyManager.addIndividualKey(fileUrl, genRandIndividualKey());
+      await KeyManager.addIndividualKey(
+        resourcePath: await extractResourcePathFromUrl(fileUrl),
+        indKey: genRandIndividualKey(),
+      );
     }
     return KeyManager.getIndividualKey(fileUrl);
   }

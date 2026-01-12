@@ -82,7 +82,7 @@ enum PermissionLogLiteral {
 ///  - [ownerWebId]: WebID of the resource owner
 ///  - [permissionType]: Type of permission (grant/revoke)
 ///  - [granterWebId]: WebID of the person who is giving/revoking permission
-///   - [recepientWebId]: WebID of the person who is reveiving permission
+///   - [recipientWebId]: WebID of the person who is reveiving permission
 ///   - [permissionList]: List of access types that is being granted
 /// or revoked (Read, Write, Control, Append).
 ///
@@ -94,7 +94,7 @@ LogEntry createPermLogEntry({
   required String ownerWebId,
   required String permissionType,
   required String granterWebId,
-  required String recepientWebId,
+  required String recipientWebId,
 }) {
   // Create log entry object
   final LogEntry logEntry;
@@ -102,7 +102,7 @@ LogEntry createPermLogEntry({
   final dateTimeStr = DateFormat('yyyyMMddTHHmmss').format(DateTime.now());
   final logEntryId = DateFormat('yyyyMMddTHHmmssSSS').format(DateTime.now());
   final logEntryStr =
-      '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recepientWebId;${permissionListStr.toLowerCase()}';
+      '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recipientWebId;${permissionListStr.toLowerCase()}';
 
   logEntry = LogEntry(id: logEntryId, record: logEntryStr);
 
@@ -152,20 +152,20 @@ Map<dynamic, dynamic> getLatestLog(
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
       final logEntryList = logEntry.split(';');
 
-      final recepientWebId = logEntryList[5];
+      final recipientWebId = logEntryList[5];
 
       if (userWebId != null) {
-        if (recepientWebId != userWebId) {
+        if (recipientWebId != userWebId) {
           continue;
         }
       }
 
-      final resoruceUrl = logEntryList[1];
+      final resourceUrl = logEntryList[1];
       var replaceExist = false;
 
-      if (uniqueLogMap.containsKey(resoruceUrl)) {
+      if (uniqueLogMap.containsKey(resourceUrl)) {
         final prevDateTime =
-            uniqueLogMap[resoruceUrl][PermissionLogLiteral.logtime];
+            uniqueLogMap[resourceUrl][PermissionLogLiteral.logtime];
         if ([0, 1].contains(
           DateTime.parse(logEntryList.first as String)
               .compareTo(DateTime.parse(prevDateTime as String)),
@@ -177,9 +177,9 @@ Map<dynamic, dynamic> getLatestLog(
       }
 
       if (replaceExist) {
-        uniqueLogMap[resoruceUrl] = {
+        uniqueLogMap[resourceUrl] = {
           PermissionLogLiteral.logtime: logEntryList.first,
-          PermissionLogLiteral.resource: resoruceUrl,
+          PermissionLogLiteral.resource: resourceUrl,
           PermissionLogLiteral.owner: logEntryList[2],
           PermissionLogLiteral.granter: logEntryList[4],
           PermissionLogLiteral.recepient: logEntryList[5],

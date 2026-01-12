@@ -57,11 +57,18 @@ Future<void> writeExternalPod(
   String fileContent,
   String fileOwnerWebId, {
   bool encrypted = true,
+  bool overwrite = true,
   String? inheritKeyFrom,
 }) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to write to external POD.',
+    );
+  }
+
+  if (!overwrite) {
+    debugPrint(
+      'WARN: parameter "overwrite" is placeholder, its value is ignored by writeExternalPod()',
     );
   }
 
