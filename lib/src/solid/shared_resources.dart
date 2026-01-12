@@ -30,8 +30,6 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show debugPrint;
-
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
