@@ -69,7 +69,6 @@ Future<Map<String, dynamic>> readPermissionFileList({
   List<dynamic> results = await Future.wait(futures);
 
   // Add returned permission lists to data map
-
   for (int i = 0; i < fileList.length; i++) {
     // Add fileName key
     dataMap[fileList[i]] = {};
