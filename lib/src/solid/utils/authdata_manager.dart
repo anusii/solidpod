@@ -28,8 +28,9 @@ library;
 
 import 'dart:convert' show jsonEncode, jsonDecode;
 
-import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:flutter/foundation.dart' show ValueNotifier;
+
+import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:solid_auth/solid_auth.dart';
 // ignore: implementation_imports

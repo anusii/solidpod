@@ -43,16 +43,6 @@ import 'package:solidpod/src/solid/constants/common.dart'
         vcard;
 import 'package:solidpod/src/solid/constants/predicates.dart'
     show PredicateBase;
-// Re-export common predicates for convenience
-export 'package:solidpod/src/solid/constants/predicates.dart'
-    show
-        CommonAclPredicate,
-        DcTermsPredicate,
-        FoafPredicate,
-        PredicateBase,
-        RdfPredicate,
-        VcardPredicate,
-        XsdDatatype;
 import 'package:solidpod/src/solid/constants/schema.dart'
     show NS, aclNS, appsTerms, solidTermsNS, termsNS, vcardNS;
 import 'package:solidpod/src/solid/utils/rdf.dart';

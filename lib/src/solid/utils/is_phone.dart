@@ -31,6 +31,7 @@
 library;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'package:universal_io/io.dart' show Platform;
 
 /// Checks the platform type to determine whether running on
