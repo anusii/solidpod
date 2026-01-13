@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Allow sharing externally owned files [0.9.2 20260110 jesscmoore]
 + Fixes key creation for encrypting files [0.9.2 20260112 dc]
 + Code cleanup: typos, context checks, remove context/child [0.9.1 20260112 jesscmoore]
 + Updated read/write to remove context and widget [0.9.0 20260108 dc]
