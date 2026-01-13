@@ -119,6 +119,7 @@ export 'src/solid/utils/misc.dart'
         logoutPod,
         setAppDirName,
         generateDefaultFolders,
+        generateCustomFolders,
         generateDefaultFiles,
         initPod;
 

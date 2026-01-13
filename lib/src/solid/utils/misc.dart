@@ -394,6 +394,27 @@ Future<List<String>> generateDefaultFolders() async {
   return folders;
 }
 
+/// Generates a list of custom folder paths for a given application.
+///
+/// This function takes the custom folder list given by the developer and
+/// creates paths for those folders. Each custom folder will be created
+/// inside the "data" folder. Following are few examples.
+///   - Custom folder 'myDir1' will be created as '/data/myDir1'
+///   - Custom folder 'myDir1/myDir3' will be created as '/data/myDir1/myDir3'
+///   - Custom folder 'data' will be created as '/data/data'
+
+List<String> generateCustomFolders(List customFolderPaths) {
+  List<String> customFolderList = [];
+  if (customFolderPaths.isNotEmpty) {
+    for (String folderPath in customFolderPaths) {
+      // Remove any leading '/' characters
+      folderPath = folderPath.replaceFirst(RegExp(r'^/+'), '');
+      customFolderList.add([appDirName, dataDir, folderPath].join('/'));
+    }
+  }
+  return customFolderList;
+}
+
 /// Generates a list of default folder paths for a given application.
 ///
 /// This function takes the name of an application as input and returns a list of strings.
