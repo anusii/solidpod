@@ -39,13 +39,16 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show RecipientPubKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
 
-/// Grant access permissions to [fileName] to a given [recipientWebIdList].
+/// Grant access permissions to [fileName] to the type of recipient
+/// or specific recipients, if recipient type is individual or group,
+/// and group or individual recipients specified. This action updates
+/// the ACL file of the resource in the owner's Pod, and appends a log
+/// entry to the permission log in the owner, granter and recipients POD.
 ///
 /// Parameters:
 /// - [fileName] - is the name of the file that the [recipientWebIdList]
@@ -57,6 +60,8 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// - [recipientWebIdList] - is the list of webIds of the recipients
 /// receiving access permissions to the file.
 /// - [ownerWebId] - is the web ID of the owner of the file.
+/// - [granterWebId] - is the web ID of the granter of access to the file.
+/// This is usually the web ID of the user.
 /// - [isExternalRes] - Optional flag describing whether the file is an
 /// external resource shared to the user. If set to true, the [fileName]
 /// should be the full URL of the file.
@@ -70,6 +75,7 @@ Future<SolidFunctionCallStatus> grantPermission({
   required RecipientType recipientType,
   required List<dynamic> recipientWebIdList,
   required String ownerWebId,
+  required String granterWebId,
   bool isFile = true,
   bool isExternalRes = false,
   String? groupName,
@@ -138,8 +144,8 @@ Future<SolidFunctionCallStatus> grantPermission({
                 ? await KeyManager.getSharedIndividualKey(resourceUrl)
                 : await KeyManager.getIndividualKey(resourceUrl);
 
-            if ([RecipientType.individual, RecipientType.group]
-                .contains(recipientType)) {
+            // If permission granted to specific recipients
+            if (specificRecipientTypeList.contains(recipientType)) {
               // For each recipient share the individual encryption key
 
               for (final recipientWebId in recipientWebIdList) {
@@ -185,10 +191,13 @@ Future<SolidFunctionCallStatus> grantPermission({
             }
           }
 
-          // Add log entry to owner, granter, and receiver permission log files
+          // 20260112 jesscmoore: the permission logs are not updated if
+          // permission granted is to give public access or give access
+          //to all authenticated users.
 
-          // Get user webID
-          final userWebId = await AuthDataManager.getWebId() as String;
+          // Add log entry to owner, granter, and receiver permission log
+          // files for the individual recipient or each recipient in the
+          // recipient group.
 
           for (final recipientWebId in recipientWebIdList) {
             final LogEntry logEntryRes = createPermLogEntry(
@@ -196,7 +205,7 @@ Future<SolidFunctionCallStatus> grantPermission({
               resourceUrl: resourceUrl,
               ownerWebId: ownerWebId,
               permissionType: 'grant',
-              granterWebId: userWebId,
+              granterWebId: granterWebId,
               recipientWebId: recipientWebId as String,
             );
 
@@ -208,7 +217,8 @@ Future<SolidFunctionCallStatus> grantPermission({
                 await getFileUrl(logFilePath, webId: ownerWebId);
 
             // Granter
-            final granterLogFileUrl = await getFileUrl(logFilePath);
+            final granterLogFileUrl =
+                await getFileUrl(logFilePath, webId: granterWebId);
 
             // Run log entry insert query for the granter
             await addPermLogLine(
@@ -226,8 +236,7 @@ Future<SolidFunctionCallStatus> grantPermission({
             }
 
             // Add log entry if the recipient is either an individual or group of WebIDs
-            if ([RecipientType.individual, RecipientType.group]
-                .contains(recipientType)) {
+            if (specificRecipientTypeList.contains(recipientType)) {
               final receiverLogFileUrl =
                   await getFileUrl(logFilePath, webId: recipientWebId);
 

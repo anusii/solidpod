@@ -52,7 +52,8 @@ visit <https://solidcommunity.au>
 
 ## Features
 
-- [Authenticate](#authenticate-example) a user against a given Solid server and [login](#login-example).
+- [Authenticate](#authenticate-example) a user against a given Solid server
+and [login](#login-example).
 - [Manage security key](#change-security-key-example) for data encryption.
 - [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files
 in POD.
@@ -358,7 +359,8 @@ ElevatedButton(
   builder: (context) => const GrantPermissionUi(
   resourceName: 'my-data-file.ttl',
   isExternalRes: true,
-  externalWebId: ownerWebId,
+  ownerWebId: ownerWebId,
+  granterWebId: granterWebId,
   child: ReturnPage(),
   ),
  ),

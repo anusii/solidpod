@@ -39,15 +39,19 @@ import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 
 /// Build the permission table widget. Function call requires the
-/// following inputs
-/// [context] is the BuildContext from which this function is called.
-/// [permDataResource] is the name of the file or directory for which the
+/// following inputs.
+///
+/// Parameters:
+/// - [context] is the BuildContext from which this function is called.
+/// - [permDataResource] is the name of the file or directory for which the
 /// permission data is displayed
-/// [isFile] is the flag to define whether the resource is a file or not
-/// [permDataMap] is the map of permission data for the [permDataResource]
-/// [parentWidget] is the widget to return to after an action Eg: deletion of a
+/// - [isFile] is the flag to define whether the resource is a file or not
+/// - [ownerWebId] - is the web ID of the owner of the file.
+/// - [granterWebId] - is the web ID of the granter of access to the file. This is usually the web ID of the user.
+/// - [permDataMap] is the map of permission data for the [permDataResource]
+/// - [parentWidget] is the widget to return to after an action Eg: deletion of a
 /// permission
-/// [onDeleteFuncion] is the function to be called on delete
+/// - [updatePermissionsFunction] is the function to be called to refresh the permission table.
 ///
 Widget buildPermDataTable({
   required BuildContext context,
@@ -55,8 +59,9 @@ Widget buildPermDataTable({
   required bool isFile,
   required Map<dynamic, dynamic> permDataMap,
   required String ownerWebId,
+  required String granterWebId,
   required Widget parentWidget,
-  required Function onDeleteFuncion,
+  required Function updatePermissionsFunction,
   bool isExternalRes = false,
 }) {
   DataColumn buildDataColumn(String title, String tooltip) {
@@ -78,12 +83,13 @@ Widget buildPermDataTable({
     columns: [
       buildDataColumn(
         'Receiver',
-        'WebID of the POD receiving permissions',
+        'WebID of the permission recipient',
       ),
       buildDataColumn('Receiver type', 'Type of the receiver'),
       buildDataColumn('Permissions', 'List of permissions given'),
       buildDataColumn('Actions', 'Delete permission'),
     ],
+    // index is the webId of each individual with access to the file
     rows: permDataMap.keys.map((index) {
       return DataRow(
         cells: [
@@ -114,6 +120,7 @@ Widget buildPermDataTable({
               (permDataMap[index][permStr] as List).join(', '),
             ),
           ),
+          // If recipient != owner, then show the delete permission button
           if (ownerWebId != index) ...[
             DataCell(
               IconButton(
@@ -140,8 +147,9 @@ Widget buildPermDataTable({
                                 isFile: isFile,
                                 permissionList:
                                     permDataMap[index][permStr] as List,
-                                removerIndOrGroupWebId: index,
+                                recipientIndOrGroupWebId: index,
                                 ownerWebId: ownerWebId,
+                                granterWebId: granterWebId,
                                 recipientType: getRecipientType(
                                   permDataMap[index][agentStr] as String,
                                   index,
@@ -159,7 +167,7 @@ Widget buildPermDataTable({
                                   Colors.red,
                                 );
                               }
-                              await onDeleteFuncion(
+                              await updatePermissionsFunction(
                                 permDataResource,
                                 isFile: isFile,
                               );
