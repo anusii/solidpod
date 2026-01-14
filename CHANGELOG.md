@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Restore individual recipient suggestions [0.9.7 20260113 jesscmoore]
 + Allow sharing externally owned files [0.9.6 20260110 jesscmoore]
 + Specify owner and granter webid when sharing files [0.9.5 20260112 jesscmoore]
 + Fixes individual recipient dialog background [0.9.4 20260113 jesscmoore]
