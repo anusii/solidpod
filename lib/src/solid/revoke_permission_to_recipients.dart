@@ -44,7 +44,8 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 /// Adds a log entry to the permission log of each recipient
 /// of [fileName] that revokes their access to the file
 /// and removes the permission entry from the associated
-/// ACL file.
+/// ACL file. Assumes userWebId == ownerWebId, which is true
+/// when this function is called by deleteFile().
 ///
 /// Parameters:
 ///
@@ -65,18 +66,18 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
 }) async {
   if (!isExternalRes) {
     try {
-      debugPrint('[revokePermissionsToRecipients] fileName: $fileName');
-
       final List<String> recipientWebIdList;
 
-      // Get user webID
+      // For user owned files, user = granter = owner
       final userWebId = await AuthDataManager.getWebId() as String;
-      debugPrint('user webID: $userWebId');
+      final ownerWebId = userWebId;
+      final granterWebId = userWebId;
 
       // Initialise webID list
       final webIdList = <String>[];
 
       // Obtain access permissions from resource ACL
+      // to get list of users with access to resoucre
       final dynamic permDataMap = await readPermission(
         fileName: fileName,
         isFile: isFile,
@@ -90,30 +91,26 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
         webIdList.add(key.toString());
       });
 
-      // Get recipients from webIds with access
-      // to revoke permissions to all accessors excluding the
-      // owner
+      // Get list of recipients from webIds with access in the
+      // ACL, in order to revoke permissions to users with access
+      // excluding the owner
       final List<String> uniqueWebIdList = webIdList.toSet().toList();
       recipientWebIdList = uniqueWebIdList;
-      recipientWebIdList.removeWhere((element) => element == userWebId);
+      recipientWebIdList.removeWhere((element) => element == ownerWebId);
 
       if (recipientWebIdList.isNotEmpty) {
-        debugPrint(
-          'Recipients: ${recipientWebIdList.join(', ')}',
-        );
-
-        // Revoke permission for recipients
+        // Revoke permission for each recipient
         for (final recipientWebId in recipientWebIdList) {
           debugPrint('Revoking permission for $recipientWebId...');
-          // [20251029 jesscmoore] Assumes user is owner and uses
-          // AuthDataManager.getWebId() to fetch webId
+
           await revokePermission(
             fileName: fileName,
             isFile: isFile,
             isFileUrl: isFileUrl,
             permissionList: permDataMap[recipientWebId][permStr] as List,
-            removerIndOrGroupWebId: recipientWebId,
-            ownerWebId: userWebId,
+            recipientIndOrGroupWebId: recipientWebId,
+            ownerWebId: ownerWebId,
+            granterWebId: granterWebId,
             recipientType: getRecipientType(
               permDataMap[recipientWebId][agentStr] as String,
               recipientWebId,

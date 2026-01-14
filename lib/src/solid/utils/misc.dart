@@ -698,7 +698,9 @@ Future<void> deleteFile(
     // Revoke permission to recipients:
     // to avoid the permission log of recipients still
     // showing the recipient as having access to the
-    // file that is being deleted
+    // file that is being deleted.
+    // 20260112 jesscmoore: Assumes user is owner which is
+    // always true in deleteFile().
     await revokePermissionToRecipients(
       fileName: filePath,
     );
