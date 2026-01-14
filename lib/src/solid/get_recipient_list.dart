@@ -52,7 +52,7 @@ Future<List<String>> getRecipientList() async {
       // Retrieve ACLs for each file
       dataMapWithPermissions = await readPermissionFileList(
         fileList: fileList,
-        isFileUrl: true,
+        isFileUrl: false,
       );
 
       // Extract recipient webIDs to list
