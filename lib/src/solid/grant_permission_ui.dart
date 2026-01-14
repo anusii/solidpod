@@ -548,7 +548,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     final form = getForm(
       formKey: formKey,
-      welcomeHeading: buildHeading(getWelcomeStr(widget.resourceName), 22),
+      welcomeHeading:
+          buildHeading(getWelcomeStr(widget.resourceName), 22, Colors.blueGrey),
       children: [
         if (widget.resourceName == null) ...[
           getResourceForm(
