@@ -39,9 +39,25 @@ import 'package:rdflib/rdflib.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
+import 'package:solidpod/src/solid/utils/data_encryption.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
+
+/// Generates a public key block from a given key content.
+String genPubKeyStr(String pubKeyContent) =>
+    '''-----BEGIN RSA PUBLIC KEY-----\n$pubKeyContent\n-----END RSA PUBLIC KEY-----''';
+
+/// Get unique bit of the webId
+String getUniqueStrWebId(String webId) {
+  var uniqueStr = webId.replaceAll('https://', '');
+  uniqueStr = uniqueStr.replaceAll('http://', '');
+  uniqueStr = uniqueStr.replaceAll('/$profCard', '');
+  uniqueStr = uniqueStr.replaceAll('/', '-');
+
+  return uniqueStr;
+}
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(

@@ -1,4 +1,5 @@
-/// Helper functions for reading and writing files in PODs.
+/// Data encryption utility functions used across the package.
+///
 ///
 /// Copyright (C) 2026, Software Innovation Institute, ANU.
 ///
@@ -24,40 +25,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen
+/// Authors: Anushka Vidanage
 
 library;
 
-import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/init_pod_gen_resources.dart';
-import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:encrypter_plus/encrypter_plus.dart';
 
-final _protectedFiles = <String>{};
+/// Encrypt data using AES with the specified key
+String encryptData(String data, Key key, IV iv, {AESMode mode = AESMode.sic}) =>
+    Encrypter(AES(key, mode: mode)).encrypt(data, iv: iv).base64;
 
-Future<bool> isFileProtected(String fileUrl) async {
-  if (_protectedFiles.isEmpty) {
-    // TODO: dc 20260105 - double check if these are all the protected files
-
-    final fileUrls = [
-      for (final f in [
-        await getEncKeyPath(),
-        await getIndKeyPath(),
-        await getPubKeyPath(),
-        await getPubIndKeyPath(),
-        await getAuthUserIndKeyPath(),
-        await getSharedKeyFilePath(),
-        await getPermLogFilePath(),
-      ])
-        await getFileUrl(f),
-    ];
-
-    _protectedFiles.addAll(fileUrls);
-    _protectedFiles.addAll(fileUrls.map((f) => '$f.acl'));
-    _protectedFiles.addAll([
-      for (final d in await generateDefaultFolders())
-        '${await getDirUrl(d)}.acl',
-    ]);
-  }
-
-  return _protectedFiles.contains(fileUrl);
-}
+/// Decrypt a ciphertext value
+String decryptData(
+  String encData,
+  Key key,
+  IV iv, {
+  AESMode mode = AESMode.sic,
+}) =>
+    Encrypter(AES(key, mode: mode)).decrypt(Encrypted.from64(encData), iv: iv);

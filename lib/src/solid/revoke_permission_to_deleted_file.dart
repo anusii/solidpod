@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/api/revoke_permission_api.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Revoke permissions to non-existent [fileName] (ie already deleted)

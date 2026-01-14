@@ -37,6 +37,7 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
+import 'package:solidpod/src/solid/utils/data_encryption.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';

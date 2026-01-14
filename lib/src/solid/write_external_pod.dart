@@ -39,6 +39,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show genRandIV;
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
