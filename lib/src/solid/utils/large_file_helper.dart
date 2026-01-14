@@ -445,8 +445,12 @@ Stream<List<int>> fetch({
   final totalBytes = int.parse(map[sizePred] as String);
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
-  for (final url in chunkUrls!) {
-    final c = await getResource(url as String);
+  assert(chunkUrls != null);
+  final urls =
+      chunkUrls is Iterable ? chunkUrls as List<String> : [chunkUrls as String];
+
+  for (final url in urls) {
+    final c = await getResource(url);
     final chunk = encrypter != null ? _decryptBytes(c, encrypter, iv!) : c;
     receivedBytes += chunk.lengthInBytes;
     if (onProgress != null) {
