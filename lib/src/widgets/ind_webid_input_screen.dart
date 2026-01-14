@@ -40,8 +40,9 @@ import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A screen that runs before opening the WebID input dialog, which
 /// retrieves the list of files in the owner's pod.
-/// Calling this class requires the following inputs:
-/// [onSubmitFunction] is the function to be called on submit
+///
+/// Parameters:
+/// - [onSubmitFunction] is the function to be called on submit
 ///
 class IndWebIdInputScreen extends StatefulWidget {
   /// Initialise widget variables.

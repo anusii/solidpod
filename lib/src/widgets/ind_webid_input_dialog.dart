@@ -274,9 +274,11 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
   }
 }
 
-/// A dialog for adding an individual webId. Function call requires the
-/// following inputs
-/// [onSubmitFunction] is the function to be called on submit
+/// A dialog for adding an individual webId.
+///
+/// Parameters:
+/// - [context] - The build context.
+/// - [onSubmitFunction] is the function to be called on submit
 ///
 Future<dynamic> indWebIdInputDialog(
   BuildContext context,

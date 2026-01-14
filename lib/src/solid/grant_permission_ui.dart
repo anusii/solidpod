@@ -49,7 +49,28 @@ import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
-/// A widget for the granting access permission to data.
+/// A [StatefulWidget] for showing and editing access permissions to a
+/// file. It displays the permission table of users with access, and
+/// allows the user to change access permissions: by granting access
+/// to others, changing a recipients access permissions or revoking
+/// access permissions.
+///
+/// Parameters:
+/// - [child] - the child widget to return to.
+/// - [title] - Page title to show in the app bar.
+/// - [backgroundColor] - Background color.
+/// - [showAppBar] - Boolean flag describing whether to show app bar.
+/// - [isExternalRes] - Boolean flag describing whether the resource
+/// is externally owned.
+/// - [accessModeList] - List of access mode options to show.
+/// - [recipientTypeList] - List of recipient type options to show.
+/// - [ownerWebId] - WebId of the owner of the resource. Required if the resource is externally owned.
+/// - [granterWebId] - WebId of the granter of the resource. Required if the resource is externall owned.
+/// - [resourceName] - The filename or file url of the resource. If [isExternalRes], it should be the url of the resource.
+/// - [isFile] - Boolean flag describing whether the resource is a file. If false, the resource is assumed to be a directory.
+/// - [customAppBar] - Specify a custom app bar widget.
+/// - [onPermissionGranted] - Callback function called when permissions are granted successfully.
+/// - [onNavigateBack] - Callback function called when navigating back from the screen.
 
 class GrantPermissionUi extends StatefulWidget {
   /// Initialise widget variables.
@@ -62,7 +83,8 @@ class GrantPermissionUi extends StatefulWidget {
     this.isExternalRes = false,
     this.accessModeList = const ['read', 'write', 'append', 'control'],
     this.recipientTypeList = const ['public', 'indi', 'auth', 'group'],
-    this.externalWebId,
+    this.ownerWebId,
+    this.granterWebId,
     this.resourceName,
     this.isFile = true,
     this.dataFilesMap = const {},
@@ -71,10 +93,11 @@ class GrantPermissionUi extends StatefulWidget {
     this.onNavigateBack,
     super.key,
   }) : assert(
-          // Requires externalWebId of resource owner to be provided if resource
-          // is an externally owned resource.
-          isExternalRes == false || externalWebId != null,
-          'externalWebId must be provided if isExternalRes == true',
+          // Requires ownerWebId and granterWebId if resource
+          // is an externally owned.
+          isExternalRes == false ||
+              (ownerWebId != null && granterWebId != null),
+          'ownerWebId and granterWebId must be provided if isExternalRes == true',
         );
 
   /// The child widget to return to when back button is pressed and/or when
@@ -93,6 +116,14 @@ class GrantPermissionUi extends StatefulWidget {
   /// The boolean to decide whether the resources is from an external POD or not
   final bool isExternalRes;
 
+  /// String to assign the webId of the resource owner. Must
+  /// be set if [isExternalRes] is set to true.
+  final String? ownerWebId;
+
+  /// String to assign the external webId of the resource granter. Must
+  /// be set if [isExternalRes] is set to true.
+  final String? granterWebId;
+
   /// The list of access modes to be displayed. By default all four types of
   /// access mode are listed.
   final List<String> accessModeList;
@@ -100,10 +131,6 @@ class GrantPermissionUi extends StatefulWidget {
   /// The list of types of recipients receiving permission to access the resource. By default all four
   /// types of recipient are listed.
   final List<String> recipientTypeList;
-
-  /// String to assign the external webId of the resource owner. Must be set
-  /// if [isExternalRes] is set to true.
-  final String? externalWebId;
 
   /// The name of the file or directory permission is being set to. This is a
   /// non required parameter. If not set there will be a text field to define
@@ -188,7 +215,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Map<dynamic, dynamic> permDataMap = {};
 
   /// Owner WebId
-  String ownerWebId = '';
+  String _ownerWebId = '';
+
+  /// Granter WebId
+  String _granterWebId = '';
 
   /// File name of the current permission data map
   String permDataFile = '';
@@ -217,10 +247,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
-  Future<List<dynamic>> loadPodData(String resName, bool isFile) async {
+  Future<List<dynamic>> loadPodData(
+    String resName, {
+    bool isFile = true,
+    bool isExternalRes = false,
+  }) async {
     final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
       fileName: resName,
       isFile: isFile,
+      isExternalRes: widget.isExternalRes,
     );
 
     switch (response) {
@@ -231,11 +266,17 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           isExternalRes: widget.isExternalRes,
         );
 
-        // Get owner's webID
-        final webId = widget.isExternalRes
-            ? widget.externalWebId
+        // Fetch owner's webID
+        // ownerWebId == userWebId if not externally owned resource
+        final ownerWebId = widget.isExternalRes
+            ? widget.ownerWebId
             : await AuthDataManager.getWebId();
-        return [result, webId];
+        // Fetch granter's webID
+        // granterWebId == userWebId if not externally owned resource
+        final granterWebId = widget.isExternalRes
+            ? widget.granterWebId
+            : await AuthDataManager.getWebId();
+        return [result, ownerWebId, granterWebId];
       case SolidFunctionCallStatus.notLoggedIn:
         await _alert('Please login first to retrieve permission');
       case SolidFunctionCallStatus.noAclFound:
@@ -251,7 +292,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load future
     if (widget.resourceName != null) {
-      podDataList = loadPodData(widget.resourceName as String, widget.isFile);
+      podDataList = loadPodData(
+        widget.resourceName as String,
+        isFile: widget.isFile,
+        isExternalRes: widget.isExternalRes,
+      );
     }
 
     // Load access mode list to be displayed
@@ -259,19 +304,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       accessModeList.add(getAccessMode(accessModeStr));
     }
 
-    // Load recipient list to be displayed
+    // Load recipient type list to be displayed
     for (final recTypeStr in widget.recipientTypeList) {
       recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
     }
   }
 
   // Get new permission and update the permission map
-  Future<void> _updatePermissions(String fileName, {bool isFile = true}) async {
-    final pdata = await loadPodData(fileName, isFile);
+  Future<void> _updatePermissions(
+    String fileName, {
+    bool isFile = true,
+    bool isExternalRes = false,
+  }) async {
+    final pdata = await loadPodData(
+      fileName,
+      isFile: isFile,
+      isExternalRes: isExternalRes,
+    );
     if (pdata.isNotEmpty) {
-      assert(pdata.length == 2);
+      assert(pdata.length == 3);
       final permissionMap = pdata.first;
-      final webId = pdata.last;
+      final ownerWebId = pdata[1];
+      final granterWebId = pdata.last;
 
       if (permissionMap.isEmpty) {
         await _alert('We could not find a resource by the name $fileName');
@@ -279,7 +333,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         setState(() {
           permDataMap = permissionMap;
           permDataFile = fileName;
-          ownerWebId = webId as String;
+          _ownerWebId = ownerWebId as String;
+          _granterWebId = granterWebId as String;
         });
       }
     }
@@ -343,7 +398,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     // Check if future is set or not. If set display the permission map
     if (futureObjList != null && pageInitialied == false) {
       permDataMap = futureObjList.first as Map;
-      ownerWebId = futureObjList[1] as String;
+      _ownerWebId = futureObjList[1] as String;
+      _granterWebId = futureObjList.last as String;
       permDataFile = widget.resourceName!;
       pageInitialied = true;
     }
@@ -355,7 +411,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
-          await _updatePermissions(fileName, isFile: isFile);
+          await _updatePermissions(
+            fileName,
+            isFile: isFile,
+            isExternalRes: widget.isExternalRes,
+          );
         }
       },
     );
@@ -384,11 +444,23 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ),
     };
 
-    final buttonContainer = getButtonContainer(
+    // 20260109 jesscmoore Added capability for granters to share
+    // resources, as well as resource owners
+    final recipientButtonContainer = getButtonContainer(
       buttons: widget.isExternalRes
-          ? []
+          // Recipient type buttons for resource granter
+          ? [
+              for (final rtype in granterRecipientTypes)
+                if (recipientTypeList.contains(rtype))
+                  getRecipientTypeButton(
+                    rtype,
+                    onPressed: recipientTypeActions[rtype]!,
+                    padding: getPadding(rtype),
+                  ),
+            ]
+          // Recipient type buttons for resource owner
           : [
-              for (final rtype in relevantRecipientTypes)
+              for (final rtype in ownerRecipientTypes)
                 if (recipientTypeList.contains(rtype))
                   getRecipientTypeButton(
                     rtype,
@@ -405,9 +477,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       permDataResource: permDataFile,
       isFile: getIsFile(),
       permDataMap: permDataMap,
-      ownerWebId: ownerWebId,
+      ownerWebId: _ownerWebId,
+      granterWebId: _granterWebId,
       parentWidget: widget.child,
-      onDeleteFuncion: _updatePermissions,
+      updatePermissionsFunction: _updatePermissions,
       isExternalRes: widget.isExternalRes,
     );
 
@@ -427,7 +500,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   permissionList: selectedPermList,
                   recipientType: selectedRecipientType,
                   recipientWebIdList: finalWebIdList as List,
-                  ownerWebId: ownerWebId,
+                  ownerWebId: _ownerWebId,
+                  granterWebId: _granterWebId,
                   isExternalRes: widget.isExternalRes,
                   groupName: selectedRecipientType == RecipientType.group
                       ? groupNameController.text.trim()
@@ -440,7 +514,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
               if (result == SolidFunctionCallStatus.success) {
                 _showSnackBar(successMsg, Colors.green);
-                await _updatePermissions(dataFile, isFile: getIsFile());
+                await _updatePermissions(
+                  dataFile,
+                  isFile: getIsFile(),
+                  isExternalRes: widget.isExternalRes,
+                );
 
                 // Mark permissions as granted successfully for callback tracking
                 setState(() => permissionsGrantedSuccessfully = true);
@@ -485,7 +563,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         largeGapV,
         getHeading('Select the recipient/s of file access permissions'),
         getRecipientText(selectedRecipientType, selectedRecipientDetails),
-        buttonContainer,
+        recipientButtonContainer,
         smallGapV,
         getHeading('Select the list of file access permissions'),
         ...getPermissionCheckBoxes(
