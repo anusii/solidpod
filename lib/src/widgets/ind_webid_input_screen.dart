@@ -40,8 +40,9 @@ import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A screen that runs before opening the WebID input dialog, which
 /// retrieves the list of files in the owner's pod.
-/// Calling this class requires the following inputs:
-/// [onSubmitFunction] is the function to be called on submit
+///
+/// Parameters:
+/// - [onSubmitFunction] is the function to be called on submit
 ///
 class IndWebIdInputScreen extends StatefulWidget {
   /// Initialise widget variables.
@@ -65,8 +66,6 @@ class IndWebIdInputScreen extends StatefulWidget {
 }
 
 class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-
   /// Future comprising the unique recipient WebId list of the user's Pod data.
   static Future<List<String>>? _asyncGetRecipList;
 
@@ -90,50 +89,40 @@ class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
     Function onSubmitFunction, [
     List<String> uniqRecipWebIdList = const [],
   ]) {
-    return Container(
-      color: Colors.white,
-
-      // Run get access lists fetching screen
-      child: IndWebIdTextInput(
-        onSubmitFunction: onSubmitFunction,
-        uniqRecipWebIdList: uniqRecipWebIdList,
-      ),
+    return IndWebIdTextInput(
+      onSubmitFunction: onSubmitFunction,
+      uniqRecipWebIdList: uniqRecipWebIdList,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      body: SafeArea(
-        child: (widget.dataFilesMap.isNotEmpty)
-            ? _loadIndWebIdTextInput(
-                widget.onSubmitFunction,
-                uniqRecipWebIdList,
-              )
-            : FutureBuilder(
-                future: _asyncGetRecipList,
-                builder: (context, snapshot) {
-                  Widget returnVal;
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return snapshot.data == null ||
-                            snapshot.data.toString() == 'null' ||
-                            snapshot.data == []
-                        // Load Individual WebId Input Dialog Screen without recipient list
-                        ? returnVal =
-                            _loadIndWebIdTextInput(widget.onSubmitFunction)
-                        // Load Individual WebId Input Dialog Screen with recipient list
-                        : returnVal = _loadIndWebIdTextInput(
-                            widget.onSubmitFunction,
-                            snapshot.data!,
-                          );
-                  } else {
-                    returnVal = loadingScreen(normalLoadingScreenHeight);
-                  }
-                  return returnVal;
-                },
-              ),
-      ),
-    );
+    return (widget.dataFilesMap.isNotEmpty)
+        ? _loadIndWebIdTextInput(
+            widget.onSubmitFunction,
+            uniqRecipWebIdList,
+          )
+        : FutureBuilder(
+            future: _asyncGetRecipList,
+            builder: (context, snapshot) {
+              Widget returnVal;
+              if (snapshot.connectionState == ConnectionState.done) {
+                return snapshot.data == null ||
+                        snapshot.data.toString() == 'null' ||
+                        snapshot.data == []
+                    // Load Individual WebId Input Dialog Screen without recipient list
+                    ? returnVal =
+                        _loadIndWebIdTextInput(widget.onSubmitFunction)
+                    // Load Individual WebId Input Dialog Screen with recipient list
+                    : returnVal = _loadIndWebIdTextInput(
+                        widget.onSubmitFunction,
+                        snapshot.data!,
+                      );
+              } else {
+                returnVal = loadingScreen(normalLoadingScreenHeight);
+              }
+              return returnVal;
+            },
+          );
   }
 }

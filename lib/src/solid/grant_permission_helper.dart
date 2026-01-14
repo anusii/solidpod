@@ -116,9 +116,16 @@ const smallGapV = SizedBox(height: 10.0);
 /// Large vertical spacing for the widget.
 const largeGapV = SizedBox(height: 40.0);
 
-const relevantRecipientTypes = [
+/// Relevant recipients types for resource sharing by the resource owner.
+const ownerRecipientTypes = [
   RecipientType.public,
   RecipientType.authUser,
+  RecipientType.individual,
+  RecipientType.group,
+];
+
+/// Relevant recipient types for resource sharing by the resource granter (ie. an entity with control access).
+const granterRecipientTypes = [
   RecipientType.individual,
   RecipientType.group,
 ];

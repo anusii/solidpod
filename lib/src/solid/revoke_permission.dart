@@ -43,35 +43,38 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
 /// Revoke permissions to [fileName] for a given individual or
-/// group Web ID [removerIndOrGroupWebId].
+/// group Web ID [recipientIndOrGroupWebId] by removing the
+/// permission in the ACL within the owner's POD and adding a
+/// log entry recording the revoked permission in the permission
+/// logs of the owner, granter and recipient.
 ///
 /// Parameters:
 /// - [fileName] - is the name of the file revoking permission from.
 /// - [permissionList] - is the list of permissions being revoked.
-/// - [removerIndOrGroupWebId] - is the Web ID of the individual or
+/// - [recipientIndOrGroupWebId] - is the Web ID of the individual or
 /// group for whom access is being removed.
 /// - [ownerWebId] - is the Web ID of file owner.
+/// - [granterWebId] - is the web ID of the granter of access to the file.
+/// This is usually the web ID of the user.
 /// - [recipientType] - is the type of the recipient.
-/// - [isFile] - flag describing whether the resources is a file or not.
-/// (Default: true).
+/// - [isFile] - flag describing whether the resource is a file or not.
 /// - [isFileUrl] - flag describing whether the [fileName] is the url
-/// of the resource. (Default: false).
+/// of the resource.
 /// - [isExternalRes] - flag describing whether resource is an external
 /// file shared to the user. Where set to true, the [fileName] should be
-/// the full URL of the file. (Default: false).
+/// the full URL of the file.
 
 Future<SolidFunctionCallStatus> revokePermission({
   required String fileName,
   required List<dynamic> permissionList,
-  required String removerIndOrGroupWebId,
+  required String recipientIndOrGroupWebId,
   required String ownerWebId,
+  required String granterWebId,
   required RecipientType recipientType,
   bool isFile = true,
   bool isFileUrl = false,
   bool isExternalRes = false,
 }) async {
-  // debugPrint('[revokePermissions] revoking permissions for: $removerIndOrGroupWebId');
-
   final resourceUrl = await filenameToResourceUrl(
     fileName: fileName,
     isFile: isFile,
@@ -85,21 +88,21 @@ Future<SolidFunctionCallStatus> revokePermission({
   if (resStatus == ResourceStatus.exist) {
     // Extract the list of remover WebIds for whom access is being
     // removed
-    final removerWebIdList = [];
+    final recipientWebIdList = [];
 
     if (recipientType == RecipientType.group) {
       // Read the file that stores group of webIds
       // Get the file path
       final groupFilePath =
-          [await getDataDirPath(), removerIndOrGroupWebId].join('/');
+          [await getDataDirPath(), recipientIndOrGroupWebId].join('/');
 
       // Get the url of the file
       final groupFileUrl = await getFileUrl(groupFilePath);
 
       final groupWebIdList = await readGroupTtl(groupFileUrl);
-      removerWebIdList.addAll(groupWebIdList);
+      recipientWebIdList.addAll(groupWebIdList);
     } else {
-      removerWebIdList.add(removerIndOrGroupWebId);
+      recipientWebIdList.add(recipientIndOrGroupWebId);
     }
 
     // Check if the file is encrypted
@@ -109,16 +112,17 @@ Future<SolidFunctionCallStatus> revokePermission({
     // If the file is encrypted then remove the individual key from relavant
     // users/ user classes
     if (fileIsEncrypted) {
-      if ([RecipientType.individual, RecipientType.group]
-          .contains(recipientType)) {
-        for (final removerWebId in removerWebIdList) {
+      // If access revoked for specific recipients, remove key
+      // from recipient's POD
+      if (specificRecipientTypeList.contains(recipientType)) {
+        for (final recipientWebId in recipientWebIdList) {
           // Check if POD file structure is still there
-          if (await checkPodInitialised(removerWebId as String)) {
+          if (await checkPodInitialised(recipientWebId as String)) {
             // Generate unique ID for the resource being shared
-            final resUniqueId = getUniqueIdResUrl(resourceUrl, removerWebId);
+            final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
 
             // Delete shared key content from recipient's POD
-            await removeSharedKey(removerWebId, resUniqueId);
+            await removeSharedKey(recipientWebId, resUniqueId);
           }
         }
       } else {
@@ -133,51 +137,41 @@ Future<SolidFunctionCallStatus> revokePermission({
     await removePermissionAcl(
       resourceUrl: resourceUrl,
       ownerWebId: ownerWebId,
-      removerId: removerIndOrGroupWebId,
+      recipientWebId: recipientIndOrGroupWebId,
       recipientType: recipientType,
       isFile: isFile,
     );
 
     // Add log entry to owner, granter, and receiver permission log files
-    // av20240703: At this instance the owner and the granter are the same
-    //             At some point we might need to change this function so that
-    //             it can be used in the instances where owner is different from
-    //             the granter
 
-    // Get user webID
-    final userWebId = await AuthDataManager.getWebId() as String;
-
-    for (final removerWebId in removerWebIdList) {
+    for (final recipientWebId in recipientWebIdList) {
       final LogEntry logEntryRes = createPermLogEntry(
         permissionList: permissionList,
         resourceUrl: resourceUrl,
         ownerWebId: ownerWebId,
         permissionType: 'revoke',
-        granterWebId: userWebId,
-        recipientWebId: removerWebId as String,
+        granterWebId: granterWebId,
+        recipientWebId: recipientWebId as String,
       );
 
-      // Log file urls of the owner, granter, and receiver
+      // Get path to form permission Log file urls for the
+      // owner, granter, and receiver
       final logFilePath = await getPermLogFilePath();
 
       // Owner
-      // [20251029 jesscmoore] Assumes user = owner and uses
-      // AuthDataManager.getWebId() to fetch user webId
       final ownerLogFileUrl = await getFileUrl(logFilePath, webId: ownerWebId);
 
       // Granter
-      // [20251029 jesscmoore] Assumes user = granter and uses
-      // AuthDataManager.getWebId() to fetch user webId
-      final granterLogFileUrl = await getFileUrl(logFilePath);
+      final granterLogFileUrl =
+          await getFileUrl(logFilePath, webId: granterWebId);
 
-      // Run log entry insert query for the granter
+      // Append log entry to granter's log
       await addPermLogLine(
         logFileUrl: granterLogFileUrl,
         logEntry: logEntryRes,
       );
 
-      // If owner and the granter is not the same add another log file entry
-      // for the owner
+      // If owner != granter, append log entry to owner's log
       if (ownerLogFileUrl != granterLogFileUrl) {
         await addPermLogLine(
           logFileUrl: ownerLogFileUrl,
@@ -185,12 +179,12 @@ Future<SolidFunctionCallStatus> revokePermission({
         );
       }
 
-      // Add log entry if the recipient is either an individual or group of WebIDs
-      if ([RecipientType.individual, RecipientType.group]
-          .contains(recipientType)) {
-        if (await checkPodInitialised(removerWebId)) {
+      // Append log entry to recipient, if revoking access to
+      // specific recipient/s
+      if (specificRecipientTypeList.contains(recipientType)) {
+        if (await checkPodInitialised(recipientWebId)) {
           final receiverLogFileUrl =
-              await getFileUrl(logFilePath, webId: removerWebId);
+              await getFileUrl(logFilePath, webId: recipientWebId);
           await addPermLogLine(
             logFileUrl: receiverLogFileUrl,
             logEntry: logEntryRes,
