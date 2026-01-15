@@ -225,7 +225,7 @@ depend:
 # `locmax` is used in the CI to fail on too many lines of code, and
 # thus fails the lint checking.
 
-LINES ?= 301
+LINES ?= 300
 
 .PHONY: locmax
 locmax:
