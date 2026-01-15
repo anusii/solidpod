@@ -37,22 +37,23 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/api/revoke_permission_api.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Revoke permissions to non-existent [fileName] (ie already deleted)
-/// for a given individual Web ID [removerWebId].
+/// for a given individual Web ID [recipientWebId].
 /// Note: assumed for use case of user updating their own logs to
 /// revoke their access to an external file that has already been
 /// deleted without prior revoking of access to recipients. This is
-/// the case for files deleted before revoking was included in the
-/// delete process, or files deleted on the server.
+/// the case for files deleted before revoking permission was included
+/// in the delete process, or files deleted on the server.
 ///
 /// Parameters:
 /// - [fileName] - is the name of the file revoking permission from.
 /// - [isFileEncrypted] - flag denoting whether the file is encrypted.
 /// - [permissionList] - is the list of permissions being revoked.
-/// - [removerWebId] - is the Web ID of the individual for whom access is
-/// being removed.
+/// - [recipientWebId] - is the Web ID of the individual recipient for
+/// whom this permission is being removed.
 /// - [ownerWebId] - is the Web ID of file owner.
 /// - [granterWebId] - is the Web ID of the granter of this access
 /// to the file.
@@ -63,7 +64,7 @@ Future<SolidFunctionCallStatus> revokePermissionToDelFile({
   required String fileName,
   required bool isFileEncrypted,
   required List<dynamic> permissionList,
-  required String removerWebId,
+  required String recipientWebId,
   required String ownerWebId,
   required String granterWebId,
   bool isFileUrl = false,
@@ -72,7 +73,7 @@ Future<SolidFunctionCallStatus> revokePermissionToDelFile({
     debugPrint(
       '[revokePermissionsToDelFile] revoking access to file: $fileName',
     );
-    debugPrint('for user: $removerWebId');
+    debugPrint('for user: $recipientWebId');
 
     // Applies to external files only
     final isExternalRes = true;
@@ -90,12 +91,12 @@ Future<SolidFunctionCallStatus> revokePermissionToDelFile({
     // users/ user classes
     if (isFileEncrypted) {
       // Check if POD file structure is still there
-      if (await checkPodInitialised(removerWebId)) {
+      if (await checkPodInitialised(recipientWebId)) {
         // Generate unique ID for the resource being shared
-        final resUniqueId = getUniqueIdResUrl(resourceUrl, removerWebId);
+        final resUniqueId = getUniqueIdResUrl(resourceUrl, recipientWebId);
 
         // Delete shared key content from recipient's POD
-        await removeSharedKey(removerWebId, resUniqueId);
+        await removeSharedKey(recipientWebId, resUniqueId);
       }
     }
 
@@ -108,16 +109,16 @@ Future<SolidFunctionCallStatus> revokePermissionToDelFile({
       ownerWebId: ownerWebId,
       permissionType: 'revoke',
       granterWebId: granterWebId,
-      recipientWebId: removerWebId,
+      recipientWebId: recipientWebId,
     );
 
     // Log file urls of the owner, granter, and receiver
     final logFilePath = await getPermLogFilePath();
 
     // Add log entry to recipient's log
-    if (await checkPodInitialised(removerWebId)) {
+    if (await checkPodInitialised(recipientWebId)) {
       final receiverLogFileUrl =
-          await getFileUrl(logFilePath, webId: removerWebId);
+          await getFileUrl(logFilePath, webId: recipientWebId);
       await addPermLogLine(
         logFileUrl: receiverLogFileUrl,
         logEntry: logEntryRes,

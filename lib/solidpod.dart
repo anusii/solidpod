@@ -109,25 +109,29 @@ export 'src/solid/utils/misc.dart'
         deleteExternalFile,
         deleteFile,
         deleteLogIn,
-        filenameToResourceUrl,
         getWebId,
         getDataDirPath,
         getAppNameVersion,
-        getFileUrl,
-        getDirUrl,
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
         logoutPod,
         registerLogoutCacheCallback,
         setAppDirName,
-        generateDefaultFolders,
-        generateDefaultFiles,
         initPod;
 
 /// Export auth state management
 export 'src/solid/utils/authdata_manager.dart'
     show authStateNotifier, AuthDataManager;
+/// Utility functions for generating resource URLs
+
+export 'src/solid/utils/get_url_helper.dart'
+    show filenameToResourceUrl, getFileUrl, getDirUrl;
+
+/// Utility functions for generating resources at POD initialisation
+
+export 'src/solid/utils/init_pod_gen_resources.dart'
+    show generateDefaultFolders, generateCustomFolders, generateDefaultFiles;
 
 /// Change security key popup widget
 

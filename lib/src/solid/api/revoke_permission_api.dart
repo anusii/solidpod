@@ -40,6 +40,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 
@@ -51,14 +52,14 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 /// - [resourceUrl] - the url of resource (file/dir) for
 /// which access is being revoked.
 /// - [ownerWebId] - the webId of the resource owner.
-/// - [removerId] - the webId of the recipient having their
+/// - [recipientWebId] - the webId of the recipient having their
 /// access to the resource removed.
 /// - [recipientType] - type of recipient having their access
 /// to the resource removed.
 Future<String> removePermissionAcl({
   required String resourceUrl,
   required String ownerWebId,
-  required String removerId,
+  required String recipientWebId,
   required RecipientType recipientType,
   bool isFile = true,
 }) async {
@@ -94,7 +95,7 @@ Future<String> removePermissionAcl({
     }
 
     // If the receiver id matches remover id do not proceed
-    if (removerId == receiverId) {
+    if (recipientWebId == receiverId) {
       continue;
     }
 
@@ -128,7 +129,7 @@ Future<String> removePermissionAcl({
   // stored
   if (recipientType == RecipientType.group) {
     // Get the file path
-    final groupFilePath = [await getDataDirPath(), removerId].join('/');
+    final groupFilePath = [await getDataDirPath(), recipientWebId].join('/');
 
     // Get the url of the file
     final groupFileUrl = await getFileUrl(groupFilePath);
@@ -153,11 +154,11 @@ Future<String> removePermissionAcl({
 }
 
 /// Delete shared key on recepient's POD.
-Future<void> removeSharedKey(String removerWebId, String resUniqueId) async {
+Future<void> removeSharedKey(String recipientWebId, String resUniqueId) async {
   // Get shared key file url.
   final sharedKeyFilePath = await getSharedKeyFilePath();
   final receiverSharedKeyFileUrl =
-      removerWebId.replaceAll(profCard, sharedKeyFilePath);
+      recipientWebId.replaceAll(profCard, sharedKeyFilePath);
 
   // Check if the shared key file exists
   if (await checkResourceStatus(receiverSharedKeyFileUrl) ==

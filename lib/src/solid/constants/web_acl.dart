@@ -256,6 +256,13 @@ enum RecipientType {
   }
 }
 
+/// List of recipient types that comprise specific recipients
+
+const List<RecipientType> specificRecipientTypeList = [
+  RecipientType.individual,
+  RecipientType.group,
+];
+
 /// Get agent types as a human readable string
 RecipientType getRecipientType(String agentType, String receiverUri) {
   late RecipientType recipientType;
