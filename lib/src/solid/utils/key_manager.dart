@@ -42,6 +42,8 @@ import 'package:pointycastle/asymmetric/api.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/data_encryption.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 

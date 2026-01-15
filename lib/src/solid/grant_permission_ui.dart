@@ -1,6 +1,6 @@
 /// A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Wednesday 2025-10-08 15:39:39 +1100 Graham Williams>
+// Time-stamp: <Thursday 2026-01-15 13:42:22 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -102,40 +102,50 @@ class GrantPermissionUi extends StatefulWidget {
 
   /// The child widget to return to when back button is pressed and/or when
   /// page is reloaded after a permission is granted or revoked.
+
   final Widget child;
 
   /// The text appearing in the app bar.
+
   final String title;
 
   /// The text appearing in the app bar.
+
   final Color backgroundColor;
 
   /// The boolean to decide whether to display an app bar or not.
+
   final bool showAppBar;
 
   /// The boolean to decide whether the resources is from an external POD or not
+
   final bool isExternalRes;
 
   /// String to assign the webId of the resource owner. Must
   /// be set if [isExternalRes] is set to true.
+
   final String? ownerWebId;
 
   /// String to assign the external webId of the resource granter. Must
   /// be set if [isExternalRes] is set to true.
+
   final String? granterWebId;
 
   /// The list of access modes to be displayed. By default all four types of
   /// access mode are listed.
+
   final List<String> accessModeList;
 
   /// The list of types of recipients receiving permission to access the resource. By default all four
   /// types of recipient are listed.
+
   final List<String> recipientTypeList;
 
   /// The name of the file or directory permission is being set to. This is a
   /// non required parameter. If not set there will be a text field to define
   /// the file name. If [isExternalRes] is set to true this must be set and the
   /// value should be the url of the resource.
+
   final String? resourceName;
 
   /// A flag to determine whether the given resource is a file or not. This is
@@ -144,6 +154,7 @@ class GrantPermissionUi extends StatefulWidget {
   /// If [isExternalRes] is set to true this must be set and the value should
   /// be the url of the resource. Also if [resourceName] is set this flag must
   /// also be set
+
   final bool isFile;
 
   /// Map of data files on a user's POD used to extract the
@@ -151,9 +162,11 @@ class GrantPermissionUi extends StatefulWidget {
   /// If not provided, the WebIdTextInputScreen will read the
   /// user's files in their app data folder on their Pod to
   /// fetch the ACLs needed to derive the user's recipient list.
+
   final Map<String, dynamic> dataFilesMap;
 
   /// App specific app bar
+
   final PreferredSizeWidget? customAppBar;
 
   /// Callback function called when permissions are granted successfully.
@@ -169,24 +182,31 @@ class GrantPermissionUi extends StatefulWidget {
 }
 
 /// Class to build a UI for granting permission to a given file
+
 class GrantPermissionUiState extends State<GrantPermissionUi>
     with SingleTickerProviderStateMixin {
   /// read permission checked flag
+
   bool readChecked = false;
 
   /// write permission checked flag
+
   bool writeChecked = false;
 
   /// control permission checked flag
+
   bool controlChecked = false;
 
   /// append permission checked flag
+
   bool appendChecked = false;
 
   /// Public permission check flag
+
   bool publicChecked = false;
 
   /// WebId textfield enable/disable flag
+
   bool webIdTextFieldEnabled = true;
 
   /// Flag to check whether page is initialised.
@@ -194,45 +214,59 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   bool pageInitialied = false;
 
   /// Define access mode list
+
   List<AccessMode> accessModeList = [];
 
   /// Define recipient type list
+
   List<RecipientType> recipientTypeList = [];
 
   /// Form controller
+
   final formKey = GlobalKey<FormState>();
 
   /// Filename text controller
+
   final fileNameController = TextEditingController();
 
   /// Group name text controller
+
   final groupNameController = TextEditingController();
 
   /// Group of webIds text controller
+
   final groupWebIdsController = TextEditingController();
 
   /// Permission data map of a file
+
   Map<dynamic, dynamic> permDataMap = {};
 
   /// Owner WebId
+
   String _ownerWebId = '';
 
   /// Granter WebId
+
   String _granterWebId = '';
 
   /// File name of the current permission data map
+
   String permDataFile = '';
 
   /// Selected recipient
+
   RecipientType selectedRecipientType = RecipientType.none;
 
   /// Selected recipient details
+
   String selectedRecipientDetails = '';
 
   /// List of webIds for group permission
+
   List<dynamic>? finalWebIdList;
 
   /// Selected list of permissions
+
   List<String> selectedPermList = [];
 
   /// Flag to track if permissions were granted successfully.
@@ -240,6 +274,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   bool permissionsGrantedSuccessfully = false;
 
   /// Pod data list retreived as a Future
+
   late Future<List<dynamic>> podDataList;
 
   /// A flag to identify if the resource is a file or not
@@ -247,6 +282,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
+
   Future<List<dynamic>> loadPodData(
     String resName, {
     bool isFile = true,
@@ -268,19 +304,25 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
         // Fetch owner's webID
         // ownerWebId == userWebId if not externally owned resource
+
         final ownerWebId = widget.isExternalRes
             ? widget.ownerWebId
             : await AuthDataManager.getWebId();
         // Fetch granter's webID
         // granterWebId == userWebId if not externally owned resource
+
         final granterWebId = widget.isExternalRes
             ? widget.granterWebId
             : await AuthDataManager.getWebId();
+
         return [result, ownerWebId, granterWebId];
+
       case SolidFunctionCallStatus.notLoggedIn:
         await _alert('Please login first to retrieve permission');
+
       case SolidFunctionCallStatus.noAclFound:
         await _alert(noAclMsg);
+
       default:
         await _alert('Unknown error');
     }

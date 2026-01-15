@@ -13,21 +13,21 @@ dependencies:
     sdk: flutter
   intl: any
   rdflib: ^0.2.12
+  solidpod: ^0.9.8
+  solidui: ^0.0.12
+  universal_io: ^2.3.1
+  window_manager: ^0.5.1
+
+dependency_overrides:
   solidpod:
     path: ..
   solidui:
     git:
       url: https://github.com/anusii/solidui
       ref: dev
-  universal_io: ^2.3.1
-  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_lints: ^5.0.0
-
-dependency_overrides:
-  solidpod:
-    path: ..
 
 flutter:
   uses-material-design: true
