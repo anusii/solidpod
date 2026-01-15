@@ -23,7 +23,15 @@ show_help() {
 # Function to cleanse lines.
 
 cleanse_lines() {
-    awk 'NF && !/^\s*\/\/|^\s*\*|^\s*(import|library|@override)|^\s*[})\]]|^\s*(\?|:) \[/' "$1"
+    # Remove:
+    #   empty lines
+    #   comment only lines
+    #   import/library/@override
+    #   lines that start with }, ) or ]
+    #   lines that consist of '? [' or  ': ['
+    #   begins a parameter list, like `   names: [`
+    #
+    awk 'NF && !/^\s*\/\/|^\s*(import|library|@override)|^\s*[})\]]|^\s*(\?|:) \[|\s*\w*: \[/' "$1"
 }
 
 wc_cleanse_lines() {
