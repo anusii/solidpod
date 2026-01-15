@@ -109,8 +109,14 @@ Future<SolidFunctionCallStatus> grantPermission({
       final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
       // Check if recipient/s have initialised their pods with the correct
-      // directory structure
-      var allRecipientsInitialised = true;
+      // directory structure - required to access the shared resource
+      bool allRecipientsInitialised = true;
+      debugPrint(
+        'grantPermission(): recipienttype: ${recipientType.description.toString()}',
+      );
+      debugPrint(
+        'grantPermission(): webids: ${recipientWebIdList.toString()}',
+      );
       for (final recipientWebId in recipientWebIdList) {
         final isInitialised =
             await checkPodInitialised(recipientWebId as String);
@@ -191,6 +197,7 @@ Future<SolidFunctionCallStatus> grantPermission({
             }
           }
 
+          // TODO: check logs written for public and auth sharing
           // 20260112 jesscmoore: the permission logs are not updated if
           // permission granted is to give public access or give access
           //to all authenticated users.
