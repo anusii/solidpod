@@ -555,7 +555,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
               }
 
               if (result == SolidFunctionCallStatus.success) {
-                _showSnackBar(successMsg, Colors.green);
+                _showSnackBar(successMsg, ActionColors.success);
                 await _updatePermissions(
                   dataFile,
                   isFile: getIsFile(),
@@ -569,12 +569,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 widget.onPermissionGranted?.call();
               } else if (result == SolidFunctionCallStatus.fail) {
                 // More detailed error message with troubleshooting tips
-                _showSnackBar(failureMsg, Colors.red);
+                _showSnackBar(failureMsg, ActionColors.error);
 
                 // Also log to console for debugging
                 debugPrintFailure(dataFile, finalWebIdList, selectedPermList);
               } else if (result == SolidFunctionCallStatus.notInitialised) {
-                _showSnackBar(podNotInitMsg, warnBgColor);
+                _showSnackBar(podNotInitMsg, ActionColors.warning);
               } else {
                 await _alert(updatePermissionMsg);
               }
