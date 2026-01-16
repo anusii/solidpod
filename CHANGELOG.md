@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Standardise action message colors [0.9.9 20260116 jesscmoore]
 + Support custom folder structure [0.9.8 20260114 anushkavid]
 + Restore individual recipient suggestions [0.9.7 20260113 jesscmoore]
 + Allow sharing externally owned files [0.9.6 20260110 jesscmoore]
