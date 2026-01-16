@@ -352,7 +352,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
   }
 
-  // Get new permission and update the permission map
+  /// Get new permission and update the permission map
+
   Future<void> _updatePermissions(
     String fileName, {
     bool isFile = true,
@@ -382,7 +383,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
   }
 
-  // Update checkbox tick data.
+  /// Update checked status of access mode selections.
 
   void _updateCheckbox(bool newValue, AccessMode accessMode) => setState(() {
         switch (accessMode) {
@@ -402,14 +403,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         }
       });
 
-  // Update individual webid input data
+  /// Update individual recipient webid input data
   void _updateIndWebIdInput(String receiverWebId) => setState(() {
         selectedRecipientType = RecipientType.individual;
         selectedRecipientDetails = receiverWebId;
         finalWebIdList = [receiverWebId];
       });
 
-  // Update group of webids input data
+  /// Update recipient group webids input data
   void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) =>
       setState(() {
         selectedRecipientType = RecipientType.group;
@@ -418,10 +419,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         finalWebIdList = webIdList;
       });
 
-  // Private function to call alert dialog in grant permission UI context
+  /// Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
 
-  // Private function to show snackbar in grant permission UI context
+  /// Private function to show snackbar in grant permission UI context
   Future<void> _showSnackBar(
     String msg,
     Color bgColor, {
