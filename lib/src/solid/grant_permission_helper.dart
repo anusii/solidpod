@@ -30,7 +30,6 @@ import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
@@ -256,57 +255,6 @@ Widget getRecipientText(RecipientType recipientType, String recipientDetails) =>
       ),
     );
 
-Scrollbar getScrollbar({
-  required ScrollController controller,
-  required Axis direction,
-  required Widget child,
-}) =>
-    Scrollbar(
-      // 20250722 jm:
-      // For scrollbar visibility before scrolling,
-      // set to true, or set property to true
-      // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-      // thumbVisibility: WidgetStateProperty.all(true)))
-      thumbVisibility: true, // show before user starts scrolling
-      controller: controller,
-      child: SingleChildScrollView(
-        controller: controller,
-        scrollDirection: direction,
-        child: child,
-      ),
-    );
-
-Scrollbar getFormScrollbar(ScrollController controller, Widget permDataTable) =>
-    getScrollbar(
-      controller: controller,
-      direction: Axis.horizontal,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              permDataTable,
-              // Hspace to avoid vertical scrollbar overlap with table
-              ScrollbarLayout.horizontalGap,
-            ],
-          ),
-          // Vspace to avoid horizontal scrollbar overlap of table
-          ScrollbarLayout.verticalGap,
-        ],
-      ),
-    );
-
-Scrollbar getPageScrollbar(ScrollController controller, Widget form) =>
-    getScrollbar(
-      controller: controller,
-      direction: Axis.vertical,
-      child: Column(
-        children: [
-          smallGapV,
-          form,
-        ],
-      ),
-    );
-
 Container getButtonContainer({required List<Widget> buttons}) => Container(
       padding: const EdgeInsets.all(8.0),
       height: 100,
@@ -341,25 +289,3 @@ Container getButtonContainer({required List<Widget> buttons}) => Container(
 //         }
 //       },
 //     );
-
-Form getForm({
-  required Key formKey,
-  required Widget welcomeHeading,
-  required List<Widget> children,
-}) =>
-    Form(
-      key: formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            welcomeHeading,
-            smallGapV,
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: children,
-            ),
-          ],
-        ),
-      ),
-    );

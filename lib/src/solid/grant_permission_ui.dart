@@ -515,18 +515,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     bool getIsFile() => widget.resourceName != null ? widget.isFile : isFile;
 
-    final permDataTable = buildPermDataTable(
-      context: context,
-      permDataResource: permDataFile,
-      isFile: getIsFile(),
-      permDataMap: permDataMap,
-      ownerWebId: _ownerWebId,
-      granterWebId: _granterWebId,
-      parentWidget: widget.child,
-      updatePermissionsFunction: _updatePermissions,
-      isExternalRes: widget.isExternalRes,
-    );
-
+    // Grant Permission button
     final grantPermissionButton = getButton(
       'Grant Permission',
       onPressed: () async {
@@ -589,43 +578,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       },
     );
 
-    final form = getForm(
-      formKey: formKey,
-      welcomeHeading:
-          buildHeading(getWelcomeStr(widget.resourceName), 22, Colors.blueGrey),
-      children: [
-        if (widget.resourceName == null) ...[
-          getResourceForm(
-            formController: fileNameController,
-            isFile: isFile,
-            onResourceTypeChange: (bool v) => setState(() => isFile = v),
-          ),
-          smallGapV,
-          retrievePermissionButton,
-        ],
-        largeGapV,
-        getHeading('Select the recipient/s of file access permissions'),
-        getRecipientText(selectedRecipientType, selectedRecipientDetails),
-        recipientButtonContainer,
-        smallGapV,
-        getHeading('Select the list of file access permissions'),
-        ...getPermissionCheckBoxes(
-          accessModeList,
-          modeSwitches: {
-            AccessMode.read: readChecked,
-            AccessMode.write: writeChecked,
-            AccessMode.control: controlChecked,
-            AccessMode.append: appendChecked,
-          },
-          onUpdate: _updateCheckbox,
-        ),
-        grantPermissionButton,
-        largeGapV,
-        getHeading('Granted file access permissions'),
-        getFormScrollbar(tableScrollController, permDataTable),
-      ],
-    );
-
+    // Use customAppBar if provided
     final customAppBar = widget.customAppBar ??
         defaultAppBar(
           context,
@@ -637,11 +590,129 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         );
 
     return Scaffold(
+      // Display app bar if showAppBar selected
+      // AppBar will be defaultAppBar() if customAppBar()
+      // not provided
       appBar: widget.showAppBar ? customAppBar : null,
 
       // Make Grant Permission UI vertically scrollable
       // Shows when content exceeds display height
-      body: getPageScrollbar(pageScrollController, form),
+
+      body: Scrollbar(
+        // 20250722 jm:
+        // For scrollbar visibility before scrolling,
+        // set to true, or set property to true
+        // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
+        // thumbVisibility: WidgetStateProperty.all(true)))
+        thumbVisibility: true, // show before user starts scrolling
+        controller: pageScrollController,
+        child: SingleChildScrollView(
+          controller: pageScrollController,
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              smallGapV,
+              Form(
+                key: formKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    children: [
+                      // Welcome heading
+                      buildHeading(
+                        getWelcomeStr(widget.resourceName),
+                        22,
+                        Colors.blueGrey,
+                      ),
+                      smallGapV,
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.resourceName == null) ...[
+                            getResourceForm(
+                              formController: fileNameController,
+                              isFile: isFile,
+                              onResourceTypeChange: (bool v) =>
+                                  setState(() => isFile = v),
+                            ),
+                            smallGapV,
+                            retrievePermissionButton,
+                          ],
+                          largeGapV,
+                          getHeading(
+                            'Select the recipient/s of file access permissions',
+                          ),
+                          getRecipientText(
+                            selectedRecipientType,
+                            selectedRecipientDetails,
+                          ),
+                          recipientButtonContainer,
+                          smallGapV,
+                          getHeading(
+                            'Select the list of file access permissions',
+                          ),
+                          ...getPermissionCheckBoxes(
+                            accessModeList,
+                            modeSwitches: {
+                              AccessMode.read: readChecked,
+                              AccessMode.write: writeChecked,
+                              AccessMode.control: controlChecked,
+                              AccessMode.append: appendChecked,
+                            },
+                            onUpdate: _updateCheckbox,
+                          ),
+                          grantPermissionButton,
+                          largeGapV,
+                          getHeading('Granted file access permissions'),
+                          // Permissions table
+                          Scrollbar(
+                            // 20250722 jm:
+                            // For scrollbar visibility before scrolling,
+                            // set to true, or set property to true
+                            // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
+                            // thumbVisibility: WidgetStateProperty.all(true)))
+                            thumbVisibility:
+                                true, // show before user starts scrolling
+                            controller: tableScrollController,
+                            child: SingleChildScrollView(
+                              controller: tableScrollController,
+                              scrollDirection: Axis.horizontal,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      buildPermDataTable(
+                                        context: context,
+                                        permDataResource: permDataFile,
+                                        isFile: getIsFile(),
+                                        permDataMap: permDataMap,
+                                        ownerWebId: _ownerWebId,
+                                        granterWebId: _granterWebId,
+                                        parentWidget: widget.child,
+                                        updatePermissionsFunction:
+                                            _updatePermissions,
+                                        isExternalRes: widget.isExternalRes,
+                                      ),
+                                      // Hspace to avoid vertical scrollbar overlap with table
+                                      ScrollbarLayout.horizontalGap,
+                                    ],
+                                  ),
+                                  // Vspace to avoid horizontal scrollbar overlap of table
+                                  ScrollbarLayout.verticalGap,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
