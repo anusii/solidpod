@@ -104,14 +104,6 @@ class RevokePermissionButton extends StatefulWidget {
 }
 
 class _RevokePermissionButtonState extends State<RevokePermissionButton> {
-  /// Selected resource - assigned once on first Grant button press
-
-  String? dataFile;
-
-  /// A flag to identify if the resource is a file or not
-
-  bool isFile = true;
-
   @override
   void initState() {
     super.initState();
