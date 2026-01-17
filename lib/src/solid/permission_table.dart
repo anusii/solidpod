@@ -33,8 +33,8 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission_button.dart';
 
 /// A [StatefulWidget] for listing the permissions of a resource.
