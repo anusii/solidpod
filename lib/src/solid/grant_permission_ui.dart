@@ -37,13 +37,13 @@ import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission_button.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
+import 'package:solidpod/src/solid/permission_table.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
-import 'package:solidpod/src/widgets/file_permission_data_table.dart';
 import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
@@ -427,9 +427,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     /// Controller for vertical page scrolling
     final pageScrollController = ScrollController();
 
-    /// Controller for horizontal permissions table scrolling
-    final tableScrollController = ScrollController();
-
     // Check if future is set or not. If set display the permission map
     if (futureObjList != null && pageInitialied == false) {
       permDataMap = futureObjList.first as Map;
@@ -615,43 +612,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                           largeGapV,
                           getHeading('Granted file access permissions'),
                           // Permissions table
-                          Scrollbar(
-                            // 20250722 jm:
-                            // For scrollbar visibility before scrolling,
-                            // set to true, or set property to true
-                            // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-                            // thumbVisibility: WidgetStateProperty.all(true)))
-                            thumbVisibility:
-                                true, // show before user starts scrolling
-                            controller: tableScrollController,
-                            child: SingleChildScrollView(
-                              controller: tableScrollController,
-                              scrollDirection: Axis.horizontal,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      buildPermDataTable(
-                                        context: context,
-                                        permDataResource: permDataFile,
-                                        isFile: getIsFile(),
-                                        permDataMap: permDataMap,
-                                        ownerWebId: _ownerWebId,
-                                        granterWebId: _granterWebId,
-                                        parentWidget: widget.child,
-                                        updatePermissionsFunction:
-                                            _updatePermissions,
-                                        isExternalRes: widget.isExternalRes,
-                                      ),
-                                      // Hspace to avoid vertical scrollbar overlap with table
-                                      ScrollbarLayout.horizontalGap,
-                                    ],
-                                  ),
-                                  // Vspace to avoid horizontal scrollbar overlap of table
-                                  ScrollbarLayout.verticalGap,
-                                ],
-                              ),
-                            ),
+                          PermissionTable(
+                            resourceName: permDataFile,
+                            permDataMap: permDataMap,
+                            ownerWebId: _ownerWebId,
+                            granterWebId: _granterWebId,
+                            updatePermissionsFunction: _updatePermissions,
+                            parentWidget: widget.child,
+                            isFile: getIsFile(),
+                            isExternalRes: widget.isExternalRes,
                           ),
                         ],
                       ),
