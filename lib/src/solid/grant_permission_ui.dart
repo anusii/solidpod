@@ -535,13 +535,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         child: SingleChildScrollView(
           controller: pageScrollController,
           scrollDirection: Axis.vertical,
-          child: Column(
-            children: [
-              smallGapV,
-              Form(
-                key: formKey,
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              children: [
+                smallGapV,
+                Form(
+                  key: formKey,
                   child: Column(
                     children: [
                       // Welcome heading
@@ -587,48 +587,47 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                             },
                             onUpdate: _updateCheckbox,
                           ),
-                          // Grant Permission Button - updates owner's ACL for
-                          // resource, updates owner, granter, recipient logs,
-                          // and calls updatePermissions() to refresh
-                          // permission table.
-                          GrantPermissionButton(
-                            formKey: formKey,
-                            fileNameController: fileNameController,
-                            resourceName: widget.resourceName,
-                            isFile: widget.isFile,
-                            isExternalRes: widget.isExternalRes,
-                            ownerWebId: _ownerWebId,
-                            granterWebId: _granterWebId,
-                            selectedRecipientType: selectedRecipientType,
-                            selectedPermList: selectedPermList,
-                            finalWebIdList: finalWebIdList,
-                            groupName:
-                                selectedRecipientType == RecipientType.group
-                                    ? groupNameController.text.trim()
-                                    : null,
-                            updatePermissionsFunction: _updatePermissions,
-                            onPermissionGranted: widget.onPermissionGranted,
-                          ),
-                          largeGapV,
-                          getHeading('Granted file access permissions'),
-                          // Permissions table
-                          PermissionTable(
-                            resourceName: permDataFile,
-                            permDataMap: permDataMap,
-                            ownerWebId: _ownerWebId,
-                            granterWebId: _granterWebId,
-                            updatePermissionsFunction: _updatePermissions,
-                            parentWidget: widget.child,
-                            isFile: getIsFile(),
-                            isExternalRes: widget.isExternalRes,
-                          ),
                         ],
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+                // Grant Permission Button - updates owner's ACL for
+                // resource, updates owner, granter, recipient logs,
+                // and calls updatePermissions() to refresh
+                // permission table.
+                GrantPermissionButton(
+                  formKey: formKey,
+                  fileNameController: fileNameController,
+                  resourceName: widget.resourceName,
+                  isFile: widget.isFile,
+                  isExternalRes: widget.isExternalRes,
+                  ownerWebId: _ownerWebId,
+                  granterWebId: _granterWebId,
+                  selectedRecipientType: selectedRecipientType,
+                  selectedPermList: selectedPermList,
+                  finalWebIdList: finalWebIdList,
+                  groupName: selectedRecipientType == RecipientType.group
+                      ? groupNameController.text.trim()
+                      : null,
+                  updatePermissionsFunction: _updatePermissions,
+                  onPermissionGranted: widget.onPermissionGranted,
+                ),
+                largeGapV,
+                getHeading('Granted file access permissions'),
+                // Permissions table
+                PermissionTable(
+                  resourceName: permDataFile,
+                  permDataMap: permDataMap,
+                  ownerWebId: _ownerWebId,
+                  granterWebId: _granterWebId,
+                  updatePermissionsFunction: _updatePermissions,
+                  parentWidget: widget.child,
+                  isFile: getIsFile(),
+                  isExternalRes: widget.isExternalRes,
+                ),
+              ],
+            ),
           ),
         ),
       ),
