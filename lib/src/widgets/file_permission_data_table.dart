@@ -35,8 +35,7 @@ import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/revoke_permission.dart';
-import 'package:solidpod/src/solid/utils/snack_bar.dart';
+import 'package:solidpod/src/solid/revoke_permission_button.dart';
 
 /// Build the permission table widget. Function call requires the
 /// following inputs.
@@ -123,69 +122,16 @@ Widget buildPermDataTable({
           // If recipient != owner, then show the delete permission button
           if (ownerWebId != index) ...[
             DataCell(
-              IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  size: 24.0,
-                  color: Colors.red,
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) {
-                      return AlertDialog(
-                        title: const Text('Please Confirm'),
-                        content: Text(
-                          'Are you sure you want to remove the [${(permDataMap[index][permStr] as List).join(', ')}] permission/s from ${index.replaceAll('.ttl', '')}?',
-                        ),
-                        actions: [
-                          // The "Yes" button
-                          TextButton(
-                            onPressed: () async {
-                              await revokePermission(
-                                fileName: permDataResource,
-                                isFile: isFile,
-                                permissionList:
-                                    permDataMap[index][permStr] as List,
-                                recipientIndOrGroupWebId: index,
-                                ownerWebId: ownerWebId,
-                                granterWebId: granterWebId,
-                                recipientType: getRecipientType(
-                                  permDataMap[index][agentStr] as String,
-                                  index,
-                                ),
-                                isExternalRes: isExternalRes,
-                              );
-
-                              if (ctx.mounted) {
-                                Navigator.pop(ctx);
-                              }
-                              if (ctx.mounted) {
-                                showSnackBar(
-                                  context,
-                                  'Permission revoked successfully!',
-                                  Colors.red,
-                                );
-                              }
-                              await updatePermissionsFunction(
-                                permDataResource,
-                                isFile: isFile,
-                              );
-                            },
-                            child: const Text('Yes'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              // Close the dialog
-                              Navigator.of(ctx).pop();
-                            },
-                            child: const Text('No'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+              // Revoke permissions icon button
+              RevokePermissionButton(
+                resourceName: permDataResource,
+                permDataMap: permDataMap,
+                receiverWebId: index,
+                ownerWebId: ownerWebId,
+                granterWebId: granterWebId,
+                isFile: isFile,
+                isExternalRes: isExternalRes,
+                updatePermissionsFunction: updatePermissionsFunction,
               ),
             ),
           ] else ...[
