@@ -540,30 +540,31 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             child: Column(
               children: [
                 smallGapV,
+                // Sharing heading
+                buildHeading(
+                  getWelcomeStr(widget.resourceName),
+                  22,
+                  Colors.blueGrey,
+                ),
+                smallGapV,
+                // Choose resource to share if not yet selected
+                if (widget.resourceName == null) ...[
+                  getResourceForm(
+                    formController: fileNameController,
+                    isFile: isFile,
+                    onResourceTypeChange: (bool v) =>
+                        setState(() => isFile = v),
+                  ),
+                  smallGapV,
+                  retrievePermissionButton,
+                ],
                 Form(
                   key: formKey,
                   child: Column(
                     children: [
-                      // Welcome heading
-                      buildHeading(
-                        getWelcomeStr(widget.resourceName),
-                        22,
-                        Colors.blueGrey,
-                      ),
-                      smallGapV,
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (widget.resourceName == null) ...[
-                            getResourceForm(
-                              formController: fileNameController,
-                              isFile: isFile,
-                              onResourceTypeChange: (bool v) =>
-                                  setState(() => isFile = v),
-                            ),
-                            smallGapV,
-                            retrievePermissionButton,
-                          ],
                           largeGapV,
                           getHeading(
                             'Select the recipient/s of file access permissions',
