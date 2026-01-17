@@ -51,7 +51,7 @@ import 'package:solidpod/src/solid/utils/snack_bar.dart';
 /// - [isExternalRes] - Boolean flag describing whether the resource
 /// is externally owned.
 /// - [ownerWebId] - WebId of the owner of the resource. Required if the resource is externally owned.
-/// - [granterWebId] - WebId of the granter of the resource. Required if the resource is externall owned.
+/// - [granterWebId] - WebId of the granter of the resource. Required if the resource is externally owned.
 /// - [selectedPermList] - is the list of permissions to be granted to the
 /// [finalWebIdList].
 /// - [selectedRecipientType] - is the type of the recipient of recipients in the
@@ -180,13 +180,6 @@ class _GrantPermissionButtonState extends State<GrantPermissionButton> {
                   // Assign dataFile if null (first Grant press)
                   dataFile ??= widget.resourceName ?? _fileNameController.text;
 
-                  debugPrint('GrantPermissionButton: dataFile: $dataFile');
-                  debugPrint(
-                    'GrantPermissionButton: owner: ${widget.ownerWebId}',
-                  );
-                  debugPrint(
-                    'GrantPermissionButton: granter: ${widget.granterWebId}',
-                  );
                   SolidFunctionCallStatus result;
                   try {
                     // Update ACL and permission logs to grant permission
