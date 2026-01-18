@@ -37,6 +37,7 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/select_recipients.dart';
+import 'package:solidpod/src/solid/show_selected_recipients.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
@@ -133,18 +134,6 @@ class GrantPermissionForm extends StatefulWidget {
 }
 
 class _GrantPermissionFormState extends State<GrantPermissionForm> {
-  /// Owner WebId
-
-  late final String _ownerWebId;
-
-  /// Granter WebId
-
-  late final String _granterWebId;
-
-  /// Selected resource being shared
-
-  late final String _resourceName;
-
   /// Selected recipient
 
   RecipientType selectedRecipientType = RecipientType.none;
@@ -200,10 +189,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   @override
   void initState() {
     super.initState();
-
-    _resourceName = widget.resourceName;
-    _ownerWebId = widget.ownerWebId;
-    _granterWebId = widget.granterWebId;
 
     // Load access mode list to be displayed
     for (final accessModeStr in widget.accessModeList) {
@@ -326,10 +311,9 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
             ),
             // List selected recipient webids or recipient
             // type (public/auth)
-            // TODO: convert to stless widget
-            showSelectedRecipients(
-              selectedRecipientType,
-              selectedRecipientDetails,
+            ShowSelectedRecipients(
+              selectedRecipientType: selectedRecipientType,
+              selectedRecipientDetails: selectedRecipientDetails,
             ),
 
             // Show Select Recipient Buttons
@@ -375,13 +359,13 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                 try {
                   // Update ACL and permission logs to grant permission
                   result = await grantPermission(
-                    fileName: _resourceName,
+                    fileName: widget.resourceName,
                     isFile: widget.isFile,
                     permissionList: selectedPermList,
                     recipientType: selectedRecipientType,
                     recipientWebIdList: finalWebIdList,
-                    ownerWebId: _ownerWebId,
-                    granterWebId: _granterWebId,
+                    ownerWebId: widget.ownerWebId,
+                    granterWebId: widget.granterWebId,
                     isExternalRes: widget.isExternalRes,
                     groupName: selectedRecipientType == RecipientType.group
                         ? groupNameController.text.trim()
@@ -400,7 +384,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   _showSnackBar(successMsg, Colors.green);
                   // Update permissions table
                   await widget.updatePermissionsFunction(
-                    _resourceName,
+                    widget.resourceName, //_resourceName,
                     isFile: widget.isFile,
                     isExternalRes: widget.isExternalRes,
                   );
@@ -416,7 +400,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
                   // Also log to console for debugging
                   debugPrintFailure(
-                    _resourceName,
+                    widget.resourceName, // _resourceName,
                     finalWebIdList,
                     selectedPermList,
                   );

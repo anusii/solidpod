@@ -28,8 +28,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:markdown_tooltip/markdown_tooltip.dart';
-
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
@@ -154,27 +152,6 @@ List<Widget> getPermissionCheckBoxes(
           permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
     ];
 
-Widget getRecipientTypeButton(
-  RecipientType recipientType, {
-  required void Function() onPressed,
-  EdgeInsetsGeometry? padding,
-}) {
-  assert(recipientType != RecipientType.none);
-  return Expanded(
-    child: Container(
-      padding: padding,
-      height: 50,
-      child: MarkdownTooltip(
-        message: recipientToolTips[recipientType]!,
-        child: ElevatedButton(
-          onPressed: onPressed,
-          child: Text(recipientType.description),
-        ),
-      ),
-    ),
-  );
-}
-
 Widget getResourceForm({
   required TextEditingController formController,
   required bool isFile,
@@ -215,68 +192,3 @@ Widget getResourceForm({
         ],
       ),
     );
-
-Widget getRecipientText(RecipientType recipientType, String recipientDetails) =>
-    Container(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          const Text(
-            'Recipient/s: ',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          Flexible(
-            // Show recipients if selected
-            child: Text(
-              '${recipientType.type}${recipientDetails.isEmpty ? "" : " ($recipientDetails)"}',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                // 20251008 gjw Choose blue rather than
-                // orange which looks red. The red looks
-                // like it is an error. Blue is more
-                // neutral.
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-Container getButtonContainer({required List<Widget> buttons}) => Container(
-      padding: const EdgeInsets.all(8.0),
-      height: 100,
-      child: Row(
-        children:
-            // TODO: move this comment to recipient buttonxs in
-            // ShareResourceButton()
-            // av 20250526:
-            // Public and Authenticated users buttons are
-            // disabled in this function at the moment because
-            // providing public or authenticated permissions to
-            // external resources is not yet implemented in
-            // [grantPermission()] function.
-            buttons,
-      ),
-    );
-
-// ElevatedButton getRetrieveButton(
-//   BuildContext context,
-//   String fileName,
-//   bool isFile, {
-//   required Future<void> Function(
-//     String, {
-//     bool isFile,
-//   }) onRetrieve,
-// }) =>
-//     ElevatedButton(
-//       child: const Text('Retrieve permissions'),
-//       onPressed: () async {
-//         if (fileName.isEmpty) {
-//           await alert(context, 'Please enter a file name');
-//         } else {
-//           await onRetrieve(fileName, isFile: isFile);
-//         }
-//       },
-//     );

@@ -186,22 +186,30 @@ class _SelectRecipientsState extends State<SelectRecipients> {
   Widget build(BuildContext context) {
     // 20260109 jesscmoore Added capability for granters to share
     // resources, as well as resource owners
-    return getButtonContainer(
-      buttons: widget.isExternalRes
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      height: 100,
+      child: Row(
+        children: widget.isExternalRes
 
-          // TODO jesscmoore 20260118: check grant/revoke to public/auth
-          // works on external resources
-          // av 20250526:
-          // Public and Authenticated recipient buttons are
-          // disabled currently because
-          // providing public or authenticated permissions to
-          // external resources is not yet implemented in
-          // [grantPermission()] function.
+            // TODO jesscmoore 20260118: check grant/revoke to public/auth
+            // works on external resources
+            // av 20250526:
+            // Public and Authenticated recipient buttons are
+            // disabled currently because
+            // providing public or authenticated permissions to
+            // external resources is not yet implemented in
+            // [grantPermission()] function.
 
-          // Recipient type buttons for resource granter
-          ? selectRecipientButtons(allowedRecipientTypes: granterRecipientTypes)
-          // Recipient type buttons for resource owner
-          : selectRecipientButtons(allowedRecipientTypes: ownerRecipientTypes),
+            // Recipient type buttons for resource granter
+            ? selectRecipientButtons(
+                allowedRecipientTypes: granterRecipientTypes,
+              )
+            // Recipient type buttons for resource owner
+            : selectRecipientButtons(
+                allowedRecipientTypes: ownerRecipientTypes,
+              ),
+      ),
     );
   }
 }
