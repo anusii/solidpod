@@ -182,30 +182,6 @@ class GrantPermissionUi extends StatefulWidget {
 
 class GrantPermissionUiState extends State<GrantPermissionUi>
     with SingleTickerProviderStateMixin {
-  /// read permission checked flag
-
-  bool readChecked = false;
-
-  /// write permission checked flag
-
-  bool writeChecked = false;
-
-  /// control permission checked flag
-
-  bool controlChecked = false;
-
-  /// append permission checked flag
-
-  bool appendChecked = false;
-
-  /// Public permission check flag
-
-  bool publicChecked = false;
-
-  /// WebId textfield enable/disable flag
-
-  bool webIdTextFieldEnabled = true;
-
   /// Flag to check whether page is initialised.
 
   bool pageInitialied = false;
@@ -221,14 +197,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Filename text controller
 
   final fileNameController = TextEditingController();
-
-  /// Group name text controller
-
-  final groupNameController = TextEditingController();
-
-  /// Group of webIds text controller
-
-  final groupWebIdsController = TextEditingController();
 
   /// Permission data map of a file
 
@@ -246,22 +214,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   String permDataFile = '';
 
-  /// Selected recipient
-
-  RecipientType selectedRecipientType = RecipientType.none;
-
-  /// Selected recipient details
-
-  String selectedRecipientDetails = '';
-
-  /// List of webIds for group permission
-
-  List<dynamic> finalWebIdList = [];
-
-  /// Selected list of permissions
-
-  List<String> selectedPermList = [];
-
   /// Flag to track if permissions were granted successfully.
 
   bool permissionsGrantedSuccessfully = false;
@@ -272,6 +224,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
+
+  // TODO: tidy loadPodData() removing owner and granter webid fetching
+  // to initState
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
@@ -289,11 +244,18 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     switch (response) {
       case SolidFunctionCallStatus.aclFound:
+
+        // TODO: move readPermission(), getting owner and granter into
+        // new getPermissionDetails() to get the permission map, owner
+        // and granter of a resource.
         final Map<dynamic, dynamic> result = await readPermission(
           fileName: resName,
           isFile: isFile,
           isExternalRes: widget.isExternalRes,
         );
+
+        // TODO: write get_authoriser.dart with functions to get
+        // ownerWebId and granterWebId
 
         // Fetch owner's webID
         // ownerWebId == userWebId if not externally owned resource
@@ -380,6 +342,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
 
+  // TODO: rename futureObjList to dataMap
+
   /// Build the main widget
   Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
     /// Controller for vertical page scrolling
@@ -390,6 +354,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       permDataMap = futureObjList.first as Map;
       _ownerWebId = futureObjList[1] as String;
       _granterWebId = futureObjList.last as String;
+      // FIXME: ensure permDataFile updates within _updatePermissions() to be correct when resource selected within GrantPermissionUi()
       permDataFile = widget.resourceName!;
       pageInitialied = true;
     }
@@ -455,7 +420,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   Colors.blueGrey,
                 ),
                 smallGapV,
-                // Choose resource to share if not yet selected
+                // Choose resource and run _updatePermissions if
+                // resourceName not provided
                 if (widget.resourceName == null) ...[
                   getResourceForm(
                     formController: fileNameController,
