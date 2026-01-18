@@ -227,6 +227,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   // TODO: tidy loadPodData() removing owner and granter webid fetching
   // to initState
+  // TODO: move owner and granter setting to ShareResourceButon()
 
   /// Runs multiple asynchronous functions to get the data from
   /// POD server if necessary.
@@ -296,15 +297,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       );
     }
 
-    // Load access mode list to be displayed
-    for (final accessModeStr in widget.accessModeList) {
-      accessModeList.add(getAccessMode(accessModeStr));
-    }
+    // // Load access mode list to be displayed
+    // for (final accessModeStr in widget.accessModeList) {
+    //   accessModeList.add(getAccessMode(accessModeStr));
+    // }
 
-    // Load recipient type list to be displayed
-    for (final recTypeStr in widget.recipientTypeList) {
-      recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
-    }
+    // // Load recipient type list to be displayed
+    // for (final recTypeStr in widget.recipientTypeList) {
+    //   recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
+    // }
   }
 
   /// Get new permission and update the permission map
