@@ -154,18 +154,6 @@ List<Widget> getPermissionCheckBoxes(
           permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
     ];
 
-Widget getButton(
-  String text, {
-  required void Function() onPressed,
-}) =>
-    Padding(
-      padding: const EdgeInsets.all(8),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: Text(text),
-      ),
-    );
-
 Widget getRecipientTypeButton(
   RecipientType recipientType, {
   required void Function() onPressed,
@@ -238,6 +226,7 @@ Widget getRecipientText(RecipientType recipientType, String recipientDetails) =>
             style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
           ),
           Flexible(
+            // Show recipients if selected
             child: Text(
               '${recipientType.type}${recipientDetails.isEmpty ? "" : " ($recipientDetails)"}',
               style: const TextStyle(
@@ -260,6 +249,8 @@ Container getButtonContainer({required List<Widget> buttons}) => Container(
       height: 100,
       child: Row(
         children:
+            // TODO: move this comment to recipient buttonxs in
+            // ShareResourceButton()
             // av 20250526:
             // Public and Authenticated users buttons are
             // disabled in this function at the moment because

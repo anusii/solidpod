@@ -35,21 +35,19 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/grant_permission_button.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/permission_table.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
+import 'package:solidpod/src/solid/share_resource_button.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
-import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
-import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A [StatefulWidget] for showing and editing access permissions to a
-/// file. It displays the permission table of users with access, and
+/// resource. It displays the permission table of users with access, and
 /// allows the user to change access permissions: by granting access
 /// to others, changing a recipients access permissions or revoking
 /// access permissions.
@@ -220,10 +218,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   List<RecipientType> recipientTypeList = [];
 
-  /// Form controller
-
-  final formKey = GlobalKey<FormState>();
-
   /// Filename text controller
 
   final fileNameController = TextEditingController();
@@ -383,42 +377,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
   }
 
-  /// Update checked status of access mode selections.
-
-  void _updateCheckbox(bool newValue, AccessMode accessMode) => setState(() {
-        switch (accessMode) {
-          case AccessMode.read:
-            readChecked = newValue;
-          case AccessMode.write:
-            writeChecked = newValue;
-          case AccessMode.control:
-            controlChecked = newValue;
-          case AccessMode.append:
-            appendChecked = newValue;
-        }
-        if (newValue) {
-          selectedPermList.add(accessMode.mode);
-        } else {
-          selectedPermList.remove(accessMode.mode);
-        }
-      });
-
-  /// Update individual recipient webid input data
-  void _updateIndWebIdInput(String receiverWebId) => setState(() {
-        selectedRecipientType = RecipientType.individual;
-        selectedRecipientDetails = receiverWebId;
-        finalWebIdList = [receiverWebId];
-      });
-
-  /// Update recipient group webids input data
-  void _updateGroupWebIdInput(String groupName, List<dynamic> webIdList) =>
-      setState(() {
-        selectedRecipientType = RecipientType.group;
-        selectedRecipientDetails =
-            '$groupName with WebIDs ${webIdList.join(', ')}';
-        finalWebIdList = webIdList;
-      });
-
   /// Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
 
@@ -450,56 +408,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           );
         }
       },
-    );
-
-    final recipientTypeActions = {
-      RecipientType.public: () => setState(() {
-            selectedRecipientType = RecipientType.public;
-            selectedRecipientDetails = '';
-            finalWebIdList = [publicAgent.value];
-          }),
-      RecipientType.authUser: () => setState(() {
-            selectedRecipientType = RecipientType.authUser;
-            selectedRecipientDetails = '';
-            finalWebIdList = [authenticatedAgent.value];
-          }),
-      RecipientType.individual: () async => await indWebIdInputDialog(
-            context,
-            _updateIndWebIdInput,
-            widget.dataFilesMap,
-          ),
-      RecipientType.group: () async => await groupWebIdInputDialog(
-            context,
-            groupNameController,
-            groupWebIdsController,
-            _updateGroupWebIdInput,
-          ),
-    };
-
-    // 20260109 jesscmoore Added capability for granters to share
-    // resources, as well as resource owners
-    final recipientButtonContainer = getButtonContainer(
-      buttons: widget.isExternalRes
-          // Recipient type buttons for resource granter
-          ? [
-              for (final rtype in granterRecipientTypes)
-                if (recipientTypeList.contains(rtype))
-                  getRecipientTypeButton(
-                    rtype,
-                    onPressed: recipientTypeActions[rtype]!,
-                    padding: getPadding(rtype),
-                  ),
-            ]
-          // Recipient type buttons for resource owner
-          : [
-              for (final rtype in ownerRecipientTypes)
-                if (recipientTypeList.contains(rtype))
-                  getRecipientTypeButton(
-                    rtype,
-                    onPressed: recipientTypeActions[rtype]!,
-                    padding: getPadding(rtype),
-                  ),
-            ],
     );
 
     bool getIsFile() => widget.resourceName != null ? widget.isFile : isFile;
@@ -558,62 +466,21 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   smallGapV,
                   retrievePermissionButton,
                 ],
-                Form(
-                  key: formKey,
-                  child: Column(
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          largeGapV,
-                          getHeading(
-                            'Select the recipient/s of file access permissions',
-                          ),
-                          getRecipientText(
-                            selectedRecipientType,
-                            selectedRecipientDetails,
-                          ),
-                          recipientButtonContainer,
-                          smallGapV,
-                          getHeading(
-                            'Select the list of file access permissions',
-                          ),
-                          ...getPermissionCheckBoxes(
-                            accessModeList,
-                            modeSwitches: {
-                              AccessMode.read: readChecked,
-                              AccessMode.write: writeChecked,
-                              AccessMode.control: controlChecked,
-                              AccessMode.append: appendChecked,
-                            },
-                            onUpdate: _updateCheckbox,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Grant Permission Button - updates owner's ACL for
-                // resource, updates owner, granter, recipient logs,
-                // and calls updatePermissions() to refresh
-                // permission table.
-                GrantPermissionButton(
-                  formKey: formKey,
-                  fileNameController: fileNameController,
+                // Share resource button
+                ShareResourceButton(
                   resourceName: widget.resourceName,
-                  isFile: widget.isFile,
-                  isExternalRes: widget.isExternalRes,
+                  fileNameController: fileNameController,
+                  accessModeList: widget.accessModeList,
+                  recipientTypeList: widget.recipientTypeList,
+                  updatePermissionsFunction: _updatePermissions,
                   ownerWebId: _ownerWebId,
                   granterWebId: _granterWebId,
-                  selectedRecipientType: selectedRecipientType,
-                  selectedPermList: selectedPermList,
-                  finalWebIdList: finalWebIdList,
-                  groupName: selectedRecipientType == RecipientType.group
-                      ? groupNameController.text.trim()
-                      : null,
-                  updatePermissionsFunction: _updatePermissions,
+                  isExternalRes: widget.isExternalRes,
+                  isFile: widget.isFile,
+                  dataFilesMap: widget.dataFilesMap,
                   onPermissionGranted: widget.onPermissionGranted,
                 ),
+
                 largeGapV,
                 getHeading('Granted file access permissions'),
                 // Permissions table
