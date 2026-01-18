@@ -297,7 +297,9 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   Widget build(BuildContext context) {
     return AlertDialog(
       insetPadding: GrantPermFormLayout.contentPadding,
-      title: const Text('Share resource'),
+      title: Text(
+        'Share ${widget.resourceName}',
+      ),
       content: SizedBox(
         // Use full width on phones, else use a preset narrower width
         width:
@@ -307,13 +309,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             getHeading(
-              'Select the recipient/s of file access permissions',
-            ),
-            // List selected recipient webids or recipient
-            // type (public/auth)
-            ShowSelectedRecipients(
-              selectedRecipientType: selectedRecipientType,
-              selectedRecipientDetails: selectedRecipientDetails,
+              'Select the recipient/s of file access',
             ),
 
             // Show Select Recipient Buttons
@@ -328,9 +324,16 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
               updateGroupWebIdFunction: updateGroupWebIdInput,
             ),
 
+            // List selected recipient webids or recipient
+            // type (public/auth)
+            ShowSelectedRecipients(
+              selectedRecipientType: selectedRecipientType,
+              selectedRecipientDetails: selectedRecipientDetails,
+            ),
+
             smallGapV,
             getHeading(
-              'Select the list of file access permissions',
+              'Select one or more file access permissions',
             ),
             // Show access mode checkboxes and update
             // selection status on click
