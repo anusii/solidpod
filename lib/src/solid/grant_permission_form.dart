@@ -26,18 +26,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Jess Moore
+/// Authors: Jess Moore, Anushka Vidanage
 
 library;
 
 import 'package:flutter/material.dart';
 
-import 'package:markdown_tooltip/markdown_tooltip.dart';
-
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
+import 'package:solidpod/src/solid/select_recipients.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
@@ -198,15 +197,10 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
   List<AccessMode> accessModeList = [];
 
-  /// Define recipient type list
-
-  List<RecipientType> recipientTypeList = [];
-
   @override
   void initState() {
     super.initState();
 
-    // _fileNameController = widget.fileNameController;
     _resourceName = widget.resourceName;
     _ownerWebId = widget.ownerWebId;
     _granterWebId = widget.granterWebId;
@@ -214,11 +208,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     // Load access mode list to be displayed
     for (final accessModeStr in widget.accessModeList) {
       accessModeList.add(getAccessMode(accessModeStr));
-    }
-
-    // Load recipient type list to be displayed
-    for (final recTypeStr in widget.recipientTypeList) {
-      recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
     }
   }
 
@@ -288,41 +277,42 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
         }
       });
 
+  /// Define button click actions for each recipient type button
+
+  /// Set recipients to public
+  void _setRecipientsToPublic() => setState(() {
+        selectedRecipientType = RecipientType.public;
+        selectedRecipientDetails = '';
+        finalWebIdList = [publicAgent.value];
+      });
+
+  /// Set recipients to authorised users
+  void _setRecipientsToAuthUsers() => setState(() {
+        selectedRecipientType = RecipientType.authUser;
+        selectedRecipientDetails = '';
+        finalWebIdList = [authenticatedAgent.value];
+      });
+
+  /// Select individual recipient
+  void _setRecipientsToIndividual() async => await indWebIdInputDialog(
+        context,
+        updateIndWebIdInput,
+        widget.dataFilesMap,
+      );
+
+  /// Select a group of recipients
+  void _setRecipientsToGroup() async => await groupWebIdInputDialog(
+        context,
+        groupNameController,
+        groupWebIdsController,
+        updateGroupWebIdInput,
+      );
+
   @override
   Widget build(BuildContext context) {
-    /// Define button click actions for each recipient type button
-    /// and store in map variable with button click action function
-    /// for each recipient type key
-    final Map<RecipientType, void Function()> recipientTypeActions = {
-      RecipientType.public: () => setState(() {
-            selectedRecipientType = RecipientType.public;
-            selectedRecipientDetails = '';
-            finalWebIdList = [publicAgent.value];
-          }),
-      RecipientType.authUser: () => setState(() {
-            selectedRecipientType = RecipientType.authUser;
-            selectedRecipientDetails = '';
-            finalWebIdList = [authenticatedAgent.value];
-          }),
-      RecipientType.individual: () async => await indWebIdInputDialog(
-            context,
-            updateIndWebIdInput,
-            widget.dataFilesMap,
-          ),
-      RecipientType.group: () async => await groupWebIdInputDialog(
-            context,
-            groupNameController,
-            groupWebIdsController,
-            updateGroupWebIdInput,
-          ),
-    };
-
     return AlertDialog(
       insetPadding: GrantPermFormLayout.contentPadding,
       title: const Text('Share resource'),
-      // content: StatefulBuilder(
-      //   builder: (BuildContext stfContext, StateSetter setState) {
-      // return SizedBox(
       content: SizedBox(
         // Use full width on phones, else use a preset narrower width
         width:
@@ -334,55 +324,26 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
             getHeading(
               'Select the recipient/s of file access permissions',
             ),
-            // FIXME: update widget name to be more meaningful
-            // show selected recipients
-            getRecipientText(
+            // List selected recipient webids or recipient
+            // type (public/auth)
+            // TODO: convert to stless widget
+            showSelectedRecipients(
               selectedRecipientType,
               selectedRecipientDetails,
             ),
 
-            // 20260109 jesscmoore Added capability for granters to share
-            // resources, as well as resource owners
-            // FIXME: create RecipientTypeButton widget class
-            getButtonContainer(
-              buttons: widget.isExternalRes
-                  // Recipient type buttons for resource granter
-                  // TODO: check whether grant/revoke to public/auth
-                  // works on external resources
-                  // av 20250526:
-                  // Public and Authenticated recipient buttons are
-                  // disabled currently because
-                  // providing public or authenticated permissions to
-                  // external resources is not yet implemented in
-                  // [grantPermission()] function.
-                  ? [
-                      for (final rtype in granterRecipientTypes)
-                        if (recipientTypeList.contains(rtype))
-                          getRecipientTypeButton(
-                            rtype,
-                            onPressed: recipientTypeActions[rtype]!,
-                            padding: getPadding(rtype),
-                          ),
-                    ]
-                  // Recipient type buttons for resource owner
-                  : [
-                      for (final rtype in ownerRecipientTypes)
-                        if (recipientTypeList.contains(rtype))
-                          Expanded(
-                            child: Container(
-                              padding: getPadding(rtype),
-                              height: 50,
-                              child: MarkdownTooltip(
-                                message: recipientToolTips[rtype]!,
-                                child: ElevatedButton(
-                                  onPressed: recipientTypeActions[rtype]!,
-                                  child: Text(rtype.description),
-                                ),
-                              ),
-                            ),
-                          ),
-                    ],
+            // Show Select Recipient Buttons
+            SelectRecipients(
+              isExternalRes: widget.isExternalRes,
+              recipientTypeList: widget.recipientTypeList,
+              setPublicFunction: _setRecipientsToPublic,
+              setAuthUsersFunction: _setRecipientsToAuthUsers,
+              setIndividualFunction: _setRecipientsToIndividual,
+              setGroupFunction: _setRecipientsToGroup,
+              updateIndWebIdFunction: updateIndWebIdInput,
+              updateGroupWebIdFunction: updateGroupWebIdInput,
             ),
+
             smallGapV,
             getHeading(
               'Select the list of file access permissions',
@@ -401,7 +362,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
             ),
           ],
         ),
-      ), //;
+      ),
       actions: <Widget>[
         TextButton(
           onPressed: () async {
