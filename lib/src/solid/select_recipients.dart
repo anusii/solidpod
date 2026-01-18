@@ -118,14 +118,6 @@ class SelectRecipients extends StatefulWidget {
 }
 
 class _SelectRecipientsState extends State<SelectRecipients> {
-  /// Group name text controller
-
-  final groupNameController = TextEditingController();
-
-  /// Group of webIds text controller
-
-  final groupWebIdsController = TextEditingController();
-
   /// Define recipient type list
 
   List<RecipientType> recipientTypeList = [];
@@ -142,8 +134,6 @@ class _SelectRecipientsState extends State<SelectRecipients> {
 
   @override
   void dispose() {
-    groupNameController.dispose(); // Dispose group name editing controller
-    groupWebIdsController.dispose(); // Dispose group webids editing controller
     super.dispose();
   }
 
