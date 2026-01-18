@@ -296,16 +296,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         isExternalRes: widget.isExternalRes,
       );
     }
-
-    // // Load access mode list to be displayed
-    // for (final accessModeStr in widget.accessModeList) {
-    //   accessModeList.add(getAccessMode(accessModeStr));
-    // }
-
-    // // Load recipient type list to be displayed
-    // for (final recTypeStr in widget.recipientTypeList) {
-    //   recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
-    // }
   }
 
   /// Get new permission and update the permission map
@@ -416,7 +406,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 smallGapV,
                 // Sharing heading
                 buildHeading(
-                  getWelcomeStr(widget.resourceName),
+                  getSharingTitleStr(
+                    fileName: widget.resourceName,
+                    isFile: widget.isFile,
+                  ),
                   22,
                   Colors.blueGrey,
                 ),
@@ -449,7 +442,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 largeGapV,
-                getHeading('Granted file access permissions'),
+                getHeading('Current access permissions'),
                 // Permissions table
                 PermissionTable(
                   resourceName: permDataFile,

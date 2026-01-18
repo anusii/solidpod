@@ -127,9 +127,16 @@ const granterRecipientTypes = [
   RecipientType.group,
 ];
 
-String getWelcomeStr(String? fileName) => fileName != null
-    ? 'Share $fileName resource with other PODs'
-    : 'Share your data resources with other PODs';
+/// Get title of sharing page
+String getSharingTitleStr({
+  String? fileName,
+  bool isFile = false,
+}) =>
+    fileName != null
+        ? isFile
+            ? 'Share $fileName'
+            : 'Share $fileName folder'
+        : 'Share your data with other user\'s PODs';
 
 Widget getHeading(String text) => buildHeading(
       text,
