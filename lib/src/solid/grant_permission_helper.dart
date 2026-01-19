@@ -28,9 +28,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:markdown_tooltip/markdown_tooltip.dart';
-
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
@@ -128,9 +125,16 @@ const granterRecipientTypes = [
   RecipientType.group,
 ];
 
-String getWelcomeStr(String? fileName) => fileName != null
-    ? 'Share $fileName resource with other PODs'
-    : 'Share your data resources with other PODs';
+/// Get title of sharing page
+String getSharingTitleStr({
+  String? fileName,
+  bool isFile = false,
+}) =>
+    fileName != null
+        ? isFile
+            ? 'Share $fileName'
+            : 'Share $fileName folder'
+        : 'Share your data with other user\'s PODs';
 
 Widget getHeading(String text) => buildHeading(
       text,
@@ -152,39 +156,6 @@ List<Widget> getPermissionCheckBoxes(
         if (accessModes.contains(mode))
           permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
     ];
-
-Widget getButton(
-  String text, {
-  required void Function() onPressed,
-}) =>
-    Padding(
-      padding: const EdgeInsets.all(8),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        child: Text(text),
-      ),
-    );
-
-Widget getRecipientTypeButton(
-  RecipientType recipientType, {
-  required void Function() onPressed,
-  EdgeInsetsGeometry? padding,
-}) {
-  assert(recipientType != RecipientType.none);
-  return Expanded(
-    child: Container(
-      padding: padding,
-      height: 50,
-      child: MarkdownTooltip(
-        message: recipientToolTips[recipientType]!,
-        child: ElevatedButton(
-          onPressed: onPressed,
-          child: Text(recipientType.description),
-        ),
-      ),
-    ),
-  );
-}
 
 Widget getResourceForm({
   required TextEditingController formController,
@@ -224,140 +195,5 @@ Widget getResourceForm({
             ),
           ),
         ],
-      ),
-    );
-
-Widget getRecipientText(RecipientType recipientType, String recipientDetails) =>
-    Container(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: [
-          const Text(
-            'Recipient/s: ',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          Flexible(
-            child: Text(
-              '${recipientType.type}${recipientDetails.isEmpty ? "" : " ($recipientDetails)"}',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                // 20251008 gjw Choose blue rather than
-                // orange which looks red. The red looks
-                // like it is an error. Blue is more
-                // neutral.
-                color: Colors.blueAccent,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-
-Scrollbar getScrollbar({
-  required ScrollController controller,
-  required Axis direction,
-  required Widget child,
-}) =>
-    Scrollbar(
-      // 20250722 jm:
-      // For scrollbar visibility before scrolling,
-      // set to true, or set property to true
-      // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-      // thumbVisibility: WidgetStateProperty.all(true)))
-      thumbVisibility: true, // show before user starts scrolling
-      controller: controller,
-      child: SingleChildScrollView(
-        controller: controller,
-        scrollDirection: direction,
-        child: child,
-      ),
-    );
-
-Scrollbar getFormScrollbar(ScrollController controller, Widget permDataTable) =>
-    getScrollbar(
-      controller: controller,
-      direction: Axis.horizontal,
-      child: Column(
-        children: [
-          Row(
-            children: [
-              permDataTable,
-              // Hspace to avoid vertical scrollbar overlap with table
-              ScrollbarLayout.horizontalGap,
-            ],
-          ),
-          // Vspace to avoid horizontal scrollbar overlap of table
-          ScrollbarLayout.verticalGap,
-        ],
-      ),
-    );
-
-Scrollbar getPageScrollbar(ScrollController controller, Widget form) =>
-    getScrollbar(
-      controller: controller,
-      direction: Axis.vertical,
-      child: Column(
-        children: [
-          smallGapV,
-          form,
-        ],
-      ),
-    );
-
-Container getButtonContainer({required List<Widget> buttons}) => Container(
-      padding: const EdgeInsets.all(8.0),
-      height: 100,
-      child: Row(
-        children:
-            // av 20250526:
-            // Public and Authenticated users buttons are
-            // disabled in this function at the moment because
-            // providing public or authenticated permissions to
-            // external resources is not yet implemented in
-            // [grantPermission()] function.
-            buttons,
-      ),
-    );
-
-// ElevatedButton getRetrieveButton(
-//   BuildContext context,
-//   String fileName,
-//   bool isFile, {
-//   required Future<void> Function(
-//     String, {
-//     bool isFile,
-//   }) onRetrieve,
-// }) =>
-//     ElevatedButton(
-//       child: const Text('Retrieve permissions'),
-//       onPressed: () async {
-//         if (fileName.isEmpty) {
-//           await alert(context, 'Please enter a file name');
-//         } else {
-//           await onRetrieve(fileName, isFile: isFile);
-//         }
-//       },
-//     );
-
-Form getForm({
-  required Key formKey,
-  required Widget welcomeHeading,
-  required List<Widget> children,
-}) =>
-    Form(
-      key: formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          children: [
-            welcomeHeading,
-            smallGapV,
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: children,
-            ),
-          ],
-        ),
       ),
     );

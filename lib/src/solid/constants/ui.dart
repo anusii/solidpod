@@ -258,3 +258,31 @@ class WebIdLayout {
 
   static const listPadding = EdgeInsets.fromLTRB(0, 5, 0, 5);
 }
+
+/// Layout constants used for Grant Permission Form Dialog
+
+class GrantPermFormLayout {
+  /// Vertical gap between paragraphs
+
+  static const paraVertGap = SizedBox(height: 10);
+
+  /// Standard padding for dialog content.
+
+  static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
+
+  /// Standard width for security dialogs.
+
+  static const dialogWidth = 480.0;
+
+  /// Height of dropdown suggestion box.
+
+  static const dropdownHeight = 120.0;
+
+  /// Elevation of dropdown suggestion cards.
+
+  static double dropdownElevation = 5;
+
+  /// Padding of dropdown suggestion list.
+
+  static const listPadding = EdgeInsets.fromLTRB(0, 5, 0, 5);
+}
