@@ -36,7 +36,6 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/widgets/file_explorer.dart';
@@ -190,12 +189,11 @@ Widget buildSharedResourcesTable(
                               color: Colors.blueAccent,
                             ),
                             onPressed: () async {
-                              // Get file content
-                              final fileContent = await readExternalPod(index);
+                              try {
+                                // Get file content
+                                final fileContent =
+                                    await readExternalPod(index);
 
-                              if (fileContent != null &&
-                                  fileContent !=
-                                      SolidFunctionCallStatus.notLoggedIn) {
                                 if (!context.mounted) return;
                                 await showDialog(
                                   context: context,
@@ -211,7 +209,7 @@ Widget buildSharedResourcesTable(
                                             borderRadius:
                                                 BorderRadius.circular(15),
                                           ),
-                                          child: Text(fileContent as String),
+                                          child: Text(fileContent),
                                         ),
                                       ],
                                     ),
@@ -226,7 +224,9 @@ Widget buildSharedResourcesTable(
                                     ],
                                   ),
                                 );
-                              } else {
+                              } on Object catch (e, trace) {
+                                debugPrint(e.toString());
+                                debugPrint(trace.toString());
                                 if (!context.mounted) return;
                                 await alert(
                                   context,

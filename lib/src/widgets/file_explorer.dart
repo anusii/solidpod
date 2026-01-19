@@ -34,7 +34,6 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/read_external_pod.dart';
-import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
@@ -367,12 +366,11 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                               );
                             } else {
                               final filePath = '${widget.folderPath}$item';
-                              final fileContent =
-                                  await readExternalPod(filePath);
 
-                              if (fileContent != null &&
-                                  fileContent !=
-                                      SolidFunctionCallStatus.notLoggedIn) {
+                              try {
+                                final fileContent =
+                                    await readExternalPod(filePath);
+
                                 if (!context.mounted) return;
                                 await showDialog(
                                   context: context,
@@ -388,7 +386,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                             borderRadius:
                                                 BorderRadius.circular(15),
                                           ),
-                                          child: Text(fileContent as String),
+                                          child: Text(fileContent),
                                         ),
                                       ],
                                     ),
@@ -403,7 +401,9 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                     ],
                                   ),
                                 );
-                              } else {
+                              } on Object catch (e, trace) {
+                                debugPrint(e.toString());
+                                debugPrint(trace.toString());
                                 if (!context.mounted) return;
                                 await alert(
                                   context,
