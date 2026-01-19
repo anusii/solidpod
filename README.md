@@ -27,6 +27,9 @@ Xu](https://github.com/zheyxu).
 Free (as in Libre) and Open Source Software License:
 [MIT](https://choosealicense.com/licenses/mit/)
 
+See the [AU Solid Community](https://solidcommunity.au) page for apps
+utilising the solidpod package.
+
 ## Introduction
 
 [SolidPod](https://pub.dev/packages/solidpod) provides functionality
@@ -466,7 +469,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Monday 2025-12-01 11:57:26 +1100 Graham Williams>*
+*Time-stamp: <Monday 2026-01-19 16:52:57 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->

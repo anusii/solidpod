@@ -30,6 +30,26 @@ library;
 
 import 'package:flutter/material.dart';
 
+// Standard colours for actions and results.
+
+class ActionColors {
+  /// Green colour used for success
+
+  static const success = Colors.green;
+
+  // Red colour used for error/failure
+
+  static const error = Colors.red;
+
+  // Colour used for warning
+
+  static const warning = Color.fromARGB(255, 204, 99, 1);
+
+  // Red colour used for delete action
+
+  static const delete = Colors.red;
+}
+
 /// Colours used across security dialogs and prompts.
 
 class SecurityColors {
@@ -214,6 +234,34 @@ class DropdownColors {
 /// Layout constants used for WebId dialogs
 
 class WebIdLayout {
+  /// Vertical gap between paragraphs
+
+  static const paraVertGap = SizedBox(height: 10);
+
+  /// Standard padding for dialog content.
+
+  static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
+
+  /// Standard width for security dialogs.
+
+  static const dialogWidth = 480.0;
+
+  /// Height of dropdown suggestion box.
+
+  static const dropdownHeight = 120.0;
+
+  /// Elevation of dropdown suggestion cards.
+
+  static double dropdownElevation = 5;
+
+  /// Padding of dropdown suggestion list.
+
+  static const listPadding = EdgeInsets.fromLTRB(0, 5, 0, 5);
+}
+
+/// Layout constants used for Grant Permission Form Dialog
+
+class GrantPermFormLayout {
   /// Vertical gap between paragraphs
 
   static const paraVertGap = SizedBox(height: 10);
