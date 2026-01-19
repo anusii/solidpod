@@ -49,7 +49,7 @@ Future<String> getAuthoriser({
     // Requires ownerWebId and granterWebId if resource
     // is an externally owned.
     isExternalRes == false || webId != null,
-    'ownerWebId and granterWebId must be provided if isExternalRes == true',
+    'webId must be provided if isExternalRes == true',
   );
   return isExternalRes ? webId! : await AuthDataManager.getWebId() as String;
 }
