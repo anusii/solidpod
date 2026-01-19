@@ -162,8 +162,6 @@ class _ShareResourceButtonState extends State<ShareResourceButton> {
 
   /// Mark permissions as granted successfully for callback tracking
   Future<void> _updatePermissionGrantedStatus() async {
-    debugPrint('_updatePermissionGrantedStatus(): ...');
-
     setState(() => permissionsGrantedSuccessfully = true);
   }
 
