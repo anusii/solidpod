@@ -233,7 +233,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     final SolidFunctionCallStatus response = await chkExistsAndHasAcl(
       fileName: resName,
       isFile: isFile,
-      isExternalRes: widget.isExternalRes,
+      isExternalRes: isExternalRes,
     );
 
     switch (response) {
@@ -243,7 +243,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         final Map<dynamic, dynamic> result = await readPermission(
           fileName: resName,
           isFile: isFile,
-          isExternalRes: widget.isExternalRes,
+          isExternalRes: isExternalRes,
         );
 
         // Permission Details object to store permission map from ACL, and owner
@@ -251,11 +251,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         final permissionDetails = PermissionDetails(
           permissionMap: result,
           ownerWebId: await getAuthoriser(
-            isExternalRes: widget.isExternalRes,
+            isExternalRes: isExternalRes,
             webId: widget.ownerWebId,
           ),
           granterWebId: await getAuthoriser(
-            isExternalRes: widget.isExternalRes,
+            isExternalRes: isExternalRes,
             webId: widget.granterWebId,
           ),
         );
@@ -343,11 +343,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
-          // TODO: jesscmoore 20260119 check for resource selected in UI
           await _updatePermissions(
             fileName,
             isFile: isFile,
-            isExternalRes: widget.isExternalRes,
           );
         }
       },
