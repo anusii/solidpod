@@ -289,7 +289,7 @@ Future<void> copySharedKeyUserClass(
   }
 
   // Check if individual key file exists. If not create a file
-  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: false) ==
+  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: true) ==
       ResourceStatus.notExist) {
     // If file does not exist create a ttl file
     final userClassIndKeyFileContent = await genUserClassIndKeyTTLStr([

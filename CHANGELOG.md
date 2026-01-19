@@ -12,6 +12,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 ## 0.10 Further UI migrations
 
 + Standardise action message colors [0.9.11 20260116 jesscmoore]
++ Fixed sharing to public/auth users bug [0.9.10 20260115 jesscmoore]
 + Fixed error when reading large file as single chunk [0.9.9 20260117 cdawei]
 + Support custom folder structure [0.9.8 20260114 anushkavid]
 + Restore individual recipient suggestions [0.9.7 20260113 jesscmoore]
