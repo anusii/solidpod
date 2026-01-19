@@ -123,6 +123,7 @@ export 'src/solid/utils/misc.dart'
 /// Export auth state management
 export 'src/solid/utils/authdata_manager.dart'
     show authStateNotifier, AuthDataManager;
+
 /// Utility functions for generating resource URLs
 
 export 'src/solid/utils/get_url_helper.dart'
