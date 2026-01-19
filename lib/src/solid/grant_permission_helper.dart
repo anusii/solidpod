@@ -105,8 +105,6 @@ void debugPrintFailure(
   debugPrint(getPermissionMsg(permissionList));
 }
 
-const warnBgColor = Color.fromARGB(255, 204, 99, 1);
-
 /// Small vertical spacing for the widget.
 const smallGapV = SizedBox(height: 10.0);
 

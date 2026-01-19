@@ -30,6 +30,26 @@ library;
 
 import 'package:flutter/material.dart';
 
+// Standard colours for actions and results.
+
+class ActionColors {
+  /// Green colour used for success
+
+  static const success = Colors.green;
+
+  // Red colour used for error/failure
+
+  static const error = Colors.red;
+
+  // Colour used for warning
+
+  static const warning = Color.fromARGB(255, 204, 99, 1);
+
+  // Red colour used for delete action
+
+  static const delete = Colors.red;
+}
+
 /// Colours used across security dialogs and prompts.
 
 class SecurityColors {

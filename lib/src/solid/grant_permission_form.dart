@@ -384,7 +384,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                 }
 
                 if (result == SolidFunctionCallStatus.success) {
-                  _showSnackBar(successMsg, Colors.green);
+                  _showSnackBar(successMsg, ActionColors.success);
                   // Update permissions table
                   await widget.updatePermissionsFunction(
                     widget.resourceName, //_resourceName,
@@ -399,7 +399,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   widget.onPermissionGranted?.call();
                 } else if (result == SolidFunctionCallStatus.fail) {
                   // More detailed error message with troubleshooting tips
-                  _showSnackBar(failureMsg, Colors.red);
+                  _showSnackBar(failureMsg, ActionColors.error);
 
                   // Also log to console for debugging
                   debugPrintFailure(
@@ -408,7 +408,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                     selectedPermList,
                   );
                 } else if (result == SolidFunctionCallStatus.notInitialised) {
-                  _showSnackBar(podNotInitMsg, warnBgColor);
+                  _showSnackBar(podNotInitMsg, ActionColors.warning);
                 } else {
                   await _alert(updatePermissionMsg);
                 }
