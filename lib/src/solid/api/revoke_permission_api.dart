@@ -215,7 +215,7 @@ Future<void> removeSharedKeyUserClass(
   }
 
   // Check if individual key file exists. If not create a file
-  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: false) ==
+  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: true) ==
       ResourceStatus.exist) {
     // Update the existing file using a sparql query
     final prefix = '${solidTermsNS.prefix}: <$appsTerms>';

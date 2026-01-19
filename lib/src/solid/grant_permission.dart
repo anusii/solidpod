@@ -110,17 +110,23 @@ Future<SolidFunctionCallStatus> grantPermission({
       final resStatus = await checkResourceStatus(resourceUrl, isFile: isFile);
 
       // Check if recipient/s have initialised their pods with the correct
-      // directory structure
-      var allRecipientsInitialised = true;
-      for (final recipientWebId in recipientWebIdList) {
-        final isInitialised =
-            await checkPodInitialised(recipientWebId as String);
-        if (!isInitialised) {
-          allRecipientsInitialised = false;
+      // directory structure - required to access the shared resource
+      bool allRecipientsInitialised = true;
+      bool hasSpecificRecipients = false;
+      if (specificRecipientTypeList.contains(recipientType)) {
+        hasSpecificRecipients = true;
+        for (final recipientWebId in recipientWebIdList) {
+          final isInitialised =
+              await checkPodInitialised(recipientWebId as String);
+          if (!isInitialised) {
+            allRecipientsInitialised = false;
+          }
         }
       }
 
-      if (allRecipientsInitialised) {
+      // Where recipient is specific recipient, only assign access
+      // if recipient pods have been initialised
+      if (allRecipientsInitialised || !hasSpecificRecipients) {
         if (resStatus == ResourceStatus.exist) {
           // Add the permission line to the relevant ACL file
           await setPermissionAcl(
@@ -146,7 +152,7 @@ Future<SolidFunctionCallStatus> grantPermission({
                 : await KeyManager.getIndividualKey(resourceUrl);
 
             // If permission granted to specific recipients
-            if (specificRecipientTypeList.contains(recipientType)) {
+            if (hasSpecificRecipients) {
               // For each recipient share the individual encryption key
 
               for (final recipientWebId in recipientWebIdList) {
@@ -192,13 +198,8 @@ Future<SolidFunctionCallStatus> grantPermission({
             }
           }
 
-          // 20260112 jesscmoore: the permission logs are not updated if
-          // permission granted is to give public access or give access
-          //to all authenticated users.
-
-          // Add log entry to owner, granter, and receiver permission log
-          // files for the individual recipient or each recipient in the
-          // recipient group.
+          // 20260112 jesscmoore: the permission logs should be updated
+          // for granting access to public, auth users, and specific recipients.
 
           for (final recipientWebId in recipientWebIdList) {
             final LogEntry logEntryRes = createPermLogEntry(
@@ -221,14 +222,17 @@ Future<SolidFunctionCallStatus> grantPermission({
             final granterLogFileUrl =
                 await getFileUrl(logFilePath, webId: granterWebId);
 
-            // Run log entry insert query for the granter
+            // Add log entry to owner, granter, and receiver permission
+            // log files for the individual recipient or each recipient
+            // in the recipient group.
+
+            // Update granter log
             await addPermLogLine(
               logFileUrl: granterLogFileUrl,
               logEntry: logEntryRes,
             );
 
-            // If owner and the granter is not the same add another log file entry
-            // for the owner
+            // Upddate owner log (if owner != granter)
             if (ownerLogFileUrl != granterLogFileUrl) {
               await addPermLogLine(
                 logFileUrl: ownerLogFileUrl,
@@ -236,8 +240,8 @@ Future<SolidFunctionCallStatus> grantPermission({
               );
             }
 
-            // Add log entry if the recipient is either an individual or group of WebIDs
-            if (specificRecipientTypeList.contains(recipientType)) {
+            // Update recipient logs if the recipient is either an individual or group of WebIDs
+            if (hasSpecificRecipients) {
               final receiverLogFileUrl =
                   await getFileUrl(logFilePath, webId: recipientWebId);
 
