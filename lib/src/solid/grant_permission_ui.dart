@@ -40,8 +40,9 @@ import 'package:solidpod/src/solid/permission_table.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/share_resource_button.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/models/permission_details.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/get_authoriser.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
@@ -70,8 +71,6 @@ import 'package:solidpod/src/widgets/loading_screen.dart';
 /// - [onNavigateBack] - Callback function called when navigating back from the screen.
 
 class GrantPermissionUi extends StatefulWidget {
-  /// Initialise widget variables.
-
   const GrantPermissionUi({
     required this.child,
     this.title = 'Demonstrating data sharing functionality',
@@ -133,8 +132,7 @@ class GrantPermissionUi extends StatefulWidget {
 
   final List<String> accessModeList;
 
-  /// The list of types of recipients receiving permission to access the resource. By default all four
-  /// types of recipient are listed.
+  /// The list of types of recipients receiving permission to access the resource. By default all four types of recipient are listed.
 
   final List<String> recipientTypeList;
 
@@ -220,19 +218,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Pod data list retreived as a Future
 
-  late Future<List<dynamic>> podDataList;
+  late Future<PermissionDetails?> podDataList;
 
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
 
-  // TODO: tidy loadPodData() removing owner and granter webid fetching
-  // to initState
-  // TODO: move owner and granter setting to ShareResourceButon()
+  /// Gets permission details data from POD server if necessary.
 
-  /// Runs multiple asynchronous functions to get the data from
-  /// POD server if necessary.
-
-  Future<List<dynamic>> loadPodData(
+  Future<PermissionDetails?> loadPodData(
     String resName, {
     bool isFile = true,
     bool isExternalRes = false,
@@ -246,32 +239,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     switch (response) {
       case SolidFunctionCallStatus.aclFound:
 
-        // TODO: move readPermission(), getting owner and granter into
-        // new getPermissionDetails() to get the permission map, owner
-        // and granter of a resource.
+        // Permission map from ACL of resource
         final Map<dynamic, dynamic> result = await readPermission(
           fileName: resName,
           isFile: isFile,
           isExternalRes: widget.isExternalRes,
         );
 
-        // TODO: write get_authoriser.dart with functions to get
-        // ownerWebId and granterWebId
+        // Permission Details object to store permission map from ACL, and owner
+        // and granter of a resource.
+        final permissionDetails = PermissionDetails(
+          permissionMap: result,
+          ownerWebId: await getAuthoriser(
+            isExternalRes: widget.isExternalRes,
+            webId: widget.ownerWebId,
+          ),
+          granterWebId: await getAuthoriser(
+            isExternalRes: widget.isExternalRes,
+            webId: widget.granterWebId,
+          ),
+        );
 
-        // Fetch owner's webID
-        // ownerWebId == userWebId if not externally owned resource
-
-        final ownerWebId = widget.isExternalRes
-            ? widget.ownerWebId
-            : await AuthDataManager.getWebId();
-        // Fetch granter's webID
-        // granterWebId == userWebId if not externally owned resource
-
-        final granterWebId = widget.isExternalRes
-            ? widget.granterWebId
-            : await AuthDataManager.getWebId();
-
-        return [result, ownerWebId, granterWebId];
+        return permissionDetails;
 
       case SolidFunctionCallStatus.notLoggedIn:
         await _alert('Please login first to retrieve permission');
@@ -282,13 +271,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       default:
         await _alert('Unknown error');
     }
-    return [];
+
+    return null;
   }
 
   @override
   void initState() {
     super.initState();
-    // Load future
+    // Load permission map from ACL, owner and granter web ids
     if (widget.resourceName != null) {
       podDataList = loadPodData(
         widget.resourceName as String,
@@ -298,54 +288,50 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     }
   }
 
-  /// Get new permission and update the permission map
+  /// Update the permission data map
 
   Future<void> _updatePermissions(
     String fileName, {
     bool isFile = true,
     bool isExternalRes = false,
   }) async {
-    debugPrint('_updatePermissions(): ...');
     final pdata = await loadPodData(
       fileName,
       isFile: isFile,
       isExternalRes: isExternalRes,
     );
-    if (pdata.isNotEmpty) {
-      assert(pdata.length == 3);
-      final permissionMap = pdata.first;
-      final ownerWebId = pdata[1];
-      final granterWebId = pdata.last;
 
-      if (permissionMap.isEmpty) {
-        await _alert('We could not find a resource by the name $fileName');
-      } else {
-        setState(() {
-          permDataMap = permissionMap;
-          permDataFile = fileName;
-          _ownerWebId = ownerWebId as String;
-          _granterWebId = granterWebId as String;
-        });
-      }
+    assert(pdata != null);
+
+    if (pdata!.permissionMap.isEmpty) {
+      await _alert('We could not find a resource by the name $fileName');
+    } else {
+      setState(() {
+        permDataMap = pdata.permissionMap;
+        permDataFile = fileName;
+        _ownerWebId = pdata.ownerWebId;
+        _granterWebId = pdata.granterWebId;
+      });
     }
+    // }
   }
 
   /// Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
 
-  // TODO: rename futureObjList to dataMap
-
   /// Build the main widget
-  Widget _buildPermPage(BuildContext context, [List<Object?>? futureObjList]) {
+  Widget _buildPermPage(
+    BuildContext context, [
+    PermissionDetails? futurePermDetails,
+  ]) {
     /// Controller for vertical page scrolling
     final pageScrollController = ScrollController();
 
     // Check if future is set or not. If set display the permission map
-    if (futureObjList != null && pageInitialied == false) {
-      permDataMap = futureObjList.first as Map;
-      _ownerWebId = futureObjList[1] as String;
-      _granterWebId = futureObjList.last as String;
-      // FIXME: ensure permDataFile updates within _updatePermissions() to be correct when resource selected within GrantPermissionUi()
+    if (futurePermDetails != null && pageInitialied == false) {
+      permDataMap = futurePermDetails.permissionMap;
+      _ownerWebId = futurePermDetails.ownerWebId;
+      _granterWebId = futurePermDetails.granterWebId;
       permDataFile = widget.resourceName!;
       pageInitialied = true;
     }
@@ -357,6 +343,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
+          // TODO: jesscmoore 20260119 check for resource selected in UI
           await _updatePermissions(
             fileName,
             isFile: isFile,
@@ -385,15 +372,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       // not provided
       appBar: widget.showAppBar ? customAppBar : null,
 
-      // Make Grant Permission UI vertically scrollable
-      // Shows when content exceeds display height
-
       body: Scrollbar(
-        // 20250722 jm:
-        // For scrollbar visibility before scrolling,
-        // set to true, or set property to true
-        // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-        // thumbVisibility: WidgetStateProperty.all(true)))
         thumbVisibility: true, // show before user starts scrolling
         controller: pageScrollController,
         child: SingleChildScrollView(
@@ -426,7 +405,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   smallGapV,
                   retrievePermissionButton,
                 ],
-                // Share resource button
                 ShareResourceButton(
                   resourceName: widget.resourceName,
                   fileNameController: fileNameController,
@@ -443,7 +421,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
                 largeGapV,
                 getHeading('Current access permissions'),
-                // Permissions table
                 PermissionTable(
                   resourceName: permDataFile,
                   permDataMap: permDataMap,
@@ -463,18 +440,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   }
 
   @override
-  Widget build(BuildContext context) =>
-      // Build as a separate widget with the possibility of adding a FutureBuilder
-      // in the Future
-
-      widget.resourceName == null
-          ? _buildPermPage(context)
-          : FutureBuilder(
-              future: podDataList,
-              builder: (context, snapshot) => snapshot.hasData
-                  ? snapshot.data!.first == SolidFunctionCallStatus.notLoggedIn
-                      ? widget.child
-                      : _buildPermPage(context, snapshot.data)
-                  : Scaffold(body: loadingScreen(normalLoadingScreenHeight)),
-            );
+  Widget build(BuildContext context) => widget.resourceName == null
+      ? _buildPermPage(context)
+      : FutureBuilder(
+          future: podDataList,
+          builder: (context, snapshot) => snapshot.hasData
+              ? snapshot.data!.permissionMap.isEmpty
+                  ? widget.child
+                  : _buildPermPage(context, snapshot.data)
+              : Scaffold(body: loadingScreen(normalLoadingScreenHeight)),
+        );
 }
