@@ -182,8 +182,8 @@ class _SelectRecipientsState extends State<SelectRecipients> {
       child: Row(
         children: widget.isExternalRes
 
-            // TODO jesscmoore 20260118: check grant/revoke to public/auth
-            // works on external resources
+            // jesscmoore 20260118: requires check grant/revoke to
+            // public/auth works on external resources
             // av 20250526:
             // Public and Authenticated recipient buttons are
             // disabled currently because
