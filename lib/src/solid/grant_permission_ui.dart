@@ -400,8 +400,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     onResourceTypeChange: (bool v) =>
                         setState(() => isFile = v),
                   ),
-                  smallGapV,
-                  retrievePermissionButton,
+                  if (permDataMap.isEmpty) ...[
+                    smallGapV,
+                    retrievePermissionButton,
+                  ],
                 ],
                 ShareResourceButton(
                   resourceName: widget.resourceName,
