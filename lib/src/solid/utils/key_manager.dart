@@ -42,6 +42,7 @@ import 'package:pointycastle/asymmetric/api.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/data_encryption.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
@@ -234,6 +235,7 @@ class KeyManager {
   }
 
   /// Get the verification key
+  /// Throws an exception if user is not logged in
   static Future<String> getVerificationKey() async {
     if (_verificationKey == null) {
       await _loadEncKey();
@@ -249,6 +251,14 @@ class KeyManager {
           await secureStorage.read(key: _securityKeySecureStorageKey);
 
       if (_securityKey == null) {
+        return false;
+      }
+
+      // Check if user is logged in before attempting to verify
+      final authData = await AuthDataManager.loadAuthData();
+      if (authData == null) {
+        // User not logged in - can't verify key without auth
+        // Keep the security key in storage for when they login
         return false;
       }
 
@@ -439,6 +449,7 @@ class KeyManager {
   }
 
   /// Return the private key
+  /// Throws an exception if user is not logged in
   static Future<String> getPrivateKey() async {
     if (_prvKeyRecord == null) {
       await _loadEncKey();
@@ -653,6 +664,15 @@ class KeyManager {
         return;
       }
 
+      // Check if user is logged in before attempting to load encryption keys
+      final authData = await AuthDataManager.loadAuthData();
+      if (authData == null) {
+        throw Exception(
+          'Cannot load encryption keys: User is not logged in. '
+          'Please login first to access encrypted resources.',
+        );
+      }
+
       final r = await readEncKeyFile();
       _verificationKey = r.verificationKey;
       _prvKeyRecord = r.record;
@@ -712,6 +732,7 @@ class KeyManager {
   }
 
   /// Load shared (encrypted) individual keys
+  /// Throws an exception if user is not logged in
   static Future<void> _loadSharedIndKey({bool forceReload = false}) async {
     if (_sharedIndKeyMap != null && !forceReload) {
       return;

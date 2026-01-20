@@ -325,9 +325,12 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
   String httpMethod,
 ) async {
   final authData = await AuthDataManager.loadAuthData();
-  assert(authData != null);
 
-  final rsaInfo = authData!['rsaInfo'];
+  if (authData == null) {
+    throw Exception('Authentication data not available. Please login first.');
+  }
+
+  final rsaInfo = authData['rsaInfo'];
   final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
   final publicKeyJwk = rsaInfo['pubKeyJwk'];
 
