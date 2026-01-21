@@ -236,20 +236,20 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
 
   for (final entry in tripleMap.entries) {
     final v = entry.value;
-    // if (v.containsKey(getPred(sharedKeyPred))) {
-    //   encrypter ??= Encrypter(
-    //     RSA(
-    //       privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey,
-    //     ),
-    //   );
+    if (v.containsKey(getPred(sharedKeyPred))) {
+      //   encrypter ??= Encrypter(
+      //     RSA(
+      //       privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey,
+      //     ),
+      //   );
 
-    //   sharedIndKeyMap[encrypter.decrypt64(getVal(v, pathPred) as String)] =
-    sharedIndKeyMap[entry.key] = SharedIndKeyRecord(
-      encResourcePath: getVal(v, pathPred) as String,
-      encAccessList: getVal(v, accessListPred) as String,
-      encKey: getVal(v, sharedKeyPred) as String,
-    );
-    // }
+      //   sharedIndKeyMap[encrypter.decrypt64(getVal(v, pathPred) as String)] =
+      sharedIndKeyMap[entry.key] = SharedIndKeyRecord(
+        encResourcePath: getVal(v, pathPred) as String,
+        encAccessList: getVal(v, accessListPred) as String,
+        encKey: getVal(v, sharedKeyPred) as String,
+      );
+    }
   }
   return sharedIndKeyMap;
 }
