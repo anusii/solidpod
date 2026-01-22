@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Export ResourceNotExistException [0.9.13 20260123 tonypioneer]
 + Move grant permission form to dialog [0.9.12 20260119 jesscmoore]
 + Standardise action message colors [0.9.11 20260116 jesscmoore]
 + Fixed sharing to public/auth users bug [0.9.10 20260115 jesscmoore]
