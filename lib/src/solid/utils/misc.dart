@@ -1,6 +1,6 @@
 /// Miscellaneous utility functions used across the package.
 ///
-// Time-stamp: <Friday 2025-10-24 08:51:54 +1100 Graham Williams>
+// Time-stamp: <Thursday 2026-01-22 11:12:44 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -434,7 +434,6 @@ Future<void> initPod(
         case '$permLogFile.acl':
           publicAccess = {AccessMode.append};
         default:
-          debugPrint(fileName);
           assert(fileName == '.acl');
           publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
@@ -448,7 +447,6 @@ Future<void> initPod(
 
       aclFlag = true;
     } else {
-      debugPrint(fileName);
       assert(fileName == permLogFile);
       fileContent = genPermLogTTLStr(f);
       aclFlag = false;
