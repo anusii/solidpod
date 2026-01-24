@@ -286,13 +286,13 @@ Future<String> getIndKeyQuery(
 /// Generate the SPARQL query to delete the shared individual/session key
 /// and the corresponding IV of a resource with ID [resUniqueId].
 Future<String> getSharedIndKeyDeletionQuery(
-  String resUniqueId,
+  String uniqueIdUrl,
   SharedIndKeyRecord record,
 ) async {
   // Define prefix and subject
-  const prefix1 = '$resIdPrefix <$appsResId>';
-  const prefix2 = '$dataPrefix <$appsData>';
-  final subject = '$resIdPrefix$resUniqueId';
+  // const prefix1 = '$resIdPrefix <$appsResId>';
+  // const prefix2 = '$dataPrefix <$appsData>';
+  // final subject = '$resIdPrefix$resUniqueId';
 
   // Define predicates and objects
   final predObjPath = '$dataPrefix$pathPred "${record.encResourcePath}";';
@@ -300,7 +300,8 @@ Future<String> getSharedIndKeyDeletionQuery(
   final predObjKey = '$dataPrefix$sharedKeyPred "${record.encKey}".';
 
   // Generate delete sparql query
-  return 'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+  // return 'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
+  return 'PREFIX $dataPrefix <$appsData> DELETE DATA {$uniqueIdUrl $predObjPath $predObjAcc $predObjKey};';
 }
 
 // Check duplicated values
