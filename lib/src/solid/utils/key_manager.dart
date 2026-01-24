@@ -64,8 +64,6 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// - The verification key is stored in POD_NAME/encryption/enc-keys.ttl
 
 class KeyManager {
-  static String? _webId;
-
   // URL of the file with verification key and encrypted private key
   static String? _encKeyUrl;
 
@@ -350,24 +348,9 @@ class KeyManager {
     return _prvKeyRecord!.key!;
   }
 
-  /// Returns true if there is an individual key for a given resource
-  static Future<bool> hasIndividualKey(String resourceUrl) async =>
-      (await _retrieveIndKey(resourceUrl)) != null;
-
-  /// Return the (decrypted) individual key for an existing resource
-  static Future<Key> getIndividualKey(String resourceUrl) async {
-    final key = await _retrieveIndKey(resourceUrl);
-    if (key == null) {
-      throw Exception(
-        'Unable to locate the individual key for resource:\n$resourceUrl',
-      );
-    }
-
-    return key;
-  }
-
-  // Retrieve the (decrypted) individual key for an existing resource
-  static Future<Key?> _retrieveIndKey(String resourceUrl) async {
+  /// Retrieve the (decrypted) individual key for an existing resource.
+  /// Return null if the corresponding key does not exist.
+  static Future<Key?> getIndividualKey(String resourceUrl) async {
     if (_indKeyMap == null || _indKeyMap!.isEmpty) {
       await _loadIndKey();
     }
@@ -458,54 +441,38 @@ class KeyManager {
     }
   }
 
-  /// Returns true if there is an individual key for a given resource
-  static Future<bool> hasSharedIndividualKey(String resourceUrl) async =>
-      (await _retrieveSharedIndKey(resourceUrl)) != null;
-
-  /// Return the (decrypted) individual key for an existing resource
-  static Future<Key> getSharedIndividualKey(String resourceUrl) async {
-    final key = await _retrieveSharedIndKey(resourceUrl);
-
-    if (key == null) {
-      throw Exception(
-        'Unable to locate the shared individual key for resource:\n$resourceUrl',
-      );
-    }
-
-    return key;
-  }
-
   // Generate the URL with unique ID of shared resource
   static Future<String> _getResourceIdUrl(String resourceUrl) async {
-    _webId ??= await getWebId();
-    assert(_webId != null);
+    final webId = await getWebId();
+    assert(webId != null);
 
-    final resourceId = getUniqueIdResUrl(resourceUrl, _webId!);
+    final resourceId = getUniqueIdResUrl(resourceUrl, webId!);
     return getPredicateUrl(resourceId, ns: Namespace(ns: appsResId));
   }
 
-  // Retrieve the (decrypted) individual key for a shared encrypted resource
-  static Future<Key?> _retrieveSharedIndKey(String resourceUrl) async {
+  /// Retrieve the (decrypted) individual key for a shared encrypted resource.
+  /// Return null if the corresponding key does not exist.
+  static Future<Key?> getSharedIndividualKey(String resourceUrl) async {
     // Check whether _sharedIndKeyMap is empty as when
     // readExternalPod() called on file list concurrently,
     // _sharedIndKeyMap can exist but not yet have the data
     // map when a prior _loadSharedIndKeyFile is not finished
 
-    final uniqueId = await _getResourceIdUrl(resourceUrl);
+    final uniqueIdUrl = await _getResourceIdUrl(resourceUrl);
 
     if (_sharedIndKeyMap == null ||
         _sharedIndKeyMap!.isEmpty ||
-        !_sharedIndKeyMap!.containsKey(uniqueId)) {
+        !_sharedIndKeyMap!.containsKey(uniqueIdUrl)) {
       await _loadSharedIndKey(forceReload: true);
     }
 
     assert(_sharedIndKeyMap != null);
 
-    if (!_sharedIndKeyMap!.containsKey(uniqueId)) {
+    if (!_sharedIndKeyMap!.containsKey(uniqueIdUrl)) {
       return null;
     }
 
-    final record = _sharedIndKeyMap![uniqueId];
+    final record = _sharedIndKeyMap![uniqueIdUrl];
     assert(record != null);
 
     if (record!.key == null) {
@@ -520,30 +487,27 @@ class KeyManager {
       record.resourcePath = _rsaEncrypter!.decrypt64(record.encResourcePath);
       record.accessList = _rsaEncrypter!.decrypt64(record.encAccessList);
       record.key = Key.fromBase64(_rsaEncrypter!.decrypt64(record.encKey));
-      _sharedIndKeyMap![uniqueId] = record;
+      _sharedIndKeyMap![uniqueIdUrl] = record;
     }
 
     return record.key!;
   }
 
   /// Remove the (encrypted) shared individual key for file
-  static Future<void> removeSharedIndividualKey(
-    String resourceUrl,
-    String resUniqueId,
-  ) async {
+  static Future<void> removeSharedIndividualKey(String resourceUrl) async {
     if (_sharedIndKeyMap == null) {
       await _loadSharedIndKey();
     }
     assert(_sharedIndKeyMap != null);
 
-    final uniqueId = await _getResourceIdUrl(resourceUrl);
+    final uniqueIdUrl = await _getResourceIdUrl(resourceUrl);
 
-    if (_sharedIndKeyMap!.containsKey(uniqueId)) {
-      final record = _sharedIndKeyMap!.remove(uniqueId);
+    if (_sharedIndKeyMap!.containsKey(uniqueIdUrl)) {
+      final record = _sharedIndKeyMap!.remove(uniqueIdUrl);
       assert(record != null);
 
       // Delete shared key from shared keys file
-      final query = await getSharedIndKeyDeletionQuery(resUniqueId, record!);
+      final query = await getSharedIndKeyDeletionQuery(uniqueIdUrl, record!);
       _sharedIndKeyUrl ??= await getFileUrl(await getSharedKeyFilePath());
 
       await updateFileByQuery(_sharedIndKeyUrl!, query);
@@ -621,14 +585,6 @@ class KeyManager {
     if (_sharedIndKeyMap != null && !forceReload) {
       return;
     }
-
-    // if (_prvKeyRecord == null) {
-    //   await _loadEncKey();
-    // }
-    // assert(_prvKeyRecord != null);
-    // _prvKeyRecord!.key ??= await getPrivateKey();
-
-    // _sharedIndKeyMap = await readSharedIndKey(_prvKeyRecord!.key!);
 
     final indKeyMap = await readSharedIndKey();
 
