@@ -28,36 +28,34 @@
 
 library;
 
-import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/init_pod_gen_resources.dart';
+import 'package:solidpod/src/solid/utils/init_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 
 final _protectedFiles = <String>{};
 
 Future<bool> isFileProtected(String fileUrl) async {
+  final filePath = await extractResourcePathFromUrl(fileUrl);
   if (_protectedFiles.isEmpty) {
     // TODO: dc 20260105 - double check if these are all the protected files
 
-    final fileUrls = [
-      for (final f in [
-        await getEncKeyPath(),
-        await getIndKeyPath(),
-        await getPubKeyPath(),
-        await getPubIndKeyPath(),
-        await getAuthUserIndKeyPath(),
-        await getSharedKeyFilePath(),
-        await getPermLogFilePath(),
-      ])
-        await getFileUrl(f),
+    final files = [
+      await getEncKeyPath(),
+      await getIndKeyPath(),
+      await getPubKeyPath(),
+      await getPubIndKeyPath(),
+      await getAuthUserIndKeyPath(),
+      await getSharedKeyFilePath(),
+      await getPermLogFilePath(),
     ];
 
-    _protectedFiles.addAll(fileUrls);
-    _protectedFiles.addAll(fileUrls.map((f) => '$f.acl'));
+    _protectedFiles.addAll(files);
+    _protectedFiles.addAll(files.map((f) => '$f.acl'));
     _protectedFiles.addAll([
-      for (final d in await generateDefaultFolders())
-        '${await getDirUrl(d)}.acl',
+      for (final d in await generateDefaultFolders()) '$d/.acl',
     ]);
   }
 
-  return _protectedFiles.contains(fileUrl);
+  print(_protectedFiles);
+
+  return _protectedFiles.contains(filePath);
 }
