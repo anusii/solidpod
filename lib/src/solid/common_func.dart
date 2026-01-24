@@ -36,7 +36,7 @@ import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/init_pod_gen_resources.dart';
+import 'package:solidpod/src/solid/utils/init_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart' show parseTTLMap;
 
