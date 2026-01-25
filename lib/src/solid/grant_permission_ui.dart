@@ -391,8 +391,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   Colors.blueGrey,
                 ),
                 smallGapV,
-                // Choose resource and run _updatePermissions if
-                // resourceName not provided
+                // Choose resource and show _updatePermissions button
                 if (widget.resourceName == null) ...[
                   getResourceForm(
                     formController: fileNameController,
@@ -400,10 +399,25 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     onResourceTypeChange: (bool v) =>
                         setState(() => isFile = v),
                   ),
-                  if (permDataMap.isEmpty) ...[
-                    smallGapV,
-                    retrievePermissionButton,
-                  ],
+                  // if (permDataMap.isEmpty) ...[
+                  smallGapV,
+                  retrievePermissionButton,
+                  // ],
+                  // ElevatedButton(
+                  //   child: const Text('Retrieve permissions'),
+                  //   onPressed: () async {
+                  //     final fileName = fileNameController.text;
+                  //     if (fileName.isEmpty) {
+                  //       await _alert('Please enter a file name');
+                  //     } else {
+                  //       await _updatePermissions(
+                  //         fileName,
+                  //         isFile: isFile,
+                  //       );
+                  //     }
+                  //   },
+                  // ),
+                  smallGapV,
                 ],
                 ShareResourceButton(
                   resourceName: widget.resourceName,
