@@ -193,7 +193,12 @@ Future<void> writeExternalPod(
   // Check if file exsits AND if there is no inheritedFrom variable set. If this
   // is set then the ACL file will be inherited
 
-  // dc 20260124: does the code below require control access permission?
+  // dc 20260127 - a few questions:
+  // - does the code below require control access permission?
+  // - the code below may create an ACL file with default access sharing which allows
+  //   access from only the owner
+  // - if the parent folder is shared to others, then creating ACL for the individual
+  //   file may prevent others to access this file
 
   final aclFileUrl = '$fileUrl.acl';
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&
