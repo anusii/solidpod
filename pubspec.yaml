@@ -50,11 +50,11 @@ dev_dependencies:
   demopod:
     path: example
   editable: ^2.0.0
-  file_picker: ^10.3.8
-  flutter_lints: ^5.0.0
+  file_picker: ^10.3.9
+  flutter_lints: ^6.0.0
   import_order_lint: ^0.2.2
   # Keep dependency checker quiet.
-  solidui: ^0.0.12
+  solidui: ^0.0.25
   ubuntu_lints: ^0.4.1+1
   window_manager: ^0.5.1
 
