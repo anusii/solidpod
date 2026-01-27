@@ -40,7 +40,6 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
-import 'package:solidpod/src/solid/utils/is_phone.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
 /// Function call requires the following inputs.
