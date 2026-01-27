@@ -43,7 +43,7 @@ import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
 import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
-import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// Sharing (grant permission) form dialog function
 ///
@@ -279,11 +279,9 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
       });
 
   /// Select individual recipient
-  void _setRecipientsToIndividual() async => await indWebIdInputDialog(
-        context,
-        updateIndWebIdInput,
-        widget.dataFilesMap,
-      );
+  void _setRecipientsToIndividual() => setState(() {
+        selectedRecipientType = RecipientType.individual;
+      });
 
   /// Select a group of recipients
   void _setRecipientsToGroup() async => await groupWebIdInputDialog(
@@ -333,6 +331,12 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   selectedRecipientType: selectedRecipientType,
                   selectedRecipientDetails: selectedRecipientDetails,
                 ),
+                if (selectedRecipientType == RecipientType.individual) ...[
+                  IndWebIdInputScreen(
+                    onSubmitFunction: updateIndWebIdInput,
+                    dataFilesMap: widget.dataFilesMap,
+                  ),
+                ],
                 if (selectedRecipientType == RecipientType.group) ...[
                   const Text('Group name: add group name here'),
                 ],

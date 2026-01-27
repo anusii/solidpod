@@ -33,12 +33,14 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:markdown_tooltip/markdown_tooltip.dart';
+
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
-import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
 /// Function call requires the following inputs.
@@ -141,155 +143,109 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      insetPadding: WebIdLayout.contentPadding,
-      title: const Text('WebID of the individual recipient'),
-      content: SizedBox(
-        // Use full width on phones, else use a preset narrower width
-        width: (!isPhone()) ? WebIdLayout.dialogWidth : double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Provide info on what a WebId is
-            const Text(
-              whatIsWebID,
-            ),
-            // Show an example WebId that remains visible once user is typing
-            const Text('Eg: $demoWebID'),
-            WebIdLayout.paraVertGap,
-            const Text('Type their WebId or select a recently used WebId.'),
-            const SizedBox(height: 20),
-            // Web ID text field
-            TextFormField(
-              controller: formControllerWebId,
-              decoration: InputDecoration(
-                labelText: 'Individual\'s webID',
-                // Once user has started entering text, use formfield
-                // error message to advise user how to specify
-                // valid webId
-                errorText: _textEntered ? _helpText : null,
-              ),
-              onFieldSubmitted: (value) {},
-              onChanged: (value) => setState(() {
-                // User has started entering text
-                _textEntered = true;
-                // Filter suggestions
-                filterSuggestions(value);
-              }),
-            ),
-            // const SizedBox(height: 10),
-            WebIdLayout.paraVertGap,
-            if (webIdList.isNotEmpty) ...[
-              if (suggestionList.isNotEmpty ||
-                  formControllerWebId.text.isNotEmpty) ...[
-                // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
-                boxedSuggestionList(context, suggestionList),
-              ] else ...[
-                boxedSuggestionList(context, webIdList),
-              ],
-            ],
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: () async {
-            final receiverWebId = formControllerWebId.text.trim();
-
-            // User has entered WebId text that satisfies error checks
-            if (receiverWebId.isNotEmpty && _helpText == null) {
-              // Check WebId exists
-
-              if (await checkResourceStatus(receiverWebId) ==
-                  ResourceStatus.exist) {
-                // Save provided WebId
-                widget.onSubmitFunction(receiverWebId);
-                // Close enter WebId dialog
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-              } else {
-                if (!context.mounted) return;
-                // Request WebId that exists
-                // await alert(context, 'Please enter a valid WebID');
-                await alert(
-                  context,
-                  'This WebID does not exist. Please enter the correct WebID',
-                );
-              }
-            }
-
-            // // 20250720 jm Old webID checks:
-            // // Check the web ID field is not empty and it is a true link
-            // if (receiverWebId.isNotEmpty &&
-            //     Uri.parse(receiverWebId.replaceAll('#me', '')).isAbsolute &&
-            //     await checkResourceStatus(receiverWebId) ==
-            //         ResourceStatus.exist) {
-            //   widget.onSubmitFunction(receiverWebId);
-            //   if (!context.mounted) return;
-            //   Navigator.of(context).pop();
-            // } else {
-            //   if (!context.mounted) return;
-            //   await alert(context, 'Please enter a valid WebID');
-            // }
-          },
-          child: const Text('Ok'),
-        ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('Cancel'),
-        ),
-      ],
-    );
-  }
-
-  SizedBox boxedSuggestionList(BuildContext context, List<String> idList) {
     return SizedBox(
-      width: double.maxFinite,
-      height: WebIdLayout.dropdownHeight,
-      child: ListView.builder(
-        padding: WebIdLayout.listPadding,
-        itemCount: idList.length,
-        itemBuilder: (context, index) {
-          return Card(
-            elevation: WebIdLayout.dropdownElevation,
-            child: ListTile(
-              title: Text(idList[index]),
-              focusColor: SecurityColors.primary,
-              hoverColor: DropdownColors.accent,
-              splashColor: DropdownColors.primary,
-              onTap: () => setState(() {
-                // User has started entering text
-                _textEntered = true;
-                formControllerWebId.text = idList[index];
-              }),
+      // Use full width on phones, else use a preset narrower width
+      width: (!isPhone()) ? WebIdLayout.dialogWidth : double.maxFinite,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          smallGapV,
+          // Explain webId with example
+          MarkdownTooltip(
+            message: '$whatIsWebID Eg: $demoWebID',
+            child: getHeading(
+              'Type or select recipient\'s WebId',
             ),
-          );
-        },
+          ),
+          smallGapV,
+          // Web ID text field
+          TextFormField(
+            controller: formControllerWebId,
+            decoration: InputDecoration(
+              labelText: 'Individual\'s webID',
+              // Once user has started entering text, use formfield
+              // error message to advise user how to specify
+              // valid webId
+              errorText: _textEntered ? _helpText : null,
+            ),
+            onFieldSubmitted: (value) {},
+            onChanged: (value) => setState(() {
+              // User has started entering text
+              _textEntered = true;
+              // Filter suggestions
+              filterSuggestions(value);
+            }),
+          ),
+          WebIdLayout.paraVertGap,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (webIdList.isNotEmpty) ...[
+                if (suggestionList.isNotEmpty ||
+                    formControllerWebId.text.isNotEmpty) ...[
+                  // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
+                  boxedSuggestionList(context, suggestionList),
+                ] else ...[
+                  boxedSuggestionList(context, webIdList),
+                ],
+              ],
+              TextButton(
+                onPressed: () async {
+                  final receiverWebId = formControllerWebId.text.trim();
+
+                  // User has entered WebId text that satisfies error checks
+                  if (receiverWebId.isNotEmpty && _helpText == null) {
+                    // Check WebId exists
+
+                    if (await checkResourceStatus(receiverWebId) ==
+                        ResourceStatus.exist) {
+                      // Save provided WebId
+                      widget.onSubmitFunction(receiverWebId);
+                    } else {
+                      if (!context.mounted) return;
+                      // Request WebId that exists
+                      await alert(
+                        context,
+                        'This WebID does not exist. Please enter the correct WebID',
+                      );
+                    }
+                  }
+                },
+                child: const Text('Select WebId'),
+              ),
+            ],
+          ),
+        ],
       ),
-      // ),
     );
   }
-}
 
-/// A dialog for adding an individual webId.
-///
-/// Parameters:
-/// - [context] - The build context.
-/// - [onSubmitFunction] is the function to be called on submit
-///
-Future<dynamic> indWebIdInputDialog(
-  BuildContext context,
-  Function onSubmitFunction,
-  Map<String, dynamic> dataFilesMap,
-) {
-  return showDialog(
-    context: context,
-    builder: (context) => IndWebIdInputScreen(
-      onSubmitFunction: onSubmitFunction,
-      dataFilesMap: dataFilesMap,
-    ),
-  );
+  Flexible boxedSuggestionList(BuildContext context, List<String> idList) {
+    return Flexible(
+      child: SizedBox(
+        height: WebIdLayout.dropdownHeight,
+        child: ListView.builder(
+          padding: WebIdLayout.listPadding,
+          itemCount: idList.length,
+          itemBuilder: (context, index) {
+            return Card(
+              elevation: WebIdLayout.dropdownElevation,
+              child: ListTile(
+                title: Text(idList[index]),
+                focusColor: SecurityColors.primary,
+                hoverColor: DropdownColors.accent,
+                splashColor: DropdownColors.primary,
+                onTap: () => setState(() {
+                  // User has started entering text
+                  _textEntered = true;
+                  formControllerWebId.text = idList[index];
+                }),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
