@@ -270,6 +270,12 @@ class GrantPermFormLayout {
 
   static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
 
+  /// Padding for dialog input sections
+
+  static const inputPadding = EdgeInsets.all(
+    8,
+  );
+
   /// Standard width for security dialogs.
 
   static const dialogWidth = 480.0;

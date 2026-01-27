@@ -158,62 +158,70 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
               'Enter or select recipient\'s WebId',
             ),
           ),
-          // Web ID text field
-          TextFormField(
-            controller: formControllerWebId,
-            decoration: InputDecoration(
-              labelText: 'Individual\'s webID',
-              // Once user has started entering text, use formfield
-              // error message to advise user how to specify
-              // valid webId
-              errorText: _textEntered ? _helpText : null,
-            ),
-            onFieldSubmitted: (value) {},
-            onChanged: (value) => setState(() {
-              // User has started entering text
-              _textEntered = true;
-              // Filter suggestions
-              filterSuggestions(value);
-            }),
-          ),
-          WebIdLayout.paraVertGap,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (webIdList.isNotEmpty) ...[
-                if (suggestionList.isNotEmpty ||
-                    formControllerWebId.text.isNotEmpty) ...[
-                  // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
-                  boxedSuggestionList(context, suggestionList),
-                ] else ...[
-                  boxedSuggestionList(context, webIdList),
-                ],
+          // Add padding to webid textformfield and suggestion drop down
+          Container(
+            padding: GrantPermFormLayout.inputPadding,
+            child: Column(
+              children: [
+                // Web ID text field
+                TextFormField(
+                  controller: formControllerWebId,
+                  decoration: InputDecoration(
+                    labelText: 'Individual\'s webID',
+                    // Once user has started entering text, use formfield
+                    // error message to advise user how to specify
+                    // valid webId
+                    errorText: _textEntered ? _helpText : null,
+                  ),
+                  onFieldSubmitted: (value) {},
+                  onChanged: (value) => setState(() {
+                    // User has started entering text
+                    _textEntered = true;
+                    // Filter suggestions
+                    filterSuggestions(value);
+                  }),
+                ),
+                WebIdLayout.paraVertGap,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (webIdList.isNotEmpty) ...[
+                      if (suggestionList.isNotEmpty ||
+                          formControllerWebId.text.isNotEmpty) ...[
+                        // 20250729 jm: Wrap ListView() in fixed SizeBox() to avoid render problems in AlertDialog()
+                        boxedSuggestionList(context, suggestionList),
+                      ] else ...[
+                        boxedSuggestionList(context, webIdList),
+                      ],
+                    ],
+                    TextButton(
+                      onPressed: () async {
+                        final receiverWebId = formControllerWebId.text.trim();
+
+                        // User has entered WebId text that satisfies error checks
+                        if (receiverWebId.isNotEmpty && _helpText == null) {
+                          // Check WebId exists
+
+                          if (await checkResourceStatus(receiverWebId) ==
+                              ResourceStatus.exist) {
+                            // Save provided WebId
+                            widget.onSubmitFunction(receiverWebId);
+                          } else {
+                            if (!context.mounted) return;
+                            // Request WebId that exists
+                            await alert(
+                              context,
+                              'This WebID does not exist. Please enter the correct WebID',
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Select WebId'),
+                    ),
+                  ],
+                ),
               ],
-              TextButton(
-                onPressed: () async {
-                  final receiverWebId = formControllerWebId.text.trim();
-
-                  // User has entered WebId text that satisfies error checks
-                  if (receiverWebId.isNotEmpty && _helpText == null) {
-                    // Check WebId exists
-
-                    if (await checkResourceStatus(receiverWebId) ==
-                        ResourceStatus.exist) {
-                      // Save provided WebId
-                      widget.onSubmitFunction(receiverWebId);
-                    } else {
-                      if (!context.mounted) return;
-                      // Request WebId that exists
-                      await alert(
-                        context,
-                        'This WebID does not exist. Please enter the correct WebID',
-                      );
-                    }
-                  }
-                },
-                child: const Text('Select WebId'),
-              ),
-            ],
+            ),
           ),
         ],
       ),
