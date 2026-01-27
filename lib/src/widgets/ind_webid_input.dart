@@ -155,10 +155,9 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
           MarkdownTooltip(
             message: '$whatIsWebID Eg: $demoWebID',
             child: getHeading(
-              'Type or select recipient\'s WebId',
+              'Enter or select recipient\'s WebId',
             ),
           ),
-          smallGapV,
           // Web ID text field
           TextFormField(
             controller: formControllerWebId,
