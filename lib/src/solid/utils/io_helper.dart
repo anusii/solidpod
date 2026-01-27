@@ -55,7 +55,5 @@ Future<bool> isFileProtected(String fileUrl) async {
     ]);
   }
 
-  print(_protectedFiles);
-
   return _protectedFiles.contains(filePath);
 }
