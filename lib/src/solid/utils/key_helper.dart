@@ -205,9 +205,7 @@ Future<String> readPubKeyFile() async {
 
 /// Read file `shared/shared-keys.ttl` to get encrypted individual keys
 /// of shared resources.
-Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
-    // String privateKey,
-    ) async {
+Future<Map<String, SharedIndKeyRecord>> readSharedIndKey() async {
   final sharedIndKeyUrl = await getFileUrl(await getSharedKeyFilePath());
   final sharedIndKeyMap = <String, SharedIndKeyRecord>{};
 
@@ -217,8 +215,6 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
   if (await checkResourceStatus(sharedIndKeyUrl) != ResourceStatus.exist) {
     return sharedIndKeyMap;
   }
-
-  // Encrypter? encrypter;
 
   final tripleMap = turtleToTripleMap(
     utf8.decode(
@@ -237,13 +233,6 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey(
   for (final entry in tripleMap.entries) {
     final v = entry.value;
     if (v.containsKey(getPred(sharedKeyPred))) {
-      //   encrypter ??= Encrypter(
-      //     RSA(
-      //       privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey,
-      //     ),
-      //   );
-
-      //   sharedIndKeyMap[encrypter.decrypt64(getVal(v, pathPred) as String)] =
       sharedIndKeyMap[entry.key] = SharedIndKeyRecord(
         encResourcePath: getVal(v, pathPred) as String,
         encAccessList: getVal(v, accessListPred) as String,
@@ -289,18 +278,12 @@ Future<String> getSharedIndKeyDeletionQuery(
   String uniqueIdUrl,
   SharedIndKeyRecord record,
 ) async {
-  // Define prefix and subject
-  // const prefix1 = '$resIdPrefix <$appsResId>';
-  // const prefix2 = '$dataPrefix <$appsData>';
-  // final subject = '$resIdPrefix$resUniqueId';
-
   // Define predicates and objects
   final predObjPath = '$dataPrefix$pathPred "${record.encResourcePath}";';
   final predObjAcc = '$dataPrefix$accessListPred "${record.encAccessList}";';
   final predObjKey = '$dataPrefix$sharedKeyPred "${record.encKey}".';
 
   // Generate delete sparql query
-  // return 'PREFIX $prefix1 PREFIX $prefix2 DELETE DATA {$subject $predObjPath $predObjAcc $predObjKey};';
   return 'PREFIX $dataPrefix <$appsData> DELETE DATA {$uniqueIdUrl $predObjPath $predObjAcc $predObjKey};';
 }
 
