@@ -320,8 +320,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
               setAuthUsersFunction: _setRecipientsToAuthUsers,
               setIndividualFunction: _setRecipientsToIndividual,
               setGroupFunction: _setRecipientsToGroup,
-              updateIndWebIdFunction: updateIndWebIdInput,
-              updateGroupWebIdFunction: updateGroupWebIdInput,
             ),
 
             // List selected recipient webids or recipient
@@ -330,7 +328,9 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
               selectedRecipientType: selectedRecipientType,
               selectedRecipientDetails: selectedRecipientDetails,
             ),
-
+            if (selectedRecipientType == RecipientType.group) ...[
+              const Text('Group name: add group name here'),
+            ],
             smallGapV,
             getHeading(
               'Select one or more file access permissions',

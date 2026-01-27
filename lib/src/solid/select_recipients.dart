@@ -52,10 +52,6 @@ import 'package:solidpod/src/solid/grant_permission_helper.dart';
 /// individual recipient webId.
 /// - [setGroupFunction] - a function for selecting a
 /// group of webIds as recipients.
-/// - [updateIndWebIdFunction] - a function to update the selected
-/// individual webId.
-/// - [updateGroupWebIdFunction] - a function to update the selected
-/// group webId list and group name.
 
 class SelectRecipients extends StatefulWidget {
   /// A flag denoting whether the resource is externally owned.
@@ -66,14 +62,6 @@ class SelectRecipients extends StatefulWidget {
   /// all four types of recipient are listed.
 
   final List<String> recipientTypeList;
-
-  /// Map of data files on a user's POD used to extract the
-  /// user's recipient list by the WebIdTextInputScreen.
-  /// If not provided, the WebIdTextInputScreen will read the
-  /// user's files in their app data folder on their Pod to
-  /// fetch the ACLs needed to derive the user's recipient list.
-
-  final Map<String, dynamic> dataFilesMap;
 
   /// A function for setting recipients to the public.
 
@@ -91,15 +79,6 @@ class SelectRecipients extends StatefulWidget {
 
   final Function setGroupFunction;
 
-  /// A function to update the selected individual webId.
-  ///
-  final Function updateIndWebIdFunction;
-
-  /// A function to update the selected group webId list and group
-  /// name.
-
-  final Function updateGroupWebIdFunction;
-
   const SelectRecipients({
     super.key,
     required this.isExternalRes,
@@ -108,9 +87,6 @@ class SelectRecipients extends StatefulWidget {
     required this.setAuthUsersFunction,
     required this.setIndividualFunction,
     required this.setGroupFunction,
-    required this.updateIndWebIdFunction,
-    required this.updateGroupWebIdFunction,
-    this.dataFilesMap = const {},
   });
 
   @override
