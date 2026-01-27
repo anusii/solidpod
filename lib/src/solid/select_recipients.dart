@@ -142,6 +142,9 @@ class _SelectRecipientsState extends State<SelectRecipients> {
           RadioGroup<RecipientType>(
             groupValue: _selectedRecipientType,
             onChanged: (RecipientType? value) {
+              setState(() {
+                _selectedRecipientType = value;
+              });
               switch (value) {
                 case RecipientType.public:
                   widget.setPublicFunction();
@@ -156,9 +159,6 @@ class _SelectRecipientsState extends State<SelectRecipients> {
                 case null:
                   return;
               }
-              setState(() {
-                _selectedRecipientType = value;
-              });
             },
             child: Column(
               children: [
