@@ -300,54 +300,61 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
       title: Text(
         'Share ${widget.resourceName}',
       ),
-      content: SizedBox(
-        // Use full width on phones, else use a preset narrower width
-        width:
-            (!isPhone()) ? GrantPermFormLayout.dialogWidth : double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            getHeading(
-              'Select the recipient/s of file access',
-            ),
+      content: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          primary: true,
+          child: SizedBox(
+            // Use full width on phones, else use a preset narrower width
+            width: (!isPhone())
+                ? GrantPermFormLayout.dialogWidth
+                : double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                getHeading(
+                  'Select the recipient/s of file access',
+                ),
 
-            // Show Select Recipient Buttons
-            SelectRecipients(
-              isExternalRes: widget.isExternalRes,
-              recipientTypeList: widget.recipientTypeList,
-              setPublicFunction: _setRecipientsToPublic,
-              setAuthUsersFunction: _setRecipientsToAuthUsers,
-              setIndividualFunction: _setRecipientsToIndividual,
-              setGroupFunction: _setRecipientsToGroup,
-            ),
+                // Show Select Recipient Buttons
+                SelectRecipients(
+                  isExternalRes: widget.isExternalRes,
+                  recipientTypeList: widget.recipientTypeList,
+                  setPublicFunction: _setRecipientsToPublic,
+                  setAuthUsersFunction: _setRecipientsToAuthUsers,
+                  setIndividualFunction: _setRecipientsToIndividual,
+                  setGroupFunction: _setRecipientsToGroup,
+                ),
 
-            // List selected recipient webids or recipient
-            // type (public/auth)
-            ShowSelectedRecipients(
-              selectedRecipientType: selectedRecipientType,
-              selectedRecipientDetails: selectedRecipientDetails,
+                // List selected recipient webids or recipient
+                // type (public/auth)
+                ShowSelectedRecipients(
+                  selectedRecipientType: selectedRecipientType,
+                  selectedRecipientDetails: selectedRecipientDetails,
+                ),
+                if (selectedRecipientType == RecipientType.group) ...[
+                  const Text('Group name: add group name here'),
+                ],
+                smallGapV,
+                getHeading(
+                  'Select one or more file access permissions',
+                ),
+                // Show access mode checkboxes and update
+                // selection status on click
+                ...getPermissionCheckBoxes(
+                  accessModeList,
+                  modeSwitches: {
+                    AccessMode.read: readChecked,
+                    AccessMode.write: writeChecked,
+                    AccessMode.control: controlChecked,
+                    AccessMode.append: appendChecked,
+                  },
+                  onUpdate: updateCheckbox,
+                ),
+              ],
             ),
-            if (selectedRecipientType == RecipientType.group) ...[
-              const Text('Group name: add group name here'),
-            ],
-            smallGapV,
-            getHeading(
-              'Select one or more file access permissions',
-            ),
-            // Show access mode checkboxes and update
-            // selection status on click
-            ...getPermissionCheckBoxes(
-              accessModeList,
-              modeSwitches: {
-                AccessMode.read: readChecked,
-                AccessMode.write: writeChecked,
-                AccessMode.control: controlChecked,
-                AccessMode.append: appendChecked,
-              },
-              onUpdate: updateCheckbox,
-            ),
-          ],
+          ),
         ),
       ),
       actions: <Widget>[
