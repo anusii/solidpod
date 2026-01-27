@@ -325,18 +325,19 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   setGroupFunction: _setRecipientsToGroup,
                 ),
 
-                // List selected recipient webids or recipient
-                // type (public/auth)
-                ShowSelectedRecipients(
-                  selectedRecipientType: selectedRecipientType,
-                  selectedRecipientDetails: selectedRecipientDetails,
-                ),
+                // Select Individual recipient if required
                 if (selectedRecipientType == RecipientType.individual) ...[
                   IndWebIdInputScreen(
                     onSubmitFunction: updateIndWebIdInput,
                     dataFilesMap: widget.dataFilesMap,
                   ),
                 ],
+                // List selected recipient webids or recipient
+                // type (public/auth)
+                ShowSelectedRecipients(
+                  selectedRecipientType: selectedRecipientType,
+                  selectedRecipientDetails: selectedRecipientDetails,
+                ),
                 if (selectedRecipientType == RecipientType.group) ...[
                   const Text('Group name: add group name here'),
                 ],
