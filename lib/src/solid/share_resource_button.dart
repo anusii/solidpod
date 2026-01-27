@@ -32,6 +32,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/grant_permission_form.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
@@ -176,7 +177,7 @@ class _ShareResourceButtonState extends State<ShareResourceButton> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: SharingPageLayout.inputPadding,
       child: ElevatedButton.icon(
         icon: const Icon(
           Icons.share,

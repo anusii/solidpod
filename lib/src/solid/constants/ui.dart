@@ -231,20 +231,26 @@ class DropdownColors {
   static const accent = Color(0xFF4CAF50);
 }
 
-/// Layout constants used for WebId dialogs
+/// Layout constants used for sharing page
+
+class SharingPageLayout {
+  /// Padding for dialog input sections
+
+  static const inputPadding = EdgeInsets.all(
+    8,
+  );
+}
+
+/// Layout constants used for WebId entry containers
 
 class WebIdLayout {
   /// Vertical gap between paragraphs
 
   static const paraVertGap = SizedBox(height: 10);
 
-  /// Standard padding for dialog content.
+  /// Standard padding for page content.
 
   static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
-
-  /// Standard width for security dialogs.
-
-  static const dialogWidth = 480.0;
 
   /// Height of dropdown suggestion box.
 

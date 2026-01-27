@@ -28,6 +28,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
@@ -163,7 +164,7 @@ Widget getResourceForm({
   required void Function(bool) onResourceTypeChange,
 }) =>
     Padding(
-      padding: const EdgeInsets.all(8),
+      padding: SharingPageLayout.inputPadding,
       child: Column(
         children: [
           TextFormField(
