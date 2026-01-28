@@ -30,7 +30,6 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
 const recipientToolTips = <RecipientType, String>{
@@ -106,12 +105,6 @@ void debugPrintFailure(
   debugPrint(getPermissionMsg(permissionList));
 }
 
-/// Small vertical spacing for the widget.
-const smallGapV = SizedBox(height: 10.0);
-
-/// Large vertical spacing for the widget.
-const largeGapV = SizedBox(height: 40.0);
-
 /// Relevant recipients types for resource sharing by the resource owner.
 const ownerRecipientTypes = [
   RecipientType.public,
@@ -127,7 +120,7 @@ const granterRecipientTypes = [
 ];
 
 /// Get title of sharing page
-String getSharingTitleStr({
+String makeSharingTitleStr({
   String? fileName,
   bool isFile = false,
 }) =>
@@ -136,13 +129,6 @@ String getSharingTitleStr({
             ? 'Share $fileName'
             : 'Share $fileName folder'
         : 'Share your data with other user\'s PODs';
-
-Widget getHeading(String text) => buildHeading(
-      text,
-      17.0,
-      Colors.blueGrey,
-      8,
-    );
 
 EdgeInsetsGeometry? getPadding(RecipientType rtype) =>
     rtype == RecipientType.public ? null : const EdgeInsets.only(left: 8.0);

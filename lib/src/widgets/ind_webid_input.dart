@@ -38,7 +38,6 @@ import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
-import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
@@ -150,7 +149,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
         // Explain webId with example
         MarkdownTooltip(
           message: '$whatIsWebID Eg: $demoWebID',
-          child: getHeading(
+          child: makeSubHeading(
             'Enter or select recipient\'s WebId',
           ),
         ),
@@ -177,7 +176,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
                   filterSuggestions(value);
                 }),
               ),
-              GrantPermFormLayout.paraVertGap,
+              smallGapV,
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

@@ -311,7 +311,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                getHeading(
+                makeSubHeading(
                   'Select the recipient/s of file access',
                 ),
 
@@ -342,7 +342,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   const Text('Group name: add group name here'),
                 ],
                 smallGapV,
-                getHeading(
+                makeSubHeading(
                   'Select one or more file access permissions',
                 ),
                 // Show access mode checkboxes and update
