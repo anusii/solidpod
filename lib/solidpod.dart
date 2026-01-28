@@ -87,6 +87,7 @@ export 'src/solid/utils/exceptions.dart'
         AccessForbiddenException,
         AccessFailedException,
         NotLoggedInException,
+        ResourceNotExistException,
         SecurityKeyNotAvailableException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
