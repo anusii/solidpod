@@ -130,9 +130,6 @@ String makeSharingTitleStr({
             : 'Share $fileName folder'
         : 'Share your data with other user\'s PODs';
 
-EdgeInsetsGeometry? getPadding(RecipientType rtype) =>
-    rtype == RecipientType.public ? null : const EdgeInsets.only(left: 8.0);
-
 List<Widget> getPermissionCheckBoxes(
   List<AccessMode> accessModes, {
   required Map<AccessMode, bool> modeSwitches,
