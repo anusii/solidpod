@@ -42,7 +42,7 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
-import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/group_webid_input.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// Sharing (grant permission) form dialog function
