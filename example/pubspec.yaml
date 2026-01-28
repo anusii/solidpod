@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   editable: ^2.0.0
-  file_picker: ^10.3.9
+  file_picker: ^10.3.10
   flutter:
     sdk: flutter
   intl: any
@@ -24,7 +24,7 @@ dependency_overrides:
   solidui:
     git:
       url: https://github.com/anusii/solidui
-      ref: dev
+      ref: revert-181-dc/update_filepicker_pkg
 
 dev_dependencies:
   flutter_lints: ^6.0.0

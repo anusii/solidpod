@@ -44,7 +44,7 @@ dev_dependencies:
   demopod:
     path: example
   editable: ^2.0.0
-  file_picker: ^10.3.9
+  file_picker: ^10.3.10
   flutter_lints: ^6.0.0
   import_order_lint: ^0.2.2
   # Keep dependency checker quiet.
