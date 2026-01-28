@@ -94,6 +94,13 @@ Future<void> writePod(
     throw Exception('Unable to determine content type of file $filePath');
   }
 
+  if (inheritKeyFrom != null &&
+      !validateInheritKeyPath(inheritKeyFrom, pathType: pathType)) {
+    throw Exception(
+      'inheritKeyFrom="$inheritKeyFrom" is not valid w.r.t. pathType="$pathType"',
+    );
+  }
+
   Key? encKey;
   String? inheritKeyUrl;
   if (inheritKeyFrom != null) {
@@ -142,10 +149,10 @@ Future<void> writePod(
   final content = encKey == null
       ? fileContent
       : await getEncTTLStr(
-          await extractResourcePathFromUrl(fileUrl),
-          fileContent,
-          encKey,
-          genRandIV(),
+          fileUrl: fileUrl,
+          fileContent: fileContent,
+          key: encKey,
+          iv: genRandIV(),
           inheritKeyFrom: inheritKeyFrom == null
               ? null
               : await extractResourcePathFromUrl(inheritKeyUrl!),
