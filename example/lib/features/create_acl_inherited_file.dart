@@ -77,6 +77,7 @@ class CreateAclInheritedFileState extends State<CreateAclInheritedFile> {
           await writePod(resourcePath, demoTtlContent,
               encrypted: _isEncrypted,
               createAcl: false,
+              overwrite: true,
               inheritKeyFrom: parentDirectory);
         } else {
           // First check and create the corresponding directory

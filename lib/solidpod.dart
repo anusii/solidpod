@@ -125,7 +125,7 @@ export 'src/solid/utils/get_url_helper.dart'
 
 /// Utility functions for generating resources at POD initialisation
 
-export 'src/solid/utils/init_pod_gen_resources.dart'
+export 'src/solid/utils/init_helper.dart'
     show generateDefaultFolders, generateCustomFolders, generateDefaultFiles;
 
 /// Change security key popup widget
