@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Fixes backgroun of loadingScreen [0.9.17]
 + Optimise shared individual key loading and retrieval [0.9.15 20260128 cdawei]
 + Restored retrieve permissions button [0.9.14 20260125 jesscmoore]
 + Export ResourceNotExistException [0.9.13 20260123 tonypioneer]
