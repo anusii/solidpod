@@ -140,6 +140,10 @@ export 'src/widgets/security_key_ui.dart';
 
 export 'src/solid/read_pod.dart';
 
+/// Read metadata of a resource stored in a POD
+
+export 'src/solid/read_res_metadata.dart';
+
 /// Write to encrypted/non-encrypted files in a POD
 
 export 'src/solid/write_pod.dart';

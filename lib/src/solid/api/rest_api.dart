@@ -539,6 +539,36 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
   return (subDirs: containers, files: files);
 }
 
+/// Get the metadata of a resource with URL [resourceUrl]
+/// from server. The resource could be a text, turtle,
+/// binary file, or a directory. If [resourceUrl] ends
+/// with '/', it is considered as a container / directory.
+
+Future<Map<String, String>> getResourceMetadata(String resourceUrl) async {
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, 'HEAD');
+
+  final response = await http.head(
+    Uri.parse(resourceUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    // print('Size: ${response.headers['content-length']}');
+    // print('Type: ${response.headers['content-type']}');
+    // print('Last modified: ${response.headers['last-modified']}');
+    // print('ETag: ${response.headers['etag']}');
+    return response.headers;
+  } else {
+    throw Exception('Failed to get resource $resourceUrl metadata');
+  }
+}
+
 /// Check if a file is encrypted
 Future<bool> checkFileEnc(String fileUrl, {bool isExternalRes = false}) async =>
     isExternalRes
