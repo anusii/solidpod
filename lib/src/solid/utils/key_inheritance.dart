@@ -31,6 +31,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart'
     show checkResourceStatus, createResource;
 import 'package:solidpod/src/solid/constants/common.dart'
     show inheritKeyPred, ResourceContentType, ResourceStatus;
+import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, getPredicateUrl;
@@ -82,7 +83,7 @@ Future<void> setInheritKeyDir(
     }
   }
 
-  if (!await KeyManager.hasIndividualKey(dirUrl)) {
+  if (await KeyManager.getIndividualKey(dirUrl) == null) {
     // Create an individual AES key for the directory. This key will
     // be used to encrypt all the resources inside the directory
 
@@ -106,16 +107,13 @@ Future<Key?> retrieveEncKey(
   String? inheritKeyUrl,
 }) async {
   final keyUrl = inheritKeyUrl ?? resourceUrl;
+  final key = await KeyManager.getIndividualKey(keyUrl);
 
-  if (await KeyManager.hasIndividualKey(keyUrl)) {
-    return await KeyManager.getIndividualKey(keyUrl);
-  }
-
-  if (await KeyManager.hasSharedIndividualKey(keyUrl)) {
+  if (key == null) {
     return await KeyManager.getSharedIndividualKey(keyUrl);
   }
 
-  return null;
+  return key;
 }
 
 /// Configure / set-up the encryption key for a file with URL [fileUrl].
@@ -128,13 +126,15 @@ Future<Key> configureEncKey(
   String? inheritKeyUrl,
 }) async {
   if (inheritKeyUrl == null) {
-    if (!await KeyManager.hasIndividualKey(fileUrl)) {
+    if (await KeyManager.getIndividualKey(fileUrl) == null) {
       await KeyManager.addIndividualKey(
         resourcePath: await extractResourcePathFromUrl(fileUrl),
         indKey: genRandIndividualKey(),
       );
     }
-    return KeyManager.getIndividualKey(fileUrl);
+    final key = await KeyManager.getIndividualKey(fileUrl);
+    assert(key != null);
+    return key!;
   }
 
   switch (await checkResourceStatus(inheritKeyUrl, isFile: false)) {
@@ -146,7 +146,7 @@ Future<Key> configureEncKey(
       await setInheritKeyDir(inheritKeyUrl);
 
     case ResourceStatus.exist:
-      if (!await KeyManager.hasIndividualKey(inheritKeyUrl)) {
+      if (await KeyManager.getIndividualKey(inheritKeyUrl) == null) {
         debugPrint('WARNING: Directory $inheritKeyUrl does not have a key. '
             'Setting up a new key for the directory');
         // Generate a new key for the directory
@@ -166,6 +166,34 @@ Future<Key> configureEncKey(
       );
   }
 
-  assert(await KeyManager.hasIndividualKey(inheritKeyUrl));
-  return KeyManager.getIndividualKey(inheritKeyUrl);
+  final key = await KeyManager.getIndividualKey(inheritKeyUrl);
+  assert(key != null);
+  return key!;
+}
+
+/// Check if the provided [inheritKeyFrom] is consistent with the [pathType]
+
+bool validateInheritKeyPath(
+  String inheritKeyFrom, {
+  required PathType pathType,
+}) {
+  // Currently validates if it is a URL
+
+  try {
+    if (inheritKeyFrom.trim().isEmpty) {
+      throw Exception('inheritKeyFrom is empty');
+    }
+
+    if (pathType == PathType.absoluteUrl) {
+      final uri = Uri.parse(inheritKeyFrom);
+      if (uri.host.trim().isEmpty) {
+        throw Exception('inheritKeyFrom="$inheritKeyFrom" is not a valid URL');
+      }
+    }
+  } on Object catch (e) {
+    debugPrint(e.toString());
+    return false;
+  }
+
+  return true;
 }
