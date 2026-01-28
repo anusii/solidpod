@@ -229,8 +229,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     List<dynamic> webIdList,
   ) =>
       setState(() {
-        selectedRecipientDetails =
-            '$groupName with WebIDs ${webIdList.join(', ')}';
+        selectedRecipientDetails = webIdList.join(', ');
         finalWebIdList = webIdList;
         selectedGroupName = groupName;
       });
@@ -260,14 +259,15 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   /// Set recipients to public
   void _setRecipientsToPublic() => setState(() {
         selectedRecipientType = RecipientType.public;
-        selectedRecipientDetails = '';
+        selectedRecipientDetails = 'Anyone (release publicly)';
         finalWebIdList = [publicAgent.value];
       });
 
   /// Set recipients to authorised users
   void _setRecipientsToAuthUsers() => setState(() {
         selectedRecipientType = RecipientType.authUser;
-        selectedRecipientDetails = '';
+        selectedRecipientDetails =
+            'Authenticated Users (any user logged in with their webId)';
         finalWebIdList = [authenticatedAgent.value];
       });
 
@@ -332,10 +332,8 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                 ShowSelectedRecipients(
                   selectedRecipientType: selectedRecipientType,
                   selectedRecipientDetails: selectedRecipientDetails,
+                  selectedGroupName: selectedGroupName,
                 ),
-                if (selectedRecipientType == RecipientType.group) ...[
-                  const Text('Group name: add group name here'),
-                ],
                 smallGapV,
                 makeSubHeading(
                   'Select one or more file access permissions',

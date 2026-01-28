@@ -211,6 +211,29 @@ const largeGapV = SizedBox(height: 40.0);
 /// Normal height for data loading screens
 const double normalLoadingScreenHeight = 200.0;
 
+/// Text styles used for permission form
+
+class RecipientTextStyle {
+  /// Style for the label.
+
+  static const label = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+  );
+
+  /// Style for the WebID display.
+
+  static const webId = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    // 20251008 gjw Choose blue rather than
+    // orange which looks red. The red looks
+    // like it is an error. Blue is more
+    // neutral.
+    color: Colors.blueAccent,
+  );
+}
+
 /// Layout constants for sub headings
 
 class SubHeadingStyle {
