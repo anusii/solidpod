@@ -33,101 +33,139 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:markdown_tooltip/markdown_tooltip.dart';
+
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
-/// A dialog for adding a group of Web IDs. Function call requires the following
-/// inputs
-/// [context] is the BuildContext from which this function is called.
-/// [formControllerGroupName] is the controller for the group name input
-/// [formControllerGroupWebIds] is the controller for the list of webids input
-/// [onSubmitFuncion] is the function to be called on submit
+/// A [StatefulWidget] dialog for entering group of webIds.
 ///
-Future<dynamic> groupWebIdInputDialog(
-  BuildContext context,
-  TextEditingController formControllerGroupName,
-  TextEditingController formControllerGroupWebIds,
-  Function onSubmitFuncion,
-) {
-  return showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 50),
-        title: const Text('Group of WebIDs'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Group name. Should be a single string
-            TextFormField(
-              controller: formControllerGroupName,
-              decoration: const InputDecoration(
-                labelText: 'Group name',
-                hintText: 'Multiple words will be combined using the symbol -',
-              ),
-            ),
-            const SizedBox(height: 10.0),
-            // List of Web IDs divided by semicolon
-            TextFormField(
-              controller: formControllerGroupWebIds,
-              decoration: const InputDecoration(
-                labelText: 'List of WebIDs',
-                hintText: 'Divide multiple WebIDs using the semicolon (;)',
-              ),
-            ),
-          ],
+/// Parameters:
+/// - [onSubmitFunction] - function to be called on submit.
+
+class GroupWebIdTextInput extends StatefulWidget {
+  /// Function run on Submit button press.
+  final Function onSubmitFunction;
+
+  const GroupWebIdTextInput({
+    super.key,
+    required this.onSubmitFunction,
+  });
+
+  @override
+  State<GroupWebIdTextInput> createState() => _GroupWebIdTextInputState();
+}
+
+class _GroupWebIdTextInputState extends State<GroupWebIdTextInput> {
+  /// Text controller for webId list field
+  final formControllerGroupWebIds = TextEditingController();
+
+  /// Text controller for group name for webId list
+
+  final formControllerGroupName = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  // dispose text controller when the widget is unmounted
+  @override
+  void dispose() {
+    formControllerGroupWebIds.dispose();
+    formControllerGroupName.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        smallGapV,
+        // Explain webId with example
+        MarkdownTooltip(
+          message: '$whatIsWebID Eg: $demoWebID',
+          child: makeSubHeading(
+            'Enter recipient group WebIds',
+          ),
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () async {
-              // Check if all the input entries are correct
-              final groupName = formControllerGroupName.text.trim();
-              final groupWebIds = formControllerGroupWebIds.text.trim();
+        // Add padding to webid textformfield and suggestion drop down
+        Container(
+          padding: GrantPermFormLayout.inputPadding,
+          child: Column(
+            children: [
+              // Group name. Should be a single string
+              TextFormField(
+                controller: formControllerGroupName,
+                decoration: const InputDecoration(
+                  labelText: 'Group name',
+                  hintText:
+                      'Multiple words will be combined using the symbol -',
+                ),
+              ),
+              smallGapV,
+              // List of Web IDs divided by semicolon
+              TextFormField(
+                controller: formControllerGroupWebIds,
+                decoration: const InputDecoration(
+                  labelText: 'List of WebIDs',
+                  hintText: 'Divide multiple WebIDs using the semicolon (;)',
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      // Check if all the input entries are correct
+                      final groupName = formControllerGroupName.text.trim();
+                      final groupWebIds = formControllerGroupWebIds.text.trim();
 
-              // Check if both fields are not empty
-              if (groupName.isNotEmpty && groupWebIds.isNotEmpty) {
-                final webIdList = groupWebIds.split(';');
+                      // Check if both fields are not empty
+                      if (groupName.isNotEmpty && groupWebIds.isNotEmpty) {
+                        final webIdList = groupWebIds.split(';');
 
-                // Check if all the webIds are true links
-                var trueWebIdsFlag = true;
-                for (final webId in webIdList) {
-                  if (!Uri.parse(webId.replaceAll('#me', '')).isAbsolute ||
-                      !(await checkResourceStatus(webId) ==
-                          ResourceStatus.exist)) {
-                    trueWebIdsFlag = false;
-                  }
-                }
+                        // Check if all the webIds are true links
+                        var trueWebIdsFlag = true;
+                        for (final webId in webIdList) {
+                          if (!Uri.parse(webId.replaceAll('#me', ''))
+                                  .isAbsolute ||
+                              !(await checkResourceStatus(webId) ==
+                                  ResourceStatus.exist)) {
+                            trueWebIdsFlag = false;
+                          }
+                        }
 
-                if (trueWebIdsFlag) {
-                  onSubmitFuncion(groupName, webIdList);
-                  if (!context.mounted) return;
-                  Navigator.of(context).pop();
-                } else {
-                  if (!context.mounted) return;
-                  await alert(
-                    context,
-                    'At least one of the Web IDs you entered is not valid',
-                  );
-                }
-              } else {
-                if (!context.mounted) return;
-                await alert(
-                  context,
-                  'Please enter a group name and a list of Web IDs',
-                );
-              }
-            },
-            child: const Text('Ok'),
+                        if (trueWebIdsFlag) {
+                          // Save selected webid group
+                          widget.onSubmitFunction(groupName, webIdList);
+                        } else {
+                          if (!context.mounted) return;
+                          await alert(
+                            context,
+                            'At least one of the Web IDs you entered is not valid',
+                          );
+                        }
+                      } else {
+                        if (!context.mounted) return;
+                        await alert(
+                          context,
+                          'Please enter a group name and a list of Web IDs',
+                        );
+                      }
+                    },
+                    child: const Text('Select Group of WebIds'),
+                  ),
+                ],
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-        ],
-      );
-    },
-  );
+        ),
+      ],
+    );
+  }
 }

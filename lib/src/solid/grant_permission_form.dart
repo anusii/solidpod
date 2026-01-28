@@ -146,17 +146,13 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
   List<dynamic> finalWebIdList = [];
 
+  /// Selected group name
+
+  String selectedGroupName = '';
+
   /// Selected list of permissions
 
   List<String> selectedPermList = [];
-
-  /// Group name text controller
-
-  final groupNameController = TextEditingController();
-
-  /// Group of webIds text controller
-
-  final groupWebIdsController = TextEditingController();
 
   /// Flag to track if permissions were granted successfully.
 
@@ -198,8 +194,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
   @override
   void dispose() {
-    groupNameController.dispose(); // Dispose group name editing controller
-    groupWebIdsController.dispose(); // Dispose group webids editing controller
     super.dispose();
   }
 
@@ -222,7 +216,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     String receiverWebId,
   ) =>
       setState(() {
-        selectedRecipientType = RecipientType.individual;
         selectedRecipientDetails = receiverWebId;
         finalWebIdList = [receiverWebId];
       });
@@ -236,10 +229,10 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     List<dynamic> webIdList,
   ) =>
       setState(() {
-        selectedRecipientType = RecipientType.group;
         selectedRecipientDetails =
             '$groupName with WebIDs ${webIdList.join(', ')}';
         finalWebIdList = webIdList;
+        selectedGroupName = groupName;
       });
 
   /// Update checked status of access mode boxes to show
@@ -284,12 +277,9 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
       });
 
   /// Select a group of recipients
-  void _setRecipientsToGroup() async => await groupWebIdInputDialog(
-        context,
-        groupNameController,
-        groupWebIdsController,
-        updateGroupWebIdInput,
-      );
+  void _setRecipientsToGroup() => setState(() {
+        selectedRecipientType = RecipientType.group;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -330,6 +320,11 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   IndWebIdInputScreen(
                     onSubmitFunction: updateIndWebIdInput,
                     dataFilesMap: widget.dataFilesMap,
+                  ),
+                ] else if (selectedRecipientType == RecipientType.group) ...[
+                  // Select group of recipients if required
+                  GroupWebIdTextInput(
+                    onSubmitFunction: updateGroupWebIdInput,
                   ),
                 ],
                 // List selected recipient webids or recipient
@@ -382,9 +377,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                     ownerWebId: widget.ownerWebId,
                     granterWebId: widget.granterWebId,
                     isExternalRes: widget.isExternalRes,
-                    groupName: selectedRecipientType == RecipientType.group
-                        ? groupNameController.text.trim()
-                        : null,
+                    groupName: selectedGroupName,
                   );
 
                   // Close grant permission dialog
