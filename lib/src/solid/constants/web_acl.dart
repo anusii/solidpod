@@ -273,12 +273,48 @@ RecipientType getRecipientType(String agentType, String receiverUri) {
 }
 
 /// Get recipient name from recipient webId
-String getRecipientName(String recipientWebId) {
+String getRecipientName({
+  required String recipientWebId,
+  required RecipientType recipientType,
+}) {
   final String recipientName;
 
-  recipientName = recipientWebId.replaceAll('/$profCard', '').split('/').last;
+  if (recipientType == RecipientType.public) {
+    recipientName = 'Anyone';
+  } else if (recipientType == RecipientType.authUser) {
+    recipientName = 'All Loggedin Users';
+  } else {
+    recipientName = recipientWebId.replaceAll('/$profCard', '').split('/').last;
+  }
 
   return recipientName;
+}
+
+/// Get recipient permission tooltip
+String getPermissionTooltip({
+  required String recipientName,
+  required RecipientType recipientType,
+  required List<String> permList,
+}) {
+  String toolTip;
+
+  if (recipientType == RecipientType.public) {
+    toolTip = 'Accessible with ${permList.join(', ')}'
+        ' access to anyone';
+  } else if (recipientType == RecipientType.authUser) {
+    toolTip = 'Accessible to all loggedin users '
+        'with ${permList.join(', ')} access';
+  } else {
+    toolTip = 'Accessible to $recipientName '
+        'with ${permList.join(', ')} access';
+  }
+
+  if (permList.contains('Control')) {
+    toolTip = '$toolTip '
+        '(i.e. they can share or revoke access to others)';
+  }
+
+  return toolTip;
 }
 
 /// Generate the content of encKeyFile

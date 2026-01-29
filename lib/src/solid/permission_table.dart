@@ -31,6 +31,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/models/permission.dart';
@@ -162,50 +163,53 @@ class _PermissionTableState extends State<PermissionTable> {
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(5)),
               ),
-              child: ListTile(
-                // Leading icon denoting agreement of access terms
-                leading: SizedBox(
-                  width: ListIconSize.width,
-                  child: Center(
-                    child: Ink(
-                      padding: const EdgeInsets.all(8),
-                      decoration: listIconShape,
-                      child: const Icon(Icons.handshake),
+              child: MarkdownTooltip(
+                message: _permissions[index].toolTip,
+                child: ListTile(
+                  // Leading icon denoting agreement of access terms
+                  leading: SizedBox(
+                    width: ListIconSize.width,
+                    child: Center(
+                      child: Ink(
+                        padding: const EdgeInsets.all(8),
+                        decoration: listIconShape,
+                        child: const Icon(Icons.handshake),
+                      ),
                     ),
                   ),
+                  // Permission item title
+                  title: Text(
+                    _permissions[index].recipientName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    'Recipient type: ${_permissions[index].recipientType} \n'
+                    'WebId: ${_permissions[index].recipientWebId} \n'
+                    'Permissions: ${_permissions[index].permList.join(', ')}',
+                    maxLines: 4, // Limit to 4 lines
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  // Show revoke button for recipientWebId != ownerWebId
+                  trailing: (widget.ownerWebId !=
+                          _permissions[index].recipientWebId)
+                      ? SizedBox(
+                          height: ListIconSize.height,
+                          width: ListIconSize.twoIconWidth,
+                          child: RevokePermissionButton(
+                            resourceName: widget.resourceName,
+                            permDataMap: widget.permDataMap,
+                            receiverWebId: _permissions[index].recipientWebId,
+                            ownerWebId: widget.ownerWebId,
+                            granterWebId: widget.granterWebId,
+                            isFile: widget.isFile,
+                            isExternalRes: widget.isExternalRes,
+                            updatePermissionsFunction:
+                                widget.updatePermissionsFunction,
+                          ),
+                        )
+                      : null,
                 ),
-                // Permission item title
-                title: Text(
-                  _permissions[index].recipientName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(
-                  'Recipient type: ${_permissions[index].recipientType} \n'
-                  'WebId: ${_permissions[index].recipientWebId} \n'
-                  'Permissions: ${_permissions[index].permList.join(', ')}',
-                  maxLines: 4, // Limit to 4 lines
-                  overflow: TextOverflow.ellipsis,
-                ),
-                // Show revoke button for recipientWebId != ownerWebId
-                trailing:
-                    (widget.ownerWebId != _permissions[index].recipientWebId)
-                        ? SizedBox(
-                            height: ListIconSize.height,
-                            width: ListIconSize.twoIconWidth,
-                            child: RevokePermissionButton(
-                              resourceName: widget.resourceName,
-                              permDataMap: widget.permDataMap,
-                              receiverWebId: _permissions[index].recipientWebId,
-                              ownerWebId: widget.ownerWebId,
-                              granterWebId: widget.granterWebId,
-                              isFile: widget.isFile,
-                              isExternalRes: widget.isExternalRes,
-                              updatePermissionsFunction:
-                                  widget.updatePermissionsFunction,
-                            ),
-                          )
-                        : null,
               ),
             ),
           ),

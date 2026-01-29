@@ -28,13 +28,17 @@
 
 library;
 
+import 'package:solidpod/solidpod.dart';
+
 /// Data model for parsing permission map of recipient into
 /// list of permission objects used in permission table.
 
 class Permission {
   final String recipientWebId;
   final String recipientName;
-  final String recipientType;
+  final RecipientType recipientType;
+  final String recipientTypeDescription;
+  final String toolTip;
   final String agentType;
   final List<String> permList;
 
@@ -42,6 +46,8 @@ class Permission {
     required this.recipientWebId,
     required this.recipientName,
     required this.recipientType,
+    required this.recipientTypeDescription,
+    required this.toolTip,
     required this.agentType,
     required this.permList,
   });

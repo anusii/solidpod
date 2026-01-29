@@ -56,7 +56,9 @@ class PermissionHelper {
     try {
       List<String>? permList;
       String? agentType;
-      String? recipientType;
+      RecipientType? recipientType;
+      String? recipientTypeDescription;
+      String? recipientTooltip;
       String? recipientName;
 
       for (final entry in permMap.entries) {
@@ -79,11 +81,22 @@ class PermissionHelper {
         }
       }
 
-      // Derive recipient type description
-      recipientType = getRecipientType(agentType!, recipientWebId).description;
+      // Derive recipient type and description
+      recipientType = getRecipientType(agentType!, recipientWebId);
+      recipientTypeDescription = recipientType.description;
 
       // Derive recipient name
-      recipientName = getRecipientName(recipientWebId);
+      recipientName = getRecipientName(
+        recipientWebId: recipientWebId,
+        recipientType: recipientType,
+      );
+
+      // Derive recipient tool tip
+      recipientTooltip = getPermissionTooltip(
+        recipientName: recipientName,
+        recipientType: recipientType,
+        permList: permList!,
+      );
 
       // Create the external note details object
 
@@ -91,8 +104,10 @@ class PermissionHelper {
         recipientWebId: recipientWebId,
         recipientName: recipientName,
         recipientType: recipientType,
+        recipientTypeDescription: recipientTypeDescription,
+        toolTip: recipientTooltip,
         agentType: agentType,
-        permList: permList!,
+        permList: permList,
       );
     } catch (e) {
       debugPrint('Error: $e');
