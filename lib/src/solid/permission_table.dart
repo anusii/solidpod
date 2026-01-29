@@ -125,9 +125,6 @@ class _PermissionTableState extends State<PermissionTable> {
   void initState() {
     super.initState();
 
-    //  By default _permissions is the full list of permissions
-    _permissions = permMapToList(widget.permDataMap);
-
     // Create scroll controller
     _scrollController = ScrollController();
   }
@@ -145,6 +142,9 @@ class _PermissionTableState extends State<PermissionTable> {
     // Calculate the aspect radio for grid cards
     cardAspectRatio =
         ListItemSize().calculateCardAspectRatio(widget.constraints);
+
+    //  By default _permissions is the full list of permissions
+    _permissions = permMapToList(widget.permDataMap);
 
     return Expanded(
       child: GridView.builder(
