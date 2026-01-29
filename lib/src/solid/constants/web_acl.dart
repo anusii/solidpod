@@ -38,6 +38,7 @@ import 'package:solidpod/src/solid/constants/common.dart'
         agentGroupPred,
         agentPred,
         foaf,
+        profCard,
         rdf,
         terms,
         vcard;
@@ -269,6 +270,15 @@ RecipientType getRecipientType(String agentType, String receiverUri) {
     }
   }
   return recipientType;
+}
+
+/// Get recipient name from recipient webId
+String getRecipientName(String recipientWebId) {
+  final String recipientName;
+
+  recipientName = recipientWebId.replaceAll('/$profCard', '').split('/').last;
+
+  return recipientName;
 }
 
 /// Generate the content of encKeyFile
