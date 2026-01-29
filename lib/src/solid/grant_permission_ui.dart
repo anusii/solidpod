@@ -411,7 +411,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 largeGapV,
-                getHeading('Current access permissions'),
+                getHeading('People with current access'),
                 PermissionTable(
                   resourceName: permDataFile,
                   permDataMap: permDataMap,
