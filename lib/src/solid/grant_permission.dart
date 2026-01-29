@@ -150,6 +150,7 @@ Future<SolidFunctionCallStatus> grantPermission({
             final indKey = isExternalRes
                 ? await KeyManager.getSharedIndividualKey(resourceUrl)
                 : await KeyManager.getIndividualKey(resourceUrl);
+            assert(indKey != null);
 
             // If permission granted to specific recipients
             if (hasSpecificRecipients) {
@@ -162,7 +163,7 @@ Future<SolidFunctionCallStatus> grantPermission({
 
                 // Encrypt individual key
                 final sharedIndKey =
-                    await recipientPubKey.encryptData(indKey.base64);
+                    await recipientPubKey.encryptData(indKey!.base64);
 
                 // Encrypt resource URL
                 final sharedResPath =
@@ -190,7 +191,7 @@ Future<SolidFunctionCallStatus> grantPermission({
               // if the recipient type is either public or authenticated agent
               // Copy the key to a publicly available or authenticated user accessible file
               await copySharedKeyUserClass(
-                indKey,
+                indKey!,
                 resourceUrl,
                 permissionList,
                 recipientType,

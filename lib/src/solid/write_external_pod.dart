@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Dawei Chen
 
 // ignore_for_file: use_build_context_synchronously
 
@@ -50,8 +50,7 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// data directory (within potential subdirectories encoded in [fileUrl]).
 /// The content will be encrypted if the original content is true.
 ///
-/// av: 20250522 - Future work - extend this functionality to write new files
-///                to external PODs with encrypted functionality.
+/// dc 20260124: Refactor this function and writePod() to reuse code of shared logic
 
 Future<void> writeExternalPod(
   String fileUrl,
@@ -91,17 +90,18 @@ Future<void> writeExternalPod(
         await getResource(fileUrl),
       );
 
-      if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
+      final key = await KeyManager.getSharedIndividualKey(fileUrl);
+
+      if (key != null) {
         // Get file path
-        final filePath =
-            fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+        // final filePath =
+        //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
 
         content = await getEncTTLStr(
-          filePath,
-          fileContent,
-          await KeyManager.getSharedIndividualKey(fileUrl),
-          genRandIV(),
-          extWebId: fileOwnerWebId,
+          fileUrl: fileUrl,
+          fileContent: fileContent,
+          key: key,
+          iv: genRandIV(),
         );
 
         if (!fileUrl.endsWith('.ttl')) {
@@ -113,8 +113,8 @@ Future<void> writeExternalPod(
         fileUrl,
       )) {
         // Get file path
-        final filePath =
-            fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+        // final filePath =
+        //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
 
         // Get the individual key for the file
         final parentDirPath = getParentDir(
@@ -123,13 +123,15 @@ Future<void> writeExternalPod(
         );
         final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
 
+        final key = await KeyManager.getSharedIndividualKey(parentDirUrl);
+        assert(key != null);
+
         // Generate encrypted file content
         content = await getEncTTLStr(
-          filePath,
-          fileContent,
-          await KeyManager.getSharedIndividualKey(parentDirUrl),
-          genRandIV(),
-          extWebId: fileOwnerWebId,
+          fileUrl: fileUrl,
+          fileContent: fileContent,
+          key: key!,
+          iv: genRandIV(),
           inheritKeyFrom: parentDirPath,
         );
       } else {
@@ -165,16 +167,18 @@ Future<void> writeExternalPod(
         final parentDirUrl = getExtDirUrl(fileUrl, normalizedDirPath);
 
         // Get file path
-        final filePath =
-            fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+        // final filePath =
+        //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+
+        final key = await KeyManager.getSharedIndividualKey(parentDirUrl);
+        assert(key != null);
 
         // Generate encrypted file content
         content = await getEncTTLStr(
-          filePath,
-          fileContent,
-          await KeyManager.getSharedIndividualKey(parentDirUrl),
-          genRandIV(),
-          extWebId: fileOwnerWebId,
+          fileUrl: fileUrl,
+          fileContent: fileContent,
+          key: key!,
+          iv: genRandIV(),
         );
       }
 
@@ -188,6 +192,13 @@ Future<void> writeExternalPod(
   // Create the ACL file for the data file if necessary
   // Check if file exsits AND if there is no inheritedFrom variable set. If this
   // is set then the ACL file will be inherited
+
+  // dc 20260127 - a few questions:
+  // - does the code below require control access permission?
+  // - the code below may create an ACL file with default access sharing which allows
+  //   access from only the owner
+  // - if the parent folder is shared to others, then creating ACL for the individual
+  //   file may prevent others to access this file
 
   final aclFileUrl = '$fileUrl.acl';
   if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&

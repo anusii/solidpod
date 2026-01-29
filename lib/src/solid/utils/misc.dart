@@ -1,6 +1,6 @@
 /// Miscellaneous utility functions used across the package.
 ///
-// Time-stamp: <Friday 2025-10-24 08:51:54 +1100 Graham Williams>
+// Time-stamp: <Thursday 2026-01-22 11:12:44 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -51,7 +51,8 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/data_encryption.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/init_pod_gen_resources.dart';
+import 'package:solidpod/src/solid/utils/init_helper.dart';
+import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -138,16 +139,16 @@ Future<void> writeToSecureStorage(String key, String value) async {
 // }
 
 /// Encrypt a given data string and format to TTL
-Future<String> getEncTTLStr(
-  String filePath,
-  String fileContent,
-  Key key,
-  IV iv, {
-  String? extWebId,
+Future<String> getEncTTLStr({
+  required String fileUrl,
+  required String fileContent,
+  required Key key,
+  required IV iv,
   String? inheritKeyFrom,
 }) async {
+  final filePath = await extractResourcePathFromUrl(fileUrl);
   final triples = {
-    URIRef(await getFileUrl(filePath, webId: extWebId)): {
+    URIRef(fileUrl): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
       if (inheritKeyFrom != null)
@@ -514,7 +515,6 @@ Future<void> initPod(
         case '$permLogFile.acl':
           publicAccess = {AccessMode.append};
         default:
-          debugPrint(fileName);
           assert(fileName == '.acl');
           publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
@@ -528,7 +528,6 @@ Future<void> initPod(
 
       aclFlag = true;
     } else {
-      debugPrint(fileName);
       assert(fileName == permLogFile);
       fileContent = genPermLogTTLStr(f);
       aclFlag = false;
@@ -585,6 +584,10 @@ Future<void> deleteFile(
   ResourceContentType contentType = ResourceContentType.turtleText,
   bool isKey = false,
 }) async {
+  final fileUrl = await getFileUrl(filePath);
+  if (await isFileProtected(fileUrl)) {
+    throw Exception('Delete protected file is not allowed');
+  }
   if (!isKey) {
     // File to be deleted != key => perform all steps
 
@@ -598,15 +601,11 @@ Future<void> deleteFile(
       fileName: filePath,
     );
 
-    final fileUrl = await getFileUrl(filePath);
     await deleteResource(fileUrl, contentType);
     await deleteAclForResource(fileUrl);
-    if (await KeyManager.hasIndividualKey(fileUrl)) {
-      await KeyManager.removeIndividualKey(resourcePath: filePath);
-    }
+    await KeyManager.removeIndividualKey(resourcePath: filePath);
   } else {
     // File to be deleted == key => perform delete only
-    final fileUrl = await getFileUrl(filePath);
     await deleteResource(fileUrl, contentType);
   }
 }
@@ -620,12 +619,7 @@ Future<void> deleteExternalFile(
 }) async {
   await deleteResource(fileUrl, contentType);
   await deleteAclForResource(fileUrl);
-  if (await KeyManager.hasSharedIndividualKey(fileUrl)) {
-    final webId = await AuthDataManager.getWebId();
-    final resUniqueId = getUniqueIdResUrl(fileUrl, webId!);
-
-    await KeyManager.removeSharedIndividualKey(fileUrl, resUniqueId);
-  }
+  await KeyManager.removeSharedIndividualKey(fileUrl);
 
   /// av: Need to add the funtionality to remove the log line from permission
   /// log. Otherwise, it will give an error.
