@@ -172,12 +172,16 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     try {
       final fileMetadata = await readResMetadata(fileName);
 
+      final dateFormatter = DateFormat('EEE, dd MMM yyyy HH:mm:ss');
+
       showFileMetadataDialog(
-          context: context,
-          fileName: fileName,
-          lastModified: fileMetadata['last-modified'] as String,
-          contentLength: fileMetadata['content-length'] as String,
-          contentType: fileMetadata['content-type'] as String);
+        context: context,
+        fileName: fileName,
+        lastModified: dateFormatter.format(fileMetadata.lastModified),
+        contentLength: fileMetadata.contentLength.toString(),
+        contentType: fileMetadata.contentType,
+        allowdAccess: fileMetadata.wacAllow,
+      );
     } on Exception catch (e) {
       debugPrint('Exception: $e');
     }
@@ -226,6 +230,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     required String contentLength,
     required String lastModified,
     required String contentType,
+    required String allowdAccess,
   }) {
     showDialog(
       context: context,
@@ -239,6 +244,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             _infoRow('Last modified', lastModified),
             _infoRow('Contenxt length', contentLength),
             _infoRow('Content type', contentType),
+            _infoRow('Allowed operations', allowdAccess),
           ],
         ),
         actions: [

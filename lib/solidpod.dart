@@ -144,6 +144,10 @@ export 'src/solid/read_pod.dart';
 
 export 'src/solid/read_res_metadata.dart';
 
+/// Metadata model
+
+export 'src/solid/utils/res_metadata.dart';
+
 /// Write to encrypted/non-encrypted files in a POD
 
 export 'src/solid/write_pod.dart';

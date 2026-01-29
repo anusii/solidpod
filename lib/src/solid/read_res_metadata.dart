@@ -35,8 +35,9 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/res_metadata.dart';
 
-Future<Map<String, String>> readResMetadata(
+Future<ResourceMetadata> readResMetadata(
   String filePath, {
   PathType pathType = PathType.relativeToData,
 }) async {
