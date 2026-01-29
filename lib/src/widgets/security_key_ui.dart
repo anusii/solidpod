@@ -168,7 +168,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
 
     if (widget.displayMode == SecurityKeyDisplayMode.fullscreen) {
       return Scaffold(
-        backgroundColor: SecurityColors.background,
+        backgroundColor: SecurityThemeColors.background(context),
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -190,7 +190,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
         maxWidth: SecurityLayout.maxDialogWidth,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: SecurityThemeColors.cardBackground(context),
         borderRadius: BorderRadius.circular(SecurityLayout.borderRadius),
         boxShadow: [
           BoxShadow(
@@ -206,13 +206,13 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
         children: [
           // Header section.
 
-          _buildHeader(),
+          _buildHeader(context),
 
           // Separator.
 
           Container(
             height: SecurityLayout.separatorHeight,
-            color: Colors.grey.shade200,
+            color: SecurityThemeColors.separator(context),
           ),
 
           // Form with input fields.
@@ -235,7 +235,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
 
   /// Builds the header section with title, WebID, and message.
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: SecurityLayout.contentPadding,
       child: Column(
@@ -245,22 +245,22 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
 
           Text(
             widget.title,
-            style: SecurityTextStyles.heading,
+            style: SecurityThemeTextStyles.heading(context),
           ),
 
           // Green divider under heading.
 
           Container(
             height: SecurityLayout.dividerHeight,
-            color: SecurityColors.accent,
+            color: SecurityThemeColors.accent(context),
             margin: SecurityLayout.dividerMargin,
           ),
 
           // "Currently logged in as:" label.
 
-          const Text(
+          Text(
             SecurityStrings.webIdLabel,
-            style: SecurityTextStyles.label,
+            style: SecurityThemeTextStyles.label(context),
           ),
 
           // WebID on separate line.
@@ -269,9 +269,9 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
             padding: SecurityLayout.webIdPadding,
             child: Text(
               widget.webId ?? SecurityStrings.notLoggedIn,
-              style: SecurityTextStyles.webId.copyWith(
-                color:
-                    widget.webId != null ? SecurityColors.primary : Colors.red,
+              style: SecurityThemeTextStyles.webId(
+                context,
+                isLoggedIn: widget.webId != null,
               ),
             ),
           ),
@@ -280,7 +280,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
 
           Text(
             widget.message,
-            style: SecurityTextStyles.body,
+            style: SecurityThemeTextStyles.body(context),
           ),
         ],
       ),
@@ -359,7 +359,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
     final submitButton = ElevatedButton(
       onPressed: _canSubmit ? () async => _submit(context) : null,
       style: ElevatedButton.styleFrom(
-        backgroundColor: SecurityColors.primary,
+        backgroundColor: SecurityThemeColors.primary(context),
         padding: SecurityLayout.buttonPadding,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(SecurityLayout.buttonRadius),
@@ -367,7 +367,7 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
       ),
       child: const Text(
         SecurityStrings.submit,
-        style: SecurityTextStyles.button,
+        style: SecurityThemeTextStyles.button,
       ),
     );
 
@@ -388,12 +388,9 @@ class _SecurityKeyUIState extends State<SecurityKeyUI> {
       style: TextButton.styleFrom(
         padding: SecurityLayout.buttonPadding,
       ),
-      child: const Text(
+      child: Text(
         SecurityStrings.cancel,
-        style: TextStyle(
-          fontSize: 14,
-          color: SecurityColors.text,
-        ),
+        style: SecurityThemeTextStyles.cancelButton(context),
       ),
     );
 
