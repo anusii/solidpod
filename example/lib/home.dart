@@ -242,7 +242,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           children: [
             _infoRow('File name', fileName),
             _infoRow('Last modified', lastModified),
-            _infoRow('Contenxt length', contentLength),
+            _infoRow('Content length', contentLength),
             _infoRow('Content type', contentType),
             _infoRow('Allowed operations', allowdAccess),
           ],
