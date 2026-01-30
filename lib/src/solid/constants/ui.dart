@@ -30,6 +30,90 @@ library;
 
 import 'package:flutter/material.dart';
 
+/// Thresholds for window size
+class WindowSize {
+  /// Small width threshold
+  static const double smallWidthLimit = 600;
+
+  /// Small height threshold
+  static const double smallHeightLimit = 600;
+
+  /// Boolean describing whether the parent widget
+  /// is narrow. Derived from the box constraints
+  /// found by LayoutBuilder().
+  ///
+  /// Arguments:
+  /// - [constraints] - The box constraints of the parent widget where LayoutBuilder() called.
+  bool isNarrowWindow(BoxConstraints constraints) {
+    final bool isNarrow;
+    if (constraints.maxWidth < WindowSize.smallWidthLimit) {
+      isNarrow = true;
+    } else {
+      isNarrow = false;
+    }
+
+    return isNarrow;
+  }
+}
+
+/// Approximate size for grid items used for
+/// displaying text in list item.
+
+class ListItemSize {
+  /// Approximate height of compressed item
+  /// in list
+  /// when list item text is line wrapped
+  /// in a narrow mobile phone size window.
+  /// (Where each of note title, created date time,
+  /// modified date time are line wrapped to
+  /// two lines.)
+
+  static const double compressedItemHeight =
+      260; // (4 row subtitle) 190; (wrapped 4 row subtitle)
+
+  /// Approximate height of uncompressed item
+  /// in list
+  /// when list item text is not line wrapped.
+
+  static const double uncompressedItemHeight =
+      138; // (4 row subtitle) 108; (3 row subtitle)
+
+  /// Calculate card aspect ratio to use for
+  /// gridview builder cards using the box
+  /// constraints found by LayoutBuilder().
+  ///
+  /// Arguments:
+  /// - [constraints] - The box constraints of the parent widget
+  /// where LayoutBuilder() called.
+
+  double calculateCardAspectRatio(BoxConstraints constraints) {
+    /// Aspect ratio (width / height) for gridview
+    /// cards to display note items
+    final double cardAspectRatio;
+
+    // Derive card aspect ratio (width / height)
+    if (constraints.maxWidth < WindowSize.smallWidthLimit) {
+      cardAspectRatio = constraints.maxWidth / compressedItemHeight;
+    } else {
+      cardAspectRatio = constraints.maxWidth / uncompressedItemHeight;
+    }
+    return cardAspectRatio;
+  }
+}
+
+/// Class for icon sizing in list items
+
+class ListIconSize {
+  static const double width = 50;
+  static const double height = 50;
+  static const double twoIconWidth = (width * 2) + gap;
+  static const double gap = 15;
+}
+
+/// Icon shape decoration for list items
+ShapeDecoration listIconShape =
+    const ShapeDecoration(color: Colors.grey, shape: CircleBorder());
+
 // Standard colours for actions and results.
 
 class ActionColors {
