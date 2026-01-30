@@ -31,11 +31,12 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 
-import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
-import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/models/permission.dart';
 import 'package:solidpod/src/solid/revoke_permission_button.dart';
+import 'package:solidpod/src/solid/utils/permission_helper.dart';
 
 /// A [StatefulWidget] for listing the permissions of a resource.
 ///
@@ -86,6 +87,10 @@ class PermissionTable extends StatefulWidget {
 
   final Widget parentWidget;
 
+  /// Layout constraints
+
+  final BoxConstraints constraints;
+
   const PermissionTable({
     super.key,
     required this.resourceName,
@@ -96,6 +101,7 @@ class PermissionTable extends StatefulWidget {
     required this.parentWidget,
     required this.isFile,
     this.isExternalRes = false,
+    required this.constraints,
   });
 
   @override
@@ -103,124 +109,110 @@ class PermissionTable extends StatefulWidget {
 }
 
 class _PermissionTableState extends State<PermissionTable> {
-  /// Controller for horizontal permissions table scrolling
-  final tableScrollController = ScrollController();
+  /// Searched/sorted notes
+  List<Permission> _permissions = [];
+
+  /// Aspect ratio (width / height) for gridview
+  /// cards to display note items
+  late double cardAspectRatio = 2.0;
+
+  /// Boolean describing whether window is narrow
+  late bool isNarrow;
+
+  /// Scroll controller for single child scroll view
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+
+    // Create scroll controller
+    _scrollController = ScrollController();
   }
 
-  DataColumn buildDataColumn(String title, String tooltip) {
-    return DataColumn(
-      label: Expanded(
-        child: Center(
-          child: Text(
-            title,
-          ),
-        ),
-      ),
-      tooltip: tooltip,
-    );
+  @override
+  void dispose() {
+    _scrollController.dispose(); // Dispose the ScrollController
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Make wide permission table horizontally scrollable
-    // Shows when content exceeds display width
-    return Scrollbar(
-      // 20250722 jm:
-      // For scrollbar visibility before scrolling,
-      // set to true, or set property to true
-      // in parent app MaterialApp(theme: ThemeData(scrollbarTheme: scrollbarTheme: ScrollbarThemeData(
-      // thumbVisibility: WidgetStateProperty.all(true)))
-      thumbVisibility: true, // show before user starts scrolling
-      controller: tableScrollController,
-      child: SingleChildScrollView(
-        controller: tableScrollController,
-        scrollDirection: Axis.horizontal,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                DataTable(
-                  columns: [
-                    buildDataColumn(
-                      'Receiver',
-                      'WebID of the permission recipient',
+    // Derive whether window is narrow
+    isNarrow = WindowSize().isNarrowWindow(widget.constraints);
+    // Calculate the aspect radio for grid cards
+    cardAspectRatio =
+        ListItemSize().calculateCardAspectRatio(widget.constraints);
+
+    //  By default _permissions is the full list of permissions
+    _permissions = permMapToList(widget.permDataMap);
+
+    return Expanded(
+      child: GridView.builder(
+        controller: _scrollController,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          // Aspect ratio calculated from LayoutBuilder box constraints
+          crossAxisCount: 1,
+          childAspectRatio: cardAspectRatio,
+        ),
+        padding: const EdgeInsets.all(10),
+        itemCount: _permissions.length, //widget.permDataMap.length,
+        itemBuilder: (context, index) => Card(
+          child: Center(
+            child: Container(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(5)),
+              ),
+              child: MarkdownTooltip(
+                message: _permissions[index].toolTip,
+                child: ListTile(
+                  // Leading icon denoting agreement of access terms
+                  leading: SizedBox(
+                    width: ListIconSize.width,
+                    child: Center(
+                      child: Ink(
+                        padding: const EdgeInsets.all(8),
+                        decoration: listIconShape,
+                        child: const Icon(Icons.handshake),
+                      ),
                     ),
-                    buildDataColumn('Receiver type', 'Type of the receiver'),
-                    buildDataColumn('Permissions', 'List of permissions given'),
-                    buildDataColumn('Actions', 'Delete permission'),
-                  ],
-                  // receiverWebId is the webId of each individual with access to the file
-                  rows: widget.permDataMap.keys.map((receiverWebId) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                            //width: cWidth,
-                            child: Column(
-                              children: <Widget>[
-                                SelectableText(
-                                  (receiverWebId.replaceAll('.ttl', ''))
-                                      as String,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
+                  ),
+                  // Permission item title
+                  title: Text(
+                    _permissions[index].recipientName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    'Recipient type: ${_permissions[index].recipientType} \n'
+                    'WebId: ${_permissions[index].recipientWebId} \n'
+                    'Permissions: ${_permissions[index].permList.join(', ')}',
+                    maxLines: 4, // Limit to 4 lines
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  // Show revoke button for recipientWebId != ownerWebId
+                  trailing: (widget.ownerWebId !=
+                          _permissions[index].recipientWebId)
+                      ? SizedBox(
+                          height: ListIconSize.height,
+                          width: ListIconSize.twoIconWidth,
+                          child: RevokePermissionButton(
+                            resourceName: widget.resourceName,
+                            permDataMap: widget.permDataMap,
+                            receiverWebId: _permissions[index].recipientWebId,
+                            ownerWebId: widget.ownerWebId,
+                            granterWebId: widget.granterWebId,
+                            isFile: widget.isFile,
+                            isExternalRes: widget.isExternalRes,
+                            updatePermissionsFunction:
+                                widget.updatePermissionsFunction,
                           ),
-                        ),
-                        DataCell(
-                          Text(
-                            getRecipientType(
-                              widget.permDataMap[receiverWebId][agentStr]
-                                  as String,
-                              receiverWebId as String,
-                            ).description,
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            (widget.permDataMap[receiverWebId][permStr] as List)
-                                .join(', '),
-                          ),
-                        ),
-                        // If recipient != owner, then show the delete permission button
-                        if (widget.ownerWebId != receiverWebId) ...[
-                          DataCell(
-                            // Revoke permissions icon button
-                            RevokePermissionButton(
-                              resourceName: widget.resourceName,
-                              permDataMap: widget.permDataMap,
-                              receiverWebId: receiverWebId,
-                              ownerWebId: widget.ownerWebId,
-                              granterWebId: widget.granterWebId,
-                              isFile: widget.isFile,
-                              isExternalRes: widget.isExternalRes,
-                              updatePermissionsFunction:
-                                  widget.updatePermissionsFunction,
-                            ),
-                          ),
-                        ] else ...[
-                          const DataCell(
-                            Text(''),
-                          ),
-                        ],
-                      ],
-                    );
-                  }).toList(),
+                        )
+                      : null,
                 ),
-                // Hspace to avoid vertical scrollbar overlap with table
-                ScrollbarLayout.horizontalGap,
-              ],
+              ),
             ),
-            // Vspace to avoid horizontal scrollbar overlap of table
-            ScrollbarLayout.verticalGap,
-          ],
+          ),
         ),
       ),
     );
