@@ -32,6 +32,90 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/utils/heading.dart';
 
+/// Thresholds for window size
+class WindowSize {
+  /// Small width threshold
+  static const double smallWidthLimit = 600;
+
+  /// Small height threshold
+  static const double smallHeightLimit = 600;
+
+  /// Boolean describing whether the parent widget
+  /// is narrow. Derived from the box constraints
+  /// found by LayoutBuilder().
+  ///
+  /// Arguments:
+  /// - [constraints] - The box constraints of the parent widget where LayoutBuilder() called.
+  bool isNarrowWindow(BoxConstraints constraints) {
+    final bool isNarrow;
+    if (constraints.maxWidth < WindowSize.smallWidthLimit) {
+      isNarrow = true;
+    } else {
+      isNarrow = false;
+    }
+
+    return isNarrow;
+  }
+}
+
+/// Approximate size for grid items used for
+/// displaying text in list item.
+
+class ListItemSize {
+  /// Approximate height of compressed item
+  /// in list
+  /// when list item text is line wrapped
+  /// in a narrow mobile phone size window.
+  /// (Where each of note title, created date time,
+  /// modified date time are line wrapped to
+  /// two lines.)
+
+  static const double compressedItemHeight =
+      260; // (4 row subtitle) 190; (wrapped 4 row subtitle)
+
+  /// Approximate height of uncompressed item
+  /// in list
+  /// when list item text is not line wrapped.
+
+  static const double uncompressedItemHeight =
+      138; // (4 row subtitle) 108; (3 row subtitle)
+
+  /// Calculate card aspect ratio to use for
+  /// gridview builder cards using the box
+  /// constraints found by LayoutBuilder().
+  ///
+  /// Arguments:
+  /// - [constraints] - The box constraints of the parent widget
+  /// where LayoutBuilder() called.
+
+  double calculateCardAspectRatio(BoxConstraints constraints) {
+    /// Aspect ratio (width / height) for gridview
+    /// cards to display note items
+    final double cardAspectRatio;
+
+    // Derive card aspect ratio (width / height)
+    if (constraints.maxWidth < WindowSize.smallWidthLimit) {
+      cardAspectRatio = constraints.maxWidth / compressedItemHeight;
+    } else {
+      cardAspectRatio = constraints.maxWidth / uncompressedItemHeight;
+    }
+    return cardAspectRatio;
+  }
+}
+
+/// Class for icon sizing in list items
+
+class ListIconSize {
+  static const double width = 50;
+  static const double height = 50;
+  static const double twoIconWidth = (width * 2) + gap;
+  static const double gap = 15;
+}
+
+/// Icon shape decoration for list items
+ShapeDecoration listIconShape =
+    const ShapeDecoration(color: Colors.grey, shape: CircleBorder());
+
 // Standard colours for actions and results.
 
 class ActionColors {
@@ -59,21 +143,115 @@ class SecurityColors {
 
   static const primary = Color(0xFF2E7D32);
 
+  /// Primary colour for dark mode (lighter green for better contrast).
+
+  static const primaryDark = Color(0xFF66BB6A);
+
   /// Accent colour (Lighter Green) used for dividers and secondary elements.
 
   static const accent = Color(0xFF4CAF50);
+
+  /// Accent colour for dark mode.
+
+  static const accentDark = Color(0xFF81C784);
 
   /// Background colour (Light Grey) used for dialog backgrounds.
 
   static const background = Color(0xFFF5F5F5);
 
+  /// Background colour for dark mode.
+
+  static const backgroundDark = Color(0xFF1E1E1E);
+
   /// Text colour (Dark Grey) used for main text content.
 
   static const text = Color(0xFF212121);
 
+  /// Text colour for dark mode.
+
+  static const textDark = Color(0xFFE0E0E0);
+
   /// Grey colour used for labels and secondary text.
 
   static const labelGrey = Colors.grey;
+
+  /// Label colour for dark mode.
+
+  static const labelGreyDark = Color(0xFF9E9E9E);
+
+  /// Card background colour for light mode.
+
+  static const cardBackground = Colors.white;
+
+  /// Card background colour for dark mode.
+
+  static const cardBackgroundDark = Color(0xFF2D2D2D);
+
+  /// Separator colour for light mode.
+
+  static const separator = Color(0xFFE0E0E0);
+
+  /// Separator colour for dark mode.
+
+  static const separatorDark = Color(0xFF424242);
+}
+
+/// Helper class to obtain theme-aware colours for security UI components.
+///
+/// This class provides methods that return appropriate colours based on the
+/// current theme brightness (light or dark mode).
+
+class SecurityThemeColors {
+  /// Returns the primary colour based on the current theme.
+
+  static Color primary(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? SecurityColors.primaryDark : SecurityColors.primary;
+  }
+
+  /// Returns the accent colour based on the current theme.
+
+  static Color accent(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? SecurityColors.accentDark : SecurityColors.accent;
+  }
+
+  /// Returns the background colour based on the current theme.
+
+  static Color background(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? SecurityColors.backgroundDark : SecurityColors.background;
+  }
+
+  /// Returns the text colour based on the current theme.
+
+  static Color text(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? SecurityColors.textDark : SecurityColors.text;
+  }
+
+  /// Returns the label grey colour based on the current theme.
+
+  static Color labelGrey(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? SecurityColors.labelGreyDark : SecurityColors.labelGrey;
+  }
+
+  /// Returns the card background colour based on the current theme.
+
+  static Color cardBackground(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark
+        ? SecurityColors.cardBackgroundDark
+        : SecurityColors.cardBackground;
+  }
+
+  /// Returns the separator colour based on the current theme.
+
+  static Color separator(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return isDark ? SecurityColors.separatorDark : SecurityColors.separator;
+  }
 }
 
 /// Text styles used across security dialogs and prompts.
@@ -114,6 +292,64 @@ class SecurityTextStyles {
     fontSize: 14,
     color: Colors.white,
   );
+}
+
+/// Helper class to obtain theme-aware text styles for security UI components.
+
+class SecurityThemeTextStyles {
+  /// Returns the heading style based on the current theme.
+
+  static TextStyle heading(BuildContext context) {
+    return TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.bold,
+      color: SecurityThemeColors.primary(context),
+    );
+  }
+
+  /// Returns the body text style based on the current theme.
+
+  static TextStyle body(BuildContext context) {
+    return TextStyle(
+      fontSize: 15,
+      color: SecurityThemeColors.text(context),
+    );
+  }
+
+  /// Returns the WebID style based on the current theme.
+
+  static TextStyle webId(BuildContext context, {bool isLoggedIn = true}) {
+    return TextStyle(
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: isLoggedIn ? SecurityThemeColors.primary(context) : Colors.red,
+    );
+  }
+
+  /// Returns the label style based on the current theme.
+
+  static TextStyle label(BuildContext context) {
+    return TextStyle(
+      fontSize: 13,
+      color: SecurityThemeColors.labelGrey(context),
+    );
+  }
+
+  /// Returns the button text style.
+
+  static const button = TextStyle(
+    fontSize: 14,
+    color: Colors.white,
+  );
+
+  /// Returns the cancel button style based on the current theme.
+
+  static TextStyle cancelButton(BuildContext context) {
+    return TextStyle(
+      fontSize: 14,
+      color: SecurityThemeColors.text(context),
+    );
+  }
 }
 
 /// Layout constants used across security dialogs and prompts.

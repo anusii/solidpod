@@ -323,9 +323,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     BuildContext context, [
     PermissionDetails? futurePermDetails,
   ]) {
-    /// Controller for vertical page scrolling
-    final pageScrollController = ScrollController();
-
     // Check if future is set or not. If set display the permission map
     if (futurePermDetails != null && pageInitialied == false) {
       permDataMap = futurePermDetails.permissionMap;
@@ -363,19 +360,15 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           getResult: () => permissionsGrantedSuccessfully,
         );
 
-    return Scaffold(
-      // Display app bar if showAppBar selected
-      // AppBar will be defaultAppBar() if customAppBar()
-      // not provided
-      appBar: widget.showAppBar ? customAppBar : null,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          // Display app bar if showAppBar selected
+          // AppBar will be defaultAppBar() if customAppBar()
+          // not provided
+          appBar: widget.showAppBar ? customAppBar : null,
 
-      body: Scrollbar(
-        thumbVisibility: true, // show before user starts scrolling
-        controller: pageScrollController,
-        child: SingleChildScrollView(
-          controller: pageScrollController,
-          scrollDirection: Axis.vertical,
-          child: Padding(
+          body: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Column(
               children: [
@@ -399,24 +392,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     onResourceTypeChange: (bool v) =>
                         setState(() => isFile = v),
                   ),
-                  // if (permDataMap.isEmpty) ...[
                   smallGapV,
                   retrievePermissionButton,
-                  // ],
-                  // ElevatedButton(
-                  //   child: const Text('Retrieve permissions'),
-                  //   onPressed: () async {
-                  //     final fileName = fileNameController.text;
-                  //     if (fileName.isEmpty) {
-                  //       await _alert('Please enter a file name');
-                  //     } else {
-                  //       await _updatePermissions(
-                  //         fileName,
-                  //         isFile: isFile,
-                  //       );
-                  //     }
-                  //   },
-                  // ),
                   smallGapV,
                 ],
                 ShareResourceButton(
@@ -434,7 +411,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 largeGapV,
-                makeSubHeading('Current access permissions', addPadding: false),
+                makeSubHeading('People with current access', addPadding: false),
                 PermissionTable(
                   resourceName: permDataFile,
                   permDataMap: permDataMap,
@@ -444,12 +421,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   parentWidget: widget.child,
                   isFile: getIsFile(),
                   isExternalRes: widget.isExternalRes,
+                  constraints: constraints,
                 ),
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

@@ -33,6 +33,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 
+import 'package:solidpod/src/solid/constants/ui.dart';
+
 /// A [StatefulWidget] for user to enter a secret text.
 
 class SecretTextField extends StatefulWidget {
@@ -63,29 +65,32 @@ class _SecretTextFieldState extends State<SecretTextField> {
 
   @override
   Widget build(BuildContext context) {
-    // The label text style
+    // The label text style using theme-aware colour.
 
-    const style = TextStyle(
-      color: Colors.grey,
+    final style = TextStyle(
+      color: SecurityThemeColors.labelGrey(context),
       letterSpacing: 1.5,
       fontSize: 13.0,
       fontWeight: FontWeight.bold,
-      // fontStyle: FontStyle.italic,
     );
 
-    // The suffix icon
+    // The suffix icon with theme-aware colour.
 
+    final iconColor = SecurityThemeColors.labelGrey(context);
     final icon = IconButton(
-      icon: Icon(_showSecret ? Icons.visibility : Icons.visibility_off),
+      icon: Icon(
+        _showSecret ? Icons.visibility : Icons.visibility_off,
+        color: iconColor,
+      ),
       onPressed: () => setState(() {
         // Toggle the state to show/hide the secret.
         _showSecret = !_showSecret;
       }),
-      // not participate in focus traversal (ignore TAB key)
+      // Does not participate in focus traversal (ignore TAB key).
       focusNode: FocusNode(skipTraversal: true),
     );
 
-    // The validator
+    // The validator.
 
     final secretValidator = FormBuilderValidators.compose([
       FormBuilderValidators.required(),
@@ -101,6 +106,8 @@ class _SecretTextFieldState extends State<SecretTextField> {
         labelStyle: style,
         suffixIcon: icon,
       ),
+      style: TextStyle(color: SecurityThemeColors.text(context)),
+      cursorColor: SecurityThemeColors.primary(context),
       validator: secretValidator,
     );
   }
