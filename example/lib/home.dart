@@ -44,6 +44,7 @@ import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
 import 'package:intl/intl.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:solidui/solidui.dart'
     show
         InitialSetupScreenBody,
@@ -514,7 +515,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        Tooltip(
+                        MarkdownTooltip(
                           message:
                               'This will remove from our local device\'s memory the '
                               'solid pod login information so that the next time you '
@@ -556,7 +557,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         smallGapV,
-                        Tooltip(
+                        MarkdownTooltip(
                           message:
                               'This will send a request through the browser to the '
                               'remote solid server to log you out of your Pod.',

@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   intl: any
+  markdown_tooltip: ^0.0.10
   rdflib: ^0.2.12
   solidpod: ^0.9.12
   solidui: ^0.0.25
