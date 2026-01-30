@@ -134,7 +134,7 @@ class _RevokePermissionButtonState extends State<RevokePermissionButton> {
                       fileName: widget.resourceName,
                       isFile: widget.isFile,
                       permissionList: widget.permDataMap[widget.receiverWebId]
-                          [permStr] as List,
+                          [permStr] as List<String>,
                       recipientIndOrGroupWebId: widget.receiverWebId,
                       ownerWebId: widget.ownerWebId,
                       granterWebId: widget.granterWebId,
