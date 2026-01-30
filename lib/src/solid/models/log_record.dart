@@ -41,6 +41,7 @@ class LogRecord {
   final String granterWebId;
   final String recipientWebId;
   final List<String> permissionList; // List or string
+  final String? constraints;
 
   const LogRecord({
     required this.dateTimeStr,
@@ -50,5 +51,6 @@ class LogRecord {
     required this.granterWebId,
     required this.recipientWebId,
     required this.permissionList,
+    this.constraints,
   });
 }
