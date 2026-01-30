@@ -5,6 +5,8 @@
 /// Licensed under the MIT License (the "License").
 ///
 /// License: https://choosealicense.com/licenses/mit/.
+///
+// ignore_for_file: unused_element
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal

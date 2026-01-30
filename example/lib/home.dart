@@ -32,15 +32,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:intl/intl.dart';
-import 'package:solidpod/solidpod.dart';
-import 'package:solidui/solidui.dart'
-    show
-        InitialSetupScreenBody,
-        loginIfRequired,
-        logoutPopup,
-        getKeyFromUserIfRequired;
-
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
@@ -52,6 +43,15 @@ import 'package:demopod/features/read_acl_inherited_file.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
+import 'package:intl/intl.dart';
+import 'package:solidui/solidui.dart'
+    show
+        InitialSetupScreenBody,
+        loginIfRequired,
+        logoutPopup,
+        getKeyFromUserIfRequired;
+
+import 'package:solidpod/solidpod.dart';
 
 /// A widget for the demonstration screen of the application.
 
