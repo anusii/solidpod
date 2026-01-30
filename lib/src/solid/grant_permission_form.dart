@@ -360,7 +360,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
           onPressed: () async {
             // Grant Permission and update permission map
             // used by permission table
-
+            // TODO: ensure selectedPermList is lowercase before recorded
             if (selectedRecipientType.type.isNotEmpty) {
               if (selectedPermList.isNotEmpty) {
                 SolidFunctionCallStatus result;
