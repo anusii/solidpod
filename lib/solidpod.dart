@@ -60,11 +60,6 @@ export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;
 export 'src/solid/common_func.dart'
     show checkPodInitialization, deleteDataFileDialog;
 
-/// Security UI constants including SecurityStrings, SecurityColors, etc.
-
-export 'src/solid/constants/ui.dart'
-    show SecurityStrings, SecurityColors, SecurityTextStyles, SecurityLayout;
-
 /// Includes the AppInfo class which stores app specific information
 /// such as name, version, canonical name, package name, build number.
 
@@ -127,14 +122,6 @@ export 'src/solid/utils/get_url_helper.dart'
 
 export 'src/solid/utils/init_helper.dart'
     show generateDefaultFolders, generateCustomFolders, generateDefaultFiles;
-
-/// Change security key popup widget
-
-export 'src/widgets/change_key_dialog.dart';
-
-/// Security key UI widget for prompting and displaying security key dialogs
-
-export 'src/widgets/security_key_ui.dart';
 
 /// Read encrypted/non-encrypted files stored in a POD
 

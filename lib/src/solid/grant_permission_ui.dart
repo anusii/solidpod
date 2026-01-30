@@ -33,7 +33,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show normalLoadingScreenHeight;
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/models/permission_details.dart';

@@ -39,7 +39,8 @@ import 'package:solidui/solidui.dart'
         InitialSetupScreenBody,
         loginIfRequired,
         logoutPopup,
-        getKeyFromUserIfRequired;
+        getKeyFromUserIfRequired,
+        changeKeyPopup;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
