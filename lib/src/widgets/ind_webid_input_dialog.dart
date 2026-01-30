@@ -33,10 +33,11 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidui/solidui.dart'
     show WebIdLayout, SecurityColors, DropdownColors;
+
+import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
 import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';

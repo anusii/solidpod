@@ -33,9 +33,9 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
-
 import 'package:solidui/solidui.dart'
     show WindowSize, ListItemSize, ListIconSize, listIconShape;
+
 import 'package:solidpod/src/solid/models/permission.dart';
 import 'package:solidpod/src/solid/revoke_permission_button.dart';
 import 'package:solidpod/src/solid/utils/permission_helper.dart';
