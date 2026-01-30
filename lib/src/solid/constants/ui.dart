@@ -30,6 +30,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/utils/heading.dart';
+
 /// Thresholds for window size
 class WindowSize {
   /// Small width threshold
@@ -436,6 +438,110 @@ class SecurityStrings {
   static const cancel = 'Cancel';
 }
 
+/// Small vertical spacing for the widget.
+const smallGapV = SizedBox(height: 10.0);
+
+/// Large vertical spacing for the widget.
+const largeGapV = SizedBox(height: 40.0);
+
+/// Normal height for data loading screens
+const double normalLoadingScreenHeight = 200.0;
+
+/// Text styles used for permission form
+
+class RecipientTextStyle {
+  /// Style for the label.
+
+  static const label = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+  );
+
+  /// Style for the WebID display.
+
+  static const webId = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    // 20251008 gjw Choose blue rather than
+    // orange which looks red. The red looks
+    // like it is an error. Blue is more
+    // neutral.
+    color: Colors.blueAccent,
+  );
+}
+
+/// Layout constants for sub headings
+
+class SubHeadingStyle {
+  /// Fontsize
+
+  static const double fontsize = 17.0;
+
+  /// Font color
+
+  static const Color fontcolor = Color.fromRGBO(96, 125, 139, 1);
+
+  /// Font weight
+
+  static const FontWeight fontweight = FontWeight.bold;
+
+  /// Padding
+
+  static const double padding = 8.0;
+}
+
+/// Layout constants for sub headings
+
+class HeadingStyle {
+  /// Fontsize
+
+  static const double fontsize = 22.0;
+
+  /// Font color
+
+  static const Color fontcolor = Color.fromRGBO(96, 125, 139, 1);
+
+  /// Font weight
+
+  static const FontWeight fontweight = FontWeight.bold;
+
+  /// Padding
+
+  static const double padding = 8.0;
+}
+
+/// Make sub heading using SubHeadingStyle as default
+
+Widget makeSubHeading(
+  String text, {
+  bool bold = true,
+  bool addColor = true,
+  bool addPadding = true,
+}) =>
+    buildHeading(
+      text: text,
+      fontSize: SubHeadingStyle.fontsize,
+      fontWeight: (bold) ? SubHeadingStyle.fontweight : FontWeight.normal,
+      color: (addColor) ? SubHeadingStyle.fontcolor : Colors.black,
+      padding: (addPadding) ? SubHeadingStyle.padding : 0,
+    );
+
+/// Make heading using HeadingStyle as default
+
+Widget makeHeading(
+  String text, {
+  bool bold = true,
+  bool addColor = true,
+  bool addPadding = true,
+}) =>
+    buildHeading(
+      text: text,
+      fontSize: HeadingStyle.fontsize,
+      fontWeight: (bold) ? HeadingStyle.fontweight : FontWeight.normal,
+      color: (addColor) ? HeadingStyle.fontcolor : Colors.black,
+      padding: (addPadding) ? HeadingStyle.padding : 0,
+    );
+
 /// Layout constants for scrollbars.
 
 class ScrollbarLayout {
@@ -452,9 +558,6 @@ class ScrollbarLayout {
   static const horizontalGap = SizedBox(width: 10);
 }
 
-/// Normal height for data loading screens
-const double normalLoadingScreenHeight = 200.0;
-
 /// Colours used across dropdown dialogs and prompts.
 
 class DropdownColors {
@@ -467,20 +570,22 @@ class DropdownColors {
   static const accent = Color(0xFF4CAF50);
 }
 
-/// Layout constants used for WebId dialogs
+/// Layout constants used for sharing page
+
+class SharingPageLayout {
+  /// Padding for dialog input sections
+
+  static const inputPadding = EdgeInsets.all(
+    8,
+  );
+}
+
+/// Layout constants used for WebId entry containers
 
 class WebIdLayout {
-  /// Vertical gap between paragraphs
-
-  static const paraVertGap = SizedBox(height: 10);
-
-  /// Standard padding for dialog content.
+  /// Standard padding for page content.
 
   static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
-
-  /// Standard width for security dialogs.
-
-  static const dialogWidth = 480.0;
 
   /// Height of dropdown suggestion box.
 
@@ -505,6 +610,12 @@ class GrantPermFormLayout {
   /// Standard padding for dialog content.
 
   static const contentPadding = EdgeInsets.symmetric(horizontal: 50);
+
+  /// Padding for dialog input sections
+
+  static const inputPadding = EdgeInsets.all(
+    8,
+  );
 
   /// Standard width for security dialogs.
 

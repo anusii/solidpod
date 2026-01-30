@@ -33,12 +33,13 @@ library;
 import 'package:flutter/material.dart';
 
 /// Sub heading build function
-Row buildHeading(
-  String headingStr,
-  double fontSize, [
-  Color? headingColor,
+Row buildHeading({
+  required String text,
+  required double fontSize,
+  FontWeight? fontWeight,
+  Color? color,
   double? padding,
-]) {
+}) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -46,11 +47,11 @@ Row buildHeading(
         child: Padding(
           padding: padding == null ? EdgeInsets.zero : EdgeInsets.all(padding),
           child: Text(
-            headingStr,
+            text,
             style: TextStyle(
               fontSize: fontSize,
-              fontWeight: FontWeight.w700,
-              color: headingColor ?? Colors.black,
+              fontWeight: fontWeight ?? FontWeight.normal,
+              color: color ?? Colors.black,
             ),
           ),
         ),
