@@ -1,4 +1,4 @@
-/// Data model for permission log in a POD.
+/// Data model for record part of a log entry into permission log.
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -28,16 +28,27 @@
 
 library;
 
-import 'package:solidpod/src/solid/models/log_record.dart';
+/// Data model for log record data in each log entry in the permission log
+/// in a Pod
+/// /// '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recipientWebId;${permissionListStr.toLowerCase()}'
+///
 
-/// Data model for entries in the permission log file in a Pod
+class LogRecord {
+  final String dateTimeStr; // Change to date format?
+  final String resourceUrl;
+  final String ownerWebId;
+  final String permissionType;
+  final String granterWebId;
+  final String recipientWebId;
+  final List<String> permissionList; // List or string
 
-class LogEntry {
-  final String id;
-  final LogRecord record;
-
-  const LogEntry({
-    required this.id,
-    required this.record,
+  const LogRecord({
+    required this.dateTimeStr,
+    required this.resourceUrl,
+    required this.ownerWebId,
+    required this.permissionType,
+    required this.granterWebId,
+    required this.recipientWebId,
+    required this.permissionList,
   });
 }
