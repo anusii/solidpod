@@ -25,10 +25,10 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:file_picker/file_picker.dart';
-import 'package:solidpod/solidpod.dart';
-
 import 'package:demopod/dialogs/alert.dart';
+import 'package:file_picker/file_picker.dart';
+
+import 'package:solidpod/solidpod.dart';
 
 class FileService extends StatefulWidget {
   const FileService({required this.child, required this.webId, super.key});

@@ -32,15 +32,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:intl/intl.dart';
-import 'package:solidpod/solidpod.dart';
-import 'package:solidui/solidui.dart'
-    show
-        InitialSetupScreenBody,
-        loginIfRequired,
-        logoutPopup,
-        getKeyFromUserIfRequired;
-
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
@@ -52,6 +43,16 @@ import 'package:demopod/features/read_acl_inherited_file.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
+import 'package:intl/intl.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
+import 'package:solidui/solidui.dart'
+    show
+        InitialSetupScreenBody,
+        loginIfRequired,
+        logoutPopup,
+        getKeyFromUserIfRequired;
+
+import 'package:solidpod/solidpod.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -299,9 +300,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         },
         child: const Text('Upload/Download Large File'));
 
-    // TODO 20240524 gjw A WORK IN PROGRESS TO MIGRATE THE WIDGETS BELOW UP
-    // HERE.
-
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
           final loggedIn = await loginIfRequired(
@@ -517,70 +515,60 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             ),
                           ],
                         ),
-                        // TODO 20240515 gjw Add a tooltip for the next button:
-                        //
-                        // This will remove from our local device's memory the
-                        // solid pod login information so that the next time you
-                        // start up the app you will need to login to your solid
-                        // server hosting your pod.
-                        ElevatedButton(
-                          child: const Text('Forget Remote Solid Server Login'),
-                          onPressed: () async {
-                            final deleteRes = await deleteLogIn();
+                        MarkdownTooltip(
+                          message:
+                              'This will remove from our local device\'s memory the '
+                              'solid pod login information so that the next time you '
+                              'start up the app you will need to login to your solid '
+                              'server hosting your pod.',
+                          child: ElevatedButton(
+                            child:
+                                const Text('Forget Remote Solid Server Login'),
+                            onPressed: () async {
+                              final deleteRes = await deleteLogIn();
 
-                            var deleteMsg = '';
+                              var deleteMsg = '';
 
-                            if (deleteRes) {
-                              deleteMsg =
-                                  'Successfully forgot remote solid server login info';
-                            } else {
-                              deleteMsg =
-                                  'Failed to forget login info. Try again in a while';
-                            }
+                              if (deleteRes) {
+                                deleteMsg =
+                                    'Successfully forgot remote solid server login info';
+                              } else {
+                                deleteMsg =
+                                    'Failed to forget login info. Try again in a while';
+                              }
 
-                            await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Notice'),
-                                content: Text(deleteMsg),
-                                actions: [
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('OK'))
-                                ],
-                              ),
-                            );
+                              await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Notice'),
+                                  content: Text(deleteMsg),
+                                  actions: [
+                                    ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('OK'))
+                                  ],
+                                ),
+                              );
 
-                            _resetWebId();
-                          },
+                              _resetWebId();
+                            },
+                          ),
                         ),
                         smallGapV,
-                        // TODO 20240515 gjw Add a tooltip for the next button:
-                        //
-                        // This will remove send a request through the browser
-                        // to the remote solid server to log the suer out of their
-                        // Pod.
-                        //
-                        // Some clarifications needed here:
-                        //
-                        // 1. On my Brave browser it displays the sign out page
-                        // with Yes/No options. Apparently that does not appear
-                        // on all browsers?
-                        //
-                        // 2. Anushka commented that it may not actually log you
-                        // out?
-                        //
-                        // 3. Explain how this is different conceptually to the
-                        // delteLogIn().
-                        //
-                        ElevatedButton(
+                        MarkdownTooltip(
+                          message:
+                              'This will send a request through the browser to the '
+                              'remote solid server to log you out of your Pod.',
+                          child: ElevatedButton(
                             onPressed: () async {
                               await logoutPopup(context, const DemoPod());
                             },
                             child:
-                                const Text('Logout From Remote Solid Server')),
+                                const Text('Logout From Remote Solid Server'),
+                          ),
+                        ),
                         largeGapV,
                         const Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

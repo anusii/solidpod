@@ -41,7 +41,8 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show isUserLoggedIn, logoutPod;
 
 // Scopes variables used in the authentication process.
 
@@ -68,38 +69,71 @@ Future<List<dynamic>?> solidAuthenticate(
   String serverId,
   BuildContext context,
 ) async {
-  Map<dynamic, dynamic>? authData;
-
-  if (await isUserLoggedIn()) {
-    authData = await AuthDataManager.loadAuthData();
-    assert(authData != null);
-  } else {
-    debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
-    // Authentication process for the POD issuer.
-
-    final issuerUri = await getIssuer(serverId);
-    authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
-
-    if (!authData.containsKey('error')) {
-      // write authentication data to flutter secure storage
-      await AuthDataManager.saveAuthData(authData);
-    }
-  }
-
   try {
-    if (!authData!.containsKey('error')) {
-      final webId = await AuthDataManager.getWebId();
-      assert(webId != null);
+    final loggedIn = await isUserLoggedIn();
+    Map<dynamic, dynamic>? authData;
+    if (loggedIn) {
+      authData = await AuthDataManager.loadAuthData();
+      if (authData == null) {
+        // Fall through to re-authenticate
+      }
+    }
 
-      final profCardUrl = webId!.replaceAll('#me', '');
+    // If not logged in or load failed, perform new authentication
+    if (!loggedIn || authData == null) {
+      debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
+      // Authentication process for the POD issuer.
+
+      final issuerUri = await getIssuer(serverId);
+      authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
+
+      // Validate authentication response before saving
+      if (authData.isEmpty) {
+        return null;
+      }
+
+      if (authData.containsKey('error')) {
+        return null;
+      }
+
+      // Validate that required authentication fields are present
+      if (!authData.containsKey('accessToken') ||
+          authData['accessToken'] == null) {
+        return null;
+      }
+
+      // Let saveAuthData() decode the JWT and extract webId
+      // If webId extraction fails, saveAuthData() will handle it and skip saving
+      await AuthDataManager.saveAuthData(authData);
+
+      // Verify that webId was successfully extracted and saved
+      final webId = await AuthDataManager.getWebId();
+      if (webId == null || webId.isEmpty) {
+        return null;
+      }
+
+      // Proceed to fetch profile data with the authenticated credentials
+      final profCardUrl = webId.replaceAll('#me', '');
       final profData = utf8.decode(
         await getResource(profCardUrl),
       );
 
       return [authData, webId, profData];
-    } else {
+    }
+
+    // Already logged in successfully - fetch profile data
+    final webId = await AuthDataManager.getWebId();
+    if (webId == null || webId.isEmpty) {
+      await logoutPod();
       return null;
     }
+
+    final profCardUrl = webId.replaceAll('#me', '');
+    final profData = utf8.decode(
+      await getResource(profCardUrl),
+    );
+
+    return [authData, webId, profData];
   } on Object catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;
