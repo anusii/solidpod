@@ -72,7 +72,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 
 Future<SolidFunctionCallStatus> grantPermission({
   required String fileName,
-  required List<dynamic> permissionList,
+  required List<String> permissionList,
   required RecipientType recipientType,
   required List<dynamic> recipientWebIdList,
   required String ownerWebId,

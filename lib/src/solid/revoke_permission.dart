@@ -65,7 +65,7 @@ import 'package:solidpod/src/solid/utils/permission.dart';
 
 Future<SolidFunctionCallStatus> revokePermission({
   required String fileName,
-  required List<dynamic> permissionList,
+  required List<String> permissionList,
   required String recipientIndOrGroupWebId,
   required String ownerWebId,
   required String granterWebId,

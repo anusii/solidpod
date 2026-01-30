@@ -63,7 +63,7 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 Future<SolidFunctionCallStatus> revokePermissionToDelFile({
   required String fileName,
   required bool isFileEncrypted,
-  required List<dynamic> permissionList,
+  required List<String> permissionList,
   required String recipientWebId,
   required String ownerWebId,
   required String granterWebId,
