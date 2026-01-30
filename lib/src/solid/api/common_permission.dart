@@ -36,6 +36,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 
 /// A class to represent permission log literals
 enum PermissionLogLiteral {
@@ -87,7 +88,7 @@ enum PermissionLogLiteral {
 /// Returns the log entry object ([LogEntry]) comprising ID and
 /// the log record string.
 LogEntry createPermLogEntry({
-  required List<dynamic> permissionList,
+  required List<String> permissionList,
   required String resourceUrl,
   required String ownerWebId,
   required String permissionType,
@@ -96,13 +97,25 @@ LogEntry createPermLogEntry({
 }) {
   // Create log entry object
   final LogEntry logEntry;
-  final permissionListStr = permissionList.join(',');
+  final LogRecord logRecord;
+  // final permissionListStr = permissionList.join(',');
   final dateTimeStr = DateFormat('yyyyMMddTHHmmss').format(DateTime.now());
   final logEntryId = DateFormat('yyyyMMddTHHmmssSSS').format(DateTime.now());
-  final logEntryStr =
-      '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recipientWebId;${permissionListStr.toLowerCase()}';
+  // final logEntryStr =
+  //     '$dateTimeStr;$resourceUrl;$ownerWebId;$permissionType;$granterWebId;$recipientWebId;${permissionListStr.toLowerCase()}';
+  logRecord = LogRecord(
+    dateTimeStr: dateTimeStr,
+    resourceUrl: resourceUrl,
+    ownerWebId: ownerWebId,
+    permissionType: permissionType,
+    granterWebId: granterWebId,
+    recipientWebId: recipientWebId,
+    permissionList: permissionList,
+  );
 
-  logEntry = LogEntry(id: logEntryId, record: logEntryStr);
+  logEntry = LogEntry(
+    id: logEntryId, record: logRecord, // logEntryStr
+  );
 
   return logEntry;
 }
