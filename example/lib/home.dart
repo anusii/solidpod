@@ -167,6 +167,27 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
+  Future<void> _readMetaData() async {
+    final fileName = _writeEncrypted ? dataFile : dataFilePlain;
+
+    try {
+      final fileMetadata = await readResMetadata(fileName);
+
+      final dateFormatter = DateFormat('EEE, dd MMM yyyy HH:mm:ss');
+
+      showFileMetadataDialog(
+        context: context,
+        fileName: fileName,
+        lastModified: dateFormatter.format(fileMetadata.lastModified),
+        contentLength: fileMetadata.contentLength.toString(),
+        contentType: fileMetadata.contentType,
+        allowdAccess: fileMetadata.wacAllow,
+      );
+    } on Exception catch (e) {
+      debugPrint('Exception: $e');
+    }
+  }
+
   // Helper method to demonstrate the security key prompt.
 
   Future<void> _showSecurityKeyPrompt() async {
@@ -202,6 +223,58 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         await alert(context, 'Error or cancelled: $e');
       }
     }
+  }
+
+  void showFileMetadataDialog({
+    required BuildContext context,
+    required String fileName,
+    required String contentLength,
+    required String lastModified,
+    required String contentType,
+    required String allowdAccess,
+  }) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('File Information'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _infoRow('File name', fileName),
+            _infoRow('Last modified', lastModified),
+            _infoRow('Content length', contentLength),
+            _infoRow('Content type', contentType),
+            _infoRow('Allowed operations', allowdAccess),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Expanded(child: Text(value)),
+        ],
+      ),
+    );
   }
 
   Widget _build(BuildContext context, String title) {
@@ -397,6 +470,15 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           onPressed: () async {
                             await loginIfRequired(context);
                             await _readWritePrivateData();
+                          },
+                        ),
+                        smallGapV,
+
+                        ElevatedButton(
+                          child: const Text('Read Metadata of Pod Data File'),
+                          onPressed: () async {
+                            await loginIfRequired(context);
+                            await _readMetaData();
                           },
                         ),
                         smallGapV,

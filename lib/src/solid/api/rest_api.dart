@@ -38,6 +38,7 @@ import 'dart:typed_data' show Uint8List;
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:rdflib/rdflib.dart';
 
@@ -47,6 +48,7 @@ import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/res_metadata.dart';
 
 /// Parse encrypted file content and extract into a map.
 ///
@@ -541,6 +543,49 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
     }
   }
   return (subDirs: containers, files: files);
+}
+
+/// Get the metadata of a resource with URL [resourceUrl]
+/// from server. The resource could be a text, turtle,
+/// binary file, or a directory. If [resourceUrl] ends
+/// with '/', it is considered as a container / directory.
+
+Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
+  final (:accessToken, :dPopToken) =
+      await getTokensForResource(resourceUrl, 'HEAD');
+
+  final response = await http.head(
+    Uri.parse(resourceUrl),
+    headers: <String, String>{
+      'Accept': '*/*',
+      'Authorization': 'DPoP $accessToken',
+      'Connection': 'keep-alive',
+      'DPoP': dPopToken,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final dateFormatter = DateFormat(
+      'EEE, dd MMM yyyy HH:mm:ss z',
+      'en_US',
+    );
+
+    ResourceMetadata metadata = ResourceMetadata(
+      contentLength: int.parse(response.headers[contentLength]!),
+      contentType: response.headers[contentType]!,
+      lastModified: dateFormatter.parseUtc(response.headers[lastModified]!),
+      eTag: response.headers[eTag]!,
+      lastAccessed: dateFormatter.parseUtc(response.headers[lastAccessed]!),
+      acceptPatch: response.headers[acceptPatch]!,
+      wacAllow: response.headers[wacAllow]!
+          .replaceAll('user=', '')
+          .replaceAll('"', ''),
+    );
+
+    return metadata;
+  } else {
+    throw Exception('Failed to get resource $resourceUrl metadata');
+  }
 }
 
 /// Check if a file is encrypted
