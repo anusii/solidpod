@@ -26,6 +26,7 @@
 ///
 /// Authors: Anushka Vidanage
 ///
+library;
 
 class ResourceMetadata {
   // The size, in bytes, of the message body that
