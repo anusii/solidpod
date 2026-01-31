@@ -38,9 +38,12 @@ import 'package:solidpod/src/solid/constants/common.dart'
         agentGroupPred,
         agentPred,
         foaf,
+        profCard,
         rdf,
         terms,
         vcard;
+import 'package:solidpod/src/solid/constants/predicates.dart'
+    show PredicateBase;
 import 'package:solidpod/src/solid/constants/schema.dart'
     show NS, aclNS, appsTerms, solidTermsNS, termsNS, vcardNS;
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -60,16 +63,27 @@ final bindAclNamespaces = {
   // rdfNS.prefix: rdfNS.ns // already binded in rdflib
 };
 
-/// TODO:av - Move the class Predicate to a common location and
-/// add all the other relavant predicates
+// NOTE: Common predicates (RdfPredicate, FoafPredicate, VcardPredicate,
+// DcTermsPredicate, XsdDatatype, CommonAclPredicate) have been defined in
+// predicates.dart and are re-exported from this file for convenience.
+// The AclPredicate enum below is kept for backward compatibility and combines
+// predicates from multiple namespaces for ACL operations.
 
-/// Predicates for web access control
-
-enum AclPredicate {
-  /// Predicate of acl:Authorization
+/// Predicates for web access control operations.
+/// This enum combines predicates from multiple namespaces (ACL, FOAF, VCard,
+/// DC Terms, RDF) for convenience in ACL file generation.
+///
+/// For namespace-specific predicates, see the re-exported enums:
+/// - [CommonAclPredicate] - Pure ACL predicates
+/// - [VcardPredicate] - VCard predicates
+/// - [FoafPredicate] - FOAF predicates
+/// - [DcTermsPredicate] - Dublin Core Terms predicates
+/// - [RdfPredicate] - RDF predicates
+enum AclPredicate with PredicateBase {
+  /// Predicate of rdf:type (alias for convenience)
   aclRdfType('${rdf}type'),
 
-  /// Operations the agents can perform on a resource
+  /// Operations the agents can perform on a resource (alias)
   aclMode('${acl}mode'),
 
   /// Vcard group predicate
@@ -113,10 +127,7 @@ enum AclPredicate {
   /// String value of access predicate
   final String _value;
 
-  /// Return the URIRef of predicate
-  URIRef get uriRef => URIRef(_value);
-
-  /// Return the string of predicate
+  @override
   String get value => _value;
 }
 
@@ -269,6 +280,51 @@ RecipientType getRecipientType(String agentType, String receiverUri) {
     }
   }
   return recipientType;
+}
+
+/// Get recipient name from recipient webId
+String getRecipientName({
+  required String recipientWebId,
+  required RecipientType recipientType,
+}) {
+  final String recipientName;
+
+  if (recipientType == RecipientType.public) {
+    recipientName = 'Anyone';
+  } else if (recipientType == RecipientType.authUser) {
+    recipientName = 'All Loggedin Users';
+  } else {
+    recipientName = recipientWebId.replaceAll('/$profCard', '').split('/').last;
+  }
+
+  return recipientName;
+}
+
+/// Get recipient permission tooltip
+String getPermissionTooltip({
+  required String recipientName,
+  required RecipientType recipientType,
+  required List<String> permList,
+}) {
+  String toolTip;
+
+  if (recipientType == RecipientType.public) {
+    toolTip = 'Accessible with ${permList.join(', ')}'
+        ' access to anyone';
+  } else if (recipientType == RecipientType.authUser) {
+    toolTip = 'Accessible to all loggedin users '
+        'with ${permList.join(', ')} access';
+  } else {
+    toolTip = 'Accessible to $recipientName '
+        'with ${permList.join(', ')} access';
+  }
+
+  if (permList.contains('Control')) {
+    toolTip = '$toolTip '
+        '(i.e. they can share or revoke access to others)';
+  }
+
+  return toolTip;
 }
 
 /// Generate the content of encKeyFile

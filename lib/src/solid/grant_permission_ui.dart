@@ -43,7 +43,6 @@ import 'package:solidpod/src/solid/share_resource_button.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/get_authoriser.dart';
-import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
@@ -324,9 +323,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     BuildContext context, [
     PermissionDetails? futurePermDetails,
   ]) {
-    /// Controller for vertical page scrolling
-    final pageScrollController = ScrollController();
-
     // Check if future is set or not. If set display the permission map
     if (futurePermDetails != null && pageInitialied == false) {
       permDataMap = futurePermDetails.permissionMap;
@@ -364,31 +360,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           getResult: () => permissionsGrantedSuccessfully,
         );
 
-    return Scaffold(
-      // Display app bar if showAppBar selected
-      // AppBar will be defaultAppBar() if customAppBar()
-      // not provided
-      appBar: widget.showAppBar ? customAppBar : null,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Scaffold(
+          // Display app bar if showAppBar selected
+          // AppBar will be defaultAppBar() if customAppBar()
+          // not provided
+          appBar: widget.showAppBar ? customAppBar : null,
 
-      body: Scrollbar(
-        thumbVisibility: true, // show before user starts scrolling
-        controller: pageScrollController,
-        child: SingleChildScrollView(
-          controller: pageScrollController,
-          scrollDirection: Axis.vertical,
-          child: Padding(
+          body: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Column(
               children: [
                 smallGapV,
                 // Sharing heading
-                buildHeading(
-                  getSharingTitleStr(
+                makeHeading(
+                  makeSharingTitleStr(
                     fileName: widget.resourceName,
                     isFile: widget.isFile,
                   ),
-                  22,
-                  Colors.blueGrey,
+                  bold: false,
+                  addColor: false,
+                  addPadding: false,
                 ),
                 smallGapV,
                 // Choose resource and show _updatePermissions button
@@ -399,24 +392,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     onResourceTypeChange: (bool v) =>
                         setState(() => isFile = v),
                   ),
-                  // if (permDataMap.isEmpty) ...[
                   smallGapV,
                   retrievePermissionButton,
-                  // ],
-                  // ElevatedButton(
-                  //   child: const Text('Retrieve permissions'),
-                  //   onPressed: () async {
-                  //     final fileName = fileNameController.text;
-                  //     if (fileName.isEmpty) {
-                  //       await _alert('Please enter a file name');
-                  //     } else {
-                  //       await _updatePermissions(
-                  //         fileName,
-                  //         isFile: isFile,
-                  //       );
-                  //     }
-                  //   },
-                  // ),
                   smallGapV,
                 ],
                 ShareResourceButton(
@@ -434,7 +411,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 largeGapV,
-                getHeading('Current access permissions'),
+                makeSubHeading('People with current access', addPadding: false),
                 PermissionTable(
                   resourceName: permDataFile,
                   permDataMap: permDataMap,
@@ -444,12 +421,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   parentWidget: widget.child,
                   isFile: getIsFile(),
                   isExternalRes: widget.isExternalRes,
+                  constraints: constraints,
                 ),
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

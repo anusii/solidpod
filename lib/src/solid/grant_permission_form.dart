@@ -42,8 +42,8 @@ import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/is_phone.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
-import 'package:solidpod/src/widgets/group_webid_input_dialog.dart';
-import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/group_webid_input.dart';
+import 'package:solidpod/src/widgets/ind_webid_input_screen.dart';
 
 /// Sharing (grant permission) form dialog function
 ///
@@ -146,17 +146,13 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
   List<dynamic> finalWebIdList = [];
 
+  /// Selected group name
+
+  String selectedGroupName = '';
+
   /// Selected list of permissions
 
   List<String> selectedPermList = [];
-
-  /// Group name text controller
-
-  final groupNameController = TextEditingController();
-
-  /// Group of webIds text controller
-
-  final groupWebIdsController = TextEditingController();
 
   /// Flag to track if permissions were granted successfully.
 
@@ -198,8 +194,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
   @override
   void dispose() {
-    groupNameController.dispose(); // Dispose group name editing controller
-    groupWebIdsController.dispose(); // Dispose group webids editing controller
     super.dispose();
   }
 
@@ -222,7 +216,6 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     String receiverWebId,
   ) =>
       setState(() {
-        selectedRecipientType = RecipientType.individual;
         selectedRecipientDetails = receiverWebId;
         finalWebIdList = [receiverWebId];
       });
@@ -236,10 +229,9 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     List<dynamic> webIdList,
   ) =>
       setState(() {
-        selectedRecipientType = RecipientType.group;
-        selectedRecipientDetails =
-            '$groupName with WebIDs ${webIdList.join(', ')}';
+        selectedRecipientDetails = webIdList.join(', ');
         finalWebIdList = webIdList;
+        selectedGroupName = groupName;
       });
 
   /// Update checked status of access mode boxes to show
@@ -267,31 +259,27 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   /// Set recipients to public
   void _setRecipientsToPublic() => setState(() {
         selectedRecipientType = RecipientType.public;
-        selectedRecipientDetails = '';
+        selectedRecipientDetails = 'Anyone (release publicly)';
         finalWebIdList = [publicAgent.value];
       });
 
   /// Set recipients to authorised users
   void _setRecipientsToAuthUsers() => setState(() {
         selectedRecipientType = RecipientType.authUser;
-        selectedRecipientDetails = '';
+        selectedRecipientDetails =
+            'Authenticated Users (any user logged in with their webId)';
         finalWebIdList = [authenticatedAgent.value];
       });
 
   /// Select individual recipient
-  void _setRecipientsToIndividual() async => await indWebIdInputDialog(
-        context,
-        updateIndWebIdInput,
-        widget.dataFilesMap,
-      );
+  void _setRecipientsToIndividual() => setState(() {
+        selectedRecipientType = RecipientType.individual;
+      });
 
   /// Select a group of recipients
-  void _setRecipientsToGroup() async => await groupWebIdInputDialog(
-        context,
-        groupNameController,
-        groupWebIdsController,
-        updateGroupWebIdInput,
-      );
+  void _setRecipientsToGroup() => setState(() {
+        selectedRecipientType = RecipientType.group;
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -300,54 +288,71 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
       title: Text(
         'Share ${widget.resourceName}',
       ),
-      content: SizedBox(
-        // Use full width on phones, else use a preset narrower width
-        width:
-            (!isPhone()) ? GrantPermFormLayout.dialogWidth : double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            getHeading(
-              'Select the recipient/s of file access',
-            ),
+      content: Scrollbar(
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          primary: true,
+          child: SizedBox(
+            // Use full width on phones, else use a preset narrower width
+            width: (!isPhone())
+                ? GrantPermFormLayout.dialogWidth
+                : double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                makeSubHeading(
+                  'Select the recipient/s of file access',
+                ),
 
-            // Show Select Recipient Buttons
-            SelectRecipients(
-              isExternalRes: widget.isExternalRes,
-              recipientTypeList: widget.recipientTypeList,
-              setPublicFunction: _setRecipientsToPublic,
-              setAuthUsersFunction: _setRecipientsToAuthUsers,
-              setIndividualFunction: _setRecipientsToIndividual,
-              setGroupFunction: _setRecipientsToGroup,
-              updateIndWebIdFunction: updateIndWebIdInput,
-              updateGroupWebIdFunction: updateGroupWebIdInput,
-            ),
+                // Show Select Recipient Buttons
+                SelectRecipients(
+                  isExternalRes: widget.isExternalRes,
+                  recipientTypeList: widget.recipientTypeList,
+                  setPublicFunction: _setRecipientsToPublic,
+                  setAuthUsersFunction: _setRecipientsToAuthUsers,
+                  setIndividualFunction: _setRecipientsToIndividual,
+                  setGroupFunction: _setRecipientsToGroup,
+                ),
 
-            // List selected recipient webids or recipient
-            // type (public/auth)
-            ShowSelectedRecipients(
-              selectedRecipientType: selectedRecipientType,
-              selectedRecipientDetails: selectedRecipientDetails,
+                // Select Individual recipient if required
+                if (selectedRecipientType == RecipientType.individual) ...[
+                  IndWebIdInputScreen(
+                    onSubmitFunction: updateIndWebIdInput,
+                    dataFilesMap: widget.dataFilesMap,
+                  ),
+                ] else if (selectedRecipientType == RecipientType.group) ...[
+                  // Select group of recipients if required
+                  GroupWebIdTextInput(
+                    onSubmitFunction: updateGroupWebIdInput,
+                  ),
+                ],
+                // List selected recipient webids or recipient
+                // type (public/auth)
+                ShowSelectedRecipients(
+                  selectedRecipientType: selectedRecipientType,
+                  selectedRecipientDetails: selectedRecipientDetails,
+                  selectedGroupName: selectedGroupName,
+                ),
+                smallGapV,
+                makeSubHeading(
+                  'Select one or more file access permissions',
+                ),
+                // Show access mode checkboxes and update
+                // selection status on click
+                ...getPermissionCheckBoxes(
+                  accessModeList,
+                  modeSwitches: {
+                    AccessMode.read: readChecked,
+                    AccessMode.write: writeChecked,
+                    AccessMode.control: controlChecked,
+                    AccessMode.append: appendChecked,
+                  },
+                  onUpdate: updateCheckbox,
+                ),
+              ],
             ),
-
-            smallGapV,
-            getHeading(
-              'Select one or more file access permissions',
-            ),
-            // Show access mode checkboxes and update
-            // selection status on click
-            ...getPermissionCheckBoxes(
-              accessModeList,
-              modeSwitches: {
-                AccessMode.read: readChecked,
-                AccessMode.write: writeChecked,
-                AccessMode.control: controlChecked,
-                AccessMode.append: appendChecked,
-              },
-              onUpdate: updateCheckbox,
-            ),
-          ],
+          ),
         ),
       ),
       actions: <Widget>[
@@ -370,9 +375,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                     ownerWebId: widget.ownerWebId,
                     granterWebId: widget.granterWebId,
                     isExternalRes: widget.isExternalRes,
-                    groupName: selectedRecipientType == RecipientType.group
-                        ? groupNameController.text.trim()
-                        : null,
+                    groupName: selectedGroupName,
                   );
 
                   // Close grant permission dialog

@@ -1,6 +1,4 @@
-/// A customisable heading widget.
-///
-// Time-stamp: <Friday 2024-07-11 09:56:10 +1100 Anushka Vidanage>
+/// Data model for permission
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -26,36 +24,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Jess Moore
 
 library;
 
-import 'package:flutter/material.dart';
+import 'package:solidpod/solidpod.dart';
 
-/// Sub heading build function
-Row buildHeading({
-  required String text,
-  required double fontSize,
-  FontWeight? fontWeight,
-  Color? color,
-  double? padding,
-}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Flexible(
-        child: Padding(
-          padding: padding == null ? EdgeInsets.zero : EdgeInsets.all(padding),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: fontWeight ?? FontWeight.normal,
-              color: color ?? Colors.black,
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
+/// Data model for parsing permission map of recipient into
+/// list of permission objects used in permission table.
+
+class Permission {
+  final String recipientWebId;
+  final String recipientName;
+  final RecipientType recipientType;
+  final String recipientTypeDescription;
+  final String toolTip;
+  final String agentType;
+  final List<String> permList;
+
+  const Permission({
+    required this.recipientWebId,
+    required this.recipientName,
+    required this.recipientType,
+    required this.recipientTypeDescription,
+    required this.toolTip,
+    required this.agentType,
+    required this.permList,
+  });
 }

@@ -35,7 +35,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/get_recipient_list.dart';
-import 'package:solidpod/src/widgets/ind_webid_input_dialog.dart';
+import 'package:solidpod/src/widgets/ind_webid_input.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A screen that runs before opening the WebID input dialog, which

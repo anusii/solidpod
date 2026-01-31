@@ -28,6 +28,8 @@ library;
 
 import 'dart:convert' show jsonEncode, jsonDecode;
 
+import 'package:flutter/foundation.dart' show ValueNotifier;
+
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
 import 'package:solid_auth/solid_auth.dart';
@@ -37,6 +39,10 @@ import 'package:solid_auth/src/openid/openid_client.dart'
 
 import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;
 import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
+
+/// Global auth state notifier for reactive UI updates.
+/// Listen to this to get notified when login/logout happens.
+final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
 
 /// [AuthDataManager] is a class to manage auth data returned by
 /// solid-auth authenticate, including:
@@ -107,6 +113,9 @@ class AuthDataManager {
       }),
     );
 
+    // Notify listeners that auth state has changed
+    authStateNotifier.value = true;
+
     // debugPrint('AuthDataManager => saveAuthData() done');
   }
 
@@ -156,6 +165,9 @@ class AuthDataManager {
         _rsaInfo = null;
         _authResponse = null;
       }
+
+      // Notify listeners that auth state has changed
+      authStateNotifier.value = false;
 
       return true;
     } on Object {

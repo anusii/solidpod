@@ -37,7 +37,6 @@ import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/shared_resources.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
-import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 import 'package:solidpod/src/widgets/shared_resources_table.dart';
@@ -91,12 +90,6 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
   /// Permission data map of a file
   Map<dynamic, dynamic> permDataMap = {};
 
-  /// Small vertical spacing for the widget.
-  final smallGapV = const SizedBox(height: 10.0);
-
-  /// Large vertical spacing for the widget.
-  final largeGapV = const SizedBox(height: 40.0);
-
   @override
   void initState() {
     super.initState();
@@ -145,13 +138,13 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
               padding: const EdgeInsets.all(10.0),
               child: Column(
                 children: [
-                  buildHeading(welcomeHeadingStr, 22),
+                  makeHeading(welcomeHeadingStr, addPadding: false),
                   smallGapV,
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       largeGapV,
-                      buildHeading(subHeadingStr, 17.0, Colors.blueGrey, 8),
+                      makeSubHeading(subHeadingStr),
                       buildSharedResourcesTable(
                         context,
                         sharedResMap,
