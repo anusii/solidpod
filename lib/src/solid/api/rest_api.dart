@@ -570,6 +570,19 @@ Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
       'en_US',
     );
 
+    print('contentLength: ${int.parse(response.headers[contentLength]!)}');
+    print('contentType: ${response.headers[contentType]!}');
+    print(
+        'lastModified: ${dateFormatter.parseUtc(response.headers[lastModified]!)}');
+    print('eTag: ${response.headers[eTag]!}');
+    print(
+        'lastAccessed: ${dateFormatter.parseUtc(response.headers[lastAccessed]!)}');
+    print('acceptPatch: ${response.headers[acceptPatch]!}');
+
+    final wacAllowStr =
+        response.headers[wacAllow]!.replaceAll('user=', '').replaceAll('"', '');
+    print('wacAllow: $wacAllowStr');
+
     ResourceMetadata metadata = ResourceMetadata(
       contentLength: int.parse(response.headers[contentLength]!),
       contentType: response.headers[contentType]!,
