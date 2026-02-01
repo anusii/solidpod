@@ -38,6 +38,7 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 
 /// A class to represent permission log literals
 enum PermissionLogLiteral {
@@ -154,7 +155,6 @@ Map<dynamic, dynamic> getLatestLog(
 
       final recipientWebId = logEntryList[5];
 
-      // TODO: Generalise to include user's files
       if (userWebId != null) {
         if (recipientWebId != userWebId) {
           continue;
@@ -194,74 +194,56 @@ Map<dynamic, dynamic> getLatestLog(
   return uniqueLogMap;
 }
 
-/// Get log entries from permission log of user's Pod
-/// Only return log entries for files owned by [userWebId].
-Map<dynamic, dynamic> getLog(
-  String fileName,
-  Map<dynamic, dynamic> logDataMap, {
-  String? userWebId,
+/// Get log entries for the specified resource from permission
+/// log in the user's Pod.
+///
+/// Parameters:
+/// - [resourceName] - filename of the resource
+/// - [logDataMap] - the triple map of the permission log
+
+List<LogRecord> getLog({
+  required String resourceName,
+  required Map<dynamic, dynamic> logDataMap,
 }) {
-  // FIXME: return data model object
-  final permHistMap = <dynamic, dynamic>{};
+  final List<LogRecord> permHistory = [];
 
   // Loop through logs and get the latest for each resource
   for (final dataKey in logDataMap.keys) {
-    debugPrint('Key: $dataKey');
+    // debugPrint('Key: $dataKey');
     if ((dataKey as String).contains(appsLogId)) {
-      debugPrint(
-        'log entry: ${logDataMap[dataKey]['${appsData}log'].toString()}',
-      );
+      // debugPrint(
+      //   'log entry: ${logDataMap[dataKey]['${appsData}log'].toString()}',
+      // );
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
-      debugPrint('latest: $logEntry');
+
       final logEntryList = logEntry.split(';');
 
       final ownerWebId = logEntryList[2];
 
-      // TODO: Only keep record of files owned by user
-      // if (userWebId != null) {
-      if (ownerWebId != userWebId) {
-        continue;
-      }
-      // }
-
       final resourceUrl = logEntryList[1];
 
-      if (!(resourceUrl as String).contains(fileName)) {
+      // Only return log entries for the resource of interest
+      if (!(resourceUrl as String).contains(resourceName)) {
         continue;
       }
-      // var replaceExist = false;
 
-      // if (permHistMap.containsKey(resourceUrl)) {
-      //   final prevDateTime =
-      //       permHistMap[resourceUrl][PermissionLogLiteral.logtime];
-      //   if ([0, 1].contains(
-      //     DateTime.parse(logEntryList.first as String)
-      //         .compareTo(DateTime.parse(prevDateTime as String)),
-      //   )) {
-      //     replaceExist = true;
-      //   }
-      // } else {
-      //   replaceExist = true;
-      // }
-
-      // if (replaceExist) {
       final logid = logEntryList.first;
-      // permHistMap[resourceUrl] = logid;
 
-      permHistMap[logid] = {
-        PermissionLogLiteral.resource: resourceUrl,
-        PermissionLogLiteral.logtime: logid,
-        PermissionLogLiteral.owner: logEntryList[2],
-        PermissionLogLiteral.granter: logEntryList[4],
-        PermissionLogLiteral.recepient: logEntryList[5],
-        PermissionLogLiteral.type: logEntryList[3],
-        PermissionLogLiteral.permissions: logEntryList[6],
-      };
-      // }
+      final LogRecord logRecord = LogRecord(
+        dateTimeStr: logid,
+        resourceUrl: resourceUrl,
+        ownerWebId: ownerWebId,
+        permissionType: logEntryList[3],
+        granterWebId: logEntryList[4],
+        recipientWebId: logEntryList[5],
+        permissionList: logEntryList[6],
+      );
+
+      permHistory.add(logRecord);
     }
   }
 
-  return permHistMap;
+  return permHistory;
 }
 
 /// Filter log entries by file name

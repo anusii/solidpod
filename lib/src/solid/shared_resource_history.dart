@@ -32,29 +32,26 @@ import 'dart:convert';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Read permission log (including revoked permissions) of a user's
-/// Pod, optionally for a specific [fileName].
+/// Pod for a specific [resourceName].
 ///
 /// Parameters:
-/// - [fileName] is the name of the file reading permission from
+/// - [resourceName] is the name of the file reading permission from
 
-Future<dynamic> sharedResourcesHistory(
-  String fileName,
-) async {
+Future<List<LogRecord>> sharedResourcesHistory({
+  required String resourceName,
+}) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to access shared resources.',
     );
   }
-
-  // Get user webID
-  final userWebId = await AuthDataManager.getWebId() as String;
 
   // Log file url
   final logFilePath = await getPermLogFilePath();
@@ -69,14 +66,10 @@ Future<dynamic> sharedResourcesHistory(
   final logDataMap = parseTTLMap(logContent);
 
   // Extract permission history log of file from log in triple map format
-  final Map<dynamic, dynamic> permHistMap =
-      getLog(fileName, logDataMap, userWebId: userWebId);
-
-  // Filer log entried based on defined file name
-  // TODO: CHECK
-  // if (fileName != null) {
-  //   permHistMap = filterLogByFilename(permHistMap, fileName);
-  // }
+  final List<LogRecord> permHistMap = getLog(
+    resourceName: resourceName,
+    logDataMap: logDataMap,
+  );
 
   return permHistMap;
 }
