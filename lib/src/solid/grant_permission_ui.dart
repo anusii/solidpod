@@ -2,7 +2,7 @@
 ///
 // Time-stamp: <Thursday 2026-01-15 13:42:22 +1100 Graham Williams>
 ///
-/// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -37,10 +37,13 @@ import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/models/permission_details.dart';
+import 'package:solidpod/src/solid/permission_history.dart';
 import 'package:solidpod/src/solid/permission_table.dart';
 import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/share_resource_button.dart';
+import 'package:solidpod/src/solid/shared_resource_history.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/get_authoriser.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
@@ -219,6 +222,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   late Future<PermissionDetails?> podDataList;
 
+  /// Permission history list retreived as a Future
+
+  late Future<List<LogRecord>> permHistoryList;
+
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
 
@@ -284,6 +291,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         isFile: widget.isFile,
         isExternalRes: widget.isExternalRes,
       );
+      permHistoryList =
+          sharedResourcesHistory(resourceName: widget.resourceName as String);
     }
   }
 
@@ -322,6 +331,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget _buildPermPage(
     BuildContext context, [
     PermissionDetails? futurePermDetails,
+    List<LogRecord>? permHistory,
   ]) {
     // Check if future is set or not. If set display the permission map
     if (futurePermDetails != null && pageInitialied == false) {
@@ -331,6 +341,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       permDataFile = widget.resourceName!;
       pageInitialied = true;
     }
+
+    debugPrint('perm history length: ${permHistory?.length}');
+    debugPrint(
+      'perm history first log entry datetime: ${permHistory?.first.dateTimeStr}',
+    );
+    debugPrint(
+      'perm history last log entry datetime: ${permHistory?.last.dateTimeStr}',
+    );
 
     final retrievePermissionButton = ElevatedButton(
       child: const Text('Retrieve permissions'),
@@ -423,6 +441,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   isExternalRes: widget.isExternalRes,
                   constraints: constraints,
                 ),
+                smallGapV,
+                makeSubHeading('Permission history', addPadding: false),
+                PermissionHistory(
+                  resourceName: widget.resourceName!,
+                  permHistory: permHistory!,
+                  constraints: constraints,
+                ),
               ],
             ),
           ),
@@ -435,11 +460,23 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget build(BuildContext context) => widget.resourceName == null
       ? _buildPermPage(context)
       : FutureBuilder(
-          future: podDataList,
-          builder: (context, snapshot) => snapshot.hasData
-              ? snapshot.data!.permissionMap.isEmpty
-                  ? widget.child
-                  : _buildPermPage(context, snapshot.data)
-              : Scaffold(body: loadingScreen(normalLoadingScreenHeight)),
+          future: Future.wait([
+            // Future that returns List of current access from ACL
+            podDataList,
+            // Future that returns List<LogRecord> from permission log
+            permHistoryList,
+          ]),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
+            }
+            final PermissionDetails currentPerm =
+                snapshot.data![0] as PermissionDetails;
+            final List<LogRecord> permHistory =
+                snapshot.data![1] as List<LogRecord>;
+            return currentPerm.permissionMap.isEmpty
+                ? widget.child
+                : _buildPermPage(context, currentPerm, permHistory);
+          },
         );
 }
