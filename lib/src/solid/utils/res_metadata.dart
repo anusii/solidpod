@@ -41,7 +41,13 @@ class ResourceMetadata {
   final DateTime lastModified;
 
   // The date and time at which the message originate
-  final DateTime lastAccessed;
+  //
+  // dc 20260202: Make the property nullable, as the
+  // property corresponds to the `date` field of the
+  // HTTP HEAD response headers. However, `date` may
+  // not exist if the request is from a web app.
+
+  DateTime? lastAccessed;
 
   // A unique string identifying the version of the resource
   final String eTag;
