@@ -32,7 +32,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show smallGapV, RecipientTextStyle;
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 
 /// A [StatelessWidget] for showing selected recipients in the

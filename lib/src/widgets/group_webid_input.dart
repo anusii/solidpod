@@ -37,7 +37,8 @@ import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart'
+    show smallGapV, makeSubHeading, GrantPermFormLayout;
 import 'package:solidpod/src/solid/utils/alert.dart';
 
 /// A [StatefulWidget] dialog for entering group of webIds.
