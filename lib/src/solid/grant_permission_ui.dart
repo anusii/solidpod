@@ -453,7 +453,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   onPermissionGranted: widget.onPermissionGranted,
                 ),
 
-                largeGapV,
+                mediumGapV,
                 makeSubHeading('People with current access', addPadding: false),
                 PermissionTable(
                   resourceName: permDataFile,
@@ -466,7 +466,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   isExternalRes: widget.isExternalRes,
                   constraints: constraints,
                 ),
-                smallGapV,
+                mediumGapV,
                 makeSubHeading(
                   'Permission history',
                   addPadding: false,

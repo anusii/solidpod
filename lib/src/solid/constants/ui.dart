@@ -441,6 +441,9 @@ class SecurityStrings {
 /// Small vertical spacing for the widget.
 const smallGapV = SizedBox(height: 10.0);
 
+/// Medium vertical spacing for the widget.
+const mediumGapV = SizedBox(height: 20.0);
+
 /// Large vertical spacing for the widget.
 const largeGapV = SizedBox(height: 40.0);
 
