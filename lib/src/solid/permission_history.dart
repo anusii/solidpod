@@ -125,7 +125,6 @@ class _PermissionHistoryState extends State<PermissionHistory> {
                 borderRadius: BorderRadius.all(Radius.circular(5)),
               ),
               child: MarkdownTooltip(
-                // TODO: add helpful tooltip on permission log records?
                 message: _permHistory[index].toolTip,
                 child: ListTile(
                   // Leading icon denoting agreement of access terms
