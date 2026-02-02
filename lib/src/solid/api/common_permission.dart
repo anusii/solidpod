@@ -30,9 +30,9 @@
 
 library;
 
-import 'package:intl/intl.dart';
-
 import 'package:flutter/foundation.dart' show debugPrint;
+
+import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
