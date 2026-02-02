@@ -33,6 +33,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/ui.dart' show ActionColors;
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
 import 'package:solidpod/src/solid/utils/snack_bar.dart';
@@ -115,7 +116,7 @@ class _RevokePermissionButtonState extends State<RevokePermissionButton> {
       icon: const Icon(
         Icons.delete,
         size: 24.0,
-        color: Colors.red,
+        color: ActionColors.delete,
       ),
       onPressed: () {
         showDialog(
@@ -153,7 +154,7 @@ class _RevokePermissionButtonState extends State<RevokePermissionButton> {
                       showSnackBar(
                         context,
                         'Permission revoked successfully!',
-                        Colors.red,
+                        ActionColors.success,
                       );
                     }
                     await widget.updatePermissionsFunction(
