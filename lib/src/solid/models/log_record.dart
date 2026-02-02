@@ -31,7 +31,7 @@ library;
 import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/constants/web_acl.dart'
-    show getPermissionTypeLabel, getWebIdName;
+    show getPermissionLogTooltip, getPermissionTypeLabel, getWebIdName;
 
 /// Data model for log record data in each log entry in the permission log
 /// in a Pod
@@ -76,4 +76,13 @@ class LogRecord {
   // Human readable permission type label
   String get permissionTypeLabel =>
       getPermissionTypeLabel(permissionType: permissionType);
+
+  // Make tooltip for permission log records
+  String get toolTip => getPermissionLogTooltip(
+        recipientName: recipientName,
+        recipientWebId: recipientWebId,
+        granterName: granterName,
+        permissionTypeLabel: permissionTypeLabel,
+        permList: permissionList.split(','),
+      );
 }

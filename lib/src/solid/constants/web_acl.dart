@@ -336,7 +336,7 @@ String getPermissionTypeLabel({
   return permissionTypeLabel;
 }
 
-/// Get recipient permission tooltip
+/// Get tooltip for ACL permission records
 String getPermissionTooltip({
   required String recipientName,
   required RecipientType recipientType,
@@ -358,6 +358,39 @@ String getPermissionTooltip({
   if (permList.contains('Control')) {
     toolTip = '$toolTip '
         '(i.e. they can share or revoke access to others)';
+  }
+
+  return toolTip;
+}
+
+/// Get tooltip for permission log records
+String getPermissionLogTooltip({
+  required String recipientWebId,
+  required String recipientName,
+  required String granterName,
+  // required RecipientType recipientType,
+  required String permissionTypeLabel,
+  required List<String> permList,
+}) {
+  String toolTip;
+
+  if (recipientWebId == pubAgent) {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to anyone ';
+  } else if (recipientWebId == authAgent) {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to all logged in users ';
+  } else {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to $recipientName';
+  }
+
+  if (permList.contains('control')) {
+    toolTip = '$toolTip '
+        '(i.e. $recipientName had permission to share or revoke access to others)';
   }
 
   return toolTip;

@@ -126,7 +126,7 @@ class _PermissionHistoryState extends State<PermissionHistory> {
               ),
               child: MarkdownTooltip(
                 // TODO: add helpful tooltip on permission log records?
-                message: 'Add tooltip here', // _permHistory[index].toolTip,
+                message: _permHistory[index].toolTip,
                 child: ListTile(
                   // Leading icon denoting agreement of access terms
                   leading: SizedBox(
