@@ -224,7 +224,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Permission history list retreived as a Future
 
-  late Future<List<LogRecord>> permHistoryList;
+  late Future<List<LogRecord>> getPermHistoryList;
+
+  /// Permission history list
+
+  List<LogRecord> permHistoryList = [];
 
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
@@ -291,7 +295,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         isFile: widget.isFile,
         isExternalRes: widget.isExternalRes,
       );
-      permHistoryList =
+      getPermHistoryList =
           sharedResourcesHistory(resourceName: widget.resourceName as String);
     }
   }
@@ -308,6 +312,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       isFile: isFile,
       isExternalRes: isExternalRes,
     );
+    final updatedPermHistoryList =
+        await sharedResourcesHistory(resourceName: fileName);
 
     assert(pdata != null);
 
@@ -321,7 +327,16 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         _granterWebId = pdata.granterWebId;
       });
     }
-    // }
+
+    if (updatedPermHistoryList.isEmpty) {
+      await _alert(
+        'We could not find permission log entries for resource by the name $fileName',
+      );
+    } else {
+      setState(() {
+        permHistoryList = updatedPermHistoryList;
+      });
+    }
   }
 
   /// Private function to call alert dialog in grant permission UI context
@@ -331,7 +346,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget _buildPermPage(
     BuildContext context, [
     PermissionDetails? futurePermDetails,
-    List<LogRecord>? permHistory,
+    List<LogRecord>? permHistoryList,
   ]) {
     // Check if future is set or not. If set display the permission map
     if (futurePermDetails != null && pageInitialied == false) {
@@ -342,13 +357,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       pageInitialied = true;
     }
 
-    debugPrint('perm history length: ${permHistory?.length}');
-    debugPrint(
-      'perm history first log entry datetime: ${permHistory?.first.dateTimeStr}',
-    );
-    debugPrint(
-      'perm history last log entry datetime: ${permHistory?.last.dateTimeStr}',
-    );
+    // debugPrint('perm history length: ${permHistoryList?.length}');
+    // debugPrint(
+    //   'perm history first log entry datetime: ${permHistoryList?.first.dateTimeStr}',
+    // );
+    // debugPrint(
+    //   'perm history last log entry datetime: ${permHistoryList?.last.dateTimeStr}',
+    // );
 
     final retrievePermissionButton = ElevatedButton(
       child: const Text('Retrieve permissions'),
@@ -445,7 +460,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 makeSubHeading('Permission history', addPadding: false),
                 PermissionHistory(
                   resourceName: widget.resourceName!,
-                  permHistory: permHistory!,
+                  permHistory: permHistoryList!,
                   constraints: constraints,
                 ),
               ],
@@ -464,7 +479,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             // Future that returns List of current access from ACL
             podDataList,
             // Future that returns List<LogRecord> from permission log
-            permHistoryList,
+            getPermHistoryList,
           ]),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -472,11 +487,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             }
             final PermissionDetails currentPerm =
                 snapshot.data![0] as PermissionDetails;
-            final List<LogRecord> permHistory =
+            final List<LogRecord> permHistoryList =
                 snapshot.data![1] as List<LogRecord>;
             return currentPerm.permissionMap.isEmpty
                 ? widget.child
-                : _buildPermPage(context, currentPerm, permHistory);
+                : _buildPermPage(context, currentPerm, permHistoryList);
           },
         );
 }
