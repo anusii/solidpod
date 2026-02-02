@@ -101,6 +101,15 @@ const String agentStr = 'agentType';
 // const String aclDefault = 'default';
 const String profileDoc = 'PersonalProfileDocument';
 
+// Resource metadata labels
+const String contentLength = 'content-length';
+const String contentType = 'content-type';
+const String lastModified = 'last-modified';
+const String lastAccessed = 'date';
+const String eTag = 'etag';
+const String acceptPatch = 'accept-patch';
+const String wacAllow = 'wac-allow';
+
 /// String link variables used in files generation process for defining ttl
 /// file content.
 

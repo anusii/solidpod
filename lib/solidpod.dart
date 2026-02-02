@@ -30,9 +30,11 @@
 
 library;
 
-// 20250915 TODO These constants should be inside a constants structure to avoid
-// name conflicts?
+/// Organized constants structure to avoid name conflicts.
+/// Use `SolidConstants.namespaces.foaf`, `SolidConstants.directories.data`, etc.
+export 'src/solid/constants/solid_constants.dart';
 
+// Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
@@ -110,8 +112,13 @@ export 'src/solid/utils/misc.dart'
         getDateTime,
         getEncKeyPath,
         logoutPod,
+        registerLogoutCacheCallback,
         setAppDirName,
         initPod;
+
+/// Export auth state management
+export 'src/solid/utils/authdata_manager.dart'
+    show authStateNotifier, AuthDataManager;
 
 /// Utility functions for generating resource URLs
 
@@ -126,6 +133,14 @@ export 'src/solid/utils/init_helper.dart'
 /// Read encrypted/non-encrypted files stored in a POD
 
 export 'src/solid/read_pod.dart';
+
+/// Read metadata of a resource stored in a POD
+
+export 'src/solid/read_res_metadata.dart';
+
+/// Metadata model
+
+export 'src/solid/utils/res_metadata.dart';
 
 /// Write to encrypted/non-encrypted files in a POD
 

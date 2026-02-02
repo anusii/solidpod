@@ -52,10 +52,6 @@ import 'package:solidpod/src/solid/grant_permission_helper.dart';
 /// individual recipient webId.
 /// - [setGroupFunction] - a function for selecting a
 /// group of webIds as recipients.
-/// - [updateIndWebIdFunction] - a function to update the selected
-/// individual webId.
-/// - [updateGroupWebIdFunction] - a function to update the selected
-/// group webId list and group name.
 
 class SelectRecipients extends StatefulWidget {
   /// A flag denoting whether the resource is externally owned.
@@ -66,14 +62,6 @@ class SelectRecipients extends StatefulWidget {
   /// all four types of recipient are listed.
 
   final List<String> recipientTypeList;
-
-  /// Map of data files on a user's POD used to extract the
-  /// user's recipient list by the WebIdTextInputScreen.
-  /// If not provided, the WebIdTextInputScreen will read the
-  /// user's files in their app data folder on their Pod to
-  /// fetch the ACLs needed to derive the user's recipient list.
-
-  final Map<String, dynamic> dataFilesMap;
 
   /// A function for setting recipients to the public.
 
@@ -91,15 +79,6 @@ class SelectRecipients extends StatefulWidget {
 
   final Function setGroupFunction;
 
-  /// A function to update the selected individual webId.
-  ///
-  final Function updateIndWebIdFunction;
-
-  /// A function to update the selected group webId list and group
-  /// name.
-
-  final Function updateGroupWebIdFunction;
-
   const SelectRecipients({
     super.key,
     required this.isExternalRes,
@@ -108,9 +87,6 @@ class SelectRecipients extends StatefulWidget {
     required this.setAuthUsersFunction,
     required this.setIndividualFunction,
     required this.setGroupFunction,
-    required this.updateIndWebIdFunction,
-    required this.updateGroupWebIdFunction,
-    this.dataFilesMap = const {},
   });
 
   @override
@@ -122,6 +98,14 @@ class _SelectRecipientsState extends State<SelectRecipients> {
 
   List<RecipientType> recipientTypeList = [];
 
+  /// Selected recipient type
+
+  RecipientType? _selectedRecipientType;
+
+  // Allowed recipient types
+
+  List<RecipientType> allowedRecipientTypes = [];
+
   @override
   void initState() {
     super.initState();
@@ -130,6 +114,18 @@ class _SelectRecipientsState extends State<SelectRecipients> {
     for (final recTypeStr in widget.recipientTypeList) {
       recipientTypeList.add(RecipientType.getInstanceByValue(recTypeStr));
     }
+
+    // jesscmoore 20260118: requires check grant/revoke to
+    // public/auth works on external resources
+    // av 20250526:
+    // Public and Authenticated recipient buttons are
+    // disabled currently because
+    // providing public or authenticated permissions to
+    // external resources is not yet implemented in
+    // [grantPermission()] function.
+    widget.isExternalRes
+        ? allowedRecipientTypes = granterRecipientTypes
+        : allowedRecipientTypes = ownerRecipientTypes;
   }
 
   @override
@@ -137,68 +133,48 @@ class _SelectRecipientsState extends State<SelectRecipients> {
     super.dispose();
   }
 
-  List<Widget> selectRecipientButtons({
-    required List<RecipientType> allowedRecipientTypes,
-  }) {
-    return [
-      for (final rtype in allowedRecipientTypes)
-        if (recipientTypeList.contains(rtype))
-          Expanded(
-            child: Container(
-              padding: getPadding(rtype),
-              height: 50,
-              child: MarkdownTooltip(
-                message: recipientToolTips[rtype]!,
-                child: ElevatedButton(
-                  onPressed: () {
-                    switch (rtype) {
-                      case RecipientType.public:
-                        widget.setPublicFunction();
-                      case RecipientType.authUser:
-                        widget.setAuthUsersFunction();
-                      case RecipientType.individual:
-                        widget.setIndividualFunction();
-                      case RecipientType.group:
-                        widget.setGroupFunction();
-                      case RecipientType.none:
-                        return;
-                    }
-                  },
-                  child: Text(rtype.description),
-                ),
-              ),
-            ),
-          ),
-    ];
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 20260109 jesscmoore Added capability for granters to share
-    // resources, as well as resource owners
     return Container(
       padding: const EdgeInsets.all(8.0),
-      height: 100,
-      child: Row(
-        children: widget.isExternalRes
-
-            // jesscmoore 20260118: requires check grant/revoke to
-            // public/auth works on external resources
-            // av 20250526:
-            // Public and Authenticated recipient buttons are
-            // disabled currently because
-            // providing public or authenticated permissions to
-            // external resources is not yet implemented in
-            // [grantPermission()] function.
-
-            // Recipient type buttons for resource granter
-            ? selectRecipientButtons(
-                allowedRecipientTypes: granterRecipientTypes,
-              )
-            // Recipient type buttons for resource owner
-            : selectRecipientButtons(
-                allowedRecipientTypes: ownerRecipientTypes,
-              ),
+      child: Column(
+        children: [
+          RadioGroup<RecipientType>(
+            groupValue: _selectedRecipientType,
+            onChanged: (RecipientType? value) {
+              setState(() {
+                _selectedRecipientType = value;
+              });
+              switch (value) {
+                case RecipientType.public:
+                  widget.setPublicFunction();
+                case RecipientType.authUser:
+                  widget.setAuthUsersFunction();
+                case RecipientType.individual:
+                  widget.setIndividualFunction();
+                case RecipientType.group:
+                  widget.setGroupFunction();
+                case RecipientType.none:
+                  return;
+                case null:
+                  return;
+              }
+            },
+            child: Column(
+              children: [
+                for (final rtype in ownerRecipientTypes)
+                  if (recipientTypeList.contains(rtype))
+                    MarkdownTooltip(
+                      message: recipientToolTips[rtype]!,
+                      child: ListTile(
+                        title: Text(rtype.description),
+                        leading: Radio<RecipientType>(value: rtype),
+                      ),
+                    ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

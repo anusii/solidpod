@@ -1,8 +1,6 @@
-/// A customisable heading widget.
+/// Metadata model.
 ///
-// Time-stamp: <Friday 2024-07-11 09:56:10 +1100 Anushka Vidanage>
-///
-/// Copyright (C) 2024, Software Innovation Institute, ANU.
+/// Copyright (C) 2024-2026, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -27,35 +25,42 @@
 // SOFTWARE.
 ///
 /// Authors: Anushka Vidanage
-
+///
 library;
 
-import 'package:flutter/material.dart';
+class ResourceMetadata {
+  // The size, in bytes, of the message body that
+  // would have been sent had the request been a GET method
+  final int contentLength;
 
-/// Sub heading build function
-Row buildHeading({
-  required String text,
-  required double fontSize,
-  FontWeight? fontWeight,
-  Color? color,
-  double? padding,
-}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Flexible(
-        child: Padding(
-          padding: padding == null ? EdgeInsets.zero : EdgeInsets.all(padding),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: fontWeight ?? FontWeight.normal,
-              color: color ?? Colors.black,
-            ),
-          ),
-        ),
-      ),
-    ],
-  );
+  // Original media type (MIME type) of the resource
+  final String contentType;
+
+  // Date and time when the origin server believes the
+  // resource was last modified
+  final DateTime lastModified;
+
+  // The date and time at which the message originate
+  final DateTime lastAccessed;
+
+  // A unique string identifying the version of the resource
+  final String eTag;
+
+  // Which media types the server is able to understand
+  // in a PATCH request
+  final String acceptPatch;
+
+  // Web Access Control (WAC) privileges a user has for
+  // the resource
+  final String wacAllow;
+
+  ResourceMetadata({
+    required this.contentLength,
+    required this.contentType,
+    required this.lastModified,
+    required this.eTag,
+    required this.lastAccessed,
+    required this.acceptPatch,
+    required this.wacAllow,
+  });
 }

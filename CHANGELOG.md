@@ -11,8 +11,11 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Add fetch resource metadata function [0.9.20 20260131 anushkavid]
++ Refactor constants, security, and reactivity [0.9.19 20260131 miduo]
 + Update permission table to list [0.9.18 20260129 jesscmoore]
 + Fixes background of loadingScreen [0.9.17 20260128 jesscmoore]
++ Integrate webid dialogs into grant permission form [0.9.16 20260128 jesscmoore]
 + Optimise shared individual key loading and retrieval [0.9.15 20260128 cdawei]
 + Restored retrieve permissions button [0.9.14 20260125 jesscmoore]
 + Export ResourceNotExistException [0.9.13 20260123 tonypioneer]

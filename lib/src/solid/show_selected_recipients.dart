@@ -32,33 +32,23 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 
 /// A [StatelessWidget] for showing selected recipients in the
 /// grant permission form.
 ///
 /// Parameters:
-/// - [isExternalRes] - Boolean flag describing whether
-/// the resource is externally owned.
-/// - [recipientTypeList] - List of recipient type options to show.
-/// - [setPublicFunction] - a function for setting recipients to
-/// the public.
-/// - [setAuthUsersFunction] - a function for setting recipients
-/// to all authorised users.
-/// - [setIndividualFunction] - a function for selecting an
-/// individual recipient webId.
-/// - [setGroupFunction] - a function for selecting a
-/// group of webIds as recipients.
-/// - [updateIndWebIdFunction] - a function to update the selected
-/// individual webId.
-/// - [updateGroupWebIdFunction] - a function to update the selected
-/// group webId list and group name.
+/// - [selectedRecipientType] - Selected type of recipient/s.
+/// - [selectedRecipientDetails] - Details of selected recipient/s.
+/// - [selectedGroupName] - Name of group, if selected group of recipients.
 
 class ShowSelectedRecipients extends StatelessWidget {
   const ShowSelectedRecipients({
     super.key,
     required this.selectedRecipientType,
     required this.selectedRecipientDetails,
+    this.selectedGroupName,
   });
 
   /// Selected recipient
@@ -69,31 +59,48 @@ class ShowSelectedRecipients extends StatelessWidget {
 
   final String selectedRecipientDetails;
 
+  /// Selected group name
+
+  final String? selectedGroupName;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8.0),
-      child: Row(
+      child: Column(
         children: [
-          const Text(
-            'Recipient/s: ',
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
-          ),
-          Flexible(
-            // Show recipients if selected
-            child: Text(
-              '${selectedRecipientType.type}${selectedRecipientDetails.isEmpty ? "" : " ($selectedRecipientDetails)"}',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                // 20251008 gjw Choose blue rather than
-                // orange which looks red. The red looks
-                // like it is an error. Blue is more
-                // neutral.
-                color: Colors.blueAccent,
+          Row(
+            children: [
+              Text(
+                (selectedRecipientType == RecipientType.individual)
+                    ? 'Recipient: '
+                    : 'Recipients: ',
+                style: RecipientTextStyle.label,
               ),
-            ),
+              Flexible(
+                // Show recipients if selected
+                child: Text(
+                  selectedRecipientDetails,
+                  style: RecipientTextStyle.webId,
+                ),
+              ),
+            ],
           ),
+          if (selectedRecipientType == RecipientType.group) ...[
+            smallGapV,
+            Row(
+              children: [
+                const Text(
+                  'Group name: ',
+                  style: RecipientTextStyle.label,
+                ),
+                Flexible(
+                  child:
+                      Text(selectedGroupName!, style: RecipientTextStyle.webId),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

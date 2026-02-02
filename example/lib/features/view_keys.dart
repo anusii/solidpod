@@ -30,6 +30,8 @@ import 'package:flutter/material.dart';
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/utils/rdf.dart' show getEncKeyContent;
 
+import 'package:solidpod/solidpod.dart' show KeyManager;
+
 /// A widget to show the user all the encryption keys stored in their Solid Pod.
 
 class ViewKeys extends StatefulWidget {
@@ -57,6 +59,74 @@ class ViewKeys extends StatefulWidget {
 class _ViewKeysState extends State<ViewKeys> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  /// Decrypted data cache
+  Map<dynamic, dynamic>? _decryptedData;
+  bool _isDecrypting = false;
+
+  /// Decrypt encrypted key values using KeyManager.
+  ///
+  /// This function attempts to decrypt the 'prvKey' (private key) value
+  /// using KeyManager.getPrivateKey(). If decryption fails or
+  /// the master key is not available, the original encrypted values are returned.
+  Future<Map<dynamic, dynamic>> _decryptKeyValues(
+      Map<dynamic, dynamic> encFileData) async {
+    final result = Map<dynamic, dynamic>.from(encFileData);
+
+    try {
+      // Get the decrypted private key from KeyManager
+      final decryptedPrvKey = await KeyManager.getPrivateKey();
+
+      // Update the result with decrypted value, show truncated for security
+      if (encFileData.containsKey('prvKey')) {
+        final displayValue = decryptedPrvKey.length > 80
+            ? '${decryptedPrvKey.substring(0, 80)}...'
+            : decryptedPrvKey;
+        result['prvKey'] = [
+          encFileData['prvKey'][0],
+          '✓ Decrypted: $displayValue',
+        ];
+      }
+    } on Exception catch (e) {
+      debugPrint('ViewKeys: Failed to decrypt private key: $e');
+      // Keep original encrypted values, add status note
+      result['_status'] = ['', '✗ Decryption unavailable'];
+    }
+
+    return result;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDecryptedData();
+  }
+
+  Future<void> _loadDecryptedData() async {
+    setState(() {
+      _isDecrypting = true;
+    });
+
+    try {
+      final encFileData = getEncKeyContent(widget.keyInfo);
+      final decrypted = await _decryptKeyValues(encFileData);
+      if (mounted) {
+        setState(() {
+          _decryptedData = decrypted;
+          _isDecrypting = false;
+        });
+      }
+    } on Exception catch (e) {
+      debugPrint('ViewKeys: Error loading data: $e');
+      if (mounted) {
+        setState(() {
+          _isDecrypting = false;
+          // Fallback to encrypted data on error
+          _decryptedData = getEncKeyContent(widget.keyInfo);
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,31 +135,23 @@ class _ViewKeysState extends State<ViewKeys> {
           title: Text(widget.title),
           backgroundColor: titleBackgroundColor,
         ),
-        body: loadedScreen(widget.keyInfo));
+        body: _buildBody());
   }
 
-  @override
-  void initState() {
-    super.initState();
+  Widget _buildBody() {
+    if (_isDecrypting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_decryptedData == null) {
+      return const Center(child: Text('No data available'));
+    }
+
+    return _loadedScreen(_decryptedData!);
   }
 
-  Widget loadedScreen(String keyData) {
-    final encFileData = getEncKeyContent(keyData);
-
-    //TODO av-20240319: Need to get the encryption key
-    // to decrypt the private key value
-
-    // encKey = secureStorage.read(key: 'key')
-
-    // final keyMaster = Key.fromUtf8(encKey);
-    // final ivInd = IV.fromBase64(encFileData['iv'][1] as String);
-    // final encrypterKey =
-    //     Encrypter(AES(keyMaster, mode: AESMode.cbc));
-
-    // final eccKey = Encrypted.from64(medFileKey);
-    // final keyIndPlain = encrypterKey.decrypt(eccKey, iv: ivInd);
-
-    final dataRows = encFileData.entries.map((entry) {
+  Widget _loadedScreen(Map<dynamic, dynamic> data) {
+    final dataRows = data.entries.map((entry) {
       return DataRow(cells: [
         DataCell(Text(
           entry.key as String,

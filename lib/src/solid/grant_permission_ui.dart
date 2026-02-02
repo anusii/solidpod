@@ -44,7 +44,6 @@ import 'package:solidpod/src/solid/share_resource_button.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/get_authoriser.dart';
-import 'package:solidpod/src/solid/utils/heading.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
 
@@ -376,13 +375,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
               children: [
                 smallGapV,
                 // Sharing heading
-                buildHeading(
-                  getSharingTitleStr(
+                makeHeading(
+                  makeSharingTitleStr(
                     fileName: widget.resourceName,
                     isFile: widget.isFile,
                   ),
-                  22,
-                  Colors.blueGrey,
+                  bold: false,
+                  addColor: false,
+                  addPadding: false,
                 ),
                 smallGapV,
                 // Choose resource and show _updatePermissions button
@@ -412,7 +412,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 largeGapV,
-                getHeading('People with current access'),
+                makeSubHeading('People with current access', addPadding: false),
                 PermissionTable(
                   resourceName: permDataFile,
                   permDataMap: permDataMap,
