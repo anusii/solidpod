@@ -150,13 +150,13 @@ class _PermissionHistoryState extends State<PermissionHistory> {
                   // Permission item title
 
                   title: Text(
-                    '${_permHistory[index].dateTimeStr}: ${_permHistory[index].permissionList} ${_permHistory[index].permissionType}',
+                    '${_permHistory[index].dateTime}: ${_permHistory[index].permissionList} ${_permHistory[index].permissionTypeLabel}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   subtitle: Text(
-                    'Recipient: ${_permHistory[index].recipientWebId} \n'
-                    'Granter: ${_permHistory[index].granterWebId}',
+                    'Recipient: ${_permHistory[index].recipientName} \n'
+                    'Granter: ${_permHistory[index].granterName}',
                     maxLines: 3, // Limit to 5 lines
                     overflow: TextOverflow.ellipsis,
                   ),

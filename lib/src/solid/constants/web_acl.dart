@@ -37,8 +37,10 @@ import 'package:solidpod/src/solid/constants/common.dart'
         agentClassPred,
         agentGroupPred,
         agentPred,
+        authAgent,
         foaf,
         profCard,
+        pubAgent,
         rdf,
         terms,
         vcard;
@@ -298,6 +300,40 @@ String getRecipientName({
   }
 
   return recipientName;
+}
+
+/// Get name from webId
+String getWebIdName({
+  required String webId,
+}) {
+  final String name;
+
+  if (webId == pubAgent) {
+    name = 'Anyone';
+  } else if (webId == authAgent) {
+    name = 'All Loggedin Users';
+  } else {
+    name = webId.replaceAll('/$profCard', '').split('/').last;
+  }
+
+  return name;
+}
+
+/// Get name from webId
+String getPermissionTypeLabel({
+  required String permissionType,
+}) {
+  final String permissionTypeLabel;
+
+  if (permissionType == 'grant') {
+    permissionTypeLabel = 'granted';
+  } else if (permissionType == 'revoke') {
+    permissionTypeLabel = 'revoked';
+  } else {
+    permissionTypeLabel = 'unknown';
+  }
+
+  return permissionTypeLabel;
 }
 
 /// Get recipient permission tooltip

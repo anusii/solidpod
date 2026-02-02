@@ -28,6 +28,12 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:intl/intl.dart';
+
+import 'package:solidpod/src/solid/constants/web_acl.dart'
+    show getPermissionTypeLabel, getWebIdName;
+
 /// Data model for log record data in each log entry in the permission log
 /// in a Pod
 
@@ -51,4 +57,24 @@ class LogRecord {
     required this.permissionList,
     this.constraints,
   });
+
+  // Formatted date
+  String get dateTime {
+    DateTime dateTimeObject = DateTime.parse(dateTimeStr);
+
+    return DateFormat('dd MMM yyyy, HH:mm a').format(dateTimeObject);
+  }
+
+  // Human readable owner name
+  String get ownerName => getWebIdName(webId: ownerWebId);
+
+  // Human readable granter name
+  String get granterName => getWebIdName(webId: granterWebId);
+
+  // Human readable owner name
+  String get recipientName => getWebIdName(webId: recipientWebId);
+
+  // Human readable permission type label
+  String get permissionTypeLabel =>
+      getPermissionTypeLabel(permissionType: permissionType);
 }
