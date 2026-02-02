@@ -438,6 +438,9 @@ class SecurityStrings {
   static const cancel = 'Cancel';
 }
 
+/// Very small vertical spacing for the widget.
+const vSmallGapV = SizedBox(height: 5.0);
+
 /// Small vertical spacing for the widget.
 const smallGapV = SizedBox(height: 10.0);
 
