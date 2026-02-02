@@ -2,7 +2,7 @@
 ///
 // Time-stamp: <Sunday 2026-02-01 20:11:30 +1100 Graham Williams>
 ///
-/// Copyright (C) 2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2026, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
 ///
@@ -71,8 +71,7 @@ class PermissionHistory extends StatefulWidget {
 
 class _PermissionHistoryState extends State<PermissionHistory> {
   /// Searched/sorted notes
-  // Make final until sorting and search is added
-  late final List<LogRecord> _permHistory; // = [];
+  List<LogRecord> _permHistory = [];
 
   /// Aspect ratio (width / height) for gridview
   /// cards to display note items
@@ -111,14 +110,6 @@ class _PermissionHistoryState extends State<PermissionHistory> {
     // Calculate the aspect radio for grid cards
     cardAspectRatio =
         ListItemSize().calculateCardAspectRatio(widget.constraints);
-
-    // //  By default _permissions is the full list of permissions
-    // _permHistory = widget.permHistory;
-
-    debugPrint('PermissionHistory(): building...');
-    debugPrint(
-      'PermissionHistory: perm history length: ${_permHistory.length}',
-    );
 
     return Expanded(
       child: GridView.builder(

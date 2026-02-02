@@ -468,10 +468,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
                 smallGapV,
                 makeSubHeading(
-                  'Permission history with value key',
+                  'Permission history',
                   addPadding: false,
                 ),
                 PermissionHistory(
+                  // Force history rebuild on permission history change
                   key: ValueKey(permHistoryList),
                   resourceName: widget.resourceName!,
                   permHistory: permHistoryList,
