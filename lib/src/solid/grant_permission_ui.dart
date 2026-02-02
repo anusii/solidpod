@@ -234,6 +234,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   List<LogRecord> permHistoryList = [];
 
+  /// Unfiltered permission history list
+
+  List<LogRecord> unFilteredPermHistoryList = [];
+
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
 
@@ -342,6 +346,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       setState(() {
         debugPrint('grantPermissionUi: setState: updating permHistoryList...');
         permHistoryList = updatedPermHistoryList;
+        // Set full unfiltered list to current list from updated
+        // log fetch
+        unFilteredPermHistoryList = updatedPermHistoryList;
         debugPrint(
           'GrantPermissionUi: setState: last record: ${permHistoryList.last.dateTimeStr}',
         );
@@ -350,6 +357,41 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         );
       });
     }
+  }
+
+  // Search log records
+  void _searchLogs(String enteredKeyword) {
+    List<LogRecord> results = [];
+    if (enteredKeyword.isEmpty) {
+      // Display all log records if no search string
+      results = unFilteredPermHistoryList;
+      // permHistoryList;
+    } else {
+      // Display log records with recipient name, granter name,
+      // permission type, permission matches
+      results = unFilteredPermHistoryList.where((item) {
+        return item.recipientName
+                .toLowerCase()
+                .contains(enteredKeyword.toLowerCase()) ||
+            item.granterName
+                .toLowerCase()
+                .contains(enteredKeyword.toLowerCase()) ||
+            item.permissionType
+                .toLowerCase()
+                .contains(enteredKeyword.toLowerCase()) ||
+            item.permissionList
+                .toLowerCase()
+                .contains(enteredKeyword.toLowerCase());
+      }).toList();
+    }
+
+    // Refresh the UI
+    setState(() {
+      permHistoryList = results;
+      debugPrint(
+        'searchLogs: updated search result to ${permHistoryList.length}',
+      );
+    });
   }
 
   /// Private function to call alert dialog in grant permission UI context
@@ -372,6 +414,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
     if (initPermHistoryList != null && permHistoryInitialied == false) {
       permHistoryList = initPermHistoryList;
+      // Set full unfiltered list to current list from initial
+      // log fetch
+      unFilteredPermHistoryList = initPermHistoryList;
       permHistoryInitialied = true;
     }
 
@@ -471,6 +516,21 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   'Permission history',
                   addPadding: false,
                 ),
+                smallGapV,
+                // Search logs field
+                TextField(
+                  onChanged: (value) => _searchLogs(value),
+                  decoration: const InputDecoration(
+                    labelText:
+                        'Search access level, permission type, recipient or granter name',
+                    hintText: 'Enter string to match log properties',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                    ),
+                  ),
+                ),
+                vSmallGapV,
                 PermissionHistory(
                   // Force history rebuild on permission history change
                   key: ValueKey(permHistoryList),
