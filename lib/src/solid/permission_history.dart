@@ -108,6 +108,8 @@ class _PermissionHistoryState extends State<PermissionHistory> {
     //  By default _permissions is the full list of permissions
     _permHistory = widget.permHistory;
 
+    debugPrint('PermissionHistory() building...');
+
     return Expanded(
       child: GridView.builder(
         controller: _scrollController,
