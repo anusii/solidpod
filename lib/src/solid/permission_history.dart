@@ -41,7 +41,7 @@ import 'package:solidpod/src/solid/models/log_record.dart';
 ///
 /// Parameters:
 /// - [resourceName] - The filename or file url of the resource.
-/// - [permHistory] is the [List<LogRecord>] comprising permission history for the [resourceName]
+/// - [permHistory] is the [List<LogRecord>] comprising permission history for the [resourceName].
 ///
 
 class PermissionHistory extends StatefulWidget {
@@ -70,11 +70,11 @@ class PermissionHistory extends StatefulWidget {
 }
 
 class _PermissionHistoryState extends State<PermissionHistory> {
-  /// Searched/sorted notes
+  /// Searched/sorted logs
   List<LogRecord> _permHistory = [];
 
   /// Aspect ratio (width / height) for gridview
-  /// cards to display note items
+  /// cards to display log items
   late double cardAspectRatio = 2.0;
 
   /// Boolean describing whether window is narrow
@@ -89,9 +89,6 @@ class _PermissionHistoryState extends State<PermissionHistory> {
 
     //  By default _permissions is the full list of permissions
     _permHistory = widget.permHistory;
-    debugPrint(
-      'PermissionHistory: initState: perm history length: ${_permHistory.length}',
-    );
 
     // Create scroll controller
     _scrollController = ScrollController();
@@ -128,6 +125,7 @@ class _PermissionHistoryState extends State<PermissionHistory> {
                 borderRadius: BorderRadius.all(Radius.circular(5)),
               ),
               child: MarkdownTooltip(
+                // TODO: add helpful tooltip on permission log records?
                 message: 'Add tooltip here', // _permHistory[index].toolTip,
                 child: ListTile(
                   // Leading icon denoting agreement of access terms
@@ -157,7 +155,7 @@ class _PermissionHistoryState extends State<PermissionHistory> {
                   subtitle: Text(
                     'Recipient: ${_permHistory[index].recipientName} \n'
                     'Granter: ${_permHistory[index].granterName}',
-                    maxLines: 3, // Limit to 5 lines
+                    maxLines: 3, // Limit lines
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
