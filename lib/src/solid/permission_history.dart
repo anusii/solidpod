@@ -71,7 +71,8 @@ class PermissionHistory extends StatefulWidget {
 
 class _PermissionHistoryState extends State<PermissionHistory> {
   /// Searched/sorted notes
-  List<LogRecord> _permHistory = [];
+  // Make final until sorting and search is added
+  late final List<LogRecord> _permHistory; // = [];
 
   /// Aspect ratio (width / height) for gridview
   /// cards to display note items
@@ -86,6 +87,12 @@ class _PermissionHistoryState extends State<PermissionHistory> {
   @override
   void initState() {
     super.initState();
+
+    //  By default _permissions is the full list of permissions
+    _permHistory = widget.permHistory;
+    debugPrint(
+      'PermissionHistory: initState: perm history length: ${_permHistory.length}',
+    );
 
     // Create scroll controller
     _scrollController = ScrollController();
@@ -105,10 +112,13 @@ class _PermissionHistoryState extends State<PermissionHistory> {
     cardAspectRatio =
         ListItemSize().calculateCardAspectRatio(widget.constraints);
 
-    //  By default _permissions is the full list of permissions
-    _permHistory = widget.permHistory;
+    // //  By default _permissions is the full list of permissions
+    // _permHistory = widget.permHistory;
 
-    debugPrint('PermissionHistory() building...');
+    debugPrint('PermissionHistory(): building...');
+    debugPrint(
+      'PermissionHistory: perm history length: ${_permHistory.length}',
+    );
 
     return Expanded(
       child: GridView.builder(

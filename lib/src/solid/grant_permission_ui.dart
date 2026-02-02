@@ -182,9 +182,13 @@ class GrantPermissionUi extends StatefulWidget {
 
 class GrantPermissionUiState extends State<GrantPermissionUi>
     with SingleTickerProviderStateMixin {
-  /// Flag to check whether page is initialised.
+  /// Flag to check whether permission table is initialised.
 
-  bool pageInitialied = false;
+  bool permTableInitialied = false;
+
+  /// Flag to check whether permission history is initialised.
+
+  bool permHistoryInitialied = false;
 
   /// Define access mode list
 
@@ -297,6 +301,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       );
       getPermHistoryList =
           sharedResourcesHistory(resourceName: widget.resourceName as String);
+      // permHistoryList = [];
     }
   }
 
@@ -321,6 +326,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       await _alert('We could not find a resource by the name $fileName');
     } else {
       setState(() {
+        debugPrint('grantPermissionUi: setState: updating permissionMap...');
         permDataMap = pdata.permissionMap;
         permDataFile = fileName;
         _ownerWebId = pdata.ownerWebId;
@@ -334,7 +340,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       );
     } else {
       setState(() {
+        debugPrint('grantPermissionUi: setState: updating permHistoryList...');
         permHistoryList = updatedPermHistoryList;
+        debugPrint(
+          'GrantPermissionUi: setState: last record: ${permHistoryList.last.dateTimeStr}',
+        );
+        debugPrint(
+          'GrantPermissionUi: setState: length: ${permHistoryList.length}',
+        );
       });
     }
   }
@@ -346,18 +359,26 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   Widget _buildPermPage(
     BuildContext context, [
     PermissionDetails? futurePermDetails,
-    List<LogRecord>? permHistoryList,
+    List<LogRecord>? futurePermHistoryList,
   ]) {
+    // FIXME rename futurePermDetails and futurePermHistoryList to initial
     // Check if future is set or not. If set display the permission map
-    if (futurePermDetails != null && pageInitialied == false) {
+    if (futurePermDetails != null && permTableInitialied == false) {
       permDataMap = futurePermDetails.permissionMap;
       _ownerWebId = futurePermDetails.ownerWebId;
       _granterWebId = futurePermDetails.granterWebId;
       permDataFile = widget.resourceName!;
-      pageInitialied = true;
+      permTableInitialied = true;
     }
 
-    // debugPrint('perm history length: ${permHistoryList?.length}');
+    if (futurePermHistoryList != null && permHistoryInitialied == false) {
+      permHistoryList = futurePermHistoryList;
+      permHistoryInitialied = true;
+    }
+
+    debugPrint(
+      'GrantPermissionUI: perm history length: ${permHistoryList.length}',
+    );
     // debugPrint(
     //   'perm history first log entry datetime: ${permHistoryList?.first.dateTimeStr}',
     // );
@@ -457,10 +478,14 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                   constraints: constraints,
                 ),
                 smallGapV,
-                makeSubHeading('Permission history', addPadding: false),
+                makeSubHeading(
+                  'Permission history with value key',
+                  addPadding: false,
+                ),
                 PermissionHistory(
+                  key: ValueKey(permHistoryList),
                   resourceName: widget.resourceName!,
-                  permHistory: permHistoryList!,
+                  permHistory: permHistoryList,
                   constraints: constraints,
                 ),
               ],
@@ -485,13 +510,13 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
             if (!snapshot.hasData) {
               return Scaffold(body: loadingScreen(normalLoadingScreenHeight));
             }
-            final PermissionDetails currentPerm =
+            final PermissionDetails initCurrentPerm =
                 snapshot.data![0] as PermissionDetails;
-            final List<LogRecord> permHistoryList =
+            final List<LogRecord> initPermHistoryList =
                 snapshot.data![1] as List<LogRecord>;
-            return currentPerm.permissionMap.isEmpty
+            return initCurrentPerm.permissionMap.isEmpty
                 ? widget.child
-                : _buildPermPage(context, currentPerm, permHistoryList);
+                : _buildPermPage(context, initCurrentPerm, initPermHistoryList);
           },
         );
 }
