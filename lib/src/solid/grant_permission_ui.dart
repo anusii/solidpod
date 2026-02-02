@@ -224,7 +224,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   /// Pod data list retreived as a Future
 
-  late Future<PermissionDetails?> podDataList;
+  late Future<PermissionDetails?> getACLPerm;
 
   /// Permission history list retreived as a Future
 
@@ -237,9 +237,9 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
 
-  /// Gets permission details data from POD server if necessary.
+  /// Gets permission details data from ACL on POD server if necessary.
 
-  Future<PermissionDetails?> loadPodData(
+  Future<PermissionDetails?> loadACLData(
     String resName, {
     bool isFile = true,
     bool isExternalRes = false,
@@ -294,7 +294,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     super.initState();
     // Load permission map from ACL, owner and granter web ids
     if (widget.resourceName != null) {
-      podDataList = loadPodData(
+      getACLPerm = loadACLData(
         widget.resourceName as String,
         isFile: widget.isFile,
         isExternalRes: widget.isExternalRes,
@@ -312,7 +312,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     bool isFile = true,
     bool isExternalRes = false,
   }) async {
-    final pdata = await loadPodData(
+    final pdata = await loadACLData(
       fileName,
       isFile: isFile,
       isExternalRes: isExternalRes,
@@ -358,33 +358,22 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
   /// Build the main widget
   Widget _buildPermPage(
     BuildContext context, [
-    PermissionDetails? futurePermDetails,
-    List<LogRecord>? futurePermHistoryList,
+    PermissionDetails? initPermDetails,
+    List<LogRecord>? initPermHistoryList,
   ]) {
-    // FIXME rename futurePermDetails and futurePermHistoryList to initial
     // Check if future is set or not. If set display the permission map
-    if (futurePermDetails != null && permTableInitialied == false) {
-      permDataMap = futurePermDetails.permissionMap;
-      _ownerWebId = futurePermDetails.ownerWebId;
-      _granterWebId = futurePermDetails.granterWebId;
+    if (initPermDetails != null && permTableInitialied == false) {
+      permDataMap = initPermDetails.permissionMap;
+      _ownerWebId = initPermDetails.ownerWebId;
+      _granterWebId = initPermDetails.granterWebId;
       permDataFile = widget.resourceName!;
       permTableInitialied = true;
     }
 
-    if (futurePermHistoryList != null && permHistoryInitialied == false) {
-      permHistoryList = futurePermHistoryList;
+    if (initPermHistoryList != null && permHistoryInitialied == false) {
+      permHistoryList = initPermHistoryList;
       permHistoryInitialied = true;
     }
-
-    debugPrint(
-      'GrantPermissionUI: perm history length: ${permHistoryList.length}',
-    );
-    // debugPrint(
-    //   'perm history first log entry datetime: ${permHistoryList?.first.dateTimeStr}',
-    // );
-    // debugPrint(
-    //   'perm history last log entry datetime: ${permHistoryList?.last.dateTimeStr}',
-    // );
 
     final retrievePermissionButton = ElevatedButton(
       child: const Text('Retrieve permissions'),
@@ -502,7 +491,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       : FutureBuilder(
           future: Future.wait([
             // Future that returns List of current access from ACL
-            podDataList,
+            getACLPerm,
             // Future that returns List<LogRecord> from permission log
             getPermHistoryList,
           ]),
