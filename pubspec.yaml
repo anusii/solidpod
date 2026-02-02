@@ -34,7 +34,6 @@ dependencies:
   rdflib: ^0.2.12
   solid_auth: ^0.1.28
   solidui: ^0.0.25
-  web: ^1.1.0
   universal_io: ^2.3.1
 
 dev_dependencies:

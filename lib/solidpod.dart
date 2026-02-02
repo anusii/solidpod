@@ -32,12 +32,19 @@ library;
 
 /// Organized constants structure to avoid name conflicts.
 /// Use `SolidConstants.namespaces.foaf`, `SolidConstants.directories.data`, etc.
+
 export 'src/solid/constants/solid_constants.dart';
 
 // Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
+
 export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
+
+/// Common RDF predicates for Linked Data operations.
+/// Includes predicates for RDF, FOAF, ACL, VCard, Dublin Core Terms, and XSD.
+
+export 'src/solid/constants/predicates.dart';
 
 /// Solid authentication function
 

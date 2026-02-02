@@ -33,6 +33,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart'
     show
@@ -40,7 +41,9 @@ import 'package:solidui/solidui.dart'
         loginIfRequired,
         logoutPopup,
         getKeyFromUserIfRequired,
-        changeKeyPopup;
+        changeKeyPopup,
+        smallGapV,
+        largeGapV;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
@@ -283,11 +286,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     // Include a timestamp on the screen.
 
     final dateStr = DateFormat('HH:mm:ss dd MMMM yyyy').format(DateTime.now());
-
-    // Some vertical spacing for the widget.
-
-    const smallGapV = SizedBox(height: 10.0);
-    const largeGapV = SizedBox(height: 40.0);
 
     // A small horizontal spacing for the widget.
 
