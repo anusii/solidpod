@@ -32,7 +32,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show SharingPageLayout;
+
 import 'package:solidpod/src/solid/grant_permission_form.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
