@@ -86,7 +86,7 @@ Future<void> deleteDataFileDialog(
             actions: [
               ElevatedButton(
                 onPressed: () async {
-                  await deleteFile(filePath, contentType: contentType);
+                  await deleteFile(fileUrl: fileUrl, contentType: contentType);
                   if (context.mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
