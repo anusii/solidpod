@@ -579,15 +579,17 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 /// security key. Use this flag if file is a security key to avoid
 /// unnecessary operations that are not needed to delete a key.
 
-Future<void> deleteFile(
-  String filePath, {
+Future<void> deleteFile({
+  required String fileUrl,
   ResourceContentType contentType = ResourceContentType.turtleText,
   bool isKey = false,
 }) async {
-  final fileUrl = await getFileUrl(filePath);
   if (await isFileProtected(fileUrl)) {
     throw Exception('Delete protected file is not allowed');
   }
+
+  final filePath = await extractResourcePathFromUrl(fileUrl);
+
   if (!isKey) {
     // File to be deleted != key => perform all steps
 
