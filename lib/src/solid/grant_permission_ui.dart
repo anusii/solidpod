@@ -36,6 +36,7 @@ import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 import 'package:solidpod/src/solid/models/permission_details.dart';
 import 'package:solidpod/src/solid/permission_history.dart';
 import 'package:solidpod/src/solid/permission_table.dart';
@@ -43,7 +44,6 @@ import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/share_resource_button.dart';
 import 'package:solidpod/src/solid/shared_resource_history.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
-import 'package:solidpod/src/solid/models/log_record.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/get_authoriser.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
@@ -238,6 +238,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   List<LogRecord> unFilteredPermHistoryList = [];
 
+  /// Flag to check whether permission history is initialised.
+
+  bool showCurrentPermOnly = false;
+
   /// A flag to identify if the resource is a file or not
   bool isFile = true;
 
@@ -394,6 +398,51 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     });
   }
 
+  /// Filter log records for current/all log records
+  void getLatestLogRecords() {
+    List<LogRecord> currentLogRecords = [];
+    List<String> currentRecipients = [];
+
+    // Loop through logs and get the latest for each resource
+    for (final record in permHistoryList) {
+      // Store most recent grant record
+      if ((record.permissionType).contains('grant')) {
+        final recipientWebId = record.recipientWebId;
+
+        currentRecipients =
+            currentLogRecords.map((item) => item.recipientWebId).toList();
+
+        if (currentRecipients.contains(recipientWebId)) {
+          final int prevMatchIndex = currentLogRecords
+              .indexWhere((item) => item.recipientWebId == recipientWebId);
+          final String prevDateTime =
+              currentLogRecords[prevMatchIndex].dateTimeStr;
+          // Update record if this record more recent than stored record
+          if ([0, 1].contains(
+            DateTime.parse(record.dateTimeStr)
+                .compareTo(DateTime.parse(prevDateTime)),
+          )) {
+            currentLogRecords[prevMatchIndex] = record;
+          }
+        } else {
+          // Store record if no prev record for this recipient
+          currentLogRecords.add(record);
+        }
+      } else {
+        // Skip revoke records
+        continue;
+      }
+    }
+
+    // Refresh the UI
+    setState(() {
+      permHistoryList = currentLogRecords;
+      debugPrint(
+        'getLatestLogRecords: number ${permHistoryList.length}',
+      );
+    });
+  }
+
   /// Private function to call alert dialog in grant permission UI context
   Future<void> _alert(String msg) async => alert(context, msg);
 
@@ -513,23 +562,78 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
                 mediumGapV,
                 makeSubHeading(
-                  'Permission history',
+                  showCurrentPermOnly
+                      ? 'People with current access'
+                      : 'Permission history',
                   addPadding: false,
                 ),
                 smallGapV,
-                // Search logs field
-                TextField(
-                  onChanged: (value) => _searchLogs(value),
-                  decoration: const InputDecoration(
-                    labelText:
-                        'Search access level, permission type, recipient or granter name',
-                    hintText: 'Enter string to match log properties',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  spacing: 5.0,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      // Search logs field
+                      child: TextField(
+                        onChanged: (value) => _searchLogs(value),
+                        decoration: const InputDecoration(
+                          labelText:
+                              'Search access level, permission type, recipient or granter name',
+                          labelStyle: TextStyle(fontSize: 12),
+                          hintText: 'Enter search text',
+                          hintStyle: TextStyle(fontSize: 12),
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(25.0)),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    // Current/History permission switch
+                    SizedBox(
+                      width: 170.0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        spacing: 5.0,
+                        children: [
+                          SizedBox(
+                            width: 100,
+                            child: Text(
+                              showCurrentPermOnly
+                                  ? 'Current Permissions'
+                                  : 'All Permissions',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                            ),
+                          ),
+                          Switch(
+                            // This bool value toggles the switch.
+                            value: showCurrentPermOnly,
+                            activeThumbColor: ActionColors.success,
+                            onChanged: (bool value) {
+                              // This is called when the user toggles the switch.
+                              setState(() {
+                                showCurrentPermOnly = value;
+                              });
+                              // Update permHistoryList
+                              if (showCurrentPermOnly) {
+                                getLatestLogRecords();
+                              } else {
+                                setState(() {
+                                  permHistoryList = unFilteredPermHistoryList;
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
+
                 vSmallGapV,
                 PermissionHistory(
                   // Force history rebuild on permission history change
