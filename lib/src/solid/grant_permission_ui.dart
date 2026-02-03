@@ -548,6 +548,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 mediumGapV,
+                // TODO: remove after review of permission history
                 makeSubHeading('People with current access', addPadding: false),
                 PermissionTable(
                   resourceName: permDataFile,
@@ -575,21 +576,23 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     Expanded(
                       flex: 3,
                       // Search logs field
-                      child: TextField(
-                        onChanged: (value) => _searchLogs(value),
-                        decoration: const InputDecoration(
-                          labelText:
-                              'Search access level, permission type, recipient or granter name',
-                          labelStyle: TextStyle(fontSize: 12),
-                          hintText: 'Enter search text',
-                          hintStyle: TextStyle(fontSize: 12),
-                          prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(25.0)),
-                          ),
-                        ),
-                      ),
+                      child: showCurrentPermOnly
+                          ? const Text('')
+                          : TextField(
+                              onChanged: (value) => _searchLogs(value),
+                              decoration: const InputDecoration(
+                                labelText:
+                                    'Search access level, permission type, recipient or granter name',
+                                labelStyle: TextStyle(fontSize: 12),
+                                hintText: 'Enter search text',
+                                hintStyle: TextStyle(fontSize: 12),
+                                prefixIcon: Icon(Icons.search),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(25.0)),
+                                ),
+                              ),
+                            ),
                     ),
                     // Current/History permission switch
                     SizedBox(
@@ -618,10 +621,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                               setState(() {
                                 showCurrentPermOnly = value;
                               });
-                              // Update permHistoryList
-                              if (showCurrentPermOnly) {
-                                getLatestLogRecords();
-                              } else {
+                              // If showing all permission
+                              // default to full permission history
+                              // list
+                              if (!showCurrentPermOnly) {
                                 setState(() {
                                   permHistoryList = unFilteredPermHistoryList;
                                 });
@@ -635,13 +638,28 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 vSmallGapV,
-                PermissionHistory(
-                  // Force history rebuild on permission history change
-                  key: ValueKey(permHistoryList),
-                  resourceName: widget.resourceName!,
-                  permHistory: permHistoryList,
-                  constraints: constraints,
-                ),
+                // Show permissions from ACL if showCurrentPermOnly
+                // is selected, else show searchable permission
+                // history
+                showCurrentPermOnly
+                    ? PermissionTable(
+                        resourceName: permDataFile,
+                        permDataMap: permDataMap,
+                        ownerWebId: _ownerWebId,
+                        granterWebId: _granterWebId,
+                        updatePermissionsFunction: _updatePermissions,
+                        parentWidget: widget.child,
+                        isFile: getIsFile(),
+                        isExternalRes: widget.isExternalRes,
+                        constraints: constraints,
+                      )
+                    : PermissionHistory(
+                        // Force history rebuild on permission history change
+                        key: ValueKey(permHistoryList),
+                        resourceName: widget.resourceName!,
+                        permHistory: permHistoryList,
+                        constraints: constraints,
+                      ),
               ],
             ),
           ),
