@@ -9,7 +9,6 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-
 ## 0.11 Robust
 
 + Migrate Security Key and Permission GUI to solidui [0.10.0 20260203 tonypioneer]
