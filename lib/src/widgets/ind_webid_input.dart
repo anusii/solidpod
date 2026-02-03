@@ -40,7 +40,6 @@ import 'package:solidui/solidui.dart'
         makeSubHeading,
         GrantPermFormLayout,
         WebIdLayout,
-        SecurityColors,
         DropdownColors;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -241,7 +240,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
               elevation: WebIdLayout.dropdownElevation,
               child: ListTile(
                 title: Text(idList[index]),
-                focusColor: SecurityColors.primary,
+                focusColor: DropdownColors.primary,
                 hoverColor: DropdownColors.accent,
                 splashColor: DropdownColors.primary,
                 onTap: () => setState(() {
