@@ -31,6 +31,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/ui.dart';
@@ -597,41 +598,45 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                     // Current/History permission switch
                     SizedBox(
                       width: 170.0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        spacing: 5.0,
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: Text(
-                              showCurrentPermOnly
-                                  ? 'Current Permissions'
-                                  : 'All Permissions',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.end,
+                      child: MarkdownTooltip(
+                        message:
+                            'Switch between current people with access and permission history log',
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          spacing: 5.0,
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                showCurrentPermOnly
+                                    ? 'Current Permissions'
+                                    : 'All Permissions',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.end,
+                              ),
                             ),
-                          ),
-                          Switch(
-                            // This bool value toggles the switch.
-                            value: showCurrentPermOnly,
-                            activeThumbColor: ActionColors.success,
-                            onChanged: (bool value) {
-                              // This is called when the user toggles the switch.
-                              setState(() {
-                                showCurrentPermOnly = value;
-                              });
-                              // If showing all permission
-                              // default to full permission history
-                              // list
-                              if (!showCurrentPermOnly) {
+                            Switch(
+                              // This bool value toggles the switch.
+                              value: showCurrentPermOnly,
+                              activeThumbColor: ActionColors.success,
+                              onChanged: (bool value) {
+                                // This is called when the user toggles the switch.
                                 setState(() {
-                                  permHistoryList = unFilteredPermHistoryList;
+                                  showCurrentPermOnly = value;
                                 });
-                              }
-                            },
-                          ),
-                        ],
+                                // If showing all permission
+                                // default to full permission history
+                                // list
+                                if (!showCurrentPermOnly) {
+                                  setState(() {
+                                    permHistoryList = unFilteredPermHistoryList;
+                                  });
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
