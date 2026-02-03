@@ -142,9 +142,7 @@ class SharedKeyManager {
 
     if (record!.key == null) {
       _rsaEncrypter ??= Encrypter(
-        RSA(
-          privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey,
-        ),
+        RSA(privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey),
       );
 
       record.resourcePath = _rsaEncrypter!.decrypt64(record.encResourcePath);

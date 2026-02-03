@@ -70,7 +70,8 @@ const updatePermissionMsg =
     'Please login first to update file access permission';
 const podNotInitMsg =
     'The owner of one or more WebIds you entered have not initialised their PODs yet! They need to login and setup their POD first.';
-const noAclMsg = 'Resource does not have a corresponding ACL file.\n'
+const noAclMsg =
+    'Resource does not have a corresponding ACL file.\n'
     'If the ACL is inherited, provide parent directory as the resource name!';
 const successMsg = 'File access permissions granted successfully!';
 const failureMsg =
@@ -115,70 +116,57 @@ const ownerRecipientTypes = [
 ];
 
 /// Relevant recipient types for resource sharing by the resource granter (ie. an entity with control access).
-const granterRecipientTypes = [
-  RecipientType.individual,
-  RecipientType.group,
-];
+const granterRecipientTypes = [RecipientType.individual, RecipientType.group];
 
 /// Get title of sharing page
-String makeSharingTitleStr({
-  String? fileName,
-  bool isFile = false,
-}) =>
+String makeSharingTitleStr({String? fileName, bool isFile = false}) =>
     fileName != null
-        ? isFile
-            ? 'Share $fileName'
-            : 'Share $fileName folder'
-        : 'Share your data with other user\'s PODs';
+    ? isFile
+          ? 'Share $fileName'
+          : 'Share $fileName folder'
+    : 'Share your data with other user\'s PODs';
 
 List<Widget> getPermissionCheckBoxes(
   List<AccessMode> accessModes, {
   required Map<AccessMode, bool> modeSwitches,
   required Function onUpdate,
-}) =>
-    [
-      for (final mode in AccessMode.getAllModes())
-        if (accessModes.contains(mode))
-          permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
-    ];
+}) => [
+  for (final mode in AccessMode.getAllModes())
+    if (accessModes.contains(mode))
+      permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
+];
 
 Widget getResourceForm({
   required TextEditingController formController,
   required bool isFile,
   required void Function(bool) onResourceTypeChange,
-}) =>
-    Padding(
-      padding: SharingPageLayout.inputPadding,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: formController,
-            decoration: const InputDecoration(
-              hintText:
-                  'Data file path (inside your data folder, Eg: personal/about.ttl)',
-            ),
-            validator: (value) =>
-                (value == null || value.isEmpty) ? 'Empty field' : null,
-          ),
-          const SizedBox(height: 10),
-          SwitchListTile(
-            title: const Text(
-              'Is a File?',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              isFile ? 'Yes' : 'No',
-            ),
-            value: isFile,
-            onChanged: onResourceTypeChange,
-            thumbColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) =>
-                  states.contains(WidgetState.selected) ? Colors.green : null,
-            ),
-          ),
-        ],
+}) => Padding(
+  padding: SharingPageLayout.inputPadding,
+  child: Column(
+    children: [
+      TextFormField(
+        controller: formController,
+        decoration: const InputDecoration(
+          hintText:
+              'Data file path (inside your data folder, Eg: personal/about.ttl)',
+        ),
+        validator: (value) =>
+            (value == null || value.isEmpty) ? 'Empty field' : null,
       ),
-    );
+      const SizedBox(height: 10),
+      SwitchListTile(
+        title: const Text(
+          'Is a File?',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(isFile ? 'Yes' : 'No'),
+        value: isFile,
+        onChanged: onResourceTypeChange,
+        thumbColor: WidgetStateProperty.resolveWith<Color?>(
+          (Set<WidgetState> states) =>
+              states.contains(WidgetState.selected) ? Colors.green : null,
+        ),
+      ),
+    ],
+  ),
+);

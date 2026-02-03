@@ -150,26 +150,20 @@ enum AccessMode {
     '''),
 
   /// Control access: read and write access to the ACL file
-  control(
-    'Control',
-    '''
+  control('Control', '''
 
     **Control:** Permission is granted to alter the access permission to the
     shared file
 
-    ''',
-  ),
+    '''),
 
   /// Append data (a type of write)
-  append(
-    'Append',
-    '''
+  append('Append', '''
 
     **Append:** Permission is granted to add content but not remove or modify
     content from the shared file.
 
-    ''',
-  );
+    ''');
 
   /// Constructor
   const AccessMode(this._value, this._description);
@@ -190,11 +184,11 @@ enum AccessMode {
   String get description => _description;
 
   static List<AccessMode> getAllModes() => [
-        AccessMode.read,
-        AccessMode.write,
-        AccessMode.control,
-        AccessMode.append,
-      ];
+    AccessMode.read,
+    AccessMode.write,
+    AccessMode.control,
+    AccessMode.append,
+  ];
 }
 
 /// Return access mode based on a given String value
@@ -209,8 +203,10 @@ AccessMode getAccessMode(String mode) {
     case 'append':
       return AccessMode.append;
     default:
-      throw Exception('Wrong access mode given'
-          '\nMode: $mode');
+      throw Exception(
+        'Wrong access mode given'
+        '\nMode: $mode',
+      );
   }
 }
 
@@ -309,18 +305,22 @@ String getPermissionTooltip({
   String toolTip;
 
   if (recipientType == RecipientType.public) {
-    toolTip = 'Accessible with ${permList.join(', ')}'
+    toolTip =
+        'Accessible with ${permList.join(', ')}'
         ' access to anyone';
   } else if (recipientType == RecipientType.authUser) {
-    toolTip = 'Accessible to all loggedin users '
+    toolTip =
+        'Accessible to all loggedin users '
         'with ${permList.join(', ')} access';
   } else {
-    toolTip = 'Accessible to $recipientName '
+    toolTip =
+        'Accessible to $recipientName '
         'with ${permList.join(', ')} access';
   }
 
   if (permList.contains('Control')) {
-    toolTip = '$toolTip '
+    toolTip =
+        '$toolTip '
         '(i.e. they can share or revoke access to others)';
   }
 
@@ -334,17 +334,12 @@ Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
     URIRef('${thisFile.ns.ns}me'): {
       AclPredicate.aclRdfType.uriRef: AclPredicate.vcardGroup.uriRef,
       AclPredicate.vcardHasMember.uriRef: {
-        for (final webId in groupWebIdList) ...{
-          URIRef(webId as String),
-        },
+        for (final webId in groupWebIdList) ...{URIRef(webId as String)},
       },
     },
   };
 
-  final bindNS = {
-    thisFile.prefix: thisFile.ns,
-    vcardNS.prefix: vcardNS.ns,
-  };
+  final bindNS = {thisFile.prefix: thisFile.ns, vcardNS.prefix: vcardNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
 }
@@ -357,9 +352,7 @@ Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
     URIRef('${thisFile.ns.ns}me'): {
-      AclPredicate.aclRdfType.uriRef: {
-        AclPredicate.personalDocument.uriRef,
-      },
+      AclPredicate.aclRdfType.uriRef: {AclPredicate.personalDocument.uriRef},
     },
     if (initialDataList != null) ...{
       URIRef(initialDataList.first): {

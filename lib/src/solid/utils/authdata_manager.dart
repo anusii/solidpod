@@ -92,8 +92,12 @@ class AuthDataManager {
     final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
     _webId = decodedToken['webid'] as String;
     _logoutUrl = authData['logoutUrl'] as String;
-    _rsaInfo = authData['rsaInfo'] as Map<dynamic,
-        dynamic>; // Note that use Map<String, dynamic> does not seem to work
+    _rsaInfo =
+        authData['rsaInfo']
+            as Map<
+              dynamic,
+              dynamic
+            >; // Note that use Map<String, dynamic> does not seem to work
     _authResponse = authData['authResponse'] as Credential;
 
     await writeToSecureStorage(
@@ -209,10 +213,16 @@ class AuthDataManager {
         final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
         final tokenEndpoint =
             _authResponse!.client.issuer.metadata['token_endpoint'] as String;
-        final dPopToken =
-            genDpopToken(tokenEndpoint, rsaKeyPair, publicKeyJwk, 'POST');
-        tokenResponse = await _authResponse!
-            .getTokenResponse(forceRefresh: true, dPoPToken: dPopToken);
+        final dPopToken = genDpopToken(
+          tokenEndpoint,
+          rsaKeyPair,
+          publicKeyJwk,
+          'POST',
+        );
+        tokenResponse = await _authResponse!.getTokenResponse(
+          forceRefresh: true,
+          dPoPToken: dPopToken,
+        );
         // TODO dc 20250106: Save refreshed token in secure storage
       }
       return tokenResponse;
@@ -267,8 +277,9 @@ class AuthDataManager {
         _webId = dataMap['web_id'] as String;
         _logoutUrl = dataMap['logout_url'] as String;
         _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
-        _authResponse =
-            Credential.fromJson((dataMap['auth_response'] as Map).cast());
+        _authResponse = Credential.fromJson(
+          (dataMap['auth_response'] as Map).cast(),
+        );
 
         return true;
       } on Object {

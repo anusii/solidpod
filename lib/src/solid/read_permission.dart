@@ -60,8 +60,10 @@ Future<Map<dynamic, dynamic>> readPermission({
   );
 
   // Read ACL file content
-  final Map<dynamic, dynamic> aclContentMap =
-      await readAcl(resourceUrl, isFile);
+  final Map<dynamic, dynamic> aclContentMap = await readAcl(
+    resourceUrl,
+    isFile,
+  );
 
   // Extract permission details to a map
   final Map<dynamic, dynamic> permMap = extractAclPerm(aclContentMap);

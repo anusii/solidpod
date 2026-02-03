@@ -122,21 +122,21 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
 
     subHeadingStr = widget.sourceWebId != null
         ? subHeadingStr.contains('Filtered by')
-            ? '$subHeadingStr and the WebID ${widget.sourceWebId}'
-            : 'Filtered by the WebID ${widget.sourceWebId}'
+              ? '$subHeadingStr and the WebID ${widget.sourceWebId}'
+              : 'Filtered by the WebID ${widget.sourceWebId}'
         : subHeadingStr;
 
     return Scaffold(
       appBar: (!widget.showAppBar)
           ? null
           : (widget.customAppBar != null)
-              ? widget.customAppBar
-              : defaultAppBar(
-                  context,
-                  widget.title,
-                  widget.backgroundColor,
-                  widget.child,
-                ),
+          ? widget.customAppBar
+          : defaultAppBar(
+              context,
+              widget.title,
+              widget.backgroundColor,
+              widget.child,
+            ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -172,14 +172,12 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
   Widget build(BuildContext context) {
     // Build widget with a Future
     final fileName = widget.fileName != null ? widget.fileName as String : null;
-    final sourceWebId =
-        widget.sourceWebId != null ? widget.sourceWebId as String : null;
+    final sourceWebId = widget.sourceWebId != null
+        ? widget.sourceWebId as String
+        : null;
     return FutureBuilder(
       future: Future.wait([
-        sharedResources(
-          fileName,
-          sourceWebId,
-        ),
+        sharedResources(fileName, sourceWebId),
         AuthDataManager.getWebId(),
       ]),
       builder: (context, snapshot) {

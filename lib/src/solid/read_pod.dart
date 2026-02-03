@@ -89,9 +89,7 @@ Future<String> readPod(
   try {
     // Retrieve raw content
 
-    final fileContent = utf8.decode(
-      await getResource(fileUrl),
-    );
+    final fileContent = utf8.decode(await getResource(fileUrl));
 
     // Return raw content for non-turtle files
 

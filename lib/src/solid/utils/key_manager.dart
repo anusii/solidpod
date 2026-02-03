@@ -356,8 +356,11 @@ class KeyManager {
 
     final iv = genRandIV();
     prvKeyRecord.ivBase64 = iv.base64;
-    prvKeyRecord.encKeyBase64 =
-        encryptPrivateKey(prvKeyRecord.key!, _masterKey!, iv);
+    prvKeyRecord.encKeyBase64 = encryptPrivateKey(
+      prvKeyRecord.key!,
+      _masterKey!,
+      iv,
+    );
 
     // Save re-encrypted encryption keys.
 

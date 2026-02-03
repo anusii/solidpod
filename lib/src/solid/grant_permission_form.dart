@@ -209,27 +209,20 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     String msg,
     Color bgColor, {
     Duration duration = const Duration(seconds: 4),
-  }) async =>
-      showSnackBar(context, msg, bgColor, duration: duration);
+  }) async => showSnackBar(context, msg, bgColor, duration: duration);
 
   /// Update selected webid list with individual recipient webid
   /// [receiverWebId].
-  void updateIndWebIdInput(
-    String receiverWebId,
-  ) =>
-      setState(() {
-        selectedRecipientDetails = receiverWebId;
-        finalWebIdList = [receiverWebId];
-      });
+  void updateIndWebIdInput(String receiverWebId) => setState(() {
+    selectedRecipientDetails = receiverWebId;
+    finalWebIdList = [receiverWebId];
+  });
 
   /// Update selected webid list with list of webids in
   /// recipient group [webIdList] and their group name
   /// [groupName].
 
-  void updateGroupWebIdInput(
-    String groupName,
-    List<dynamic> webIdList,
-  ) =>
+  void updateGroupWebIdInput(String groupName, List<dynamic> webIdList) =>
       setState(() {
         selectedRecipientDetails = webIdList.join(', ');
         finalWebIdList = webIdList;
@@ -239,57 +232,55 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   /// Update checked status of access mode boxes to show
   /// selected access modes.
   void updateCheckbox(bool newValue, AccessMode accessMode) => setState(() {
-        switch (accessMode) {
-          case AccessMode.read:
-            readChecked = newValue;
-          case AccessMode.write:
-            writeChecked = newValue;
-          case AccessMode.control:
-            controlChecked = newValue;
-          case AccessMode.append:
-            appendChecked = newValue;
-        }
-        if (newValue) {
-          selectedPermList.add(accessMode.mode);
-        } else {
-          selectedPermList.remove(accessMode.mode);
-        }
-      });
+    switch (accessMode) {
+      case AccessMode.read:
+        readChecked = newValue;
+      case AccessMode.write:
+        writeChecked = newValue;
+      case AccessMode.control:
+        controlChecked = newValue;
+      case AccessMode.append:
+        appendChecked = newValue;
+    }
+    if (newValue) {
+      selectedPermList.add(accessMode.mode);
+    } else {
+      selectedPermList.remove(accessMode.mode);
+    }
+  });
 
   /// Define button click actions for each recipient type button
 
   /// Set recipients to public
   void _setRecipientsToPublic() => setState(() {
-        selectedRecipientType = RecipientType.public;
-        selectedRecipientDetails = 'Anyone (release publicly)';
-        finalWebIdList = [publicAgent.value];
-      });
+    selectedRecipientType = RecipientType.public;
+    selectedRecipientDetails = 'Anyone (release publicly)';
+    finalWebIdList = [publicAgent.value];
+  });
 
   /// Set recipients to authorised users
   void _setRecipientsToAuthUsers() => setState(() {
-        selectedRecipientType = RecipientType.authUser;
-        selectedRecipientDetails =
-            'Authenticated Users (any user logged in with their webId)';
-        finalWebIdList = [authenticatedAgent.value];
-      });
+    selectedRecipientType = RecipientType.authUser;
+    selectedRecipientDetails =
+        'Authenticated Users (any user logged in with their webId)';
+    finalWebIdList = [authenticatedAgent.value];
+  });
 
   /// Select individual recipient
   void _setRecipientsToIndividual() => setState(() {
-        selectedRecipientType = RecipientType.individual;
-      });
+    selectedRecipientType = RecipientType.individual;
+  });
 
   /// Select a group of recipients
   void _setRecipientsToGroup() => setState(() {
-        selectedRecipientType = RecipientType.group;
-      });
+    selectedRecipientType = RecipientType.group;
+  });
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       insetPadding: GrantPermFormLayout.contentPadding,
-      title: Text(
-        'Share ${widget.resourceName}',
-      ),
+      title: Text('Share ${widget.resourceName}'),
       content: Scrollbar(
         thumbVisibility: true,
         child: SingleChildScrollView(
@@ -303,9 +294,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                makeSubHeading(
-                  'Select the recipient/s of file access',
-                ),
+                makeSubHeading('Select the recipient/s of file access'),
 
                 // Show Select Recipient Buttons
                 SelectRecipients(
@@ -325,9 +314,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   ),
                 ] else if (selectedRecipientType == RecipientType.group) ...[
                   // Select group of recipients if required
-                  GroupWebIdTextInput(
-                    onSubmitFunction: updateGroupWebIdInput,
-                  ),
+                  GroupWebIdTextInput(onSubmitFunction: updateGroupWebIdInput),
                 ],
                 // List selected recipient webids or recipient
                 // type (public/auth)
@@ -337,9 +324,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   selectedGroupName: selectedGroupName,
                 ),
                 smallGapV,
-                makeSubHeading(
-                  'Select one or more file access permissions',
-                ),
+                makeSubHeading('Select one or more file access permissions'),
                 // Show access mode checkboxes and update
                 // selection status on click
                 ...getPermissionCheckBoxes(

@@ -146,22 +146,12 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
 
     if (folderList.isNotEmpty) {
       sections.add(
-        _Section(
-          title: 'Folders',
-          items: folderList,
-          isFolder: true,
-        ),
+        _Section(title: 'Folders', items: folderList, isFolder: true),
       );
     }
 
     if (fileList.isNotEmpty) {
-      sections.add(
-        _Section(
-          title: 'Files',
-          items: fileList,
-          isFolder: false,
-        ),
-      );
+      sections.add(_Section(title: 'Files', items: fileList, isFolder: false));
     }
 
     // If both are empty, show placeholder
@@ -180,7 +170,7 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
     return Scaffold(
       appBar: defaltAppBar(),
       body: // One scrollable list
-          Column(
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -236,8 +226,9 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                             section.isFolder
                                 ? Icons.folder
                                 : Icons.insert_drive_file,
-                            color:
-                                section.isFolder ? Colors.amber : Colors.blue,
+                            color: section.isFolder
+                                ? Colors.amber
+                                : Colors.blue,
                           ),
                           trailing: (!section.isFolder && widget.isEditable)
                               ? IconButton(
@@ -245,21 +236,23 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                   onPressed: () async {
                                     final filePath =
                                         '${widget.folderPath}$item';
-                                    final fileContent =
-                                        await readExternalPod(filePath);
+                                    final fileContent = await readExternalPod(
+                                      filePath,
+                                    );
 
                                     final TextEditingController editController =
                                         TextEditingController(
-                                      text: fileContent,
-                                    );
+                                          text: fileContent,
+                                        );
 
                                     if (!context.mounted) return;
                                     await showDialog<String>(
                                       context: context,
                                       builder: (BuildContext context) {
                                         return AlertDialog(
-                                          title:
-                                              const Text('Edit File Content'),
+                                          title: const Text(
+                                            'Edit File Content',
+                                          ),
                                           content: SizedBox(
                                             width: double.maxFinite,
                                             child: TextField(
@@ -284,8 +277,9 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                           actions: [
                                             TextButton(
                                               onPressed: () {
-                                                Navigator.of(context)
-                                                    .pop(); // Cancel -> close dialog
+                                                Navigator.of(
+                                                  context,
+                                                ).pop(); // Cancel -> close dialog
                                               },
                                               child: const Text('Cancel'),
                                             ),
@@ -332,8 +326,9 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                                   );
                                                 }
 
-                                                Navigator.of(context)
-                                                    .pop(); // Save -> return value
+                                                Navigator.of(
+                                                  context,
+                                                ).pop(); // Save -> return value
                                               },
                                               child: const Text('Save'),
                                             ),
@@ -369,8 +364,9 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                               final filePath = '${widget.folderPath}$item';
 
                               try {
-                                final fileContent =
-                                    await readExternalPod(filePath);
+                                final fileContent = await readExternalPod(
+                                  filePath,
+                                );
 
                                 if (!context.mounted) return;
                                 await showDialog(
@@ -384,8 +380,9 @@ class _FileExplorerScreenState extends State<FileExplorerScreen> {
                                           width: double.infinity,
                                           height: 300,
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
                                           ),
                                           child: Text(fileContent),
                                         ),
@@ -434,9 +431,5 @@ class _Section {
   final List<String> items;
   final bool isFolder;
 
-  _Section({
-    required this.title,
-    required this.items,
-    required this.isFolder,
-  });
+  _Section({required this.title, required this.items, required this.isFolder});
 }

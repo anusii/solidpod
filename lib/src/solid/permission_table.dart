@@ -143,8 +143,9 @@ class _PermissionTableState extends State<PermissionTable> {
     // Derive whether window is narrow
     isNarrow = WindowSize().isNarrowWindow(widget.constraints);
     // Calculate the aspect radio for grid cards
-    cardAspectRatio =
-        ListItemSize().calculateCardAspectRatio(widget.constraints);
+    cardAspectRatio = ListItemSize().calculateCardAspectRatio(
+      widget.constraints,
+    );
 
     //  By default _permissions is the full list of permissions
     _permissions = permMapToList(widget.permDataMap);
@@ -193,8 +194,8 @@ class _PermissionTableState extends State<PermissionTable> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   // Show revoke button for recipientWebId != ownerWebId
-                  trailing: (widget.ownerWebId !=
-                          _permissions[index].recipientWebId)
+                  trailing:
+                      (widget.ownerWebId != _permissions[index].recipientWebId)
                       ? SizedBox(
                           height: ListIconSize.height,
                           width: ListIconSize.twoIconWidth,

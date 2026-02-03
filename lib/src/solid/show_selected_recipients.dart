@@ -91,13 +91,12 @@ class ShowSelectedRecipients extends StatelessWidget {
             smallGapV,
             Row(
               children: [
-                const Text(
-                  'Group name: ',
-                  style: RecipientTextStyle.label,
-                ),
+                const Text('Group name: ', style: RecipientTextStyle.label),
                 Flexible(
-                  child:
-                      Text(selectedGroupName!, style: RecipientTextStyle.webId),
+                  child: Text(
+                    selectedGroupName!,
+                    style: RecipientTextStyle.webId,
+                  ),
                 ),
               ],
             ),

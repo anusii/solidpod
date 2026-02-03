@@ -43,10 +43,6 @@ void showSnackBar(
 }) {
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(msg),
-      backgroundColor: bgColor,
-      duration: duration,
-    ),
+    SnackBar(content: Text(msg), backgroundColor: bgColor, duration: duration),
   );
 }

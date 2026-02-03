@@ -95,12 +95,11 @@ class GrantPermissionUi extends StatefulWidget {
     this.onNavigateBack,
     super.key,
   }) : assert(
-          // Requires ownerWebId and granterWebId if resource
-          // is an externally owned.
-          isExternalRes == false ||
-              (ownerWebId != null && granterWebId != null),
-          'ownerWebId and granterWebId must be provided if isExternalRes == true',
-        );
+         // Requires ownerWebId and granterWebId if resource
+         // is an externally owned.
+         isExternalRes == false || (ownerWebId != null && granterWebId != null),
+         'ownerWebId and granterWebId must be provided if isExternalRes == true',
+       );
 
   /// The child widget to return to when back button is pressed and/or when
   /// page is reloaded after a permission is granted or revoked.
@@ -346,10 +345,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
-          await _updatePermissions(
-            fileName,
-            isFile: isFile,
-          );
+          await _updatePermissions(fileName, isFile: isFile);
         }
       },
     );
@@ -357,7 +353,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     bool getIsFile() => widget.resourceName != null ? widget.isFile : isFile;
 
     // Use customAppBar if provided
-    final customAppBar = widget.customAppBar ??
+    final customAppBar =
+        widget.customAppBar ??
         defaultAppBar(
           context,
           widget.title,
@@ -445,8 +442,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           future: podDataList,
           builder: (context, snapshot) => snapshot.hasData
               ? snapshot.data!.permissionMap.isEmpty
-                  ? widget.child
-                  : _buildPermPage(context, snapshot.data)
+                    ? widget.child
+                    : _buildPermPage(context, snapshot.data)
               : Scaffold(body: loadingScreen(normalLoadingScreenHeight)),
         );
 }

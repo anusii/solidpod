@@ -92,8 +92,10 @@ Future<SolidFunctionCallStatus> revokePermission({
     if (recipientType == RecipientType.group) {
       // Read the file that stores group of webIds
       // Get the file path
-      final groupFilePath =
-          [await getDataDirPath(), recipientIndOrGroupWebId].join('/');
+      final groupFilePath = [
+        await getDataDirPath(),
+        recipientIndOrGroupWebId,
+      ].join('/');
 
       // Get the url of the file
       final groupFileUrl = await getFileUrl(groupFilePath);
@@ -105,8 +107,10 @@ Future<SolidFunctionCallStatus> revokePermission({
     }
 
     // Check if the file is encrypted
-    final fileIsEncrypted =
-        await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
+    final fileIsEncrypted = await checkFileEnc(
+      resourceUrl,
+      isExternalRes: isExternalRes,
+    );
 
     // If the file is encrypted then remove the individual key from relavant
     // users/ user classes
@@ -161,8 +165,10 @@ Future<SolidFunctionCallStatus> revokePermission({
       final ownerLogFileUrl = await getFileUrl(logFilePath, webId: ownerWebId);
 
       // Granter
-      final granterLogFileUrl =
-          await getFileUrl(logFilePath, webId: granterWebId);
+      final granterLogFileUrl = await getFileUrl(
+        logFilePath,
+        webId: granterWebId,
+      );
 
       // Append log entry to granter's log
       await addPermLogLine(
@@ -182,8 +188,10 @@ Future<SolidFunctionCallStatus> revokePermission({
       // specific recipient/s
       if (specificRecipientTypeList.contains(recipientType)) {
         if (await checkPodInitialised(recipientWebId)) {
-          final receiverLogFileUrl =
-              await getFileUrl(logFilePath, webId: recipientWebId);
+          final receiverLogFileUrl = await getFileUrl(
+            logFilePath,
+            webId: recipientWebId,
+          );
           await addPermLogLine(
             logFileUrl: receiverLogFileUrl,
             logEntry: logEntryRes,

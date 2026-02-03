@@ -61,8 +61,8 @@ String getUniqueStrWebId(String webId) {
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
-      sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
-    );
+  sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
+);
 
 /// Derive the verification key from the security key
 String genVerificationKey(String securityKey) =>
@@ -93,10 +93,7 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
     decryptData(encPrivateKey, masterKey, iv, mode: AESMode.cbc);
 
 /// Get full predicate URL
-String getPredicateUrl(
-  String pred, {
-  Namespace? ns,
-}) =>
+String getPredicateUrl(String pred, {Namespace? ns}) =>
     (ns ?? solidTermsNS.ns).withAttr(pred).value;
 
 /// Read file `encryption/enc-keys.ttl' to get verification key and encrypted private key
@@ -104,9 +101,7 @@ Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
   final encKeyUrl = await getFileUrl(await getEncKeyPath());
 
   final tripleMap = turtleToTripleMap(
-    utf8.decode(
-      await getResource(encKeyUrl),
-    ),
+    utf8.decode(await getResource(encKeyUrl)),
   );
 
   if (!tripleMap.containsKey(encKeyUrl)) {
@@ -136,9 +131,7 @@ Future<Map<String, IndKeyRecord>> readIndKeyFile() async {
   final indKeyMap = <String, IndKeyRecord>{};
 
   final tripleMap = turtleToTripleMap(
-    utf8.decode(
-      await getResource(indKeyUrl),
-    ),
+    utf8.decode(await getResource(indKeyUrl)),
   );
 
   dynamic getVal(Map<String, dynamic> map, String pred) =>
@@ -182,9 +175,7 @@ Future<String> readPubKeyFile() async {
   // Get and parse the pubKeyFile
 
   final tripleMap = turtleToTripleMap(
-    utf8.decode(
-      await getResource(pubKeyUrl),
-    ),
+    utf8.decode(await getResource(pubKeyUrl)),
   );
 
   if (!tripleMap.containsKey(pubKeyUrl)) {
@@ -217,9 +208,7 @@ Future<Map<String, SharedIndKeyRecord>> readSharedIndKey() async {
   }
 
   final tripleMap = turtleToTripleMap(
-    utf8.decode(
-      await getResource(sharedIndKeyUrl),
-    ),
+    utf8.decode(await getResource(sharedIndKeyUrl)),
   );
 
   // shared-keys.ttl seems to use predicates defined in a different space
@@ -263,8 +252,9 @@ Future<String> getIndKeyQuery(
   required SparqlOperation operation,
   bool isFile = true,
 }) async {
-  final sub =
-      await (isFile ? getFileUrl : getDirUrl)(indKeyRecord.resourcePath);
+  final sub = await (isFile ? getFileUrl : getDirUrl)(
+    indKeyRecord.resourcePath,
+  );
 
   return '${operation.value} DATA {'
       '<$sub> <$appsTerms$pathPred> "${indKeyRecord.resourcePath}"; '
@@ -383,7 +373,8 @@ class IndKeyRecord {
   Key? key;
 
   @override
-  String toString() => 'IndividualKeyRecord {\n'
+  String toString() =>
+      'IndividualKeyRecord {\n'
       '    resourcePath: $resourcePath,\n'
       '    encIndKey: $encKeyBase64,\n'
       '    iv: $ivBase64\n'
@@ -420,7 +411,8 @@ class SharedIndKeyRecord {
   Key? key;
 
   @override
-  String toString() => 'SharedIndividualKeyRecord {\n'
+  String toString() =>
+      'SharedIndividualKeyRecord {\n'
       '    encFilePath: $resourcePath,\n'
       '    encAccessList: $accessList,\n'
       '    encKey: $key\n'
@@ -484,15 +476,15 @@ class RecipientPubKey {
   /// Set the public key
   Future<void> _setPubKey() async {
     /// Get recipient's public key
-    final recipientPubKeyUrl =
-        recipientWebId.replaceAll(profCard, await getPubKeyPath());
+    final recipientPubKeyUrl = recipientWebId.replaceAll(
+      profCard,
+      await getPubKeyPath(),
+    );
 
     // Get and parse the pubKeyFile
 
     final tripleMap = turtleToTripleMap(
-      utf8.decode(
-        await getResource(recipientPubKeyUrl),
-      ),
+      utf8.decode(await getResource(recipientPubKeyUrl)),
     );
 
     if (!tripleMap.containsKey(recipientPubKeyUrl)) {

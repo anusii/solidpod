@@ -44,10 +44,7 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// - [fileName] is the name of the file reading permission from
 /// - [sourceWebId] is the source WebID
 
-Future<dynamic> sharedResources([
-  String? fileName,
-  String? sourceWebId,
-]) async {
+Future<dynamic> sharedResources([String? fileName, String? sourceWebId]) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to access shared resources.',
@@ -62,9 +59,7 @@ Future<dynamic> sharedResources([
   final logFileUrl = await getFileUrl(logFilePath);
 
   // Read log file
-  final logContent = utf8.decode(
-    await getResource(logFileUrl),
-  );
+  final logContent = utf8.decode(await getResource(logFileUrl));
 
   final logDataMap = parseTTLMap(logContent);
 

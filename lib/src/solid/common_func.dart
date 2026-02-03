@@ -100,9 +100,7 @@ Future<void> deleteDataFileDialog(
                     );
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 child: const Text(
                   'Delete',
                   style: TextStyle(color: Colors.white),
@@ -133,10 +131,7 @@ Future<void> deleteDataFileDialog(
 }
 
 /// Get inherited resource parent directory url
-String getParentDir(
-  String fileContent,
-  String fileUrl,
-) {
+String getParentDir(String fileContent, String fileUrl) {
   final dataMap = parseTTLMap(fileContent);
   return dataMap[fileUrl]['$appsTerms$inheritKeyPred'].first;
 }

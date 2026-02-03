@@ -358,10 +358,7 @@ Future<void> send({
     },
   };
 
-  final bindNS = {
-    siiNS.prefix: siiNS.ns,
-    'c': Namespace(ns: chunkDirUrl),
-  };
+  final bindNS = {siiNS.prefix: siiNS.ns, 'c': Namespace(ns: chunkDirUrl)};
 
   await writePod(
     '$remoteFilePath.ttl',
@@ -392,10 +389,7 @@ Stream<List<int>> fetch({
     webId: externWebId,
   );
 
-  final fileUrl = await getFileUrl(
-    '$filePath.ttl',
-    webId: externWebId,
-  );
+  final fileUrl = await getFileUrl('$filePath.ttl', webId: externWebId);
 
   debugPrint('fileUrl: $fileUrl');
   debugPrint('chunkDirUrl: $chunkDirUrl');
@@ -446,8 +440,9 @@ Stream<List<int>> fetch({
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
   assert(chunkUrls != null);
-  final urls =
-      chunkUrls is Iterable ? chunkUrls as List<String> : [chunkUrls as String];
+  final urls = chunkUrls is Iterable
+      ? chunkUrls as List<String>
+      : [chunkUrls as String];
 
   for (final url in urls) {
     final c = await getResource(url);

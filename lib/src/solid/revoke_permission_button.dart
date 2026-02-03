@@ -112,11 +112,7 @@ class _RevokePermissionButtonState extends State<RevokePermissionButton> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(
-        Icons.delete,
-        size: 24.0,
-        color: Colors.red,
-      ),
+      icon: const Icon(Icons.delete, size: 24.0, color: Colors.red),
       onPressed: () {
         showDialog(
           context: context,
@@ -133,8 +129,9 @@ class _RevokePermissionButtonState extends State<RevokePermissionButton> {
                     await revokePermission(
                       fileName: widget.resourceName,
                       isFile: widget.isFile,
-                      permissionList: widget.permDataMap[widget.receiverWebId]
-                          [permStr] as List,
+                      permissionList:
+                          widget.permDataMap[widget.receiverWebId][permStr]
+                              as List,
                       recipientIndOrGroupWebId: widget.receiverWebId,
                       ownerWebId: widget.ownerWebId,
                       granterWebId: widget.granterWebId,

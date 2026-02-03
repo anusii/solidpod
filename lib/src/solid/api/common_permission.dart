@@ -160,8 +160,9 @@ Map<dynamic, dynamic> getLatestLog(
         final prevDateTime =
             uniqueLogMap[resourceUrl][PermissionLogLiteral.logtime];
         if ([0, 1].contains(
-          DateTime.parse(logEntryList.first as String)
-              .compareTo(DateTime.parse(prevDateTime as String)),
+          DateTime.parse(
+            logEntryList.first as String,
+          ).compareTo(DateTime.parse(prevDateTime as String)),
         )) {
           replaceExist = true;
         }

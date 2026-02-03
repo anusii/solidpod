@@ -53,18 +53,9 @@ Widget buildSharedResourcesTable(
   Widget parentWidget,
 ) {
   final cWidth = MediaQuery.of(context).size.width * 0.18;
-  DataColumn buildDataColumn(
-    String title,
-    String tooltip,
-  ) {
+  DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
-      label: Expanded(
-        child: Center(
-          child: Text(
-            title,
-          ),
-        ),
-      ),
+      label: Expanded(child: Center(child: Text(title))),
       tooltip: tooltip,
     );
   }
@@ -73,13 +64,7 @@ Widget buildSharedResourcesTable(
     return DataCell(
       SizedBox(
         width: cWidth,
-        child: Column(
-          children: <Widget>[
-            SelectableText(
-              content,
-            ),
-          ],
-        ),
+        child: Column(children: <Widget>[SelectableText(content)]),
       ),
     );
   }
@@ -150,31 +135,34 @@ Widget buildSharedResourcesTable(
                               color: Colors.blueAccent,
                             ),
                             onPressed: () async {
-                              if (!sharedResMap[index]
-                                      [PermissionLogLiteral.permissions]
+                              if (!sharedResMap[index][PermissionLogLiteral
+                                      .permissions]
                                   .contains('read')) {
                                 await alert(
                                   context,
                                   'You do not have read permission to this resource!',
                                 );
                               } else {
-                                bool isEditable = [
-                                  AccessMode.write.mode,
-                                  AccessMode.control.mode,
-                                ].any(
-                                  (mode) => sharedResMap[index]
-                                          [PermissionLogLiteral.permissions]
-                                      .contains(mode.toLowerCase()),
-                                );
+                                bool isEditable =
+                                    [
+                                      AccessMode.write.mode,
+                                      AccessMode.control.mode,
+                                    ].any(
+                                      (mode) =>
+                                          sharedResMap[index][PermissionLogLiteral
+                                                  .permissions]
+                                              .contains(mode.toLowerCase()),
+                                    );
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => FileExplorerScreen(
                                       folderPath: index,
                                       isEditable: isEditable,
-                                      ownerWebId: sharedResMap[index]
-                                              [PermissionLogLiteral.owner]
-                                          as String,
+                                      ownerWebId:
+                                          sharedResMap[index][PermissionLogLiteral
+                                                  .owner]
+                                              as String,
                                       child: parentWidget,
                                     ),
                                   ),
@@ -191,8 +179,9 @@ Widget buildSharedResourcesTable(
                             onPressed: () async {
                               try {
                                 // Get file content
-                                final fileContent =
-                                    await readExternalPod(index);
+                                final fileContent = await readExternalPod(
+                                  index,
+                                );
 
                                 if (!context.mounted) return;
                                 await showDialog(
@@ -206,8 +195,9 @@ Widget buildSharedResourcesTable(
                                           width: double.infinity,
                                           height: 300,
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
                                           ),
                                           child: Text(fileContent),
                                         ),
