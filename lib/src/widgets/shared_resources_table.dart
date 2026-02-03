@@ -135,34 +135,31 @@ Widget buildSharedResourcesTable(
                               color: Colors.blueAccent,
                             ),
                             onPressed: () async {
-                              if (!sharedResMap[index][PermissionLogLiteral
-                                      .permissions]
+                              if (!sharedResMap[index]
+                                      [PermissionLogLiteral.permissions]
                                   .contains('read')) {
                                 await alert(
                                   context,
                                   'You do not have read permission to this resource!',
                                 );
                               } else {
-                                bool isEditable =
-                                    [
-                                      AccessMode.write.mode,
-                                      AccessMode.control.mode,
-                                    ].any(
-                                      (mode) =>
-                                          sharedResMap[index][PermissionLogLiteral
-                                                  .permissions]
-                                              .contains(mode.toLowerCase()),
-                                    );
+                                bool isEditable = [
+                                  AccessMode.write.mode,
+                                  AccessMode.control.mode,
+                                ].any(
+                                  (mode) => sharedResMap[index]
+                                          [PermissionLogLiteral.permissions]
+                                      .contains(mode.toLowerCase()),
+                                );
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => FileExplorerScreen(
                                       folderPath: index,
                                       isEditable: isEditable,
-                                      ownerWebId:
-                                          sharedResMap[index][PermissionLogLiteral
-                                                  .owner]
-                                              as String,
+                                      ownerWebId: sharedResMap[index]
+                                              [PermissionLogLiteral.owner]
+                                          as String,
                                       child: parentWidget,
                                     ),
                                   ),

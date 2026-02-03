@@ -184,11 +184,11 @@ enum AccessMode {
   String get description => _description;
 
   static List<AccessMode> getAllModes() => [
-    AccessMode.read,
-    AccessMode.write,
-    AccessMode.control,
-    AccessMode.append,
-  ];
+        AccessMode.read,
+        AccessMode.write,
+        AccessMode.control,
+        AccessMode.append,
+      ];
 }
 
 /// Return access mode based on a given String value
@@ -305,22 +305,18 @@ String getPermissionTooltip({
   String toolTip;
 
   if (recipientType == RecipientType.public) {
-    toolTip =
-        'Accessible with ${permList.join(', ')}'
+    toolTip = 'Accessible with ${permList.join(', ')}'
         ' access to anyone';
   } else if (recipientType == RecipientType.authUser) {
-    toolTip =
-        'Accessible to all loggedin users '
+    toolTip = 'Accessible to all loggedin users '
         'with ${permList.join(', ')} access';
   } else {
-    toolTip =
-        'Accessible to $recipientName '
+    toolTip = 'Accessible to $recipientName '
         'with ${permList.join(', ')} access';
   }
 
   if (permList.contains('Control')) {
-    toolTip =
-        '$toolTip '
+    toolTip = '$toolTip '
         '(i.e. they can share or revoke access to others)';
   }
 

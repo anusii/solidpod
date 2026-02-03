@@ -92,12 +92,8 @@ class AuthDataManager {
     final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
     _webId = decodedToken['webid'] as String;
     _logoutUrl = authData['logoutUrl'] as String;
-    _rsaInfo =
-        authData['rsaInfo']
-            as Map<
-              dynamic,
-              dynamic
-            >; // Note that use Map<String, dynamic> does not seem to work
+    _rsaInfo = authData['rsaInfo'] as Map<dynamic,
+        dynamic>; // Note that use Map<String, dynamic> does not seem to work
     _authResponse = authData['authResponse'] as Credential;
 
     await writeToSecureStorage(

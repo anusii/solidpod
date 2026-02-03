@@ -256,8 +256,8 @@ String getResAclFile(String resourceUrl, [bool isFile = true]) {
   final resourceAclUrl = resourceUrl.endsWith('.acl')
       ? resourceUrl
       : isFile
-      ? '$resourceUrl.acl'
-      : '$resourceUrl/.acl';
+          ? '$resourceUrl.acl'
+          : '$resourceUrl/.acl';
 
   return resourceAclUrl;
 }

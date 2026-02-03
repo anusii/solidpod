@@ -61,8 +61,8 @@ String getUniqueStrWebId(String webId) {
 
 /// Derive the master key from the security key
 Key genMasterKey(String securityKey) => Key.fromUtf8(
-  sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
-);
+      sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
+    );
 
 /// Derive the verification key from the security key
 String genVerificationKey(String securityKey) =>
@@ -373,8 +373,7 @@ class IndKeyRecord {
   Key? key;
 
   @override
-  String toString() =>
-      'IndividualKeyRecord {\n'
+  String toString() => 'IndividualKeyRecord {\n'
       '    resourcePath: $resourcePath,\n'
       '    encIndKey: $encKeyBase64,\n'
       '    iv: $ivBase64\n'
@@ -411,8 +410,7 @@ class SharedIndKeyRecord {
   Key? key;
 
   @override
-  String toString() =>
-      'SharedIndividualKeyRecord {\n'
+  String toString() => 'SharedIndividualKeyRecord {\n'
       '    encFilePath: $resourcePath,\n'
       '    encAccessList: $accessList,\n'
       '    encKey: $key\n'

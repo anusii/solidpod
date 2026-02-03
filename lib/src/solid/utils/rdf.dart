@@ -177,11 +177,11 @@ Map<String, dynamic> parseACL(String aclContent) {
 
 /// Generate permission log file content
 String genPermLogTTLStr(String resourceUrl) => tripleMapToTurtle(
-  {
-    URIRef(resourceUrl): {
-      termsNS.ns.withAttr(titlePred): logFileTitle,
-      rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
-    },
-  },
-  bindNamespaces: {termsNS.prefix: termsNS.ns},
-);
+      {
+        URIRef(resourceUrl): {
+          termsNS.ns.withAttr(titlePred): logFileTitle,
+          rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
+        },
+      },
+      bindNamespaces: {termsNS.prefix: termsNS.ns},
+    );

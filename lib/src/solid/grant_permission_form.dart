@@ -209,14 +209,15 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
     String msg,
     Color bgColor, {
     Duration duration = const Duration(seconds: 4),
-  }) async => showSnackBar(context, msg, bgColor, duration: duration);
+  }) async =>
+      showSnackBar(context, msg, bgColor, duration: duration);
 
   /// Update selected webid list with individual recipient webid
   /// [receiverWebId].
   void updateIndWebIdInput(String receiverWebId) => setState(() {
-    selectedRecipientDetails = receiverWebId;
-    finalWebIdList = [receiverWebId];
-  });
+        selectedRecipientDetails = receiverWebId;
+        finalWebIdList = [receiverWebId];
+      });
 
   /// Update selected webid list with list of webids in
   /// recipient group [webIdList] and their group name
@@ -232,49 +233,49 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   /// Update checked status of access mode boxes to show
   /// selected access modes.
   void updateCheckbox(bool newValue, AccessMode accessMode) => setState(() {
-    switch (accessMode) {
-      case AccessMode.read:
-        readChecked = newValue;
-      case AccessMode.write:
-        writeChecked = newValue;
-      case AccessMode.control:
-        controlChecked = newValue;
-      case AccessMode.append:
-        appendChecked = newValue;
-    }
-    if (newValue) {
-      selectedPermList.add(accessMode.mode);
-    } else {
-      selectedPermList.remove(accessMode.mode);
-    }
-  });
+        switch (accessMode) {
+          case AccessMode.read:
+            readChecked = newValue;
+          case AccessMode.write:
+            writeChecked = newValue;
+          case AccessMode.control:
+            controlChecked = newValue;
+          case AccessMode.append:
+            appendChecked = newValue;
+        }
+        if (newValue) {
+          selectedPermList.add(accessMode.mode);
+        } else {
+          selectedPermList.remove(accessMode.mode);
+        }
+      });
 
   /// Define button click actions for each recipient type button
 
   /// Set recipients to public
   void _setRecipientsToPublic() => setState(() {
-    selectedRecipientType = RecipientType.public;
-    selectedRecipientDetails = 'Anyone (release publicly)';
-    finalWebIdList = [publicAgent.value];
-  });
+        selectedRecipientType = RecipientType.public;
+        selectedRecipientDetails = 'Anyone (release publicly)';
+        finalWebIdList = [publicAgent.value];
+      });
 
   /// Set recipients to authorised users
   void _setRecipientsToAuthUsers() => setState(() {
-    selectedRecipientType = RecipientType.authUser;
-    selectedRecipientDetails =
-        'Authenticated Users (any user logged in with their webId)';
-    finalWebIdList = [authenticatedAgent.value];
-  });
+        selectedRecipientType = RecipientType.authUser;
+        selectedRecipientDetails =
+            'Authenticated Users (any user logged in with their webId)';
+        finalWebIdList = [authenticatedAgent.value];
+      });
 
   /// Select individual recipient
   void _setRecipientsToIndividual() => setState(() {
-    selectedRecipientType = RecipientType.individual;
-  });
+        selectedRecipientType = RecipientType.individual;
+      });
 
   /// Select a group of recipients
   void _setRecipientsToGroup() => setState(() {
-    selectedRecipientType = RecipientType.group;
-  });
+        selectedRecipientType = RecipientType.group;
+      });
 
   @override
   Widget build(BuildContext context) {

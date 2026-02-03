@@ -595,8 +595,8 @@ Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
 /// Check if a file is encrypted
 Future<bool> checkFileEnc(String fileUrl, {bool isExternalRes = false}) async =>
     isExternalRes
-    ? await KeyManager.getSharedIndividualKey(fileUrl) != null
-    : await KeyManager.getIndividualKey(fileUrl) != null;
+        ? await KeyManager.getSharedIndividualKey(fileUrl) != null
+        : await KeyManager.getIndividualKey(fileUrl) != null;
 
 /// Update ACL file of a resource by http put request
 ///

@@ -194,8 +194,8 @@ class _PermissionTableState extends State<PermissionTable> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   // Show revoke button for recipientWebId != ownerWebId
-                  trailing:
-                      (widget.ownerWebId != _permissions[index].recipientWebId)
+                  trailing: (widget.ownerWebId !=
+                          _permissions[index].recipientWebId)
                       ? SizedBox(
                           height: ListIconSize.height,
                           width: ListIconSize.twoIconWidth,
