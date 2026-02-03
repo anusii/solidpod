@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.11 Robust
 
++ Update dependency on solidui to 0.1.0 [0.10.1 20260203 gjw]
 + Migrate Security Key and Permission GUI to solidui [0.10.0 20260203 tonypioneer]
 
 ## 0.10 Complete UI migrations - SecurityKew and Persmissions
