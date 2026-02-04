@@ -33,7 +33,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
-
 import 'package:solidui/solidui.dart'
     show WindowSize, ListItemSize, ListIconSize, listIconShape;
 
