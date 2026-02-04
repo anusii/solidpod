@@ -54,9 +54,7 @@ Map<String, Map<String, dynamic>> turtleToTripleMap(String turtleStr) {
         tripleMap[sub]![pre] = obj;
       }
     } else {
-      tripleMap[sub] = {
-        pre: obj,
-      };
+      tripleMap[sub] = {pre: obj};
     }
   }
   return tripleMap;
@@ -79,10 +77,12 @@ String tripleMapToTurtle(
       final objs = predMap[pre];
       final objList = objs is Iterable ? List.from(objs) : [objs];
       if (objList.length != Set.from(objList).length) {
-        throw Exception('Duplicated triples \n'
-            'subject: ${sub.value},\n'
-            'predicate: ${pre.value},\n'
-            'objects: ${[for (final o in objList) o.toString()]}.');
+        throw Exception(
+          'Duplicated triples \n'
+          'subject: ${sub.value},\n'
+          'predicate: ${pre.value},\n'
+          'objects: ${[for (final o in objList) o.toString()]}.',
+        );
       }
 
       for (final obj in objList) {
@@ -183,7 +183,5 @@ String genPermLogTTLStr(String resourceUrl) => tripleMapToTurtle(
           rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
         },
       },
-      bindNamespaces: {
-        termsNS.prefix: termsNS.ns,
-      },
+      bindNamespaces: {termsNS.prefix: termsNS.ns},
     );

@@ -57,11 +57,7 @@ Future<Map<String, dynamic>> readPermissionFileList({
   // Create a list of future functions
   for (final fileName in fileList) {
     futures.add(
-      readPermission(
-        fileName: fileName,
-        isFile: isFile,
-        isFileUrl: isFileUrl,
-      ),
+      readPermission(fileName: fileName, isFile: isFile, isFileUrl: isFileUrl),
     );
   }
 

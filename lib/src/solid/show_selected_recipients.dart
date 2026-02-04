@@ -32,7 +32,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show smallGapV, RecipientTextStyle;
+
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 
 /// A [StatelessWidget] for showing selected recipients in the
@@ -90,13 +91,12 @@ class ShowSelectedRecipients extends StatelessWidget {
             smallGapV,
             Row(
               children: [
-                const Text(
-                  'Group name: ',
-                  style: RecipientTextStyle.label,
-                ),
+                const Text('Group name: ', style: RecipientTextStyle.label),
                 Flexible(
-                  child:
-                      Text(selectedGroupName!, style: RecipientTextStyle.webId),
+                  child: Text(
+                    selectedGroupName!,
+                    style: RecipientTextStyle.webId,
+                  ),
                 ),
               ],
             ),

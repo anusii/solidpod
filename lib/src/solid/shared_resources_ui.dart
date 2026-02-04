@@ -33,7 +33,14 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart'
+    show
+        normalLoadingScreenHeight,
+        smallGapV,
+        largeGapV,
+        makeHeading,
+        makeSubHeading;
+
 import 'package:solidpod/src/solid/shared_resources.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
@@ -169,10 +176,7 @@ class SharedResourcesUiState extends State<SharedResourcesUi>
         widget.sourceWebId != null ? widget.sourceWebId as String : null;
     return FutureBuilder(
       future: Future.wait([
-        sharedResources(
-          fileName,
-          sourceWebId,
-        ),
+        sharedResources(fileName, sourceWebId),
         AuthDataManager.getWebId(),
       ]),
       builder: (context, snapshot) {

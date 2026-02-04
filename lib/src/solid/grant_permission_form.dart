@@ -32,7 +32,9 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart'
+    show ActionColors, GrantPermFormLayout, smallGapV, makeSubHeading;
+
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
@@ -212,10 +214,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
 
   /// Update selected webid list with individual recipient webid
   /// [receiverWebId].
-  void updateIndWebIdInput(
-    String receiverWebId,
-  ) =>
-      setState(() {
+  void updateIndWebIdInput(String receiverWebId) => setState(() {
         selectedRecipientDetails = receiverWebId;
         finalWebIdList = [receiverWebId];
       });
@@ -224,10 +223,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   /// recipient group [webIdList] and their group name
   /// [groupName].
 
-  void updateGroupWebIdInput(
-    String groupName,
-    List<dynamic> webIdList,
-  ) =>
+  void updateGroupWebIdInput(String groupName, List<dynamic> webIdList) =>
       setState(() {
         selectedRecipientDetails = webIdList.join(', ');
         finalWebIdList = webIdList;
@@ -285,9 +281,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
   Widget build(BuildContext context) {
     return AlertDialog(
       insetPadding: GrantPermFormLayout.contentPadding,
-      title: Text(
-        'Share ${widget.resourceName}',
-      ),
+      title: Text('Share ${widget.resourceName}'),
       content: Scrollbar(
         thumbVisibility: true,
         child: SingleChildScrollView(
@@ -301,9 +295,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                makeSubHeading(
-                  'Select the recipient/s of file access',
-                ),
+                makeSubHeading('Select the recipient/s of file access'),
 
                 // Show Select Recipient Buttons
                 SelectRecipients(
@@ -323,9 +315,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   ),
                 ] else if (selectedRecipientType == RecipientType.group) ...[
                   // Select group of recipients if required
-                  GroupWebIdTextInput(
-                    onSubmitFunction: updateGroupWebIdInput,
-                  ),
+                  GroupWebIdTextInput(onSubmitFunction: updateGroupWebIdInput),
                 ],
                 // List selected recipient webids or recipient
                 // type (public/auth)
@@ -335,9 +325,7 @@ class _GrantPermissionFormState extends State<GrantPermissionForm> {
                   selectedGroupName: selectedGroupName,
                 ),
                 smallGapV,
-                makeSubHeading(
-                  'Select one or more file access permissions',
-                ),
+                makeSubHeading('Select one or more file access permissions'),
                 // Show access mode checkboxes and update
                 // selection status on click
                 ...getPermissionCheckBoxes(

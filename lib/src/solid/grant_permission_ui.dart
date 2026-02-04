@@ -33,8 +33,17 @@ library;
 import 'package:flutter/material.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
+import 'package:solidui/solidui.dart'
+    show
+        ActionColors,
+        normalLoadingScreenHeight,
+        vSmallGapV,
+        smallGapV,
+        mediumGapV,
+        makeHeading,
+        makeSubHeading;
+
 import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/grant_permission_helper.dart';
 import 'package:solidpod/src/solid/models/log_record.dart';
@@ -477,10 +486,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
         if (fileName.isEmpty) {
           await _alert('Please enter a file name');
         } else {
-          await _updatePermissions(
-            fileName,
-            isFile: isFile,
-          );
+          await _updatePermissions(fileName, isFile: isFile);
         }
       },
     );

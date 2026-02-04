@@ -155,10 +155,7 @@ Future<String> setPermissionAcl(
 
     final groupFileContent = await genGroupWebIdTTLStr(recipientWebIdList);
 
-    await createResource(
-      groupFileUrl,
-      content: groupFileContent,
-    );
+    await createResource(groupFileUrl, content: groupFileContent);
   }
 
   final aclFullContentStr = await genAclTurtle(
@@ -188,8 +185,10 @@ Future<void> copySharedKey(
 ) async {
   /// Get shared key file url.
   final sharedKeyFilePath = await getSharedKeyFilePath();
-  final receiverSharedKeyFileUrl =
-      receiverWebId.replaceAll(profCard, sharedKeyFilePath);
+  final receiverSharedKeyFileUrl = receiverWebId.replaceAll(
+    profCard,
+    sharedKeyFilePath,
+  );
 
   /// Create file if not exists
   if (await checkResourceStatus(receiverSharedKeyFileUrl) ==
@@ -198,10 +197,7 @@ Future<void> copySharedKey(
         '@prefix $selfPrefix <#>.\n@prefix $foafPrefix <$httpFoaf>.\n@prefix $termsPrefix <$httpDcTerms>.\n@prefix $resIdPrefix <$appsResId>.\n@prefix $dataPrefix <$appsData>.\n${selfPrefix}me\n    a $foafPrefix$profileDoc;\n    $termsPrefix$titlePred "Shared Encryption Keys".\n$resIdPrefix$resUniqueId\n    $dataPrefix$pathPred "$encSharedPath";\n    $dataPrefix$accessListPred "$encSharedAccess";\n    $dataPrefix$sharedKeyPred "$encSharedKey".';
 
     /// Update the ttl file with the shared info
-    await createResource(
-      receiverSharedKeyFileUrl,
-      content: keyFileBody,
-    );
+    await createResource(receiverSharedKeyFileUrl, content: keyFileBody);
   } else {
     /// Update the file
     /// First check if the file already contain the same value
@@ -303,10 +299,7 @@ Future<void> copySharedKeyUserClass(
     );
 
     // Also create a corresponding acl file
-    await createResource(
-      '$userClassIndKeyFileUrl.acl',
-      content: aclContentStr,
-    );
+    await createResource('$userClassIndKeyFileUrl.acl', content: aclContentStr);
   } else {
     // Update the existing file using a sparql query
     final prefix = '${solidTermsNS.prefix}: <$appsTerms>';

@@ -53,18 +53,9 @@ Widget buildSharedResourcesTable(
   Widget parentWidget,
 ) {
   final cWidth = MediaQuery.of(context).size.width * 0.18;
-  DataColumn buildDataColumn(
-    String title,
-    String tooltip,
-  ) {
+  DataColumn buildDataColumn(String title, String tooltip) {
     return DataColumn(
-      label: Expanded(
-        child: Center(
-          child: Text(
-            title,
-          ),
-        ),
-      ),
+      label: Expanded(child: Center(child: Text(title))),
       tooltip: tooltip,
     );
   }
@@ -73,13 +64,7 @@ Widget buildSharedResourcesTable(
     return DataCell(
       SizedBox(
         width: cWidth,
-        child: Column(
-          children: <Widget>[
-            SelectableText(
-              content,
-            ),
-          ],
-        ),
+        child: Column(children: <Widget>[SelectableText(content)]),
       ),
     );
   }
@@ -191,8 +176,9 @@ Widget buildSharedResourcesTable(
                             onPressed: () async {
                               try {
                                 // Get file content
-                                final fileContent =
-                                    await readExternalPod(index);
+                                final fileContent = await readExternalPod(
+                                  index,
+                                );
 
                                 if (!context.mounted) return;
                                 await showDialog(
@@ -206,8 +192,9 @@ Widget buildSharedResourcesTable(
                                           width: double.infinity,
                                           height: 300,
                                           decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(15),
+                                            borderRadius: BorderRadius.circular(
+                                              15,
+                                            ),
                                           ),
                                           child: Text(fileContent),
                                         ),

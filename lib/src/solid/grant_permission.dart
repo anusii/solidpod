@@ -116,8 +116,9 @@ Future<SolidFunctionCallStatus> grantPermission({
       if (specificRecipientTypeList.contains(recipientType)) {
         hasSpecificRecipients = true;
         for (final recipientWebId in recipientWebIdList) {
-          final isInitialised =
-              await checkPodInitialised(recipientWebId as String);
+          final isInitialised = await checkPodInitialised(
+            recipientWebId as String,
+          );
           if (!isInitialised) {
             allRecipientsInitialised = false;
           }
@@ -140,8 +141,10 @@ Future<SolidFunctionCallStatus> grantPermission({
           );
 
           // Check if the file is encrypted
-          final fileIsEncrypted =
-              await checkFileEnc(resourceUrl, isExternalRes: isExternalRes);
+          final fileIsEncrypted = await checkFileEnc(
+            resourceUrl,
+            isExternalRes: isExternalRes,
+          );
 
           // If the file is encrypted then share the individual encryption key
           // with the receiver
@@ -158,25 +161,31 @@ Future<SolidFunctionCallStatus> grantPermission({
 
               for (final recipientWebId in recipientWebIdList) {
                 // Setup recipient's public key
-                final recipientPubKey =
-                    RecipientPubKey(recipientWebId: recipientWebId as String);
+                final recipientPubKey = RecipientPubKey(
+                  recipientWebId: recipientWebId as String,
+                );
 
                 // Encrypt individual key
-                final sharedIndKey =
-                    await recipientPubKey.encryptData(indKey!.base64);
+                final sharedIndKey = await recipientPubKey.encryptData(
+                  indKey!.base64,
+                );
 
                 // Encrypt resource URL
-                final sharedResPath =
-                    await recipientPubKey.encryptData(resourceUrl);
+                final sharedResPath = await recipientPubKey.encryptData(
+                  resourceUrl,
+                );
 
                 // Encrypt the list of permissions
                 permissionList.sort();
-                final sharedAccessList =
-                    await recipientPubKey.encryptData(permissionList.join(','));
+                final sharedAccessList = await recipientPubKey.encryptData(
+                  permissionList.join(','),
+                );
 
                 // Generate unique ID for the resource being shared
-                final resUniqueId =
-                    getUniqueIdResUrl(resourceUrl, recipientWebId);
+                final resUniqueId = getUniqueIdResUrl(
+                  resourceUrl,
+                  recipientWebId,
+                );
 
                 // Copy shared content to recipient's POD
                 await copySharedKey(
@@ -216,12 +225,16 @@ Future<SolidFunctionCallStatus> grantPermission({
             final logFilePath = await getPermLogFilePath();
 
             // Owner
-            final ownerLogFileUrl =
-                await getFileUrl(logFilePath, webId: ownerWebId);
+            final ownerLogFileUrl = await getFileUrl(
+              logFilePath,
+              webId: ownerWebId,
+            );
 
             // Granter
-            final granterLogFileUrl =
-                await getFileUrl(logFilePath, webId: granterWebId);
+            final granterLogFileUrl = await getFileUrl(
+              logFilePath,
+              webId: granterWebId,
+            );
 
             // Add log entry to owner, granter, and receiver permission
             // log files for the individual recipient or each recipient
@@ -243,8 +256,10 @@ Future<SolidFunctionCallStatus> grantPermission({
 
             // Update recipient logs if the recipient is either an individual or group of WebIDs
             if (hasSpecificRecipients) {
-              final receiverLogFileUrl =
-                  await getFileUrl(logFilePath, webId: recipientWebId);
+              final receiverLogFileUrl = await getFileUrl(
+                logFilePath,
+                webId: recipientWebId,
+              );
 
               await addPermLogLine(
                 logFileUrl: receiverLogFileUrl,
@@ -260,8 +275,10 @@ Future<SolidFunctionCallStatus> grantPermission({
         return SolidFunctionCallStatus.notInitialised;
       }
     } else {
-      debugPrint('Resource does not have a corresponding ACL file. '
-          'If the ACL is inherited provide parent directory as the resource name!');
+      debugPrint(
+        'Resource does not have a corresponding ACL file. '
+        'If the ACL is inherited provide parent directory as the resource name!',
+      );
       return SolidFunctionCallStatus.noAclFound;
     }
   } on Object catch (e, stackTrace) {

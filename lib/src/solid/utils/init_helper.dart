@@ -87,14 +87,8 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final logDirLoc = [appDirName, logsDir].join('/');
 
   final files = {
-    sharingDirLoc: [
-      pubKeyFile,
-      '$pubKeyFile.acl',
-    ],
-    logDirLoc: [
-      permLogFile,
-      '$permLogFile.acl',
-    ],
+    sharingDirLoc: [pubKeyFile, '$pubKeyFile.acl'],
+    logDirLoc: [permLogFile, '$permLogFile.acl'],
     sharedDirLoc: ['.acl'],
     encDirLoc: [encKeyFile, indKeyFile],
   };

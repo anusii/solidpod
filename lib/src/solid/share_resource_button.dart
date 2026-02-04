@@ -32,7 +32,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show SharingPageLayout;
+
 import 'package:solidpod/src/solid/grant_permission_form.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
@@ -179,9 +180,7 @@ class _ShareResourceButtonState extends State<ShareResourceButton> {
     return Padding(
       padding: SharingPageLayout.inputPadding,
       child: ElevatedButton.icon(
-        icon: const Icon(
-          Icons.share,
-        ),
+        icon: const Icon(Icons.share),
         onPressed: () async {
           // Assign dataFile if null (first Grant press)
           _resourceName = widget.resourceName ?? _fileNameController.text;
@@ -209,9 +208,7 @@ class _ShareResourceButtonState extends State<ShareResourceButton> {
               },
             );
           } else {
-            await _alert(
-              'Please select one or more recipients',
-            );
+            await _alert('Please select one or more recipients');
           }
         },
         label: const Text('Share Resource'),

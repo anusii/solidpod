@@ -152,26 +152,20 @@ enum AccessMode {
     '''),
 
   /// Control access: read and write access to the ACL file
-  control(
-    'Control',
-    '''
+  control('Control', '''
 
     **Control:** Permission is granted to alter the access permission to the
     shared file
 
-    ''',
-  ),
+    '''),
 
   /// Append data (a type of write)
-  append(
-    'Append',
-    '''
+  append('Append', '''
 
     **Append:** Permission is granted to add content but not remove or modify
     content from the shared file.
 
-    ''',
-  );
+    ''');
 
   /// Constructor
   const AccessMode(this._value, this._description);
@@ -211,8 +205,10 @@ AccessMode getAccessMode(String mode) {
     case 'append':
       return AccessMode.append;
     default:
-      throw Exception('Wrong access mode given'
-          '\nMode: $mode');
+      throw Exception(
+        'Wrong access mode given'
+        '\nMode: $mode',
+      );
   }
 }
 
@@ -403,17 +399,12 @@ Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
     URIRef('${thisFile.ns.ns}me'): {
       AclPredicate.aclRdfType.uriRef: AclPredicate.vcardGroup.uriRef,
       AclPredicate.vcardHasMember.uriRef: {
-        for (final webId in groupWebIdList) ...{
-          URIRef(webId as String),
-        },
+        for (final webId in groupWebIdList) ...{URIRef(webId as String)},
       },
     },
   };
 
-  final bindNS = {
-    thisFile.prefix: thisFile.ns,
-    vcardNS.prefix: vcardNS.ns,
-  };
+  final bindNS = {thisFile.prefix: thisFile.ns, vcardNS.prefix: vcardNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
 }
@@ -426,9 +417,7 @@ Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
     URIRef('${thisFile.ns.ns}me'): {
-      AclPredicate.aclRdfType.uriRef: {
-        AclPredicate.personalDocument.uriRef,
-      },
+      AclPredicate.aclRdfType.uriRef: {AclPredicate.personalDocument.uriRef},
     },
     if (initialDataList != null) ...{
       URIRef(initialDataList.first): {

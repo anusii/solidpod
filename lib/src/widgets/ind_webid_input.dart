@@ -34,10 +34,16 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
+import 'package:solidui/solidui.dart'
+    show
+        smallGapV,
+        makeSubHeading,
+        GrantPermFormLayout,
+        WebIdLayout,
+        DropdownColors;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
 /// A [StatefulWidget] dialog for adding an individual webId.
@@ -149,9 +155,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
         // Explain webId with example
         MarkdownTooltip(
           message: '$whatIsWebID Eg: $demoWebID',
-          child: makeSubHeading(
-            'Enter or select recipient\'s WebId',
-          ),
+          child: makeSubHeading('Enter or select recipient\'s WebId'),
         ),
         // Add padding to webid textformfield and suggestion drop down
         Container(
@@ -234,7 +238,7 @@ class _IndWebIdTextInputState extends State<IndWebIdTextInput> {
               elevation: WebIdLayout.dropdownElevation,
               child: ListTile(
                 title: Text(idList[index]),
-                focusColor: SecurityColors.primary,
+                focusColor: DropdownColors.primary,
                 hoverColor: DropdownColors.accent,
                 splashColor: DropdownColors.primary,
                 onTap: () => setState(() {

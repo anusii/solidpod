@@ -28,7 +28,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show SharingPageLayout;
+
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/widgets/permission_checkbox.dart';
 
@@ -114,16 +115,10 @@ const ownerRecipientTypes = [
 ];
 
 /// Relevant recipient types for resource sharing by the resource granter (ie. an entity with control access).
-const granterRecipientTypes = [
-  RecipientType.individual,
-  RecipientType.group,
-];
+const granterRecipientTypes = [RecipientType.individual, RecipientType.group];
 
 /// Get title of sharing page
-String makeSharingTitleStr({
-  String? fileName,
-  bool isFile = false,
-}) =>
+String makeSharingTitleStr({String? fileName, bool isFile = false}) =>
     fileName != null
         ? isFile
             ? 'Share $fileName'
@@ -163,14 +158,9 @@ Widget getResourceForm({
           SwitchListTile(
             title: const Text(
               'Is a File?',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(
-              isFile ? 'Yes' : 'No',
-            ),
+            subtitle: Text(isFile ? 'Yes' : 'No'),
             value: isFile,
             onChanged: onResourceTypeChange,
             thumbColor: WidgetStateProperty.resolveWith<Color?>(

@@ -34,8 +34,5 @@ class LogEntry {
   final String id;
   final String record;
 
-  const LogEntry({
-    required this.id,
-    required this.record,
-  });
+  const LogEntry({required this.id, required this.record});
 }

@@ -106,8 +106,11 @@ class KeyOperations {
 
     await createResource(
       _encKeyUrl!,
-      content:
-          await genEncKeyTTLStr(_encKeyUrl!, verificationKey, prvKeyRecord),
+      content: await genEncKeyTTLStr(
+        _encKeyUrl!,
+        verificationKey,
+        prvKeyRecord,
+      ),
     );
   }
 

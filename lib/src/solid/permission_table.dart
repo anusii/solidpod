@@ -33,8 +33,9 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
+import 'package:solidui/solidui.dart'
+    show WindowSize, ListItemSize, ListIconSize, listIconShape;
 
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/models/permission.dart';
 import 'package:solidpod/src/solid/revoke_permission_button.dart';
 import 'package:solidpod/src/solid/utils/permission_helper.dart';
@@ -142,8 +143,9 @@ class _PermissionTableState extends State<PermissionTable> {
     // Derive whether window is narrow
     isNarrow = WindowSize().isNarrowWindow(widget.constraints);
     // Calculate the aspect radio for grid cards
-    cardAspectRatio =
-        ListItemSize().calculateCardAspectRatio(widget.constraints);
+    cardAspectRatio = ListItemSize().calculateCardAspectRatio(
+      widget.constraints,
+    );
 
     //  By default _permissions is the full list of permissions
     _permissions = permMapToList(widget.permDataMap);
