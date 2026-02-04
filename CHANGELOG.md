@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Further UI migrations
 
++ Delete file by URL
 + Add fetch resource metadata function [0.9.20 20260131 anushkavid]
 + Refactor constants, security, and reactivity [0.9.19 20260131 miduo]
 + Update permission table to list [0.9.18 20260129 jesscmoore]
