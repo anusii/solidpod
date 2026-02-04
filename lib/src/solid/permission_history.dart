@@ -148,11 +148,16 @@ class _PermissionHistoryState extends State<PermissionHistory> {
                   // Permission item title
 
                   title: Text(
-                    '${_permHistory[index].dateTime}: '
-                    '${_permHistory[index].recipientName} '
-                    '${_permHistory[index].permissionTypeLabel} '
-                    '${_permHistory[index].permissionList} '
-                    'access',
+                    _permHistory[index].permissionType == 'grant'
+                        ? '${_permHistory[index].dateTime}: '
+                            '${_permHistory[index].recipientName} '
+                            '${_permHistory[index].permissionTypeLabel} to '
+                            '${_permHistory[index].permissionList} '
+                            'access'
+                        : '${_permHistory[index].dateTime}: '
+                            '${_permHistory[index].permissionList} '
+                            'access ${_permHistory[index].permissionTypeLabel} to '
+                            '${_permHistory[index].recipientName}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
