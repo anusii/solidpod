@@ -37,8 +37,10 @@ import 'package:solidpod/src/solid/constants/common.dart'
         agentClassPred,
         agentGroupPred,
         agentPred,
+        authAgent,
         foaf,
         profCard,
+        pubAgent,
         rdf,
         terms,
         vcard;
@@ -296,7 +298,41 @@ String getRecipientName({
   return recipientName;
 }
 
-/// Get recipient permission tooltip
+/// Get name from webId
+String getWebIdName({
+  required String webId,
+}) {
+  final String name;
+
+  if (webId == pubAgent) {
+    name = 'Anyone';
+  } else if (webId == authAgent) {
+    name = 'All Loggedin Users';
+  } else {
+    name = webId.replaceAll('/$profCard', '').split('/').last;
+  }
+
+  return name;
+}
+
+/// Get name from webId
+String getPermissionTypeLabel({
+  required String permissionType,
+}) {
+  final String permissionTypeLabel;
+
+  if (permissionType == 'grant') {
+    permissionTypeLabel = 'granted';
+  } else if (permissionType == 'revoke') {
+    permissionTypeLabel = 'revoked';
+  } else {
+    permissionTypeLabel = 'unknown';
+  }
+
+  return permissionTypeLabel;
+}
+
+/// Get tooltip for ACL permission records
 String getPermissionTooltip({
   required String recipientName,
   required RecipientType recipientType,
@@ -318,6 +354,39 @@ String getPermissionTooltip({
   if (permList.contains('Control')) {
     toolTip = '$toolTip '
         '(i.e. they can share or revoke access to others)';
+  }
+
+  return toolTip;
+}
+
+/// Get tooltip for permission log records
+String getPermissionLogTooltip({
+  required String recipientWebId,
+  required String recipientName,
+  required String granterName,
+  // required RecipientType recipientType,
+  required String permissionTypeLabel,
+  required List<String> permList,
+}) {
+  String toolTip;
+
+  if (recipientWebId == pubAgent) {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to anyone ';
+  } else if (recipientWebId == authAgent) {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to all logged in users ';
+  } else {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to $recipientName';
+  }
+
+  if (permList.contains('control')) {
+    toolTip = '$toolTip '
+        '(i.e. $recipientName had permission to share or revoke access to others)';
   }
 
   return toolTip;
