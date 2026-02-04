@@ -562,7 +562,7 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 }
 
 /// Delete a file and its associated resources, after first revoking
-/// external access to the file. The file with path [filePath],
+/// external access to the file. The file with URL [fileUrl],
 /// its ACL file, and its encryption key (if exists) will be deleted.
 /// The permission logs of any recipients to the file, will also be
 /// updated with a log line recording that permissions have been
@@ -571,8 +571,7 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 ///
 /// Arguments:
 ///
-/// - [filePath] - path of file to be deleted. Where [filePath] is the
-/// app data directory and the filename.
+/// - [fileUrl] - URL of file to be deleted.
 /// - [contentType] - the type of content of the resource. Default:
 /// [ResourceContentType.turtleText].
 /// - [isKey] - flag describing whether the file to be deleted is a
@@ -599,9 +598,7 @@ Future<void> deleteFile({
     // file that is being deleted.
     // 20260112 jesscmoore: Assumes user is owner which is
     // always true in deleteFile().
-    await revokePermissionToRecipients(
-      fileName: filePath,
-    );
+    await revokePermissionToRecipients(fileName: filePath);
 
     await deleteResource(fileUrl, contentType);
     await deleteAclForResource(fileUrl);
