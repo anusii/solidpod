@@ -151,7 +151,7 @@ class _PermissionHistoryState extends State<PermissionHistory> {
                     _permHistory[index].permissionType == 'grant'
                         ? '${_permHistory[index].dateTime}: '
                             '${_permHistory[index].recipientName} '
-                            '${_permHistory[index].permissionTypeLabel} to '
+                            '${_permHistory[index].permissionTypeLabel} '
                             '${_permHistory[index].permissionList} '
                             'access'
                         : '${_permHistory[index].dateTime}: '

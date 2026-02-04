@@ -43,13 +43,20 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 
 Future<String> getAuthoriser({
   bool isExternalRes = false,
+  bool isGranter = false,
   String? webId,
 }) async {
   assert(
-    // Requires ownerWebId and granterWebId if resource
+    // Requires ownerWebId if resource
     // is an externally owned.
-    isExternalRes == false || webId != null,
-    'webId must be provided if isExternalRes == true',
+    isExternalRes == false || isGranter == true || webId != null,
+    'webId must be provided if isExternalRes == true and authoriser is owner',
   );
+  // If fetching granterWebId, assume granter == user
+  if (isGranter) {
+    return await AuthDataManager.getWebId() as String;
+  }
+  // If fetching ownerWebId for external resource, require webId to
+  // be provided
   return isExternalRes ? webId! : await AuthDataManager.getWebId() as String;
 }

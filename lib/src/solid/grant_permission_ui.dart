@@ -101,11 +101,10 @@ class GrantPermissionUi extends StatefulWidget {
     this.onNavigateBack,
     super.key,
   }) : assert(
-          // Requires ownerWebId and granterWebId if resource
+          // Requires ownerWebId if resource
           // is an externally owned.
-          isExternalRes == false ||
-              (ownerWebId != null && granterWebId != null),
-          'ownerWebId and granterWebId must be provided if isExternalRes == true',
+          isExternalRes == false || ownerWebId != null,
+          'ownerWebId must be provided if isExternalRes == true',
         );
 
   /// The child widget to return to when back button is pressed and/or when
@@ -280,6 +279,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
         // Permission Details object to store permission map from ACL, and owner
         // and granter of a resource.
+
         final permissionDetails = PermissionDetails(
           permissionMap: result,
           ownerWebId: await getAuthoriser(
@@ -288,7 +288,7 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
           ),
           granterWebId: await getAuthoriser(
             isExternalRes: isExternalRes,
-            webId: widget.granterWebId,
+            isGranter: true,
           ),
         );
 
