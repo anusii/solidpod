@@ -555,20 +555,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 mediumGapV,
-                // TODO: remove after review of permission history
-                makeSubHeading('People with current access', addPadding: false),
-                PermissionTable(
-                  resourceName: permDataFile,
-                  permDataMap: permDataMap,
-                  ownerWebId: _ownerWebId,
-                  granterWebId: _granterWebId,
-                  updatePermissionsFunction: _updatePermissions,
-                  parentWidget: widget.child,
-                  isFile: getIsFile(),
-                  isExternalRes: widget.isExternalRes,
-                  constraints: constraints,
-                ),
-                mediumGapV,
                 makeSubHeading(
                   showCurrentPermOnly
                       ? 'People with current access'
