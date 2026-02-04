@@ -34,7 +34,9 @@ import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart'
+    show WindowSize, ListItemSize, ListIconSize, listIconShape;
+
 import 'package:solidpod/src/solid/models/log_record.dart';
 
 /// A [StatefulWidget] for listing the permission history of a resource.
