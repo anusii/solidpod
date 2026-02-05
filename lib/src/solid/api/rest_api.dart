@@ -579,7 +579,9 @@ Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
       contentType: response.headers[contentType]!,
       lastModified: dateFormatter.parseUtc(response.headers[lastModified]!),
       eTag: response.headers[eTag]!,
-      lastAccessed: dateFormatter.parseUtc(response.headers[lastAccessed]!),
+      lastAccessed: response.headers.containsKey(lastAccessed)
+          ? dateFormatter.parseUtc(response.headers[lastAccessed]!)
+          : null,
       acceptPatch: response.headers[acceptPatch]!,
       wacAllow: response.headers[wacAllow]!
           .replaceAll('user=', '')

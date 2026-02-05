@@ -553,7 +553,7 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 }
 
 /// Delete a file and its associated resources, after first revoking
-/// external access to the file. The file with path [filePath],
+/// external access to the file. The file with URL [fileUrl],
 /// its ACL file, and its encryption key (if exists) will be deleted.
 /// The permission logs of any recipients to the file, will also be
 /// updated with a log line recording that permissions have been
@@ -562,23 +562,24 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 ///
 /// Arguments:
 ///
-/// - [filePath] - path of file to be deleted. Where [filePath] is the
-/// app data directory and the filename.
+/// - [fileUrl] - URL of file to be deleted.
 /// - [contentType] - the type of content of the resource. Default:
 /// [ResourceContentType.turtleText].
 /// - [isKey] - flag describing whether the file to be deleted is a
 /// security key. Use this flag if file is a security key to avoid
 /// unnecessary operations that are not needed to delete a key.
 
-Future<void> deleteFile(
-  String filePath, {
+Future<void> deleteFile({
+  required String fileUrl,
   ResourceContentType contentType = ResourceContentType.turtleText,
   bool isKey = false,
 }) async {
-  final fileUrl = await getFileUrl(filePath);
   if (await isFileProtected(fileUrl)) {
     throw Exception('Delete protected file is not allowed');
   }
+
+  final filePath = await extractResourcePathFromUrl(fileUrl);
+
   if (!isKey) {
     // File to be deleted != key => perform all steps
 
@@ -591,7 +592,11 @@ Future<void> deleteFile(
     await revokePermissionToRecipients(fileName: filePath);
 
     await deleteResource(fileUrl, contentType);
-    await deleteAclForResource(fileUrl);
+
+    // dc 20260206: ACL file seems to be deleted by the POD server
+    // when the file is deleted
+    //
+    // await deleteAclForResource(fileUrl);
     await KeyManager.removeIndividualKey(resourcePath: filePath);
   } else {
     // File to be deleted == key => perform delete only
@@ -607,7 +612,7 @@ Future<void> deleteExternalFile(
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
   await deleteResource(fileUrl, contentType);
-  await deleteAclForResource(fileUrl);
+  // await deleteAclForResource(fileUrl);
   await KeyManager.removeSharedIndividualKey(fileUrl);
 
   /// av: Need to add the funtionality to remove the log line from permission
