@@ -26,11 +26,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage
+/// Authors: Anushka Vidanage, Jess Moore
 
 library;
-
-import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:intl/intl.dart';
 
@@ -144,13 +142,9 @@ Map<dynamic, dynamic> getLatestLog(
 
   // Loop through logs and get the latest for each resource
   for (final dataKey in logDataMap.keys) {
-    debugPrint('Key: $dataKey');
     if ((dataKey as String).contains(appsLogId)) {
-      debugPrint(
-        'log entry: ${logDataMap[dataKey]['${appsData}log'].toString()}',
-      );
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
-      debugPrint('latest: $logEntry');
+
       final logEntryList = logEntry.split(';');
 
       final recipientWebId = logEntryList[5];
@@ -210,11 +204,7 @@ List<LogRecord> getLog({
 
   // Loop through logs and get the latest for each resource
   for (final dataKey in logDataMap.keys) {
-    // debugPrint('Key: $dataKey');
     if ((dataKey as String).contains(appsLogId)) {
-      // debugPrint(
-      //   'log entry: ${logDataMap[dataKey]['${appsData}log'].toString()}',
-      // );
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
 
       final logEntryList = logEntry.split(';');
