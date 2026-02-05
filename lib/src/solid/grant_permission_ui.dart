@@ -1,6 +1,6 @@
 // A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Friday 2026-02-06 06:43:27 +1100 Graham Williams>
+// Time-stamp: <Friday 2026-02-06 08:23:52 +1100 Graham Williams>
 ///
 /// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
@@ -367,6 +367,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
 
   // Search log records
   void _searchLogs(String enteredKeyword) {
+    bool found(it) => it.toLowerCase().contains(enteredKeyword.toLowerCase());
+
     List<LogRecord> results = [];
     if (enteredKeyword.isEmpty) {
       // Display all log records if no search string
@@ -376,18 +378,12 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       // Display log records with recipient name, granter name,
       // permission type, permission matches
       results = unFilteredPermHistoryList.where((item) {
-        return item.recipientName
-                .toLowerCase()
-                .contains(enteredKeyword.toLowerCase()) ||
-            item.granterName
-                .toLowerCase()
-                .contains(enteredKeyword.toLowerCase()) ||
-            item.permissionType
-                .toLowerCase()
-                .contains(enteredKeyword.toLowerCase()) ||
-            item.permissionList
-                .toLowerCase()
-                .contains(enteredKeyword.toLowerCase());
+        return [
+          item.recipientName,
+          item.granterName,
+          item.permissionType,
+          item.permissionList,
+        ].map(found).any((result) => result);
       }).toList();
     }
 
@@ -621,9 +617,11 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                 ),
 
                 vSmallGapV,
+
                 // Show permissions from ACL if showCurrentPermOnly
                 // is selected, else show searchable permission
-                // history
+                // history.
+
                 showCurrentPermOnly
                     ? PermissionTable(
                         resourceName: permDataFile,
@@ -637,7 +635,8 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
                         constraints: constraints,
                       )
                     : PermissionHistory(
-                        // Force history rebuild on permission history change
+                        // Force history rebuild on permission history change.
+
                         key: ValueKey(permHistoryList),
                         resourceName: widget.resourceName!,
                         permHistory: permHistoryList,
