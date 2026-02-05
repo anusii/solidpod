@@ -601,7 +601,11 @@ Future<void> deleteFile({
     await revokePermissionToRecipients(fileName: filePath);
 
     await deleteResource(fileUrl, contentType);
-    await deleteAclForResource(fileUrl);
+
+    // dc 20260206: ACL file seems to be deleted by the POD server
+    // when the file is deleted
+    //
+    // await deleteAclForResource(fileUrl);
     await KeyManager.removeIndividualKey(resourcePath: filePath);
   } else {
     // File to be deleted == key => perform delete only
@@ -617,7 +621,7 @@ Future<void> deleteExternalFile(
   ResourceContentType contentType = ResourceContentType.turtleText,
 }) async {
   await deleteResource(fileUrl, contentType);
-  await deleteAclForResource(fileUrl);
+  // await deleteAclForResource(fileUrl);
   await KeyManager.removeSharedIndividualKey(fileUrl);
 
   /// av: Need to add the funtionality to remove the log line from permission
