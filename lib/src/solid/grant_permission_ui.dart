@@ -344,7 +344,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       await _alert('We could not find a resource by the name $fileName');
     } else {
       setState(() {
-        debugPrint('grantPermissionUi: setState: updating permissionMap...');
         permDataMap = pdata.permissionMap;
         permDataFile = fileName;
         _ownerWebId = pdata.ownerWebId;
@@ -358,17 +357,10 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
       );
     } else {
       setState(() {
-        debugPrint('grantPermissionUi: setState: updating permHistoryList...');
         permHistoryList = updatedPermHistoryList;
         // Set full unfiltered list to current list from updated
         // log fetch
         unFilteredPermHistoryList = updatedPermHistoryList;
-        debugPrint(
-          'GrantPermissionUi: setState: last record: ${permHistoryList.last.dateTimeStr}',
-        );
-        debugPrint(
-          'GrantPermissionUi: setState: length: ${permHistoryList.length}',
-        );
       });
     }
   }
@@ -402,9 +394,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     // Refresh the UI
     setState(() {
       permHistoryList = results;
-      debugPrint(
-        'searchLogs: updated search result to ${permHistoryList.length}',
-      );
     });
   }
 
@@ -447,9 +436,6 @@ class GrantPermissionUiState extends State<GrantPermissionUi>
     // Refresh the UI
     setState(() {
       permHistoryList = currentLogRecords;
-      debugPrint(
-        'getLatestLogRecords: number ${permHistoryList.length}',
-      );
     });
   }
 
