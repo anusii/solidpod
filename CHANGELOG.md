@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.11 Robust
 
++ Delete file by URL [0.10.5 20260206 dc]
 + Review and lint fixes [0.10.4 20260206 gjw]
 + Permission history updates [0.10.3 20260205 jesscmoore]
 + Corrects granterWebId for externally owned resources [0.10.2 20260205 jesscmoore]
@@ -19,7 +20,6 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.10 Complete UI migrations - SecurityKey and Persmissions
 
-+ Delete file by URL
 + Add fetch resource metadata function [0.9.20 20260131 anushkavid]
 + Refactor constants, security, and reactivity [0.9.19 20260131 miduo]
 + Update permission table to list [0.9.18 20260129 jesscmoore]
