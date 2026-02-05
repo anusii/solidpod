@@ -86,9 +86,7 @@ Future<void> writeExternalPod(
   // Check if the file already exists
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
-      final remoteFileContent = utf8.decode(
-        await getResource(fileUrl),
-      );
+      final remoteFileContent = utf8.decode(await getResource(fileUrl));
 
       final key = await KeyManager.getSharedIndividualKey(fileUrl);
 
@@ -105,22 +103,18 @@ Future<void> writeExternalPod(
         );
 
         if (!fileUrl.endsWith('.ttl')) {
-          debugPrint('WARN: Encrypted text file should be in turtle format, '
-              'but the extension of provided filename "$fileUrl" is not ".ttl"');
+          debugPrint(
+            'WARN: Encrypted text file should be in turtle format, '
+            'but the extension of provided filename "$fileUrl" is not ".ttl"',
+          );
         }
-      } else if (hasInheritedKey(
-        remoteFileContent,
-        fileUrl,
-      )) {
+      } else if (hasInheritedKey(remoteFileContent, fileUrl)) {
         // Get file path
         // final filePath =
         //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
 
         // Get the individual key for the file
-        final parentDirPath = getParentDir(
-          remoteFileContent,
-          fileUrl,
-        );
+        final parentDirPath = getParentDir(remoteFileContent, fileUrl);
         final parentDirUrl = getExtDirUrl(fileUrl, parentDirPath);
 
         final key = await KeyManager.getSharedIndividualKey(parentDirUrl);
@@ -161,8 +155,10 @@ Future<void> writeExternalPod(
       // inherited key
       if (inheritKeyFrom != null) {
         // Get normalised directory path
-        String normalizedDirPath =
-            await normalizeFilePath(inheritKeyFrom, null);
+        String normalizedDirPath = await normalizeFilePath(
+          inheritKeyFrom,
+          null,
+        );
 
         final parentDirUrl = getExtDirUrl(fileUrl, normalizedDirPath);
 

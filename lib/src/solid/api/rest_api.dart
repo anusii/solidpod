@@ -157,8 +157,9 @@ Future<List<dynamic>> initialStructureTest(
   for (final containerName in files.keys) {
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
-      final resourceUrl =
-          await getFileUrl([containerName as String, fileName].join('/'));
+      final resourceUrl = await getFileUrl(
+        [containerName as String, fileName].join('/'),
+      );
       if (await checkResourceStatus(resourceUrl, isFile: true) ==
           ResourceStatus.notExist) {
         allExists = false;
@@ -242,9 +243,11 @@ Future<void> createResource(
   if ([200, 201, 205].contains(response.statusCode)) {
     return;
   } else {
-    throw Exception('Failed to create resource!'
-        '\nURL: $resourceUrl'
-        '\nERROR: ${response.body}');
+    throw Exception(
+      'Failed to create resource!'
+      '\nURL: $resourceUrl'
+      '\nERROR: ${response.body}',
+    );
   }
 }
 
@@ -253,8 +256,10 @@ Future<void> deleteResource(
   String resourceUrl,
   ResourceContentType contentType,
 ) async {
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceUrl, 'DELETE');
+  final (:accessToken, :dPopToken) = await getTokensForResource(
+    resourceUrl,
+    'DELETE',
+  );
 
   final response = await http.delete(
     Uri.parse(resourceUrl),
@@ -268,9 +273,11 @@ Future<void> deleteResource(
   );
 
   if (response.statusCode != 200 && response.statusCode != 205) {
-    throw Exception('Failed to delete resource!'
-        '\nURL: $resourceUrl'
-        '\nERROR: ${response.body}');
+    throw Exception(
+      'Failed to delete resource!'
+      '\nURL: $resourceUrl'
+      '\nERROR: ${response.body}',
+    );
   }
 }
 
@@ -308,9 +315,11 @@ Future<ResourceStatus> checkResourceStatus(
   } else if (response.statusCode == 404) {
     return ResourceStatus.notExist;
   } else {
-    debugPrint('Failed to check resource status.\n'
-        'URL: $resUrl\n'
-        'ERR: ${response.body}');
+    debugPrint(
+      'Failed to check resource status.\n'
+      'URL: $resUrl\n'
+      'ERR: ${response.body}',
+    );
     return ResourceStatus.unknown;
   }
 }
@@ -319,9 +328,7 @@ Future<ResourceStatus> checkResourceStatus(
 ///
 /// This function makes an HTTP GET request to a public resource URL to determine if the webId exists.
 
-Future<ResourceStatus> checkWebIdExists(
-  String webIdUrl,
-) async {
+Future<ResourceStatus> checkWebIdExists(String webIdUrl) async {
   try {
     final response = await http.get(
       Uri.parse(webIdUrl),
@@ -336,9 +343,11 @@ Future<ResourceStatus> checkWebIdExists(
     } else if (response.statusCode == 404) {
       return ResourceStatus.notExist;
     } else {
-      debugPrint('Failed to check resource status.\n'
-          'URL: $webIdUrl\n'
-          'ERR: ${response.body}');
+      debugPrint(
+        'Failed to check resource status.\n'
+        'URL: $webIdUrl\n'
+        'ERR: ${response.body}',
+      );
       return ResourceStatus.unknown;
     }
   } on Object catch (e) {
@@ -349,18 +358,13 @@ Future<ResourceStatus> checkWebIdExists(
 
 /// Given a WebID check if their POD is initialised using the Solidpod
 /// directory structure
-Future<bool> checkPodInitialised(
-  String webIdUrl,
-) async {
+Future<bool> checkPodInitialised(String webIdUrl) async {
   try {
     final sharedDirPath = await getSharedDirPath();
     final sharedDirUrl = webIdUrl.replaceAll(profCard, '$sharedDirPath/');
 
     // Check if directory exists
-    final dirStatus = await checkResourceStatus(
-      sharedDirUrl,
-      isFile: false,
-    );
+    final dirStatus = await checkResourceStatus(sharedDirUrl, isFile: false);
 
     if (dirStatus == ResourceStatus.exist) {
       return true;
@@ -381,12 +385,11 @@ Future<bool> checkPodInitialised(
 /// where RDF data stored on a Solid POD (Personal Online Datastore) needs to be
 /// modified.
 
-Future<void> updateFileByQuery(
-  String fileUrl,
-  String query,
-) async {
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(fileUrl, 'PATCH');
+Future<void> updateFileByQuery(String fileUrl, String query) async {
+  final (:accessToken, :dPopToken) = await getTokensForResource(
+    fileUrl,
+    'PATCH',
+  );
   final editResponse = await http.patch(
     Uri.parse(fileUrl),
     headers: <String, String>{
@@ -451,8 +454,10 @@ Future<void> initialProfileUpdate(String profBody) async {
 /// This function returns the bytes of a turtle string representing
 /// the list of resources in the container / directory.
 Future<Uint8List> getResource(String resourceUrl) async {
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceUrl, 'GET');
+  final (:accessToken, :dPopToken) = await getTokensForResource(
+    resourceUrl,
+    'GET',
+  );
 
   final response = await http.get(
     Uri.parse(resourceUrl),
@@ -551,8 +556,10 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 /// with '/', it is considered as a container / directory.
 
 Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceUrl, 'HEAD');
+  final (:accessToken, :dPopToken) = await getTokensForResource(
+    resourceUrl,
+    'HEAD',
+  );
 
   final response = await http.head(
     Uri.parse(resourceUrl),
@@ -565,10 +572,7 @@ Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
   );
 
   if (response.statusCode == 200) {
-    final dateFormatter = DateFormat(
-      'EEE, dd MMM yyyy HH:mm:ss z',
-      'en_US',
-    );
+    final dateFormatter = DateFormat('EEE, dd MMM yyyy HH:mm:ss z', 'en_US');
 
     ResourceMetadata metadata = ResourceMetadata(
       contentLength: int.parse(response.headers[contentLength]!),
@@ -607,8 +611,10 @@ Future<String> updateAclFileContent(
   // Get acl file url
   final resourceAclUrl = getResAclFile(resourceUrl);
 
-  final (:accessToken, :dPopToken) =
-      await getTokensForResource(resourceAclUrl, 'PUT');
+  final (:accessToken, :dPopToken) = await getTokensForResource(
+    resourceAclUrl,
+    'PUT',
+  );
 
   // http request to update the acl file on the server
   final editResponse = await http.put(

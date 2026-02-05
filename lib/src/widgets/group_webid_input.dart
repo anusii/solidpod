@@ -34,10 +34,11 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
+import 'package:solidui/solidui.dart'
+    show smallGapV, makeSubHeading, GrantPermFormLayout;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/ui.dart';
 import 'package:solidpod/src/solid/utils/alert.dart';
 
 /// A [StatefulWidget] dialog for entering group of webIds.
@@ -49,10 +50,7 @@ class GroupWebIdTextInput extends StatefulWidget {
   /// Function run on Submit button press.
   final Function onSubmitFunction;
 
-  const GroupWebIdTextInput({
-    super.key,
-    required this.onSubmitFunction,
-  });
+  const GroupWebIdTextInput({super.key, required this.onSubmitFunction});
 
   @override
   State<GroupWebIdTextInput> createState() => _GroupWebIdTextInputState();
@@ -89,9 +87,7 @@ class _GroupWebIdTextInputState extends State<GroupWebIdTextInput> {
         // Explain webId with example
         MarkdownTooltip(
           message: '$whatIsWebID Eg: $demoWebID',
-          child: makeSubHeading(
-            'Enter recipient group WebIds',
-          ),
+          child: makeSubHeading('Enter recipient group WebIds'),
         ),
         // Add padding to webid textformfield and suggestion drop down
         Container(
@@ -132,8 +128,9 @@ class _GroupWebIdTextInputState extends State<GroupWebIdTextInput> {
                         // Check if all the webIds are true links
                         var trueWebIdsFlag = true;
                         for (final webId in webIdList) {
-                          if (!Uri.parse(webId.replaceAll('#me', ''))
-                                  .isAbsolute ||
+                          if (!Uri.parse(
+                                webId.replaceAll('#me', ''),
+                              ).isAbsolute ||
                               !(await checkResourceStatus(webId) ==
                                   ResourceStatus.exist)) {
                             trueWebIdsFlag = false;

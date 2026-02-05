@@ -32,48 +32,44 @@ import 'dart:convert';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
-/// Read permission given for the [fileName].
+/// Read permission log (including revoked permissions) of a user's
+/// Pod for a specific [resourceName].
 ///
 /// Parameters:
-/// - [fileName] is the name of the file reading permission from
-/// - [sourceWebId] is the source WebID
+/// - [resourceName] is the name of the file reading permission from
 
-Future<dynamic> sharedResources([String? fileName, String? sourceWebId]) async {
+Future<List<LogRecord>> sharedResourcesHistory({
+  required String resourceName,
+}) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to access shared resources.',
     );
   }
 
-  // Get user webID
-  final userWebId = await AuthDataManager.getWebId() as String;
-
   // Log file url
   final logFilePath = await getPermLogFilePath();
   final logFileUrl = await getFileUrl(logFilePath);
 
   // Read log file
-  final logContent = utf8.decode(await getResource(logFileUrl));
+  final logContent = utf8.decode(
+    await getResource(logFileUrl),
+  );
 
+  // Convert log from TTL to triple map
   final logDataMap = parseTTLMap(logContent);
 
-  var uniqueLogMap = getLatestLog(logDataMap, userWebId);
+  // Extract permission history log of file from log in triple map format
+  final List<LogRecord> permHistMap = getLog(
+    resourceName: resourceName,
+    logDataMap: logDataMap,
+  );
 
-  // Filer log entried based on defined file name
-  if (fileName != null) {
-    uniqueLogMap = filterLogByFilename(uniqueLogMap, fileName);
-  }
-
-  // Filer log entried based on defined source webId
-  if (sourceWebId != null) {
-    uniqueLogMap = filterLogByWebId(uniqueLogMap, sourceWebId);
-  }
-
-  return uniqueLogMap;
+  return permHistMap;
 }

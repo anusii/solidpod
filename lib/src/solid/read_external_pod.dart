@@ -38,7 +38,5 @@ import 'package:solidpod/src/solid/read_pod.dart';
 ///
 /// [fileUrl] - The URL to the external file to read
 
-Future<String> readExternalPod(String fileUrl) async => await readPod(
-      fileUrl,
-      pathType: PathType.absoluteUrl,
-    );
+Future<String> readExternalPod(String fileUrl) async =>
+    await readPod(fileUrl, pathType: PathType.absoluteUrl);

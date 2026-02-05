@@ -157,8 +157,10 @@ Future<String> removePermissionAcl({
 Future<void> removeSharedKey(String recipientWebId, String resUniqueId) async {
   // Get shared key file url.
   final sharedKeyFilePath = await getSharedKeyFilePath();
-  final receiverSharedKeyFileUrl =
-      recipientWebId.replaceAll(profCard, sharedKeyFilePath);
+  final receiverSharedKeyFileUrl = recipientWebId.replaceAll(
+    profCard,
+    sharedKeyFilePath,
+  );
 
   // Check if the shared key file exists
   if (await checkResourceStatus(receiverSharedKeyFileUrl) ==

@@ -126,8 +126,9 @@ Future<String> genAclTurtle(
   if (thirdPartyAccess != null) {
     var k = 1;
     for (final webId in thirdPartyAccess.keys) {
-      bindNS['$prefix$k'] =
-          Namespace(ns: '${Uri.parse(webId).removeFragment()}#');
+      bindNS['$prefix$k'] = Namespace(
+        ns: '${Uri.parse(webId).removeFragment()}#',
+      );
       k++;
     }
   }
@@ -178,9 +179,7 @@ Future<Map<dynamic, dynamic>> readAcl(
 ]) async {
   final resourceAclUrl = getResAclFile(resourceUrl, isFile);
 
-  final aclContent = utf8.decode(
-    await getResource(resourceAclUrl),
-  );
+  final aclContent = utf8.decode(await getResource(resourceAclUrl));
 
   return parseACL(aclContent);
 }
@@ -189,9 +188,7 @@ Future<Map<dynamic, dynamic>> readAcl(
 ///
 /// Returns a Future that completes with a List containing the list of WebIDs.
 Future<List<dynamic>> readGroupTtl(String groupFileUrl) async {
-  final groupContent = utf8.decode(
-    await getResource(groupFileUrl),
-  );
+  final groupContent = utf8.decode(await getResource(groupFileUrl));
 
   final groupDataMap = parseTTLMap(groupContent);
 

@@ -86,8 +86,10 @@ Future<SolidFunctionCallStatus> chkExistsAndHasAcl({
       // Return desired acl found status
       return SolidFunctionCallStatus.aclFound;
     } else {
-      debugPrint('Resource does not have a corresponding ACL file. '
-          'If the ACL is inherited provide parent directory as the resource name!');
+      debugPrint(
+        'Resource does not have a corresponding ACL file. '
+        'If the ACL is inherited provide parent directory as the resource name!',
+      );
       return SolidFunctionCallStatus.noAclFound;
     }
   } else {

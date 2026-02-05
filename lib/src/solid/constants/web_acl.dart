@@ -37,8 +37,10 @@ import 'package:solidpod/src/solid/constants/common.dart'
         agentClassPred,
         agentGroupPred,
         agentPred,
+        authAgent,
         foaf,
         profCard,
+        pubAgent,
         rdf,
         terms,
         vcard;
@@ -150,26 +152,20 @@ enum AccessMode {
     '''),
 
   /// Control access: read and write access to the ACL file
-  control(
-    'Control',
-    '''
+  control('Control', '''
 
     **Control:** Permission is granted to alter the access permission to the
     shared file
 
-    ''',
-  ),
+    '''),
 
   /// Append data (a type of write)
-  append(
-    'Append',
-    '''
+  append('Append', '''
 
     **Append:** Permission is granted to add content but not remove or modify
     content from the shared file.
 
-    ''',
-  );
+    ''');
 
   /// Constructor
   const AccessMode(this._value, this._description);
@@ -209,8 +205,10 @@ AccessMode getAccessMode(String mode) {
     case 'append':
       return AccessMode.append;
     default:
-      throw Exception('Wrong access mode given'
-          '\nMode: $mode');
+      throw Exception(
+        'Wrong access mode given'
+        '\nMode: $mode',
+      );
   }
 }
 
@@ -300,7 +298,41 @@ String getRecipientName({
   return recipientName;
 }
 
-/// Get recipient permission tooltip
+/// Get name from webId
+String getWebIdName({
+  required String webId,
+}) {
+  final String name;
+
+  if (webId == pubAgent) {
+    name = 'Anyone';
+  } else if (webId == authAgent) {
+    name = 'All Loggedin Users';
+  } else {
+    name = webId.replaceAll('/$profCard', '').split('/').last;
+  }
+
+  return name;
+}
+
+/// Get name from webId
+String getPermissionTypeLabel({
+  required String permissionType,
+}) {
+  final String permissionTypeLabel;
+
+  if (permissionType == 'grant') {
+    permissionTypeLabel = 'granted';
+  } else if (permissionType == 'revoke') {
+    permissionTypeLabel = 'revoked';
+  } else {
+    permissionTypeLabel = 'unknown';
+  }
+
+  return permissionTypeLabel;
+}
+
+/// Get tooltip for ACL permission records
 String getPermissionTooltip({
   required String recipientName,
   required RecipientType recipientType,
@@ -327,6 +359,39 @@ String getPermissionTooltip({
   return toolTip;
 }
 
+/// Get tooltip for permission log records
+String getPermissionLogTooltip({
+  required String recipientWebId,
+  required String recipientName,
+  required String granterName,
+  // required RecipientType recipientType,
+  required String permissionTypeLabel,
+  required List<String> permList,
+}) {
+  String toolTip;
+
+  if (recipientWebId == pubAgent) {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to anyone ';
+  } else if (recipientWebId == authAgent) {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to all logged in users ';
+  } else {
+    toolTip = '$granterName $permissionTypeLabel '
+        '${permList.join(', ')} '
+        'access to $recipientName';
+  }
+
+  if (permList.contains('control')) {
+    toolTip = '$toolTip '
+        '(i.e. $recipientName had permission to share or revoke access to others)';
+  }
+
+  return toolTip;
+}
+
 /// Generate the content of encKeyFile
 Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
@@ -334,17 +399,12 @@ Future<String> genGroupWebIdTTLStr(List<dynamic> groupWebIdList) async {
     URIRef('${thisFile.ns.ns}me'): {
       AclPredicate.aclRdfType.uriRef: AclPredicate.vcardGroup.uriRef,
       AclPredicate.vcardHasMember.uriRef: {
-        for (final webId in groupWebIdList) ...{
-          URIRef(webId as String),
-        },
+        for (final webId in groupWebIdList) ...{URIRef(webId as String)},
       },
     },
   };
 
-  final bindNS = {
-    thisFile.prefix: thisFile.ns,
-    vcardNS.prefix: vcardNS.ns,
-  };
+  final bindNS = {thisFile.prefix: thisFile.ns, vcardNS.prefix: vcardNS.ns};
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
 }
@@ -357,9 +417,7 @@ Future<String> genUserClassIndKeyTTLStr([List<String>? initialDataList]) async {
   var triples = <URIRef, Map<URIRef, dynamic>>{};
   triples = {
     URIRef('${thisFile.ns.ns}me'): {
-      AclPredicate.aclRdfType.uriRef: {
-        AclPredicate.personalDocument.uriRef,
-      },
+      AclPredicate.aclRdfType.uriRef: {AclPredicate.personalDocument.uriRef},
     },
     if (initialDataList != null) ...{
       URIRef(initialDataList.first): {

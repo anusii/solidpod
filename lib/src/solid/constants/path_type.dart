@@ -31,23 +31,19 @@ library;
 enum PathType {
   /// path is relative to the `data` directory of app,
   /// i.e., the resource is in `podName/appDirectory/data/`.
-
   relativeToData,
 
   /// path is relative to the app directory,
   /// i.e., the resource is in `podName/appDirectory/`,
   /// e.g., encryption/ind-keys.ttl
-
   relativeToApp,
 
   /// path is relative to the specific POD,
   /// i.e., the resource is in `podName/`,
   /// e.g., profile.ttl
-
   relativeToPod,
 
   /// path is an absolute URL,
   /// e.g., https://pods.solidcommunity.au/podName/appDirectory/data/myfile.ttl
-
-  absoluteUrl;
+  absoluteUrl,
 }

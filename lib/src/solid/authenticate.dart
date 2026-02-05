@@ -114,9 +114,7 @@ Future<List<dynamic>?> solidAuthenticate(
 
       // Proceed to fetch profile data with the authenticated credentials
       final profCardUrl = webId.replaceAll('#me', '');
-      final profData = utf8.decode(
-        await getResource(profCardUrl),
-      );
+      final profData = utf8.decode(await getResource(profCardUrl));
 
       return [authData, webId, profData];
     }
@@ -129,9 +127,7 @@ Future<List<dynamic>?> solidAuthenticate(
     }
 
     final profCardUrl = webId.replaceAll('#me', '');
-    final profData = utf8.decode(
-      await getResource(profCardUrl),
-    );
+    final profData = utf8.decode(await getResource(profCardUrl));
 
     return [authData, webId, profData];
   } on Object catch (e) {

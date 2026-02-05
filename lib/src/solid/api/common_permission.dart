@@ -30,12 +30,15 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
+import 'package:solidpod/src/solid/models/log_record.dart';
 
 /// A class to represent permission log literals
 enum PermissionLogLiteral {
@@ -141,8 +144,13 @@ Map<dynamic, dynamic> getLatestLog(
 
   // Loop through logs and get the latest for each resource
   for (final dataKey in logDataMap.keys) {
+    debugPrint('Key: $dataKey');
     if ((dataKey as String).contains(appsLogId)) {
+      debugPrint(
+        'log entry: ${logDataMap[dataKey]['${appsData}log'].toString()}',
+      );
       final logEntry = logDataMap[dataKey]['${appsData}log'].first;
+      debugPrint('latest: $logEntry');
       final logEntryList = logEntry.split(';');
 
       final recipientWebId = logEntryList[5];
@@ -160,8 +168,9 @@ Map<dynamic, dynamic> getLatestLog(
         final prevDateTime =
             uniqueLogMap[resourceUrl][PermissionLogLiteral.logtime];
         if ([0, 1].contains(
-          DateTime.parse(logEntryList.first as String)
-              .compareTo(DateTime.parse(prevDateTime as String)),
+          DateTime.parse(
+            logEntryList.first as String,
+          ).compareTo(DateTime.parse(prevDateTime as String)),
         )) {
           replaceExist = true;
         }
@@ -184,6 +193,58 @@ Map<dynamic, dynamic> getLatestLog(
   }
 
   return uniqueLogMap;
+}
+
+/// Get log entries for the specified resource from permission
+/// log in the user's Pod.
+///
+/// Parameters:
+/// - [resourceName] - filename of the resource
+/// - [logDataMap] - the triple map of the permission log
+
+List<LogRecord> getLog({
+  required String resourceName,
+  required Map<dynamic, dynamic> logDataMap,
+}) {
+  final List<LogRecord> permHistory = [];
+
+  // Loop through logs and get the latest for each resource
+  for (final dataKey in logDataMap.keys) {
+    // debugPrint('Key: $dataKey');
+    if ((dataKey as String).contains(appsLogId)) {
+      // debugPrint(
+      //   'log entry: ${logDataMap[dataKey]['${appsData}log'].toString()}',
+      // );
+      final logEntry = logDataMap[dataKey]['${appsData}log'].first;
+
+      final logEntryList = logEntry.split(';');
+
+      final ownerWebId = logEntryList[2];
+
+      final resourceUrl = logEntryList[1];
+
+      // Only return log entries for the resource of interest
+      if (!(resourceUrl as String).contains(resourceName)) {
+        continue;
+      }
+
+      final logid = logEntryList.first;
+
+      final LogRecord logRecord = LogRecord(
+        dateTimeStr: logid,
+        resourceUrl: resourceUrl,
+        ownerWebId: ownerWebId,
+        permissionType: logEntryList[3],
+        granterWebId: logEntryList[4],
+        recipientWebId: logEntryList[5],
+        permissionList: logEntryList[6],
+      );
+
+      permHistory.add(logRecord);
+    }
+  }
+
+  return permHistory;
 }
 
 /// Filter log entries by file name

@@ -9,7 +9,15 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## 0.10 Further UI migrations
+## 0.11 Robust
+
++ Review and lint fixes [0.10.4 20260206 gjw]
++ Permission history updates [0.10.3 20260205 jesscmoore]
++ Corrects granterWebId for externally owned resources [0.10.2 20260205 jesscmoore]
++ Update dependency on solidui to 0.1.0 [0.10.1 20260203 gjw]
++ Migrate Security Key and Permission GUI to solidui [0.10.0 20260203 tonypioneer]
+
+## 0.10 Complete UI migrations - SecurityKey and Persmissions
 
 + Delete file by URL
 + Add fetch resource metadata function [0.9.20 20260131 anushkavid]

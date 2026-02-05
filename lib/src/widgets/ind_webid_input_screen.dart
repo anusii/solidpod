@@ -33,7 +33,8 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidpod/src/solid/constants/ui.dart';
+import 'package:solidui/solidui.dart' show normalLoadingScreenHeight;
+
 import 'package:solidpod/src/solid/get_recipient_list.dart';
 import 'package:solidpod/src/widgets/ind_webid_input.dart';
 import 'package:solidpod/src/widgets/loading_screen.dart';
@@ -98,10 +99,7 @@ class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
   @override
   Widget build(BuildContext context) {
     return (widget.dataFilesMap.isNotEmpty)
-        ? _loadIndWebIdTextInput(
-            widget.onSubmitFunction,
-            uniqRecipWebIdList,
-          )
+        ? _loadIndWebIdTextInput(widget.onSubmitFunction, uniqRecipWebIdList)
         : FutureBuilder(
             future: _asyncGetRecipList,
             builder: (context, snapshot) {
@@ -111,8 +109,9 @@ class _IndWebIdInputScreenState extends State<IndWebIdInputScreen> {
                         snapshot.data.toString() == 'null' ||
                         snapshot.data == []
                     // Load Individual WebId Input Dialog Screen without recipient list
-                    ? returnVal =
-                        _loadIndWebIdTextInput(widget.onSubmitFunction)
+                    ? returnVal = _loadIndWebIdTextInput(
+                        widget.onSubmitFunction,
+                      )
                     // Load Individual WebId Input Dialog Screen with recipient list
                     : returnVal = _loadIndWebIdTextInput(
                         widget.onSubmitFunction,

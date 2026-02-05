@@ -79,23 +79,16 @@ void registerLogoutCacheCallback(Future<void> Function() callback) {
 /// write again.
 
 Future<void> writeToSecureStorage(String key, String value) async {
-  final isKeyExist = await secureStorage.containsKey(
-    key: key,
-  );
+  final isKeyExist = await secureStorage.containsKey(key: key);
 
   // Since write() method does not automatically overwrite an existing value.
   // To overwrite an existing value, call delete() first.
 
   if (isKeyExist) {
-    await secureStorage.delete(
-      key: key,
-    );
+    await secureStorage.delete(key: key);
   }
 
-  await secureStorage.write(
-    key: key,
-    value: value,
-  );
+  await secureStorage.write(key: key, value: value);
 }
 
 /// Load and parse a private TTL file from POD
@@ -380,9 +373,7 @@ Future<bool> logoutPod() async {
         // Continue - the critical auth data is already cleared
       }
     } else {
-      debugPrint(
-        'logoutPod() => No application cache callback registered',
-      );
+      debugPrint('logoutPod() => No application cache callback registered');
     }
 
     // Step 3: Get the logout URL and attempt OAuth2 logout
@@ -702,16 +693,10 @@ Future<String> generateResourceUrlFromPath({
       return resourcePath;
 
     case PathType.relativeToPod:
-      return await func(
-        resourcePath,
-        webId: webId,
-      );
+      return await func(resourcePath, webId: webId);
 
     case PathType.relativeToApp:
-      return await func(
-        [appDirName, resourcePath].join('/'),
-        webId: webId,
-      );
+      return await func([appDirName, resourcePath].join('/'), webId: webId);
 
     case PathType.relativeToData:
       return await func(

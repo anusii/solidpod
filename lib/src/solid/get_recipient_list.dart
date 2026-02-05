@@ -56,8 +56,10 @@ Future<List<String>> getRecipientList() async {
       );
 
       // Extract recipient webIDs to list
-      final uniqRecipWebIdList =
-          extractRecipWebIdList(dataMapWithPermissions, fileList: fileList);
+      final uniqRecipWebIdList = extractRecipWebIdList(
+        dataMapWithPermissions,
+        fileList: fileList,
+      );
 
       return uniqRecipWebIdList;
     } else {

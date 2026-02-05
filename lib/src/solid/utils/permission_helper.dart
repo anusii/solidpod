@@ -120,12 +120,7 @@ List<Permission> permMapToList(Map map) {
   final List<Permission> permissions = [];
 
   if (map.isNotEmpty) {
-    debugPrint('Full map: ${map.toString()}');
-
     for (final recipientWebId in map.keys) {
-      debugPrint('recipientWebId: $recipientWebId');
-      debugPrint('map: ${map[recipientWebId]}');
-
       // Deserialise permission record
       try {
         final Permission? permission;

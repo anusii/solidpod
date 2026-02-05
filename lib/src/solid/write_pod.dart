@@ -113,8 +113,10 @@ Future<void> writePod(
 
   if (encrypted || inheritKeyFrom != null) {
     if (!fileUrl.endsWith('.ttl')) {
-      throw Exception('Encrypted text file should be in turtle format, '
-          'but the extension of provided filename "$filePath" is not ".ttl"');
+      throw Exception(
+        'Encrypted text file should be in turtle format, '
+        'but the extension of provided filename "$filePath" is not ".ttl"',
+      );
     }
 
     encKey = await configureEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);

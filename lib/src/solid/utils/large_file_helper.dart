@@ -358,10 +358,7 @@ Future<void> send({
     },
   };
 
-  final bindNS = {
-    siiNS.prefix: siiNS.ns,
-    'c': Namespace(ns: chunkDirUrl),
-  };
+  final bindNS = {siiNS.prefix: siiNS.ns, 'c': Namespace(ns: chunkDirUrl)};
 
   await writePod(
     '$remoteFilePath.ttl',
@@ -392,10 +389,7 @@ Stream<List<int>> fetch({
     webId: externWebId,
   );
 
-  final fileUrl = await getFileUrl(
-    '$filePath.ttl',
-    webId: externWebId,
-  );
+  final fileUrl = await getFileUrl('$filePath.ttl', webId: externWebId);
 
   debugPrint('fileUrl: $fileUrl');
   debugPrint('chunkDirUrl: $chunkDirUrl');

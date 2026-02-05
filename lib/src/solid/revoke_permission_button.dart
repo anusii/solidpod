@@ -32,6 +32,9 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:markdown_tooltip/markdown_tooltip.dart';
+import 'package:solidui/solidui.dart' show ActionColors;
+
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/revoke_permission.dart';
@@ -111,70 +114,73 @@ class _RevokePermissionButtonState extends State<RevokePermissionButton> {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      icon: const Icon(
-        Icons.delete,
-        size: 24.0,
-        color: Colors.red,
-      ),
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (ctx) {
-            return AlertDialog(
-              title: const Text('Please Confirm'),
-              content: Text(
-                'Are you sure you want to remove the [${(widget.permDataMap[widget.receiverWebId][permStr] as List).join(', ')}] permission/s from ${widget.receiverWebId.replaceAll('.ttl', '')}?',
-              ),
-              actions: [
-                // The "Yes" button
-                TextButton(
-                  onPressed: () async {
-                    await revokePermission(
-                      fileName: widget.resourceName,
-                      isFile: widget.isFile,
-                      permissionList: widget.permDataMap[widget.receiverWebId]
-                          [permStr] as List,
-                      recipientIndOrGroupWebId: widget.receiverWebId,
-                      ownerWebId: widget.ownerWebId,
-                      granterWebId: widget.granterWebId,
-                      recipientType: getRecipientType(
-                        widget.permDataMap[widget.receiverWebId][agentStr]
-                            as String,
-                        widget.receiverWebId,
-                      ),
-                      isExternalRes: widget.isExternalRes,
-                    );
-
-                    if (ctx.mounted) {
-                      Navigator.pop(ctx);
-                    }
-                    if (ctx.mounted) {
-                      showSnackBar(
-                        context,
-                        'Permission revoked successfully!',
-                        Colors.red,
+    return MarkdownTooltip(
+      message: 'Revoke all access to this recipient',
+      child: IconButton(
+        icon: const Icon(
+          Icons.delete,
+          size: 24.0,
+          color: ActionColors.delete,
+        ),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (ctx) {
+              return AlertDialog(
+                title: const Text('Please Confirm'),
+                content: Text(
+                  'Are you sure you want to remove the [${(widget.permDataMap[widget.receiverWebId][permStr] as List).join(', ')}] permission/s from ${widget.receiverWebId.replaceAll('.ttl', '')}?',
+                ),
+                actions: [
+                  // The "Yes" button
+                  TextButton(
+                    onPressed: () async {
+                      await revokePermission(
+                        fileName: widget.resourceName,
+                        isFile: widget.isFile,
+                        permissionList: widget.permDataMap[widget.receiverWebId]
+                            [permStr] as List,
+                        recipientIndOrGroupWebId: widget.receiverWebId,
+                        ownerWebId: widget.ownerWebId,
+                        granterWebId: widget.granterWebId,
+                        recipientType: getRecipientType(
+                          widget.permDataMap[widget.receiverWebId][agentStr]
+                              as String,
+                          widget.receiverWebId,
+                        ),
+                        isExternalRes: widget.isExternalRes,
                       );
-                    }
-                    await widget.updatePermissionsFunction(
-                      widget.resourceName,
-                      isFile: widget.isFile,
-                    );
-                  },
-                  child: const Text('Yes'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    // Close the dialog
-                    Navigator.of(ctx).pop();
-                  },
-                  child: const Text('No'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                      }
+                      if (ctx.mounted) {
+                        showSnackBar(
+                          context,
+                          'Permission revoked successfully!',
+                          ActionColors.success,
+                        );
+                      }
+                      await widget.updatePermissionsFunction(
+                        widget.resourceName,
+                        isFile: widget.isFile,
+                      );
+                    },
+                    child: const Text('Yes'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Close the dialog
+                      Navigator.of(ctx).pop();
+                    },
+                    child: const Text('No'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

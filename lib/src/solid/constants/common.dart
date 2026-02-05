@@ -121,8 +121,9 @@ const String rdf = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#';
 const String terms = 'http://purl.org/dc/terms/';
 const String vcard = 'http://www.w3.org/2006/vcard/ns#';
 const String xsd = 'http://www.w3.org/2001/XMLSchema#';
-// const String pubAgent = 'http://xmlns.com/foaf/0.1/' 'Agent';
-// const String authAgent = 'http://xmlns.com/foaf/0.1/' 'AuthenticatedAgent';
+const String pubAgent = 'http://xmlns.com/foaf/0.1/' 'Agent';
+const String authAgent = 'http://www.w3.org/ns/auth/acl#'
+    'AuthenticatedAgent'; // 'http://xmlns.com/foaf/0.1/' 'AuthenticatedAgent';
 // const String solid = 'http://www.w3.org/ns/solid/terms#';
 
 /// String terms used as prfixes in turtle and acl files

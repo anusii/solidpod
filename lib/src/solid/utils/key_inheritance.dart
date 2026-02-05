@@ -53,10 +53,7 @@ bool hasInheritedKey(String fileContent, String fileUrl) {
 ///   [dirUrl] - URL of the directory
 ///   [createAcl] - Whther to crete an acl file for the directory or not (default: true)
 /// Directory will be created if not exist
-Future<void> setInheritKeyDir(
-  String dirUrl, {
-  bool createAcl = true,
-}) async {
+Future<void> setInheritKeyDir(String dirUrl, {bool createAcl = true}) async {
   if (await checkResourceStatus(dirUrl, isFile: false) ==
       ResourceStatus.notExist) {
     // Create the directory
@@ -102,10 +99,7 @@ Future<void> setInheritKeyDir(
 
 /// Retrieve the encryption key of a (shared) resource
 
-Future<Key?> retrieveEncKey(
-  String resourceUrl, {
-  String? inheritKeyUrl,
-}) async {
+Future<Key?> retrieveEncKey(String resourceUrl, {String? inheritKeyUrl}) async {
   final keyUrl = inheritKeyUrl ?? resourceUrl;
   final key = await KeyManager.getIndividualKey(keyUrl);
 
@@ -121,10 +115,7 @@ Future<Key?> retrieveEncKey(
 /// then check whether the corresponding directory exists, and create it
 /// if not.
 
-Future<Key> configureEncKey(
-  String fileUrl, {
-  String? inheritKeyUrl,
-}) async {
+Future<Key> configureEncKey(String fileUrl, {String? inheritKeyUrl}) async {
   if (inheritKeyUrl == null) {
     if (await KeyManager.getIndividualKey(fileUrl) == null) {
       await KeyManager.addIndividualKey(
@@ -139,16 +130,20 @@ Future<Key> configureEncKey(
 
   switch (await checkResourceStatus(inheritKeyUrl, isFile: false)) {
     case ResourceStatus.notExist:
-      debugPrint('WARNING: Directory $inheritKeyUrl does not exist. '
-          'Creating the directory and corresponding acl file, '
-          'and setting up a new key for the directory');
+      debugPrint(
+        'WARNING: Directory $inheritKeyUrl does not exist. '
+        'Creating the directory and corresponding acl file, '
+        'and setting up a new key for the directory',
+      );
       // Create directory and set a new key for the directory
       await setInheritKeyDir(inheritKeyUrl);
 
     case ResourceStatus.exist:
       if (await KeyManager.getIndividualKey(inheritKeyUrl) == null) {
-        debugPrint('WARNING: Directory $inheritKeyUrl does not have a key. '
-            'Setting up a new key for the directory');
+        debugPrint(
+          'WARNING: Directory $inheritKeyUrl does not have a key. '
+          'Setting up a new key for the directory',
+        );
         // Generate a new key for the directory
         await setInheritKeyDir(inheritKeyUrl, createAcl: false);
       }
