@@ -25,7 +25,7 @@ dependency_overrides:
   solidui:
     git:
       url: https://github.com/anusii/solidui
-      ref: jess/190_ui_const_for_perm_history # dev
+      ref: dev
 
 dev_dependencies:
   flutter_lints: ^6.0.0
