@@ -34,8 +34,6 @@ cleanse_lines() {
 	grep -v '\s*\w*: \[' | # Remove  parameter list lines like `   names: [`
 	grep -v "^\s*['][^']*[']" | # Remove lines that are only a string.
 	cat
-
-    #awk 'NF && !/^\s*\/\/|^\s*(import|library|@override)|^\s*[})\]]|^\s*(\?|:) \[|\s*\w*: \[|^\'[^\']*\'[;,]?$/' "$1"
 }
 
 wc_cleanse_lines() {
