@@ -1,6 +1,6 @@
 // A screen to demonstrate the data sharing capabilities of PODs.
 ///
-// Time-stamp: <Friday 2026-02-06 08:23:52 +1100 Graham Williams>
+// Time-stamp: <Friday 2026-02-06 08:48:15 +1100 Graham Williams>
 ///
 /// Copyright (C) 2025, Software Innovation Institute, ANU.
 ///
@@ -33,15 +33,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:markdown_tooltip/markdown_tooltip.dart';
-import 'package:solidui/solidui.dart'
-    show
-        ActionColors,
-        normalLoadingScreenHeight,
-        vSmallGapV,
-        smallGapV,
-        mediumGapV,
-        makeHeading,
-        makeSubHeading;
+import 'package:solidui/solidui.dart';
 
 import 'package:solidpod/src/solid/chk_exists_and_has_acl.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
@@ -54,10 +46,8 @@ import 'package:solidpod/src/solid/read_permission.dart';
 import 'package:solidpod/src/solid/share_resource_button.dart';
 import 'package:solidpod/src/solid/shared_resource_history.dart';
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
-import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/get_authoriser.dart';
 import 'package:solidpod/src/widgets/app_bar.dart';
-import 'package:solidpod/src/widgets/loading_screen.dart';
 
 /// A [StatefulWidget] for showing and editing access permissions to a
 /// resource. It displays the permission table of users with access, and
