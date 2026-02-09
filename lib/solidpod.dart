@@ -50,14 +50,6 @@ export 'src/solid/constants/predicates.dart';
 
 export 'src/solid/authenticate.dart' show solidAuthenticate;
 
-/// UI class to grant permission for a resource
-
-export 'src/solid/grant_permission_ui.dart';
-
-/// UI class to read permission given to the user webID by others
-
-export 'src/solid/shared_resources_ui.dart';
-
 /// Status class to represent different function outputs
 
 export 'src/solid/solid_func_call_status.dart' show SolidFunctionCallStatus;

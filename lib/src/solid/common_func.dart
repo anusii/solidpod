@@ -33,7 +33,7 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
-import 'package:solidpod/src/solid/utils/alert.dart';
+import 'package:solidui/src/utils/solid_alert.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/init_helper.dart';

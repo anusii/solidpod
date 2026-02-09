@@ -31,7 +31,7 @@ import 'package:flutter/material.dart';
 import 'package:solidui/solidui.dart' show SharingPageLayout;
 
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/widgets/permission_checkbox.dart';
+import 'package:solidui/src/widgets/permission_checkbox.dart';
 
 const recipientToolTips = <RecipientType, String>{
   RecipientType.public: '''

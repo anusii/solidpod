@@ -37,13 +37,15 @@ import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart'
     show
+        GrantPermissionUi,
         InitialSetupScreenBody,
+        SharedResourcesUi,
+        changeKeyPopup,
+        getKeyFromUserIfRequired,
+        largeGapV,
         loginIfRequired,
         logoutPopup,
-        getKeyFromUserIfRequired,
-        changeKeyPopup,
-        smallGapV,
-        largeGapV;
+        smallGapV;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
