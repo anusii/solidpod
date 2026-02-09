@@ -214,9 +214,3 @@ export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
 /// Function to get resources in a user's POD
 
 export 'src/solid/get_resources.dart';
-
-/// 20250917 gjw Extras that were required for the example app! Not yet
-/// documented.
-
-export 'package:solidui/solidui.dart'
-    show SecurityKeyUI, SecurityStrings, changeKeyPopup;

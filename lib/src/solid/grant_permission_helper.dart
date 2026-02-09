@@ -28,10 +28,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:solidui/solidui.dart' show SharingPageLayout;
-
 import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidui/src/widgets/permission_checkbox.dart';
 
 const recipientToolTips = <RecipientType, String>{
   RecipientType.public: '''
@@ -124,50 +121,3 @@ String makeSharingTitleStr({String? fileName, bool isFile = false}) =>
             ? 'Share $fileName'
             : 'Share $fileName folder'
         : 'Share your data with other user\'s PODs';
-
-List<Widget> getPermissionCheckBoxes(
-  List<AccessMode> accessModes, {
-  required Map<AccessMode, bool> modeSwitches,
-  required Function onUpdate,
-}) =>
-    [
-      for (final mode in AccessMode.getAllModes())
-        if (accessModes.contains(mode))
-          permissionCheckbox(mode, modeSwitches[mode]!, onUpdate),
-    ];
-
-Widget getResourceForm({
-  required TextEditingController formController,
-  required bool isFile,
-  required void Function(bool) onResourceTypeChange,
-}) =>
-    Padding(
-      padding: SharingPageLayout.inputPadding,
-      child: Column(
-        children: [
-          TextFormField(
-            controller: formController,
-            decoration: const InputDecoration(
-              hintText:
-                  'Data file path (inside your data folder, Eg: personal/about.ttl)',
-            ),
-            validator: (value) =>
-                (value == null || value.isEmpty) ? 'Empty field' : null,
-          ),
-          const SizedBox(height: 10),
-          SwitchListTile(
-            title: const Text(
-              'Is a File?',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text(isFile ? 'Yes' : 'No'),
-            value: isFile,
-            onChanged: onResourceTypeChange,
-            thumbColor: WidgetStateProperty.resolveWith<Color?>(
-              (Set<WidgetState> states) =>
-                  states.contains(WidgetState.selected) ? Colors.green : null,
-            ),
-          ),
-        ],
-      ),
-    );
