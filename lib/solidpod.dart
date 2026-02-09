@@ -214,3 +214,29 @@ export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
 /// Function to get resources in a user's POD
 
 export 'src/solid/get_resources.dart';
+
+/// Check if a resource exists and has an associated ACL file
+
+export 'src/solid/chk_exists_and_has_acl.dart' show chkExistsAndHasAcl;
+
+/// Retrieve the list of recipients that have access to files in a user's POD
+
+export 'src/solid/get_recipient_list.dart'
+    show getRecipientList, extractRecipWebIdList;
+
+/// Read permission history of a resource
+
+export 'src/solid/shared_resource_history.dart' show sharedResourcesHistory;
+
+/// Standardise retrieval of authoriser (owner or granter) for a resource
+
+export 'src/solid/utils/get_authoriser.dart' show getAuthoriser;
+
+/// Data model for permission details
+
+export 'src/solid/models/permission_details.dart' show PermissionDetails;
+
+/// Utilities for parsing permission data into the Permission model
+
+export 'src/solid/utils/permission_helper.dart'
+    show PermissionHelper, permMapToList;
