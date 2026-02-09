@@ -37,7 +37,8 @@ export 'src/solid/constants/solid_constants.dart';
 
 // Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 
-export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
+export 'src/solid/constants/common.dart'
+    show foaf, terms, ResourceStatus, permStr, agentStr, whatIsWebID, demoWebID;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
 
@@ -110,6 +111,7 @@ export 'src/solid/utils/misc.dart'
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
+        isDir,
         logoutPod,
         registerLogoutCacheCallback,
         setAppDirName,
@@ -157,8 +159,15 @@ export 'src/solid/read_permission.dart';
 
 export 'src/solid/revoke_permission.dart';
 
-/// Permission recipient type
-export 'src/solid/constants/web_acl.dart' show RecipientType;
+/// Permission types and access control utilities
+export 'src/solid/constants/web_acl.dart'
+    show
+        RecipientType,
+        AccessMode,
+        getRecipientType,
+        getAccessMode,
+        publicAgent,
+        authenticatedAgent;
 
 /// Functions to upload, download, and delete large file from a Solid server
 
@@ -240,3 +249,11 @@ export 'src/solid/models/permission_details.dart' show PermissionDetails;
 
 export 'src/solid/utils/permission_helper.dart'
     show PermissionHelper, permMapToList;
+
+/// Data model for log records (permission history entries)
+
+export 'src/solid/models/log_record.dart' show LogRecord;
+
+/// Data model for parsed permission entries
+
+export 'src/solid/models/permission.dart' show Permission;
