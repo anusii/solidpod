@@ -1,6 +1,6 @@
 /// Function to get POD resources by reading each private file in PODs.
 ///
-// Time-stamp: <Sunday 2025-07-27 10:59:10 +1100 Jess Moore>
+// Time-stamp: <Wednesday 2026-02-11 08:29:50 +1100 Graham Williams>
 ///
 /// Copyright (C) 2024-2025, Software Innovation Institute, ANU.
 ///
@@ -27,8 +27,6 @@
 // SOFTWARE.
 ///
 /// Authors: Jess Moore, Anushka Vidanage, Graham Williams
-
-// ignore_for_file: use_build_context_synchronously
 
 library;
 
