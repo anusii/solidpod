@@ -33,7 +33,6 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart' show appsTerms;
-import 'package:solidpod/src/solid/utils/alert.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/init_helper.dart';
@@ -128,6 +127,28 @@ Future<void> deleteDataFileDialog(
   }
 
   if (context.mounted) await alert(context, msg);
+}
+
+/// Show a simple alert dialog with a message and an optional title.
+
+Future<void> alert(
+  BuildContext context,
+  String msg, [
+  String title = 'Notice',
+]) async {
+  await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(msg),
+      actions: [
+        ElevatedButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 }
 
 /// Get inherited resource parent directory url

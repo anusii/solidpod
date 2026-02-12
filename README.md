@@ -32,16 +32,15 @@ utilising the solidpod package.
 
 ## Introduction
 
-[SolidPod](https://pub.dev/packages/solidpod) provides functionality
-for dart applications to manage personal online data stores (Pods)
-hosted in a Data Vault on a [Solid
-Server](https://solidproject.org). The package provides underlying
-functionality relied upon by the
-[solidui](https://pub.dev/packages/solidui) package for quickly
-building Flutter-based applications.  It supports high level access
-for an application to authenticate users to their Pods, access the
-users' data from their Pods, and then share the data stored in users'
-Pods with other Pods through Flutter Widgets.
+[SolidPod](https://pub.dev/packages/solidpod) provides the core
+business logic for Dart applications to manage personal online data
+stores (PODs) hosted in a Data Vault on a [Solid
+Server](https://solidproject.org). It supports authenticating users to
+their PODs, reading and writing data, and managing access permissions
+programmatically. The companion
+[solidui](https://pub.dev/packages/solidui) package builds on top of
+SolidPod to provide ready-made Flutter widgets for login screens,
+permission management, and other user-facing features.
 
 ## What is Solid?
 
@@ -55,14 +54,14 @@ visit <https://solidcommunity.au>
 
 ## Features
 
-- [Authenticate](#authenticate-example) a user against a given Solid server
-and [login](#login-example).
-- [Manage security key](#change-security-key-example) for data encryption.
+- [Authenticate](#authenticate-example) a user against a given Solid server.
 - [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files
-in POD.
-- [View](#view-permission-ui-example) and [manage](#grant-permission-ui-example)
-file access permissions.
+in a POD.
 - [Read, write and delete](#large-file-manager-example) large data files.
+
+For UI components such as login screens, security key management,
+permission granting/revoking, and shared resource views, see the
+[solidui](https://pub.dev/packages/solidui) package.
 
 [Solid](https://solidproject.org/) is an open standard for a server
 providing Data Vaults  hosting personal online data stores
@@ -198,39 +197,6 @@ final authData = await solidAuthenticate(
       );
 ```
 
-### Login Example
-
-A simple login screen to authenticate a user against a Solid server.
-If your own home widget is called `MyHome()` then simply wrap this within
-the `SolidLogin()` widget:
-
-```dart
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'My Pod',
-      home: const SolidLogin(
-        child: Scaffold(body: MyHome()),
-      ),
-    );
-  }
-```
-
-### Change Security Key Example
-
-Wrap the `changeKeyPopup()` function within a button widget. Parameters
-include the `BuildContext` and the widget that you need to return to
-after changing the key.
-
-```dart
-ElevatedButton(
- onPressed: () {
-  changeKeyPopup(context, ReturnPage());
- },
- child: const Text('Change Security Key on Pod')
-)
-```
-
 ### Read Pod File Example
 
 Read data from the file `data/myfiles/my-data-file.ttl`.
@@ -291,124 +257,6 @@ The above will create a single `.acl` file for the directory
 `parentDir` and use that as `.acl` file for both `child-1.ttl` and
 `child-2.ttl` files. Also it will create a single key associated with
 the directory `parentDir` and encrypt both files using that key.
-
-### Grant Permission UI Example
-
-Wrap the `GrantPermissionUi` widget around a button to navigate to
-the grant permission page.
-
-```dart
-ElevatedButton(
- child: const Text(
-  'Add/Delete Permissions'),
- onPressed: () => Navigator.push(
- context,
- MaterialPageRoute(
-  builder: (context) => const GrantPermissionUi(
-  child: ReturnPage(),
-  ),
- ),
- ),
-)
-```
-
-To add/delete permissions of a recipient to a specific user owned file use:
-
-```dart
-ElevatedButton(
- child: const Text(
-  'Add/Delete Permissions from a Specific File'),
- onPressed: () => Navigator.push(
- context,
- MaterialPageRoute(
-  builder: (context) => const GrantPermissionUi(
-  resourceName: 'my-data-file.ttl',
-  child: ReturnPage(),
-  ),
- ),
- ),
-)
-```
-
-To add/delete permissions of a recipient to a specific user owned directory use:
-
-```dart
-ElevatedButton(
- child: const Text(
-  'Add/Delete Permissions from a Specific Directory'),
- onPressed: () => Navigator.push(
- context,
- MaterialPageRoute(
-  builder: (context) => const GrantPermissionUi(
-  resourceName: 'parentDir/',
-  child: ReturnPage(),
-  isFile: false,
-  ),
- ),
- ),
-)
-```
-
-To add/delete permissions of a recipient to a specific externally owned
-file (that user has control access to) use:
-
-```dart
-ElevatedButton(
- child: const Text(
-  'Add/Delete Permissions from a Specific File'),
- onPressed: () => Navigator.push(
- context,
- MaterialPageRoute(
-  builder: (context) => const GrantPermissionUi(
-  resourceName: 'my-data-file.ttl',
-  isExternalRes: true,
-  ownerWebId: ownerWebId,
-  granterWebId: granterWebId,
-  child: ReturnPage(),
-  ),
- ),
- ),
-)
-```
-
-### View Permission UI Example
-
-Wrap the `SharedResourcesUi` widget around a button to navigate to
-the view permission page.
-
-```dart
-ElevatedButton(
- child: const Text(
-  'View Resources your WebID have access to'),
- onPressed: () => Navigator.push(
- context,
- MaterialPageRoute(
-  builder: (context) => const SharedResourcesUi(
-  child: ReturnPage(),
-  ),
- ),
- ),
-)
-```
-
-To view permissions to a specific resource from a specific webID use:
-
-```dart
-ElevatedButton(
- child: const Text(
-  'View access to specific Resource'),
- onPressed: () => Navigator.push(
- context,
- MaterialPageRoute(
-  builder: (context) => const SharedResourcesUi(
-  fileName: 'my-data-file.ttl',
-  sourceWebId: 'https://pods.solidcommunity.au/john-doe/profile/card#me',
-  child: ReturnPage(),
-  ),
- ),
- ),
-)
-```
 
 ### Large File Manager Example
 

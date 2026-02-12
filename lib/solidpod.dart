@@ -37,7 +37,8 @@ export 'src/solid/constants/solid_constants.dart';
 
 // Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 
-export 'src/solid/constants/common.dart' show foaf, terms, ResourceStatus;
+export 'src/solid/constants/common.dart'
+    show foaf, terms, ResourceStatus, permStr, agentStr, whatIsWebID, demoWebID;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
 
@@ -49,14 +50,6 @@ export 'src/solid/constants/predicates.dart';
 /// Solid authentication function
 
 export 'src/solid/authenticate.dart' show solidAuthenticate;
-
-/// UI class to grant permission for a resource
-
-export 'src/solid/grant_permission_ui.dart';
-
-/// UI class to read permission given to the user webID by others
-
-export 'src/solid/shared_resources_ui.dart';
 
 /// Status class to represent different function outputs
 
@@ -118,6 +111,7 @@ export 'src/solid/utils/misc.dart'
         getTokensForResource,
         getDateTime,
         getEncKeyPath,
+        isDir,
         logoutPod,
         registerLogoutCacheCallback,
         setAppDirName,
@@ -165,8 +159,15 @@ export 'src/solid/read_permission.dart';
 
 export 'src/solid/revoke_permission.dart';
 
-/// Permission recipient type
-export 'src/solid/constants/web_acl.dart' show RecipientType;
+/// Permission types and access control utilities
+export 'src/solid/constants/web_acl.dart'
+    show
+        RecipientType,
+        AccessMode,
+        getRecipientType,
+        getAccessMode,
+        publicAgent,
+        authenticatedAgent;
 
 /// Functions to upload, download, and delete large file from a Solid server
 
@@ -223,8 +224,36 @@ export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
 
 export 'src/solid/get_resources.dart';
 
-/// 20250917 gjw Extras that were required for the example app! Not yet
-/// documented.
+/// Check if a resource exists and has an associated ACL file
 
-export 'package:solidui/solidui.dart'
-    show SecurityKeyUI, SecurityStrings, changeKeyPopup;
+export 'src/solid/chk_exists_and_has_acl.dart' show chkExistsAndHasAcl;
+
+/// Retrieve the list of recipients that have access to files in a user's POD
+
+export 'src/solid/get_recipient_list.dart'
+    show getRecipientList, extractRecipWebIdList;
+
+/// Read permission history of a resource
+
+export 'src/solid/shared_resource_history.dart' show sharedResourcesHistory;
+
+/// Standardise retrieval of authoriser (owner or granter) for a resource
+
+export 'src/solid/utils/get_authoriser.dart' show getAuthoriser;
+
+/// Data model for permission details
+
+export 'src/solid/models/permission_details.dart' show PermissionDetails;
+
+/// Utilities for parsing permission data into the Permission model
+
+export 'src/solid/utils/permission_helper.dart'
+    show PermissionHelper, permMapToList;
+
+/// Data model for log records (permission history entries)
+
+export 'src/solid/models/log_record.dart' show LogRecord;
+
+/// Data model for parsed permission entries
+
+export 'src/solid/models/permission.dart' show Permission;

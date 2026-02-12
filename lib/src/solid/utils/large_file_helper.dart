@@ -31,7 +31,7 @@ library;
 import 'dart:async';
 import 'dart:typed_data' show BytesBuilder, Uint8List;
 
-import 'package:flutter/widgets.dart' hide Key;
+import 'package:flutter/foundation.dart' hide Key;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;

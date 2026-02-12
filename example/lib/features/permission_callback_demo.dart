@@ -26,6 +26,7 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart';
+import 'package:solidui/solidui.dart' show GrantPermissionUi;
 
 /// A widget demonstrating the onPermissionGranted callback functionality.
 
