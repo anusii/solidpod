@@ -14,8 +14,8 @@ dependencies:
   intl: any
   markdown_tooltip: ^0.0.10
   rdflib: ^0.2.12
-  solidpod: ^0.10.0
-  solidui: ^0.1.0
+  solidpod: ^0.11.0
+  solidui: ^0.2.0
   universal_io: ^2.3.1
   window_manager: ^0.5.1
 
@@ -25,7 +25,7 @@ dependency_overrides:
   solidui:
     git:
       url: https://github.com/anusii/solidui
-      ref: tony/59_ui_migration
+      ref: dev
 
 dev_dependencies:
   flutter_lints: ^6.0.0
