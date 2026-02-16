@@ -9,7 +9,11 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
-## 0.11 Robust
+## 0.12 Robust
+
++ Migrated most of remaining UI to solidui [0.11.0 20260213 tony]
+
+## 0.11 Move most UI to solidui
 
 + Delete file by URL [0.10.5 20260206 dc]
 + Review and lint fixes [0.10.4 20260206 gjw]
