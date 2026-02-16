@@ -221,7 +221,7 @@ Future<bool> isUserLoggedIn() async {
   return false;
 }
 
-/// Create a directory with the given URL
+/// Create a directory with the given URL.
 
 Future<void> createDir(String dirUrl) async {
   assert(dirUrl.endsWith('/'));
@@ -231,6 +231,27 @@ Future<void> createDir(String dirUrl) async {
     replaceIfExist: false,
     contentType: ResourceContentType.directory,
   );
+}
+
+/// Creates a new container (directory) on the POD from a relative path.
+///
+/// Combines [parentPath] and [folderName] into a relative path, resolves
+/// the full directory URL via [getDirUrl], and creates the container.
+///
+/// [parentPath] is the normalised relative path to the parent directory
+/// (e.g. `'myapp/data'` or `''` for the POD root).
+///
+/// [folderName] is the name of the new directory to create.
+///
+/// Throws if the directory already exists or a network error occurs.
+
+Future<void> createContainer(String parentPath, String folderName) async {
+  // Combine parent path and folder name, handling empty parent (POD root).
+
+  final folderPath =
+      parentPath.isEmpty ? folderName : '$parentPath/$folderName';
+  final dirUrl = await getDirUrl(folderPath);
+  await createDir(dirUrl);
 }
 
 /// Delete login information from the local storage

@@ -101,6 +101,8 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
+        createContainer,
+        createDir,
         isUserLoggedIn,
         deleteExternalFile,
         deleteFile,
