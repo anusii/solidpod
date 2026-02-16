@@ -295,6 +295,55 @@ Future<void> createContainer(String parentPath, String folderName) async {
   await createDir(dirUrl);
 }
 
+/// Deletes a container (directory) and all of its contents recursively.
+///
+/// Combines [parentPath] and [folderName] into a relative path, resolves
+/// the full directory URL, then removes every nested resource before
+/// finally removing the container itself. Solid POD servers typically
+/// require a container to be empty before it can be deleted.
+///
+/// [parentPath] is the normalised relative path to the parent directory
+/// (e.g. `'myapp/data'` or `''` for the POD root).
+///
+/// [folderName] is the name of the directory to delete.
+///
+/// Throws if the container does not exist or a network error occurs.
+
+Future<void> deleteContainer(String parentPath, String folderName) async {
+  final folderPath =
+      parentPath.isEmpty ? folderName : '$parentPath/$folderName';
+  final dirUrl = await getDirUrl(folderPath);
+
+  await _deleteContainerByUrl(dirUrl);
+}
+
+/// Recursively deletes a container identified by its full [containerUrl],
+/// including all nested subdirectories and files.
+
+Future<void> _deleteContainerByUrl(String containerUrl) async {
+  final resources = await getResourcesInContainer(containerUrl);
+
+  // Recursively delete subdirectories first (depth-first).
+
+  for (final subDirUrl in resources.subDirs) {
+    await _deleteContainerByUrl(subDirUrl);
+  }
+
+  // Delete every file in this container.
+
+  for (final fileUrl in resources.files) {
+    try {
+      await deleteResource(fileUrl, ResourceContentType.any);
+    } catch (e) {
+      debugPrint('Warning: could not delete file $fileUrl: $e');
+    }
+  }
+
+  // The container is now empty; delete it.
+
+  await deleteResource(containerUrl, ResourceContentType.directory);
+}
+
 /// Delete login information from the local storage
 ///
 /// returns true if successful
