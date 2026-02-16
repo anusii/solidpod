@@ -233,6 +233,40 @@ Future<void> createDir(String dirUrl) async {
   );
 }
 
+/// Characters that are forbidden in container (folder) names.
+///
+/// These characters are either URL-unsafe (causing percent-encoding issues
+/// such as spaces becoming `%20`) or filesystem-unsafe on common platforms.
+
+final RegExp _invalidContainerNameChars = RegExp(
+  r'''[ /#?%&+@=<>"|*:!\\]''',
+);
+
+/// Validates that [folderName] is a safe container name.
+///
+/// Throws [ArgumentError] if the name is empty, starts with a dot, or
+/// contains characters that would be percent-encoded in a URL or are
+/// otherwise unsafe for use as a directory name.
+
+void validateContainerName(String folderName) {
+  if (folderName.trim().isEmpty) {
+    throw ArgumentError('Folder name cannot be empty.');
+  }
+  if (folderName.startsWith('.')) {
+    throw ArgumentError('Folder name cannot start with a dot.');
+  }
+  final match = _invalidContainerNameChars.firstMatch(folderName);
+  if (match != null) {
+    final char = match.group(0);
+    final label = char == ' ' ? 'spaces' : '"$char"';
+    throw ArgumentError(
+      'Folder name cannot contain $label. '
+      'Avoid spaces and special characters: '
+      r'/ \ # ? % & + @ = < > " | * : !',
+    );
+  }
+}
+
 /// Creates a new container (directory) on the POD from a relative path.
 ///
 /// Combines [parentPath] and [folderName] into a relative path, resolves
@@ -241,11 +275,18 @@ Future<void> createDir(String dirUrl) async {
 /// [parentPath] is the normalised relative path to the parent directory
 /// (e.g. `'myapp/data'` or `''` for the POD root).
 ///
-/// [folderName] is the name of the new directory to create.
+/// [folderName] is the name of the new directory to create. It must not
+/// contain spaces or URL/filesystem-unsafe characters (see
+/// [validateContainerName]).
 ///
-/// Throws if the directory already exists or a network error occurs.
+/// Throws [ArgumentError] if the name is invalid, or an [Exception] if
+/// the directory already exists or a network error occurs.
 
 Future<void> createContainer(String parentPath, String folderName) async {
+  // Validate the folder name before making any network calls.
+
+  validateContainerName(folderName);
+
   // Combine parent path and folder name, handling empty parent (POD root).
 
   final folderPath =

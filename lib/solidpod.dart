@@ -103,6 +103,7 @@ export 'src/solid/utils/misc.dart'
     show
         createContainer,
         createDir,
+        validateContainerName,
         isUserLoggedIn,
         deleteExternalFile,
         deleteFile,
