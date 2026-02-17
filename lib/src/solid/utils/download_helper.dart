@@ -93,19 +93,19 @@ Future<ZipDownloadResult> downloadItemsAsZip({
   // Individual files: placed at the zip root with their cleaned name.
 
   for (final fileName in fileNames) {
-    final podPath =
-        parentPath.isEmpty ? fileName : '$parentPath/$fileName';
-    fileEntries.add(_ZipFileEntry(
-      podRelativePath: podPath,
-      zipPath: cleanEncryptedFileName(fileName),
-    ));
+    final podPath = parentPath.isEmpty ? fileName : '$parentPath/$fileName';
+    fileEntries.add(
+      _ZipFileEntry(
+        podRelativePath: podPath,
+        zipPath: cleanEncryptedFileName(fileName),
+      ),
+    );
   }
 
   // Directories: recursively traverse and collect contents.
 
   for (final dirName in directoryNames) {
-    final dirPodPath =
-        parentPath.isEmpty ? dirName : '$parentPath/$dirName';
+    final dirPodPath = parentPath.isEmpty ? dirName : '$parentPath/$dirName';
     final dirUrl = await getDirUrl(dirPodPath);
 
     debugPrint(
@@ -138,8 +138,7 @@ Future<ZipDownloadResult> downloadItemsAsZip({
     // The trailing "/" signals to archive extractors that this entry
     // represents a directory rather than a zero-byte file.
 
-    final entryName =
-        dirZipPath.endsWith('/') ? dirZipPath : '$dirZipPath/';
+    final entryName = dirZipPath.endsWith('/') ? dirZipPath : '$dirZipPath/';
     archive.addFile(ArchiveFile.directory(entryName));
 
     debugPrint('downloadItemsAsZip: added empty dir "$entryName"');
@@ -185,7 +184,7 @@ Future<ZipDownloadResult> downloadItemsAsZip({
   final encoded = ZipEncoder().encode(archive);
 
   return ZipDownloadResult(
-    zipBytes: Uint8List.fromList(encoded ?? []),
+    zipBytes: Uint8List.fromList(encoded),
     entriesFound: fileEntries.length,
     filesAdded: filesAdded,
     emptyDirsAdded: emptyDirZipPaths.length,
@@ -271,10 +270,12 @@ Future<void> _traverseContainer({
     final podPath = '$containerPodPath/$fileName';
     final zipPath = '$zipPrefix/${cleanEncryptedFileName(fileName)}';
 
-    fileEntries.add(_ZipFileEntry(
-      podRelativePath: podPath,
-      zipPath: zipPath,
-    ));
+    fileEntries.add(
+      _ZipFileEntry(
+        podRelativePath: podPath,
+        zipPath: zipPath,
+      ),
+    );
   }
 
   // Recurse into visible subdirectories.

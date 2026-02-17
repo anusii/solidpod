@@ -29,7 +29,21 @@
 
 library;
 
+import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
+import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
+import 'package:solidpod/src/solid/utils/get_url_helper.dart';
+import 'package:solidpod/src/solid/utils/key_manager.dart';
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show
+        getEncDirPath,
+        getEncKeyPath,
+        getIndKeyPath,
+        getPubKeyPath,
+        isUserLoggedIn;
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
+import 'package:solidpod/src/solid/utils/rdf.dart' show genPermLogTTLStr;
 
 /// Generates a list of default folder paths for a given application.
 ///
@@ -93,4 +107,101 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     encDirLoc: [encKeyFile, indKeyFile],
   };
   return files;
+}
+
+/// Initialise the directory and file structure in a POD.
+
+Future<void> initPod(
+  String securityKey, {
+  List<String>? dirUrls,
+  List<String>? fileUrls,
+}) async {
+  // Check if the user has logged in.
+
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('Can not initialise POD without logging in');
+  }
+
+  // Check (and generate) the directory URLs.
+
+  if (dirUrls == null || dirUrls.isEmpty) {
+    final defaultDirs = await generateDefaultFolders();
+    dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
+  }
+
+  // Require the creation of the encryption directory and
+  // the encKeyFile and indKeyFile in it.
+
+  final encDirUrl = await getDirUrl(await getEncDirPath());
+  if (!dirUrls.contains(encDirUrl)) {
+    throw Exception('Can not initialise POD without creating $encDirUrl');
+  }
+
+  // Create the required directories.
+
+  for (final d in dirUrls) {
+    await createResource(
+      d,
+      isFile: false,
+      contentType: ResourceContentType.directory,
+    );
+  }
+
+  // Check (and generate) the file URLs.
+
+  if (fileUrls == null || fileUrls.isEmpty) {
+    final defaultFiles = await generateDefaultFiles();
+    fileUrls = <String>[];
+    for (final entry in defaultFiles.entries) {
+      final d = entry.key;
+      for (final f in entry.value as List) {
+        fileUrls.add([d, f].join('/'));
+      }
+    }
+  }
+
+  // Create the encKeyFile, indKeyFile and pubKeyFile
+  // and remove them from the fileUrls list.
+
+  await KeyManager.initPodKeys(securityKey);
+  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
+  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
+  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+
+  for (final f in fileUrls) {
+    final fileName = f.split('/').last;
+    late String fileContent;
+    late bool aclFlag;
+
+    if (f.split('.').last == 'acl') {
+      final items = f.split('.');
+      final resourceUrl = items.getRange(0, items.length - 1).join('.');
+      late Set<AccessMode> publicAccess;
+      var isFile = true;
+      switch (fileName) {
+        case '$pubKeyFile.acl':
+          publicAccess = {AccessMode.read};
+        case '$permLogFile.acl':
+          publicAccess = {AccessMode.append};
+        default:
+          assert(fileName == '.acl');
+          publicAccess = {AccessMode.read, AccessMode.write};
+          isFile = false;
+      }
+
+      fileContent = await genAclTurtle(
+        resourceUrl,
+        isFile: isFile,
+        publicAccess: publicAccess,
+      );
+
+      aclFlag = true;
+    } else {
+      assert(fileName == permLogFile);
+      fileContent = genPermLogTTLStr(f);
+      aclFlag = false;
+    }
+
+    await createResource(f, content: fileContent, replaceIfExist: aclFlag);
+  }
 }

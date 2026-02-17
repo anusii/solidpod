@@ -103,13 +103,9 @@ export 'src/solid/utils/misc.dart'
     show
         createContainer,
         createDir,
-        deleteContainer,
-        deleteItems,
         isPathInCurrentApp,
         validateContainerName,
         isUserLoggedIn,
-        deleteExternalFile,
-        deleteFile,
         deleteLogIn,
         getWebId,
         getDataDirPath,
@@ -120,8 +116,12 @@ export 'src/solid/utils/misc.dart'
         isDir,
         logoutPod,
         registerLogoutCacheCallback,
-        setAppDirName,
-        initPod;
+        setAppDirName;
+
+/// Helper for deleting files and containers from a Solid POD
+
+export 'src/solid/utils/delete_helper.dart'
+    show deleteContainer, deleteFile, deleteExternalFile, deleteItems;
 
 /// Export auth state management
 export 'src/solid/utils/authdata_manager.dart'
@@ -135,7 +135,11 @@ export 'src/solid/utils/get_url_helper.dart'
 /// Utility functions for generating resources at POD initialisation
 
 export 'src/solid/utils/init_helper.dart'
-    show generateDefaultFolders, generateCustomFolders, generateDefaultFiles;
+    show
+        generateDefaultFolders,
+        generateCustomFolders,
+        generateDefaultFiles,
+        initPod;
 
 /// Read encrypted/non-encrypted files stored in a POD
 

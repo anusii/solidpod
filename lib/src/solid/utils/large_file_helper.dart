@@ -47,11 +47,12 @@ import 'package:solidpod/src/solid/constants/schema.dart'
 import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
 import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/delete_helper.dart'
+    show deleteAclForResource;
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show deleteAclForResource, getDataDirPath;
+import 'package:solidpod/src/solid/utils/misc.dart' show getDataDirPath;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
