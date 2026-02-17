@@ -180,6 +180,53 @@ Future<String> getAuthUserIndKeyPath() async =>
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async => [appDirName, dataDir].join('/');
 
+/// Checks whether a POD-relative [resourcePath] falls within the current
+/// application's directory tree.
+///
+/// Returns `true` if the resource belongs to this app, meaning the app
+/// holds the encryption key required to decrypt it. Returns `false` if
+/// the resource belongs to another application's folder, in which case
+/// decryption may not be possible.
+///
+/// [resourcePath] should be a normalised POD-relative path (e.g.
+/// `myapp/data/file.ttl`). Absolute URLs or empty strings return `false`.
+
+Future<bool> isPathInCurrentApp(String resourcePath) async {
+  try {
+    if (resourcePath.trim().isEmpty) return false;
+
+    if (resourcePath.startsWith('http://') ||
+        resourcePath.startsWith('https://')) {
+      debugPrint(
+        'isPathInCurrentApp: expected a POD-relative path but received '
+        'an absolute URL: $resourcePath',
+      );
+      return false;
+    }
+
+    // Derive the current app name from getDataDirPath() which returns
+    // "APP_NAME/data". The first segment is the app name.
+
+    final appDataPath = await getDataDirPath();
+    if (appDataPath.isEmpty) return false;
+
+    final currentAppName = appDataPath.split('/').first;
+    if (currentAppName.isEmpty) return false;
+
+    // Build full URLs for both the resource and the app root, then
+    // compare prefixes. getDirUrl appends a trailing slash which
+    // prevents false positives (e.g. "myapp2" matching "myapp").
+
+    final resourceUrl = await getFileUrl(resourcePath);
+    final appRootUrl = await getDirUrl(currentAppName);
+
+    return resourceUrl.startsWith(appRootUrl);
+  } catch (e) {
+    debugPrint('Error in isPathInCurrentApp: $e');
+    return false;
+  }
+}
+
 /// Returns the path of the shared directory
 Future<String> getSharedDirPath() async => [appDirName, sharedDir].join('/');
 
@@ -322,27 +369,110 @@ Future<void> deleteContainer(String parentPath, String folderName) async {
 /// including all nested subdirectories and files.
 
 Future<void> _deleteContainerByUrl(String containerUrl) async {
+  // Solid servers require a trailing "/" to recognise a DELETE target as
+  // a container. The resource listing parser strips trailing slashes
+  // from subdirectory names, so we normalise here.
+
+  final url =
+      containerUrl.endsWith('/') ? containerUrl : '$containerUrl/';
+
+  await _deleteContainerContents(url);
+
+  // Attempt to delete the now-empty container.
+
+  try {
+    await deleteResource(url, ResourceContentType.directory);
+  } catch (_) {
+    // The container may still contain unlisted auxiliary resources
+    // (e.g. `.acl`, `.meta`). Perform a second pass to clear them.
+
+    debugPrint(
+      'Warning: first container delete attempt failed for '
+      '$url – running second pass',
+    );
+
+    await _deleteContainerContents(url);
+
+    // Final attempt – let any exception propagate.
+
+    await deleteResource(url, ResourceContentType.directory);
+  }
+}
+
+/// Deletes all listed contents of a container (files and subdirectories)
+/// without deleting the container itself. Errors on individual items
+/// are caught and logged so that the process continues.
+///
+/// [getResourcesInContainer] may return either absolute URLs or relative
+/// names depending on the Solid server implementation.  All references
+/// are resolved to absolute URLs via [_resolveResourceUrl] before being
+/// passed to [deleteResource].
+
+Future<void> _deleteContainerContents(String containerUrl) async {
+  final base =
+      containerUrl.endsWith('/') ? containerUrl : '$containerUrl/';
   final resources = await getResourcesInContainer(containerUrl);
 
   // Recursively delete subdirectories first (depth-first).
 
-  for (final subDirUrl in resources.subDirs) {
-    await _deleteContainerByUrl(subDirUrl);
+  for (final subDirRef in resources.subDirs) {
+    final subDirAbsUrl = _resolveResourceUrl(subDirRef, base);
+
+    try {
+      await _deleteContainerByUrl(subDirAbsUrl);
+    } catch (e) {
+      debugPrint(
+        'Warning: could not delete subdirectory $subDirAbsUrl: $e',
+      );
+    }
   }
 
   // Delete every file in this container.
 
-  for (final fileUrl in resources.files) {
+  for (final fileRef in resources.files) {
+    final fileAbsUrl = _resolveResourceUrl(fileRef, base);
+
+    // Attempt to remove the associated ACL file first. On some Solid
+    // server implementations the ACL is not automatically deleted
+    // together with the resource and would block container removal.
+
     try {
-      await deleteResource(fileUrl, ResourceContentType.any);
+      await deleteResource('$fileAbsUrl.acl', ResourceContentType.any);
+    } catch (_) {
+      // ACL does not exist – that is fine.
+    }
+
+    try {
+      await deleteResource(fileAbsUrl, ResourceContentType.any);
     } catch (e) {
-      debugPrint('Warning: could not delete file $fileUrl: $e');
+      debugPrint('Warning: could not delete file $fileAbsUrl: $e');
     }
   }
 
-  // The container is now empty; delete it.
+  // Also try to delete the container's own ACL file which is typically
+  // not included in the resource listing.
 
-  await deleteResource(containerUrl, ResourceContentType.directory);
+  try {
+    await deleteResource('${base}.acl', ResourceContentType.any);
+  } catch (_) {
+    // ACL does not exist – that is fine.
+  }
+}
+
+/// Resolves a resource reference to an absolute URL.
+///
+/// [getResourcesInContainer] may return either full URLs
+/// (e.g. `https://pod.example/user/app/data/file.ttl`) or plain
+/// relative names (e.g. `file.ttl`, `subdir/`).  If [ref] is already
+/// absolute it is returned as-is; otherwise it is resolved against the
+/// container's [baseUrl] (which must include a trailing `/`).
+
+String _resolveResourceUrl(String ref, String baseUrl) {
+  if (ref.startsWith('http://') || ref.startsWith('https://')) {
+    return ref;
+  }
+
+  return '$baseUrl$ref';
 }
 
 /// Delete login information from the local storage

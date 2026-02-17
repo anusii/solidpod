@@ -105,6 +105,7 @@ export 'src/solid/utils/misc.dart'
         createDir,
         deleteContainer,
         deleteItems,
+        isPathInCurrentApp,
         validateContainerName,
         isUserLoggedIn,
         deleteExternalFile,
@@ -178,6 +179,15 @@ export 'src/solid/constants/web_acl.dart'
 
 export 'src/solid/utils/large_file_helper.dart'
     show readLargeFile, readLargeFileAsBytes, writeLargeFile, deleteLargeFile;
+
+/// Helper for downloading multiple files/directories as a zip archive
+
+export 'src/solid/utils/download_helper.dart'
+    show downloadItemsAsZip, cleanEncryptedFileName;
+
+/// Data model for zip download operation results
+
+export 'src/solid/models/zip_download_result.dart' show ZipDownloadResult;
 
 /// Function to read permission given to the user webID by others
 

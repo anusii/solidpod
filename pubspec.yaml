@@ -19,6 +19,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  archive: ^4.0.8
   crypto: ^3.0.7
   encrypter_plus: ^5.1.0
   fast_rsa: ^3.8.6
