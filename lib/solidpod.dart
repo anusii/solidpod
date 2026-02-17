@@ -104,6 +104,7 @@ export 'src/solid/utils/misc.dart'
         createContainer,
         createDir,
         deleteContainer,
+        deleteItems,
         validateContainerName,
         isUserLoggedIn,
         deleteExternalFile,
@@ -248,6 +249,10 @@ export 'src/solid/utils/get_authoriser.dart' show getAuthoriser;
 /// Data model for permission details
 
 export 'src/solid/models/permission_details.dart' show PermissionDetails;
+
+/// Data model for batch delete operation results
+
+export 'src/solid/models/batch_delete_result.dart' show BatchDeleteResult;
 
 /// Utilities for parsing permission data into the Permission model
 

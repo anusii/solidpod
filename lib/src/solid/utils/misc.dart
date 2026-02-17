@@ -55,6 +55,7 @@ import 'package:solidpod/src/solid/utils/init_helper.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
+import 'package:solidpod/src/solid/models/batch_delete_result.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Global callback for clearing application-specific caches during logout.
@@ -700,7 +701,19 @@ Future<void> deleteFile({
     // file that is being deleted.
     // 20260112 jesscmoore: Assumes user is owner which is
     // always true in deleteFile().
-    await revokePermissionToRecipients(fileName: filePath);
+
+    try {
+      await revokePermissionToRecipients(fileName: filePath);
+    } catch (e) {
+      // If the ACL file does not exist (e.g. the file was never shared),
+      // revocation is unnecessary – log a warning and proceed with
+      // the deletion rather than aborting.
+
+      debugPrint(
+        'Warning: could not revoke permissions for "$filePath" '
+        '(ACL may not exist): $e',
+      );
+    }
 
     await deleteResource(fileUrl, contentType);
 
@@ -728,6 +741,77 @@ Future<void> deleteExternalFile(
 
   /// av: Need to add the funtionality to remove the log line from permission
   /// log. Otherwise, it will give an error.
+}
+
+/// Delete a mixed batch of files and directories from a Solid POD.
+///
+/// [parentPath] is the normalised relative path to the parent directory
+/// containing all items (e.g. `'myapp/data'` or `''` for the POD root).
+///
+/// [fileNames] is a list of file names to delete from [parentPath].
+///
+/// [directoryNames] is a list of directory names to delete from
+/// [parentPath]. Each directory is deleted recursively, including all
+/// nested contents.
+///
+/// [onProgress] is an optional callback invoked after each item is
+/// processed, receiving the number of items completed so far and the
+/// total count. Useful for driving a progress indicator in the UI.
+///
+/// Returns a [BatchDeleteResult] summarising successes and failures.
+
+Future<BatchDeleteResult> deleteItems({
+  required String parentPath,
+  List<String> fileNames = const [],
+  List<String> directoryNames = const [],
+  void Function(int completed, int total)? onProgress,
+}) async {
+  final succeeded = <String>[];
+  final failed = <String, String>{};
+  final totalCount = fileNames.length + directoryNames.length;
+  var completed = 0;
+
+  // Delete files first – they are typically faster than recursive directory
+  // deletions and reduce the overall item count quickly.
+
+  for (final fileName in fileNames) {
+    try {
+      final fullPath =
+          parentPath.isEmpty ? fileName : '$parentPath/$fileName';
+      final fileUrl = await getFileUrl(fullPath);
+      await deleteFile(fileUrl: fileUrl);
+      succeeded.add(fileName);
+    } catch (e) {
+      // Treat 404 / NotFoundHttpError as success – the file is already
+      // gone and the caller's intent is satisfied.
+
+      if (e.toString().contains('404') ||
+          e.toString().contains('NotFoundHttpError')) {
+        succeeded.add(fileName);
+      } else {
+        debugPrint('Error deleting file "$fileName": $e');
+        failed[fileName] = e.toString();
+      }
+    }
+    completed++;
+    onProgress?.call(completed, totalCount);
+  }
+
+  // Delete directories (recursively).
+
+  for (final dirName in directoryNames) {
+    try {
+      await deleteContainer(parentPath, dirName);
+      succeeded.add(dirName);
+    } catch (e) {
+      debugPrint('Error deleting directory "$dirName": $e');
+      failed[dirName] = e.toString();
+    }
+    completed++;
+    onProgress?.call(completed, totalCount);
+  }
+
+  return BatchDeleteResult(succeeded: succeeded, failed: failed);
 }
 
 /// Get date and time from a string
