@@ -162,7 +162,8 @@ Future<List<dynamic>> initialStructureTest(
 
   // Resolve URLs and check existence of all files in parallel.
 
-  final fileFutures = <Future<({String fileName, String url, ResourceStatus status})>>[];
+  final fileFutures =
+      <Future<({String fileName, String url, ResourceStatus status})>>[];
   for (final containerName in files.keys) {
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
