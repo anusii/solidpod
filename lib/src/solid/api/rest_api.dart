@@ -142,30 +142,47 @@ Future<List<dynamic>> initialStructureTest(
     'fileNames': [],
   };
 
-  for (final containerName in folders) {
-    // NB: the trailing separator in path is essential for this check
-    final resourceUrl = await getDirUrl(containerName);
-    if (await checkResourceStatus(resourceUrl, isFile: false) ==
-        ResourceStatus.notExist) {
-      allExists = false;
+  // Resolve URLs and check existence of all folders in parallel.
 
-      resNotExist['folders'].add(resourceUrl);
-      resNotExist['folderNames'].add(containerName);
+  final folderResults = await Future.wait(
+    folders.map((containerName) async {
+      final resourceUrl = await getDirUrl(containerName);
+      final status = await checkResourceStatus(resourceUrl, isFile: false);
+      return (name: containerName, url: resourceUrl, status: status);
+    }),
+  );
+
+  for (final result in folderResults) {
+    if (result.status == ResourceStatus.notExist) {
+      allExists = false;
+      resNotExist['folders'].add(result.url);
+      resNotExist['folderNames'].add(result.name);
     }
   }
 
+  // Resolve URLs and check existence of all files in parallel.
+
+  final fileFutures = <Future<({String fileName, String url, ResourceStatus status})>>[];
   for (final containerName in files.keys) {
     final fileNameList = files[containerName] as List<String>;
     for (final fileName in fileNameList) {
-      final resourceUrl = await getFileUrl(
-        [containerName as String, fileName].join('/'),
-      );
-      if (await checkResourceStatus(resourceUrl, isFile: true) ==
-          ResourceStatus.notExist) {
-        allExists = false;
-        resNotExist['files'].add(resourceUrl);
-        resNotExist['fileNames'].add(fileName);
-      }
+      fileFutures.add(() async {
+        final resourceUrl = await getFileUrl(
+          [containerName as String, fileName].join('/'),
+        );
+        final status = await checkResourceStatus(resourceUrl, isFile: true);
+        return (fileName: fileName, url: resourceUrl, status: status);
+      }());
+    }
+  }
+
+  final fileResults = await Future.wait(fileFutures);
+
+  for (final result in fileResults) {
+    if (result.status == ResourceStatus.notExist) {
+      allExists = false;
+      resNotExist['files'].add(result.url);
+      resNotExist['fileNames'].add(result.fileName);
     }
   }
 

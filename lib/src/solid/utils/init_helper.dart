@@ -29,9 +29,12 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
+import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
@@ -41,14 +44,70 @@ import 'package:solidpod/src/solid/utils/misc.dart'
         getEncKeyPath,
         getIndKeyPath,
         getPubKeyPath,
-        isUserLoggedIn;
+        isUserLoggedIn,
+        writeToSecureStorage;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart' show genPermLogTTLStr;
 
+/// Key prefix for the POD initialisation flag in secure storage.
+
+const String _podInitFlagPrefix = '_pod_init_done_';
+
+/// Builds a unique storage key for the current user and app.
+
+Future<String> _getPodInitFlagKey() async {
+  final webId = await AuthDataManager.getWebId();
+  if (webId == null || webId.isEmpty) {
+    throw NotLoggedInException(
+      'Cannot check initialisation flag without logging in',
+    );
+  }
+  return '$_podInitFlagPrefix${appDirName}_$webId';
+}
+
+/// Returns `true` if the POD structure has already been initialised for the
+/// current user and app, allowing subsequent logins to skip the full
+/// folder/file existence check.
+
+Future<bool> isPodStructureInitialised() async {
+  try {
+    final key = await _getPodInitFlagKey();
+    final value = await secureStorage.read(key: key);
+    return value == 'true';
+  } on Object catch (e) {
+    debugPrint('isPodStructureInitialised() check failed: $e');
+    return false;
+  }
+}
+
+/// Persists a flag indicating the POD structure has been successfully
+/// initialised for the current user and app.
+
+Future<void> markPodStructureInitialised() async {
+  final key = await _getPodInitFlagKey();
+  await writeToSecureStorage(key, 'true');
+}
+
+/// Clears the initialisation flag, forcing a full structure check on the
+/// next login. Useful when the expected folder/file layout changes between
+/// app versions.
+
+Future<void> clearPodStructureInitialised() async {
+  try {
+    final key = await _getPodInitFlagKey();
+    if (await secureStorage.containsKey(key: key)) {
+      await secureStorage.delete(key: key);
+    }
+  } on Object catch (e) {
+    debugPrint('clearPodStructureInitialised() failed: $e');
+  }
+}
+
 /// Generates a list of default folder paths for a given application.
 ///
-/// This function takes the name of an application as input and returns a list of strings.
-/// Each string in the list represents a path to a default folder for the application.
+/// This function takes the name of an application as input and returns a list
+/// of strings. Each string in the list represents a path to a default folder
+/// for the application.
 
 Future<List<String>> generateDefaultFolders() async {
   final dataDirLoc = [appDirName, dataDir].join('/');
@@ -91,8 +150,9 @@ List<String> generateCustomFolders(List customFolderPaths) {
 
 /// Generates a list of default folder paths for a given application.
 ///
-/// This function takes the name of an application as input and returns a list of strings.
-/// Each string in the list represents a path to a default folder for the application.
+/// This function takes the name of an application as input and returns a list
+/// of strings. Each string in the list represents a path to a default folder
+/// for the application.
 
 Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final sharingDirLoc = [appDirName, sharingDir].join('/');
@@ -204,4 +264,6 @@ Future<void> initPod(
 
     await createResource(f, content: fileContent, replaceIfExist: aclFlag);
   }
+
+  await markPodStructureInitialised();
 }

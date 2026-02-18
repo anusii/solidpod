@@ -136,10 +136,13 @@ export 'src/solid/utils/get_url_helper.dart'
 
 export 'src/solid/utils/init_helper.dart'
     show
+        clearPodStructureInitialised,
         generateDefaultFolders,
         generateCustomFolders,
         generateDefaultFiles,
-        initPod;
+        initPod,
+        isPodStructureInitialised,
+        markPodStructureInitialised;
 
 /// Read encrypted/non-encrypted files stored in a POD
 
