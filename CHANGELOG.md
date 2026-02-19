@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.12 Robust
 
++ Optimse pod initialisation check [0.11.2 20260219 tony]
 + Update support for SolidFile browser [0.11.1 20260219 tony]
 + Migrated most of remaining UI to solidui [0.11.0 20260213 tony]
 
