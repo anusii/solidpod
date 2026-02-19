@@ -111,8 +111,7 @@ bool isPdfFile(String fileName) {
 
 /// Noto Sans Regular – used for page headers in printed documents.
 
-const String notoSansFontUrl =
-    'https://fonts.gstatic.com/s/notosans/v36/'
+const String notoSansFontUrl = 'https://fonts.gstatic.com/s/notosans/v36/'
     'o-0mIpQlx3QUlC5A4PNB6Ryti20_6n1iPHjcz6L1SoM-jCpoiyD9A99d41P6zHtY.ttf';
 
 /// Font cache key for Noto Sans Regular.
