@@ -283,3 +283,7 @@ export 'src/solid/models/log_record.dart' show LogRecord;
 /// Data model for parsed permission entries
 
 export 'src/solid/models/permission.dart' show Permission;
+
+/// Utilities for checking printable file types
+
+export 'src/solid/utils/print_helper.dart';
