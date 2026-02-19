@@ -101,9 +101,11 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
+        createContainer,
+        createDir,
+        isPathInCurrentApp,
+        validateContainerName,
         isUserLoggedIn,
-        deleteExternalFile,
-        deleteFile,
         deleteLogIn,
         getWebId,
         getDataDirPath,
@@ -114,8 +116,12 @@ export 'src/solid/utils/misc.dart'
         isDir,
         logoutPod,
         registerLogoutCacheCallback,
-        setAppDirName,
-        initPod;
+        setAppDirName;
+
+/// Helper for deleting files and containers from a Solid POD
+
+export 'src/solid/utils/delete_helper.dart'
+    show deleteContainer, deleteFile, deleteExternalFile, deleteItems;
 
 /// Export auth state management
 export 'src/solid/utils/authdata_manager.dart'
@@ -129,7 +135,11 @@ export 'src/solid/utils/get_url_helper.dart'
 /// Utility functions for generating resources at POD initialisation
 
 export 'src/solid/utils/init_helper.dart'
-    show generateDefaultFolders, generateCustomFolders, generateDefaultFiles;
+    show
+        generateDefaultFolders,
+        generateCustomFolders,
+        generateDefaultFiles,
+        initPod;
 
 /// Read encrypted/non-encrypted files stored in a POD
 
@@ -173,6 +183,15 @@ export 'src/solid/constants/web_acl.dart'
 
 export 'src/solid/utils/large_file_helper.dart'
     show readLargeFile, readLargeFileAsBytes, writeLargeFile, deleteLargeFile;
+
+/// Helper for downloading multiple files/directories as a zip archive
+
+export 'src/solid/utils/download_helper.dart'
+    show downloadItemsAsZip, cleanEncryptedFileName;
+
+/// Data model for zip download operation results
+
+export 'src/solid/models/zip_download_result.dart' show ZipDownloadResult;
 
 /// Function to read permission given to the user webID by others
 
@@ -244,6 +263,10 @@ export 'src/solid/utils/get_authoriser.dart' show getAuthoriser;
 /// Data model for permission details
 
 export 'src/solid/models/permission_details.dart' show PermissionDetails;
+
+/// Data model for batch delete operation results
+
+export 'src/solid/models/batch_delete_result.dart' show BatchDeleteResult;
 
 /// Utilities for parsing permission data into the Permission model
 

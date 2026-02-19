@@ -44,17 +44,11 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
-import 'package:solidpod/src/solid/constants/web_acl.dart';
-import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/data_encryption.dart';
-import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/init_helper.dart';
-import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
-import 'package:solidpod/src/solid/utils/permission.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
 
 /// Global callback for clearing application-specific caches during logout.
@@ -179,6 +173,53 @@ Future<String> getAuthUserIndKeyPath() async =>
 /// Returns the path of the data directory
 Future<String> getDataDirPath() async => [appDirName, dataDir].join('/');
 
+/// Checks whether a POD-relative [resourcePath] falls within the current
+/// application's directory tree.
+///
+/// Returns `true` if the resource belongs to this app, meaning the app
+/// holds the encryption key required to decrypt it. Returns `false` if
+/// the resource belongs to another application's folder, in which case
+/// decryption may not be possible.
+///
+/// [resourcePath] should be a normalised POD-relative path (e.g.
+/// `myapp/data/file.ttl`). Absolute URLs or empty strings return `false`.
+
+Future<bool> isPathInCurrentApp(String resourcePath) async {
+  try {
+    if (resourcePath.trim().isEmpty) return false;
+
+    if (resourcePath.startsWith('http://') ||
+        resourcePath.startsWith('https://')) {
+      debugPrint(
+        'isPathInCurrentApp: expected a POD-relative path but received '
+        'an absolute URL: $resourcePath',
+      );
+      return false;
+    }
+
+    // Derive the current app name from getDataDirPath() which returns
+    // "APP_NAME/data". The first segment is the app name.
+
+    final appDataPath = await getDataDirPath();
+    if (appDataPath.isEmpty) return false;
+
+    final currentAppName = appDataPath.split('/').first;
+    if (currentAppName.isEmpty) return false;
+
+    // Build full URLs for both the resource and the app root, then
+    // compare prefixes. getDirUrl appends a trailing slash which
+    // prevents false positives (e.g. "myapp2" matching "myapp").
+
+    final resourceUrl = await getFileUrl(resourcePath);
+    final appRootUrl = await getDirUrl(currentAppName);
+
+    return resourceUrl.startsWith(appRootUrl);
+  } catch (e) {
+    debugPrint('Error in isPathInCurrentApp: $e');
+    return false;
+  }
+}
+
 /// Returns the path of the shared directory
 Future<String> getSharedDirPath() async => [appDirName, sharedDir].join('/');
 
@@ -221,7 +262,7 @@ Future<bool> isUserLoggedIn() async {
   return false;
 }
 
-/// Create a directory with the given URL
+/// Create a directory with the given URL.
 
 Future<void> createDir(String dirUrl) async {
   assert(dirUrl.endsWith('/'));
@@ -231,6 +272,68 @@ Future<void> createDir(String dirUrl) async {
     replaceIfExist: false,
     contentType: ResourceContentType.directory,
   );
+}
+
+/// Characters that are forbidden in container (folder) names.
+///
+/// These characters are either URL-unsafe (causing percent-encoding issues
+/// such as spaces becoming `%20`) or filesystem-unsafe on common platforms.
+
+final RegExp _invalidContainerNameChars = RegExp(
+  r'''[ /#?%&+@=<>"|*:!\\]''',
+);
+
+/// Validates that [folderName] is a safe container name.
+///
+/// Throws [ArgumentError] if the name is empty, starts with a dot, or
+/// contains characters that would be percent-encoded in a URL or are
+/// otherwise unsafe for use as a directory name.
+
+void validateContainerName(String folderName) {
+  if (folderName.trim().isEmpty) {
+    throw ArgumentError('Folder name cannot be empty.');
+  }
+  if (folderName.startsWith('.')) {
+    throw ArgumentError('Folder name cannot start with a dot.');
+  }
+  final match = _invalidContainerNameChars.firstMatch(folderName);
+  if (match != null) {
+    final char = match.group(0);
+    final label = char == ' ' ? 'spaces' : '"$char"';
+    throw ArgumentError(
+      'Folder name cannot contain $label. '
+      'Avoid spaces and special characters: '
+      r'/ \ # ? % & + @ = < > " | * : !',
+    );
+  }
+}
+
+/// Creates a new container (directory) on the POD from a relative path.
+///
+/// Combines [parentPath] and [folderName] into a relative path, resolves
+/// the full directory URL via [getDirUrl], and creates the container.
+///
+/// [parentPath] is the normalised relative path to the parent directory
+/// (e.g. `'myapp/data'` or `''` for the POD root).
+///
+/// [folderName] is the name of the new directory to create. It must not
+/// contain spaces or URL/filesystem-unsafe characters (see
+/// [validateContainerName]).
+///
+/// Throws [ArgumentError] if the name is invalid, or an [Exception] if
+/// the directory already exists or a network error occurs.
+
+Future<void> createContainer(String parentPath, String folderName) async {
+  // Validate the folder name before making any network calls.
+
+  validateContainerName(folderName);
+
+  // Combine parent path and folder name, handling empty parent (POD root).
+
+  final folderPath =
+      parentPath.isEmpty ? folderName : '$parentPath/$folderName';
+  final dirUrl = await getDirUrl(folderPath);
+  await createDir(dirUrl);
 }
 
 /// Delete login information from the local storage
@@ -428,195 +531,6 @@ String trimPubKeyStr(String keyStr) {
   final keyStrTrimmed = itemList.join();
 
   return keyStrTrimmed;
-}
-
-/// Initialise the directory and file structure in a POD
-
-Future<void> initPod(
-  String securityKey, {
-  List<String>? dirUrls,
-  List<String>? fileUrls,
-}) async {
-  // Check if the user has logged in
-
-  if (!await isUserLoggedIn()) {
-    throw NotLoggedInException('Can not initialise POD without logging in');
-  }
-
-  // Check (and generate) the directory URLs
-
-  if (dirUrls == null || dirUrls.isEmpty) {
-    final defaultDirs = await generateDefaultFolders();
-    dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
-  }
-
-  // Require the creation of the encryption directory and
-  // the encKeyFile and indKeyFile in it.
-  // (The app asks for the security key, so this is a reasonable requirement?)
-
-  final encDirUrl = await getDirUrl(await getEncDirPath());
-  if (!dirUrls.contains(encDirUrl)) {
-    throw Exception('Can not initialise POD without creating $encDirUrl');
-  }
-
-  // Create the required directories
-
-  for (final d in dirUrls) {
-    await createResource(
-      d,
-      isFile: false,
-      contentType: ResourceContentType.directory,
-    );
-  }
-
-  // Check (and generate) the file URLs
-
-  if (fileUrls == null || fileUrls.isEmpty) {
-    final defaultFiles = await generateDefaultFiles();
-    fileUrls = <String>[];
-    for (final entry in defaultFiles.entries) {
-      final d = entry.key;
-      for (final f in entry.value as List) {
-        fileUrls.add([d, f].join('/'));
-      }
-    }
-  }
-
-  // Create the encKeyFile, indKeyFile and pubKeyFile
-  // and remove them from the fileUrls list
-
-  await KeyManager.initPodKeys(securityKey);
-  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
-  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
-  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
-
-  for (final f in fileUrls) {
-    final fileName = f.split('/').last;
-    late String fileContent;
-    late bool aclFlag;
-
-    if (f.split('.').last == 'acl') {
-      final items = f.split('.');
-      final resourceUrl = items.getRange(0, items.length - 1).join('.');
-      late Set<AccessMode> publicAccess;
-      var isFile = true;
-      switch (fileName) {
-        case '$pubKeyFile.acl':
-          publicAccess = {AccessMode.read};
-        case '$permLogFile.acl':
-          publicAccess = {AccessMode.append};
-        default:
-          assert(fileName == '.acl');
-          publicAccess = {AccessMode.read, AccessMode.write};
-          isFile = false;
-      }
-
-      fileContent = await genAclTurtle(
-        resourceUrl,
-        isFile: isFile,
-        publicAccess: publicAccess,
-      );
-
-      aclFlag = true;
-    } else {
-      assert(fileName == permLogFile);
-      fileContent = genPermLogTTLStr(f);
-      aclFlag = false;
-    }
-
-    await createResource(f, content: fileContent, replaceIfExist: aclFlag);
-  }
-}
-
-/// Delete the ACL file for a resource
-Future<void> deleteAclForResource(String resourceUrl) async {
-  final aclUrl = '$resourceUrl.acl';
-  final status = await checkResourceStatus(aclUrl);
-
-  switch (status) {
-    case ResourceStatus.exist:
-      await deleteResource(aclUrl, ResourceContentType.turtleText);
-
-    case ResourceStatus.forbidden:
-      debugPrint(
-        'Access to ACL file "$aclUrl" for "$resourceUrl" is forbidden.',
-      );
-
-    case ResourceStatus.notExist:
-      debugPrint('ACL file "$aclUrl" for "$resourceUrl" does not exist.');
-
-    case ResourceStatus.unknown:
-      throw Exception(
-        'Error occurred when checking status of ACL file "$aclUrl" for "$resourceUrl"',
-      );
-  }
-}
-
-/// Delete a file and its associated resources, after first revoking
-/// external access to the file. The file with URL [fileUrl],
-/// its ACL file, and its encryption key (if exists) will be deleted.
-/// The permission logs of any recipients to the file, will also be
-/// updated with a log line recording that permissions have been
-/// revoked.
-/// Throws an exception if the file does not exist or any error occurs.
-///
-/// Arguments:
-///
-/// - [fileUrl] - URL of file to be deleted.
-/// - [contentType] - the type of content of the resource. Default:
-/// [ResourceContentType.turtleText].
-/// - [isKey] - flag describing whether the file to be deleted is a
-/// security key. Use this flag if file is a security key to avoid
-/// unnecessary operations that are not needed to delete a key.
-
-Future<void> deleteFile({
-  required String fileUrl,
-  ResourceContentType contentType = ResourceContentType.turtleText,
-  bool isKey = false,
-}) async {
-  if (await isFileProtected(fileUrl)) {
-    throw Exception('Delete protected file is not allowed');
-  }
-
-  final filePath = await extractResourcePathFromUrl(fileUrl);
-
-  if (!isKey) {
-    // File to be deleted != key => perform all steps
-
-    // Revoke permission to recipients:
-    // to avoid the permission log of recipients still
-    // showing the recipient as having access to the
-    // file that is being deleted.
-    // 20260112 jesscmoore: Assumes user is owner which is
-    // always true in deleteFile().
-    await revokePermissionToRecipients(fileName: filePath);
-
-    await deleteResource(fileUrl, contentType);
-
-    // dc 20260206: ACL file seems to be deleted by the POD server
-    // when the file is deleted
-    //
-    // await deleteAclForResource(fileUrl);
-    await KeyManager.removeIndividualKey(resourcePath: filePath);
-  } else {
-    // File to be deleted == key => perform delete only
-    await deleteResource(fileUrl, contentType);
-  }
-}
-
-/// Delete an external file with path [fileUrl] and the shared key
-/// if the file is encrypted.
-/// Throws an exception if the file does not exist or any error occurs.
-Future<void> deleteExternalFile(
-  String fileUrl, {
-  ResourceContentType contentType = ResourceContentType.turtleText,
-}) async {
-  await deleteResource(fileUrl, contentType);
-  // await deleteAclForResource(fileUrl);
-  await KeyManager.removeSharedIndividualKey(fileUrl);
-
-  /// av: Need to add the funtionality to remove the log line from permission
-  /// log. Otherwise, it will give an error.
 }
 
 /// Get date and time from a string
