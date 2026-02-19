@@ -30,6 +30,7 @@ dependencies:
   mime: ^2.0.0
   package_info_plus: ^9.0.0
   path: ^1.9.1
+  pdf: ^3.11.3
   pointycastle: ^4.0.0
   rdflib: ^0.2.12
   solid_auth: ^0.1.28
