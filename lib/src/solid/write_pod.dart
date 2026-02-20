@@ -125,7 +125,7 @@ Future<void> writePod(
   switch (await checkResourceStatus(fileUrl)) {
     case ResourceStatus.exist:
       if (overwrite) {
-        debugPrint('WARNING: Overwrite existing file "$filePath"');
+        debugPrint('NOTE: Overwriting existing file "$filePath"');
       } else {
         throw Exception(
           'File "$filePath" already exists and '
