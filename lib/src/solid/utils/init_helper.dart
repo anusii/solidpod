@@ -183,8 +183,10 @@ Future<void> initPod(
   }
 
   // Check (and generate) the directory URLs.
+  // Only regenerate when the caller did not provide any list (null).
+  // An empty list means "no directories to create" and should be respected.
 
-  if (dirUrls == null || dirUrls.isEmpty) {
+  if (dirUrls == null) {
     final defaultDirs = await generateDefaultFolders();
     dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
   }
@@ -233,14 +235,16 @@ Future<void> initPod(
   }
 
   // Check (and generate) the file URLs.
+  // Only regenerate when the caller did not provide any list (null).
+  // An empty list means "no files to create" and should be respected.
 
-  if (fileUrls == null || fileUrls.isEmpty) {
+  if (fileUrls == null) {
     final defaultFiles = await generateDefaultFiles();
     fileUrls = <String>[];
     for (final entry in defaultFiles.entries) {
       final d = entry.key;
       for (final f in entry.value as List) {
-        fileUrls.add([d, f].join('/'));
+        fileUrls.add(await getFileUrl([d, f].join('/')));
       }
     }
   }
