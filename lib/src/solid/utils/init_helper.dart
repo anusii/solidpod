@@ -189,12 +189,37 @@ Future<void> initPod(
     dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
   }
 
-  // Require the creation of the encryption directory and
-  // the encKeyFile and indKeyFile in it.
+  // Determine whether the encryption directory needs to be created.
+  //
+  // The encryption directory is essential for key management. It may or may
+  // not already be in [dirUrls] depending on whether [initialStructureTest]
+  // detected it as missing. We check the server to decide:
+  //   - If it already exists on the server → skip creation, just set the key.
+  //   - If it does NOT exist            → ensure it is in the creation list
+  //     and perform full key initialisation.
 
   final encDirUrl = await getDirUrl(await getEncDirPath());
-  if (!dirUrls.contains(encDirUrl)) {
-    throw Exception('Can not initialise POD without creating $encDirUrl');
+  var needsEncSetup = dirUrls.contains(encDirUrl);
+
+  if (!needsEncSetup) {
+    // Encryption directory is not in the creation list.
+    // Check whether it actually exists on the server.
+
+    final status = await checkResourceStatus(encDirUrl, isFile: false);
+    if (status == ResourceStatus.notExist) {
+      // The directory is missing on the server AND was not in the creation
+      // list (e.g. because initialStructureTest returned forbidden/unknown,
+      // or because the caller only passed partial dirUrls). Add it so that
+      // it gets created below together with the other directories.
+
+      dirUrls.add(encDirUrl);
+      needsEncSetup = true;
+      debugPrint(
+        'initPod: encryption directory missing on server, '
+        'added to creation list',
+      );
+    }
+    // else: directory exists on the server → needsEncSetup stays false.
   }
 
   // Create the required directories.
@@ -220,10 +245,22 @@ Future<void> initPod(
     }
   }
 
-  // Create the encKeyFile, indKeyFile and pubKeyFile
-  // and remove them from the fileUrls list.
+  // Handle encryption key setup.
 
-  await KeyManager.initPodKeys(securityKey);
+  if (needsEncSetup) {
+    // First-time setup: create encryption key files from scratch.
+
+    await KeyManager.initPodKeys(securityKey);
+  } else {
+    // Encryption already initialised: just verify and set the security key
+    // so that encrypted operations work in this session without overwriting
+    // existing keys.
+
+    await KeyManager.setSecurityKey(securityKey);
+  }
+
+  // Remove encryption key file URLs from the list (already handled above).
+
   fileUrls.remove(await getFileUrl(await getEncKeyPath()));
   fileUrls.remove(await getFileUrl(await getIndKeyPath()));
   fileUrls.remove(await getFileUrl(await getPubKeyPath()));
