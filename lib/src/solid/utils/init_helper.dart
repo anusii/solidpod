@@ -188,7 +188,9 @@ Future<void> initPod(
 
   if (dirUrls == null) {
     final defaultDirs = await generateDefaultFolders();
-    dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
+    // Resolve all directory URLs in parallel — each call only reads the
+    // in-memory webId (or at most one secure-storage read on first access).
+    dirUrls = await Future.wait(defaultDirs.map(getDirUrl));
   }
 
   // Determine whether the encryption directory needs to be created.
@@ -240,13 +242,15 @@ Future<void> initPod(
 
   if (fileUrls == null) {
     final defaultFiles = await generateDefaultFiles();
-    fileUrls = <String>[];
+    // Resolve all file URLs in parallel — each call reads the cached webId.
+    final urlFutures = <Future<String>>[];
     for (final entry in defaultFiles.entries) {
-      final d = entry.key;
+      final d = entry.key as String;
       for (final f in entry.value as List) {
-        fileUrls.add(await getFileUrl([d, f].join('/')));
+        urlFutures.add(getFileUrl([d, f as String].join('/')));
       }
     }
+    fileUrls = await Future.wait(urlFutures);
   }
 
   // Handle encryption key setup.
@@ -264,47 +268,61 @@ Future<void> initPod(
   }
 
   // Remove encryption key file URLs from the list (already handled above).
+  // Resolve all three key paths in parallel, then remove them from the list.
 
-  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
-  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
-  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+  final encKeyUrls = await Future.wait([
+    getEncKeyPath().then(getFileUrl),
+    getIndKeyPath().then(getFileUrl),
+    getPubKeyPath().then(getFileUrl),
+  ]);
+  for (final url in encKeyUrls) {
+    fileUrls.remove(url);
+  }
 
-  for (final f in fileUrls) {
-    final fileName = f.split('/').last;
-    late String fileContent;
-    late bool aclFlag;
+  // Create each remaining file concurrently.
+  // Each file targets a distinct URL (PUT or a unique POST Slug), so
+  // parallel execution is safe with respect to server-side state.
 
-    if (f.split('.').last == 'acl') {
-      final items = f.split('.');
-      final resourceUrl = items.getRange(0, items.length - 1).join('.');
-      late Set<AccessMode> publicAccess;
-      var isFile = true;
-      switch (fileName) {
-        case '$pubKeyFile.acl':
-          publicAccess = {AccessMode.read};
-        case '$permLogFile.acl':
-          publicAccess = {AccessMode.append};
-        default:
-          assert(fileName == '.acl');
-          publicAccess = {AccessMode.read, AccessMode.write};
-          isFile = false;
+  await Future.wait(
+    fileUrls.map((f) async {
+      final fileName = f.split('/').last;
+      late String fileContent;
+      late bool aclFlag;
+
+      if (f.split('.').last == 'acl') {
+        final items = f.split('.');
+        final resourceUrl = items.getRange(0, items.length - 1).join('.');
+        late Set<AccessMode> publicAccess;
+        var isFile = true;
+        switch (fileName) {
+          case '$pubKeyFile.acl':
+            publicAccess = {AccessMode.read};
+          case '$permLogFile.acl':
+            publicAccess = {AccessMode.append};
+          default:
+            assert(fileName == '.acl');
+            publicAccess = {AccessMode.read, AccessMode.write};
+            isFile = false;
+        }
+
+        // genAclTurtle is async; run it inside the Future so all ACL content
+        // generation also happens concurrently.
+        fileContent = await genAclTurtle(
+          resourceUrl,
+          isFile: isFile,
+          publicAccess: publicAccess,
+        );
+
+        aclFlag = true;
+      } else {
+        assert(fileName == permLogFile);
+        fileContent = genPermLogTTLStr(f);
+        aclFlag = false;
       }
 
-      fileContent = await genAclTurtle(
-        resourceUrl,
-        isFile: isFile,
-        publicAccess: publicAccess,
-      );
-
-      aclFlag = true;
-    } else {
-      assert(fileName == permLogFile);
-      fileContent = genPermLogTTLStr(f);
-      aclFlag = false;
-    }
-
-    await createResource(f, content: fileContent, replaceIfExist: aclFlag);
-  }
+      await createResource(f, content: fileContent, replaceIfExist: aclFlag);
+    }),
+  );
 
   await markPodStructureInitialised();
 }

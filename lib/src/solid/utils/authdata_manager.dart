@@ -66,6 +66,21 @@ class AuthDataManager {
   /// The authentication response
   static Credential? _authResponse;
 
+  /// In-memory cache for the last valid [TokenResponse].
+  /// Avoids repeated JSON deserialization and JWT decoding on every
+  /// [getTokensForResource] call (e.g. the 13 parallel Pod structure checks).
+  static TokenResponse? _cachedTokenResponse;
+
+  /// In-memory cache for the user's profile card (Turtle/RDF string).
+  /// Avoids re-fetching on every cached-session login.
+  static String? _cachedProfData;
+
+  /// Returns the cached profile card data, or null if not yet fetched.
+  static String? getCachedProfData() => _cachedProfData;
+
+  /// Stores profile card data in the in-memory cache.
+  static void setCachedProfData(String data) => _cachedProfData = data;
+
   /// The string key for storing auth data in secure storage
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
@@ -95,6 +110,7 @@ class AuthDataManager {
     _rsaInfo = authData['rsaInfo'] as Map<dynamic,
         dynamic>; // Note that use Map<String, dynamic> does not seem to work
     _authResponse = authData['authResponse'] as Credential;
+    _cachedTokenResponse = authData['tokenResponse'] as TokenResponse;
 
     await writeToSecureStorage(
       _authDataSecureStorageKey,
@@ -165,6 +181,10 @@ class AuthDataManager {
         _rsaInfo = null;
         _authResponse = null;
       }
+      _cachedTokenResponse = null;
+
+      // Clear in-memory profile cache on logout.
+      _cachedProfData = null;
 
       // Notify listeners that auth state has changed
       authStateNotifier.value = false;
@@ -189,6 +209,13 @@ class AuthDataManager {
 
   /// Returns the (updated) token response
   static Future<TokenResponse?> _getTokenResponse() async {
+    // Fast path: return cached token if still valid, skipping JSON
+    // deserialization and JWT decoding on every call.
+    if (_cachedTokenResponse?.accessToken != null &&
+        !JwtDecoder.isExpired(_cachedTokenResponse!.accessToken!)) {
+      return _cachedTokenResponse;
+    }
+
     if (_authResponse == null) {
       final loaded = await _loadData();
       if (!loaded) {
@@ -221,6 +248,7 @@ class AuthDataManager {
         );
         // TODO dc 20250106: Save refreshed token in secure storage
       }
+      _cachedTokenResponse = tokenResponse; // Update in-memory cache
       return tokenResponse;
     } on Object {
       // debugPrint('AuthDataManager => _getTokenResponse() failed: $e');

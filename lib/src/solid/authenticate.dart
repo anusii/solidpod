@@ -60,6 +60,10 @@ final List<String> _scopes = <String>[
 ///
 /// [context] of the current widget is required for the authenticate process.
 ///
+/// [wasAlreadyLoggedIn] is an optional pre-computed login status. When provided
+/// it avoids a redundant call to [isUserLoggedIn] (and the associated secure
+/// storage read + token-expiry check) that the caller may have already done.
+///
 /// Return a list containing authentication data: user's webId; profile data.
 ///
 /// Error Handling: The function has a catch all to return null if any exception
@@ -67,16 +71,17 @@ final List<String> _scopes = <String>[
 
 Future<List<dynamic>?> solidAuthenticate(
   String serverId,
-  BuildContext context,
-) async {
+  BuildContext context, {
+  bool? wasAlreadyLoggedIn,
+}) async {
   try {
-    final loggedIn = await isUserLoggedIn();
+    // Use the caller-supplied value when available to avoid a redundant
+    // isUserLoggedIn() call (secure storage read + possible token refresh).
+    final loggedIn = wasAlreadyLoggedIn ?? await isUserLoggedIn();
     Map<dynamic, dynamic>? authData;
     if (loggedIn) {
       authData = await AuthDataManager.loadAuthData();
-      if (authData == null) {
-        // Fall through to re-authenticate
-      }
+      // authData == null means refresh failed; fall through to re-authenticate
     }
 
     // If not logged in or load failed, perform new authentication
@@ -112,22 +117,36 @@ Future<List<dynamic>?> solidAuthenticate(
         return null;
       }
 
-      // Proceed to fetch profile data with the authenticated credentials
+      // Fetch profile data. When the user entered a WebID URL (profile/card#me)
+      // as the server ID, [getIssuer] already fetched the profile document to
+      // extract the OIDC issuer URI. Reuse that cached body to avoid a second
+      // HTTP GET to the same URL.
       final profCardUrl = webId.replaceAll('#me', '');
-      final profData = utf8.decode(await getResource(profCardUrl));
+      var profData = getCachedIssuerProfileBody(profCardUrl);
+      // If the issuer was resolved from a plain URI (not a WebID profile URL),
+      // the profile body was not pre-fetched. Fetch it now with the
+      // authenticated access token.
+      profData ??= utf8.decode(await getResource(profCardUrl));
+      AuthDataManager.setCachedProfData(profData);
 
       return [authData, webId, profData];
     }
 
-    // Already logged in successfully - fetch profile data
+    // Already logged in successfully - return cached or freshly-fetched profile.
     final webId = await AuthDataManager.getWebId();
     if (webId == null || webId.isEmpty) {
       await logoutPod();
       return null;
     }
 
+    // Use the in-memory profile cache to avoid an unnecessary HTTP request on
+    // every cached-session login.
     final profCardUrl = webId.replaceAll('#me', '');
-    final profData = utf8.decode(await getResource(profCardUrl));
+    var profData = AuthDataManager.getCachedProfData();
+    if (profData == null) {
+      profData = utf8.decode(await getResource(profCardUrl));
+      AuthDataManager.setCachedProfData(profData);
+    }
 
     return [authData, webId, profData];
   } on Object catch (e) {
