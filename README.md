@@ -82,10 +82,9 @@ your `pubspec.yaml` file.
 dependencies:
   solidpod: ^<latest-version>
 ```
-<!-- TODO dc: Refer to keypod as the example? -->
 An example project that uses `solidpod` can be found
-in the [example](https://github.com/anusii/solidpod/tree/dev/example)
-folder of the git repository.
+in the [example](https://github.com/anusii/solidui/tree/dev/example)
+folder of the [SolidUI](https://github.com/anusii/solidui) repository.
 
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
