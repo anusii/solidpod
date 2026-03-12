@@ -30,7 +30,6 @@
 library;
 
 import 'dart:convert';
-import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:crypto/crypto.dart';
 
@@ -112,7 +111,6 @@ Future<String> filenameToResourceUrl({
   }
 
   // If not already a url, get url
-  debugPrint('Url parse check: ${Uri.parse(fileName).isAbsolute}');
   if (!Uri.parse(fileName).isAbsolute && !isExternalRes && !isFileUrl) {
     // Get the file path
     // Ensure path uses correct path separators and
