@@ -82,6 +82,7 @@ your `pubspec.yaml` file.
 dependencies:
   solidpod: ^<latest-version>
 ```
+
 An example project that uses `solidpod` can be found
 in the [example](https://github.com/anusii/solidui/tree/dev/example)
 folder of the [SolidUI](https://github.com/anusii/solidui) repository.
@@ -316,7 +317,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Monday 2026-01-19 16:52:57 +1100 Graham Williams>*
+*Time-stamp: <Friday 2026-03-13 09:21:12 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
