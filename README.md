@@ -317,7 +317,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Friday 2026-03-13 09:21:12 +1100 Graham Williams>*
+*Time-stamp: <Friday 2026-03-13 09:22:20 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
