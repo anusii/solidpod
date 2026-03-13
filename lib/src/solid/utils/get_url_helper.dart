@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Dawei Chen
+/// Authors: Anushka Vidanage, Dawei Chen, Jess Moore
 
 library;
 
@@ -110,8 +110,10 @@ Future<String> filenameToResourceUrl({
     isFileUrl = true;
   }
 
-  // If not already a url, get url
-  if (!isExternalRes && !isFileUrl) {
+  // If resource name lacks a url scheme, is not an
+  // externally owned resource and is not already
+  // declared as a url, then form url from resource name
+  if (!Uri.parse(fileName).hasScheme && !isExternalRes && !isFileUrl) {
     // Get the file path
     // Ensure path uses correct path separators and
     // has app data dir prepended.
