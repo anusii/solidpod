@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Anushka Vidanage, Dawei Chen
+/// Authors: Anushka Vidanage, Dawei Chen, Jess Moore
 
 library;
 
