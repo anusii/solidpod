@@ -110,8 +110,10 @@ Future<String> filenameToResourceUrl({
     isFileUrl = true;
   }
 
-  // If not already a url, get url
-  if (!Uri.parse(fileName).isAbsolute && !isExternalRes && !isFileUrl) {
+  // If resource name lacks a url scheme, is not an
+  // externally owned resource and is not already
+  // declared as a url, then form url from resource name
+  if (!Uri.parse(fileName).hasScheme && !isExternalRes && !isFileUrl) {
     // Get the file path
     // Ensure path uses correct path separators and
     // has app data dir prepended.
