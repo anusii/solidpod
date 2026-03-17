@@ -258,6 +258,12 @@ The above will create a single `.acl` file for the directory
 `child-2.ttl` files. Also it will create a single key associated with
 the directory `parentDir` and encrypt both files using that key.
 
+### Delete a Pod File
+
+```dart
+deleteFile()
+```
+
 ### Large File Manager Example
 
 To upload a large file in application `myapp`, use:
@@ -317,7 +323,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Friday 2026-03-13 09:22:20 +1100 Graham Williams>*
+*Time-stamp: <Wednesday 2026-03-18 08:42:27 +1100 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
