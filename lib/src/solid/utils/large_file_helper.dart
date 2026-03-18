@@ -441,8 +441,9 @@ Stream<List<int>> fetch({
   var receivedBytes = 0;
   final chunkUrls = map[chunkPred];
   assert(chunkUrls != null);
-  final urls =
-      chunkUrls is Iterable ? chunkUrls as List<String> : [chunkUrls as String];
+  final urls = chunkUrls is Iterable
+      ? (chunkUrls as List).map((e) => e as String).toList()
+      : [chunkUrls as String];
 
   for (final url in urls) {
     final c = await getResource(url);
