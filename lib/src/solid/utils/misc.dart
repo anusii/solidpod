@@ -453,7 +453,10 @@ Future<bool> logoutPod() async {
     await KeyManager.clear();
     debugPrint('logoutPod() => KeyManager.clear() completed');
 
-    // Step 2: Remove authentication data from secure storage
+    // Step 2: Get the logout URL before removing auth data
+    final logoutUrl = await AuthDataManager.getLogoutUrl();
+
+    // Step 3: Remove authentication data from secure storage
     // This is CRITICAL - must succeed
     final authDataRemoved = await AuthDataManager.removeAuthData();
     if (!authDataRemoved) {
@@ -463,7 +466,7 @@ Future<bool> logoutPod() async {
       // Don't return false yet - logout endpoint is still needed
     }
 
-    // Step 2.5: Clear application-specific caches BEFORE network call
+    // Step 3.5: Clear application-specific caches BEFORE network call
     // This is CRITICAL to prevent race conditions where UI reads stale cache
     // during logout, especially when network is slow
     if (_onLogoutClearCaches != null) {
@@ -479,9 +482,8 @@ Future<bool> logoutPod() async {
       debugPrint('logoutPod() => No application cache callback registered');
     }
 
-    // Step 3: Get the logout URL and attempt OAuth2 logout
+    // Step 4: Attempt OAuth2 logout
     // This is OPTIONAL - should not block if it fails
-    final logoutUrl = await AuthDataManager.getLogoutUrl();
     if (logoutUrl != null && logoutUrl.isNotEmpty) {
       try {
         // Call the OAuth2 logout endpoint
