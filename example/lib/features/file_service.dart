@@ -29,6 +29,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:solidpod/solidpod.dart';
 
 import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/widgets/file_service_sections.dart';
 
 class FileService extends StatefulWidget {
   const FileService({required this.child, required this.webId, super.key});
@@ -74,37 +75,6 @@ class _FileServiceState extends State<FileService> {
   String? getKeyRefPath() {
     final folder = keyRefFolderController.text.trim();
     return folder.isNotEmpty ? folder : null;
-  }
-
-  Widget getProgressBar(String message, bool isDone, double percent) {
-    const textStyle = TextStyle(
-      color: Colors.green,
-      fontWeight: FontWeight.bold,
-    );
-
-    final prefix = Text(message, style: textStyle);
-    final suffix = Text('${(percent * 100).toInt()}%', style: textStyle);
-    final progress = SizedBox(
-      width: 300,
-      height: 10,
-      child: LinearProgressIndicator(
-        value: percent,
-        minHeight: 2,
-        backgroundColor: Colors.black12,
-        color: Colors.greenAccent,
-      ),
-    );
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        prefix,
-        smallGapH,
-        progress,
-        smallGapH,
-        suffix,
-      ],
-    );
   }
 
   @override
@@ -363,199 +333,44 @@ class _FileServiceState extends State<FileService> {
 
     // Widgets of the file upload section
 
-    final uploadSection = [
-      Text(
-        'Upload a local large file and save it as "$defaultRemoteFileName" in POD',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      smallGapV,
-      Table(
-        columnWidths: const <int, TableColumnWidth>{
-          0: FixedColumnWidth(450),
-          // 1: FixedColumnWidth(50),
-          // 1: FlexColumnWidth(),
-        },
-        children: [
-          TableRow(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    uploadFile ??
-                        'Click the Browse button to choose a local file',
-                    style: TextStyle(
-                      color: uploadFile == null ? Colors.red : Colors.blue,
-                      fontStyle: FontStyle.italic,
-                      fontSize: 16,
-                    ),
-                  ),
-                  smallGapH,
-                  if (uploadDone) const Icon(Icons.done, color: Colors.green),
-                ],
-              ),
-            ],
-          ),
-          TableRow(
-            children: [
-              TextFormField(
-                controller: remoteFolderController,
-                enabled: !(uploadInProgress || uploadDone),
-                decoration: const InputDecoration(
-                  // labelText: 'Remote Folder',
-                  // border: OutlineInputBorder(),
-                  hintText: '(Optional) save to folder in POD, e.g. dir1/dir2/',
-                  hintStyle: TextStyle(
-                    color: Colors.brown,
-                    fontStyle: FontStyle.italic,
-                    fontSize: 15,
-                  ),
-                ),
-                // validator: (value) {
-                //   if (value != null || value!.trim().isNotEmpty) {
-                //     if (!value.endsWith('/')) {
-                //       return 'Folder path must ends with /';
-                //     }
-                //   }
-                //   return null;
-                // },
-              ),
-            ],
-          ),
-          TableRow(children: [
-            TextFormField(
-              controller: keyRefFolderController,
-              enabled: !(uploadInProgress || uploadDone),
-              decoration: const InputDecoration(
-                hintText:
-                    '(Optional) Inherit encryption key of folder in POD, e.g. dir1/',
-                hintStyle: TextStyle(
-                  color: Colors.brown,
-                  fontStyle: FontStyle.italic,
-                  fontSize: 15,
-                ),
-              ),
-            ),
-          ]),
-        ],
-      ),
-      smallGapV,
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          browseButton,
-          smallGapH,
-          uploadButton,
-        ],
-      ),
-    ];
+    final uploadSection = buildUploadSectionUI(
+      defaultRemoteFileName: defaultRemoteFileName,
+      uploadFile: uploadFile,
+      uploadDone: uploadDone,
+      uploadInProgress: uploadInProgress,
+      remoteFolderController: remoteFolderController,
+      keyRefFolderController: keyRefFolderController,
+      browseButton: browseButton,
+      uploadButton: uploadButton,
+    );
 
     // Widgets of the file download section
 
-    final downloadSection = [
-      Text(
-        'Download the "$defaultRemoteFileName" from POD',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      smallGapV,
-      if (downloadFile != null)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('Save file'),
-            smallGapH,
-            Text(
-              downloadFile!,
-              style: const TextStyle(color: Colors.blue),
-            ),
-            smallGapH,
-            if (downloadDone) const Icon(Icons.done, color: Colors.green),
-          ],
-        ),
-      smallGapV,
-      downloadButton,
-    ];
+    final downloadSection = buildDownloadSectionUI(
+      defaultRemoteFileName: defaultRemoteFileName,
+      downloadFile: downloadFile,
+      downloadDone: downloadDone,
+      downloadButton: downloadButton,
+    );
 
     // Widgets of the shared file download section
-    // Widgets of the file download section
 
-    final downloadSharedSection = [
-      Text(
-        'Download a shared large file from an external POD',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      smallGapV,
-      SizedBox(
-        width: 550,
-        child: TextFormField(
-          controller: sharedUrlController,
-          enabled: !(downloadSharedInProgress || downloadSharedDone),
-          decoration: const InputDecoration(
-            hintText: 'URL of shared large file in external POD',
-            hintStyle: TextStyle(
-              color: Colors.brown,
-              fontStyle: FontStyle.italic,
-              fontSize: 15,
-            ),
-          ),
-        ),
-      ),
-      smallGapV,
-      if (downloadSharedFile != null)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('Save file'),
-            smallGapH,
-            Text(
-              downloadSharedFile!,
-              style: const TextStyle(color: Colors.blue),
-            ),
-            smallGapH,
-            if (downloadSharedDone) const Icon(Icons.done, color: Colors.green),
-          ],
-        ),
-      smallGapV,
-      downloadSharedButton,
-    ];
+    final downloadSharedSection = buildDownloadSharedSectionUI(
+      downloadSharedFile: downloadSharedFile,
+      downloadSharedDone: downloadSharedDone,
+      downloadSharedInProgress: downloadSharedInProgress,
+      sharedUrlController: sharedUrlController,
+      downloadSharedButton: downloadSharedButton,
+    );
 
     // Widgets of the file delete section
 
-    final deleteSection = [
-      Text(
-        'Delete the "$defaultRemoteFileName" from POD',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      smallGapV,
-      if (deleteInProgress || deleteDone)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('Delete remote file'),
-            smallGapH,
-            Text(
-              defaultRemoteFileName,
-              style: const TextStyle(color: Colors.blue),
-            ),
-            smallGapH,
-            if (deleteDone) const Icon(Icons.done, color: Colors.green),
-          ],
-        ),
-      smallGapV,
-      deleteButton,
-    ];
+    final deleteSection = buildDeleteSectionUI(
+      defaultRemoteFileName: defaultRemoteFileName,
+      deleteInProgress: deleteInProgress,
+      deleteDone: deleteDone,
+      deleteButton: deleteButton,
+    );
 
     return Scaffold(
       body: Padding(
@@ -599,7 +414,8 @@ class _FileServiceState extends State<FileService> {
                 top: 20,
                 left: 0,
                 right: 0,
-                child: getProgressBar('Uploading:', uploadDone, uploadPercent),
+                child: buildProgressBar(
+                    'Uploading:', uploadDone, uploadPercent),
               ),
 
             // Downloading progress bar
@@ -609,7 +425,7 @@ class _FileServiceState extends State<FileService> {
                 top: 20,
                 left: 0,
                 right: 0,
-                child: getProgressBar(
+                child: buildProgressBar(
                     'Downloading:', downloadDone, downloadPercent),
               ),
 
@@ -620,7 +436,7 @@ class _FileServiceState extends State<FileService> {
                 top: 20,
                 left: 0,
                 right: 0,
-                child: getProgressBar(
+                child: buildProgressBar(
                     'Downloading:', downloadSharedDone, downloadSharedPercent),
               ),
 
@@ -631,7 +447,8 @@ class _FileServiceState extends State<FileService> {
                 top: 20,
                 left: 0,
                 right: 0,
-                child: getProgressBar('Deleting:', deleteDone, deletePercent),
+                child: buildProgressBar(
+                    'Deleting:', deleteDone, deletePercent),
               ),
 
             // Navigate back to demo page

@@ -28,6 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart' show GrantPermissionUi;
 
+import 'package:demopod/widgets/permission_demo_widgets.dart';
+
 /// A widget demonstrating the onPermissionGranted callback functionality.
 
 class PermissionCallbackDemo extends StatefulWidget {
@@ -297,39 +299,7 @@ demo:exampleData$fileNumber
             children: [
               // Header section.
 
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.lightbulb_outline,
-                            color: Colors.blue[700], size: 28),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Why Use onPermissionGranted Callback?',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'The onPermissionGranted callback allows your app to automatically continue workflows after users grant permissions. This demo creates sample files automatically and shows how to share multiple files sequentially without manual navigation.',
-                      style: TextStyle(fontSize: 16, height: 1.4),
-                    ),
-                  ],
-                ),
-              ),
+              buildDemoHeaderSection(),
 
               const SizedBox(height: 24),
 
@@ -365,13 +335,13 @@ demo:exampleData$fileNumber
 
                     Row(
                       children: [
-                        _buildStepIndicator(1, 'Start', _currentStep >= 1),
-                        _buildConnector(_currentStep >= 2),
-                        _buildStepIndicator(2, 'Grant', _currentStep >= 2),
-                        _buildConnector(_currentStep >= 3),
-                        _buildStepIndicator(3, 'Process', _currentStep >= 3),
-                        _buildConnector(_currentStep >= 4),
-                        _buildStepIndicator(4, 'Complete', _currentStep >= 4),
+                        buildStepIndicator(1, 'Start', _currentStep >= 1),
+                        buildStepConnector(_currentStep >= 2),
+                        buildStepIndicator(2, 'Grant', _currentStep >= 2),
+                        buildStepConnector(_currentStep >= 3),
+                        buildStepIndicator(3, 'Process', _currentStep >= 3),
+                        buildStepConnector(_currentStep >= 4),
+                        buildStepIndicator(4, 'Complete', _currentStep >= 4),
                       ],
                     ),
 
@@ -582,46 +552,4 @@ demo:exampleData$fileNumber
     );
   }
 
-  Widget _buildStepIndicator(int step, String label, bool isActive) {
-    return Column(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(
-            color: isActive ? Colors.blue[600] : Colors.grey[300],
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              step.toString(),
-              style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey[600],
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isActive ? Colors.blue[600] : Colors.grey[600],
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConnector(bool isActive) {
-    return Container(
-      width: 24,
-      height: 2,
-      margin: const EdgeInsets.only(bottom: 20),
-      color: isActive ? Colors.blue[600] : Colors.grey[300],
-    );
-  }
 }
