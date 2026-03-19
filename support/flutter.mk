@@ -213,7 +213,7 @@ analyze:
 .PHONY: depend
 depend:
 	@echo "Dart: REVIEW DEPENDENCIES."
-	-dependency_validator
+	-dart run dependency_validator
 	@echo $(SEPARATOR)
 
 # Check and fail if any files exceed limit.

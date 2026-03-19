@@ -25,7 +25,6 @@
 library;
 
 import 'package:rdflib/rdflib.dart';
-
 import 'package:solidpod/solidpod.dart' show getWebId;
 
 // Namespace for keys

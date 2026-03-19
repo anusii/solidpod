@@ -174,7 +174,7 @@ analyze:
 .PHONY: depend
 depend:
 	@echo "Review pubspec.yaml dependencies."
-	-dependency_validator
+	-dart run dependency_validator
 	@echo $(SEPARATOR)
 
 .PHONY: ignore

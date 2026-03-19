@@ -33,31 +33,27 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
-import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart'
     show
-        GrantPermissionUi,
-        InitialSetupScreenBody,
-        SharedResourcesUi,
         changeKeyPopup,
         getKeyFromUserIfRequired,
         largeGapV,
         loginIfRequired,
-        logoutPopup,
         smallGapV;
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
+import 'package:demopod/dialogs/file_metadata.dart';
 import 'package:demopod/features/create_acl_inherited_file.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
-import 'package:demopod/features/permission_callback_demo.dart';
 import 'package:demopod/features/read_acl_inherited_file.dart';
 import 'package:demopod/features/view_keys.dart';
 import 'package:demopod/main.dart';
 import 'package:demopod/utils/rdf.dart';
+import 'package:demopod/widgets/home_sections.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -228,58 +224,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         await alert(context, 'Error or cancelled: $e');
       }
     }
-  }
-
-  void showFileMetadataDialog({
-    required BuildContext context,
-    required String fileName,
-    required String contentLength,
-    required String lastModified,
-    required String contentType,
-    required String allowdAccess,
-  }) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('File Information'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoRow('File name', fileName),
-            _infoRow('Last modified', lastModified),
-            _infoRow('Content length', contentLength),
-            _infoRow('Content type', contentType),
-            _infoRow('Allowed operations', allowdAccess),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
-    );
   }
 
   Widget _build(BuildContext context, String title) {
@@ -584,288 +528,20 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             );
                           },
                         ),
-                        largeGapV,
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Solid Server Login Management',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        ...buildLoginManagementSection(
+                          context,
+                          _resetWebId,
+                          () => const DemoPod(),
                         ),
-                        MarkdownTooltip(
-                          message:
-                              'This will remove from our local device\'s memory the '
-                              'solid pod login information so that the next time you '
-                              'start up the app you will need to login to your solid '
-                              'server hosting your pod.',
-                          child: ElevatedButton(
-                            child:
-                                const Text('Forget Remote Solid Server Login'),
-                            onPressed: () async {
-                              final deleteRes = await deleteLogIn();
-
-                              var deleteMsg = '';
-
-                              if (deleteRes) {
-                                deleteMsg =
-                                    'Successfully forgot remote solid server login info';
-                              } else {
-                                deleteMsg =
-                                    'Failed to forget login info. Try again in a while';
-                              }
-
-                              await showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Notice'),
-                                  content: Text(deleteMsg),
-                                  actions: [
-                                    ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('OK'))
-                                  ],
-                                ),
-                              );
-
-                              _resetWebId();
-                            },
-                          ),
+                        ...buildPermissionSection(
+                          context,
+                          widget,
+                          () => const Home(),
                         ),
-                        smallGapV,
-                        MarkdownTooltip(
-                          message:
-                              'This will send a request through the browser to the '
-                              'remote solid server to log you out of your Pod.',
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await logoutPopup(context, const DemoPod());
-                            },
-                            child:
-                                const Text('Logout From Remote Solid Server'),
-                          ),
+                        ...buildSetupWizardSection(
+                          context,
+                          () => const Home(),
                         ),
-                        largeGapV,
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Resource Permission Management',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        ElevatedButton(
-                          child: const Text(
-                              'Add/Delete Permissions from a Specific Resource (key-value.ttl)'),
-                          onPressed: () async {
-                            final loggedIn = await loginIfRequired(
-                              context,
-                            );
-
-                            if (loggedIn) {
-                              await getKeyFromUserIfRequired(context, widget);
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const GrantPermissionUi(
-                                    backgroundColor: titleBackgroundColor,
-                                    resourceName: 'keyvalue/key-value.ttl',
-                                    // accessModeList: ['read', 'write'],
-                                    // recipientTypeList: ['indi', 'group'],
-                                    // isFile: false,
-                                    child: Home(),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                          child: const Text('Permission Callback Demo'),
-                          onPressed: () async {
-                            final loggedIn = await loginIfRequired(
-                              context,
-                            );
-
-                            if (loggedIn) {
-                              await getKeyFromUserIfRequired(context, widget);
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const PermissionCallbackDemo(
-                                    child: Home(),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                          child: const Text(
-                              'Add/Delete Permissions from any Resource'),
-                          onPressed: () async {
-                            final loggedIn = await loginIfRequired(
-                              context,
-                            );
-
-                            if (loggedIn) {
-                              await getKeyFromUserIfRequired(context, widget);
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const GrantPermissionUi(
-                                    backgroundColor: titleBackgroundColor,
-                                    child: Home(),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        largeGapV,
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Manage External Resources with Access',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        ElevatedButton(
-                          child: const Text(
-                              'View specific resource (key-value.ttl) your WebID has access to'),
-                          onPressed: () async {
-                            final loggedIn = await loginIfRequired(
-                              context,
-                            );
-
-                            if (loggedIn) {
-                              await getKeyFromUserIfRequired(context, widget);
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SharedResourcesUi(
-                                    backgroundColor: titleBackgroundColor,
-                                    fileName: 'key-value.ttl',
-                                    child: Home(),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                          child: const Text(
-                              'View ALL Resources your WebID has access to'),
-                          onPressed: () async {
-                            final loggedIn = await loginIfRequired(
-                              context,
-                            );
-
-                            if (loggedIn) {
-                              await getKeyFromUserIfRequired(context, widget);
-
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SharedResourcesUi(
-                                    backgroundColor: titleBackgroundColor,
-                                    child: Home(),
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        smallGapV,
-                        largeGapV,
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Setup Wizard Demo',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                          onPressed: () async {
-                            // Now that the back button issue is fixed in InitialSetupScreenBody,
-                            // we can use it directly without any custom wrapper.
-
-                            final loggedIn = await loginIfRequired(context);
-
-                            if (!loggedIn) {
-                              debugPrint('Please login to run the demo');
-                              return;
-                            }
-
-                            final webId = await getWebId();
-                            if (webId == null) {
-                              debugPrint('web ID is not available');
-                              return;
-                            }
-
-                            final sampleDirUrl = await getDirUrl([
-                              await getDataDirPath(),
-                              'setup_wizard_demo',
-                            ].join('/'));
-                            final sampleFileName = 'setup_wizard_demo.ttl';
-                            final sampleFileUrl = await getFileUrl([
-                              await getDataDirPath(),
-                              'sampleFileName',
-                            ].join('/'));
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Scaffold(
-                                  body: SafeArea(
-                                    child: InitialSetupScreenBody(
-                                      // Sample resources that would need to be created.
-
-                                      resNeedToCreate: {
-                                        'folders': [sampleDirUrl],
-                                        'files': [sampleFileUrl],
-                                        'fileNames': [sampleFileName],
-                                      },
-                                      child: const Home(),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                              'Show Solid Pod Setup Wizard (Using Real Component)'),
-                        ),
-                        smallGapV,
                       ],
                     ),
                   ),
