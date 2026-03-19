@@ -28,6 +28,7 @@ dependency_overrides:
       ref: dev
 
 dev_dependencies:
+  dependency_validator: ^5.0.4
   flutter_lints: ^6.0.0
 
 flutter:
