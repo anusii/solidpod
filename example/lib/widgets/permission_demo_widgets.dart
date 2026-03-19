@@ -87,8 +87,7 @@ Widget buildDemoHeaderSection() {
       children: [
         Row(
           children: [
-            Icon(Icons.lightbulb_outline,
-                color: Colors.blue[700], size: 28),
+            Icon(Icons.lightbulb_outline, color: Colors.blue[700], size: 28),
             const SizedBox(width: 12),
             const Text(
               'Why Use onPermissionGranted Callback?',

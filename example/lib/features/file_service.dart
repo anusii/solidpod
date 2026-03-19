@@ -414,8 +414,8 @@ class _FileServiceState extends State<FileService> {
                 top: 20,
                 left: 0,
                 right: 0,
-                child: buildProgressBar(
-                    'Uploading:', uploadDone, uploadPercent),
+                child:
+                    buildProgressBar('Uploading:', uploadDone, uploadPercent),
               ),
 
             // Downloading progress bar
@@ -447,8 +447,7 @@ class _FileServiceState extends State<FileService> {
                 top: 20,
                 left: 0,
                 right: 0,
-                child: buildProgressBar(
-                    'Deleting:', deleteDone, deletePercent),
+                child: buildProgressBar('Deleting:', deleteDone, deletePercent),
               ),
 
             // Navigate back to demo page

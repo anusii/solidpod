@@ -108,8 +108,7 @@ List<Widget> buildUploadSectionUI({
               controller: remoteFolderController,
               enabled: !(uploadInProgress || uploadDone),
               decoration: const InputDecoration(
-                hintText:
-                    '(Optional) save to folder in POD, e.g. dir1/dir2/',
+                hintText: '(Optional) save to folder in POD, e.g. dir1/dir2/',
                 hintStyle: TextStyle(
                   color: Colors.brown,
                   fontStyle: FontStyle.italic,
@@ -274,8 +273,7 @@ List<Widget> buildDownloadSharedSectionUI({
             style: const TextStyle(color: Colors.blue),
           ),
           smallGapH,
-          if (downloadSharedDone)
-            const Icon(Icons.done, color: Colors.green),
+          if (downloadSharedDone) const Icon(Icons.done, color: Colors.green),
         ],
       ),
     smallGapV,

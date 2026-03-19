@@ -77,11 +77,9 @@ List<Widget> buildLoginManagementSection(
           var deleteMsg = '';
 
           if (deleteRes) {
-            deleteMsg =
-                'Successfully forgot remote solid server login info';
+            deleteMsg = 'Successfully forgot remote solid server login info';
           } else {
-            deleteMsg =
-                'Failed to forget login info. Try again in a while';
+            deleteMsg = 'Failed to forget login info. Try again in a while';
           }
 
           await showDialog(
@@ -188,8 +186,7 @@ List<Widget> buildPermissionSection(
     ),
     smallGapV,
     ElevatedButton(
-      child: const Text(
-          'Add/Delete Permissions from any Resource'),
+      child: const Text('Add/Delete Permissions from any Resource'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
           context,
@@ -249,8 +246,7 @@ List<Widget> buildPermissionSection(
     ),
     smallGapV,
     ElevatedButton(
-      child: const Text(
-          'View ALL Resources your WebID has access to'),
+      child: const Text('View ALL Resources your WebID has access to'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
           context,
@@ -339,8 +335,7 @@ List<Widget> buildSetupWizardSection(
           ),
         );
       },
-      child: const Text(
-          'Show Solid Pod Setup Wizard (Using Real Component)'),
+      child: const Text('Show Solid Pod Setup Wizard (Using Real Component)'),
     ),
     smallGapV,
   ];
