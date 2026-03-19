@@ -9,6 +9,12 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
+## 0.13
+
++ Fix logout issue [0.12.1 20260319 av]
++ Fix large file download issue [0.12.1 20260319 av]
++ Restore example app [0.12.1 20260319 tony]
+
 ## 0.12 Robust
 
 + Publish to pub.dev [0.12.0 20260316 gjw]
