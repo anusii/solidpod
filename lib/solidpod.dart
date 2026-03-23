@@ -116,7 +116,8 @@ export 'src/solid/utils/misc.dart'
         isDir,
         logoutPod,
         registerLogoutCacheCallback,
-        setAppDirName;
+        setAppDirName,
+        silentLogout;
 
 /// Helper for deleting files and containers from a Solid POD
 
