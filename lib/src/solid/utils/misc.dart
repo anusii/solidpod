@@ -34,6 +34,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:path/path.dart' as path;
@@ -514,6 +515,49 @@ Future<bool> logoutPod() async {
     } catch (fallbackError) {
       debugPrint('logoutPod() => Fallback cleanup also failed: $fallbackError');
     }
+    return false;
+  }
+}
+
+/// Clear all login state without opening a browser.
+///
+/// Performs the same cleanup as [logoutPod] but invalidates the IdP session
+/// via a headless HTTP request rather than launching a visible browser
+/// window. Use this when switching accounts or recovering from stale
+/// credentials.
+
+Future<bool> silentLogout() async {
+  try {
+    await KeyManager.clear();
+
+    final logoutUrl = await AuthDataManager.getLogoutUrl();
+    final authDataRemoved = await AuthDataManager.removeAuthData();
+
+    if (_onLogoutClearCaches != null) {
+      try {
+        await _onLogoutClearCaches!();
+      } on Object catch (e) {
+        debugPrint('silentLogout() cache callback failed (non-critical): $e');
+      }
+    }
+
+    // Best-effort IdP session invalidation via headless HTTP GET.
+
+    if (logoutUrl != null && logoutUrl.isNotEmpty) {
+      try {
+        await http.get(Uri.parse(logoutUrl));
+      } on Object catch (e) {
+        debugPrint('silentLogout() headless logout failed (non-critical): $e');
+      }
+    }
+
+    return authDataRemoved;
+  } on Object catch (e) {
+    debugPrint('silentLogout() CRITICAL: $e');
+    try {
+      await AuthDataManager.removeAuthData();
+      await KeyManager.clear();
+    } on Object catch (_) {}
     return false;
   }
 }
