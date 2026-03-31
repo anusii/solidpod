@@ -56,6 +56,7 @@ const sharingDir = 'sharing';
 const sharedDir = 'shared';
 const encDir = 'encryption';
 const logsDir = 'logs';
+const notificationDir = 'notification';
 
 /// String terms used as predicates in ttl files.
 

@@ -237,11 +237,20 @@ export 'src/solid/read_external_pod.dart';
 
 export 'src/solid/write_external_pod.dart';
 
+/// Send notifications to another user's POD
+
+export 'src/solid/send_notification.dart';
+
+/// Data model for POD notifications
+
+export 'src/solid/models/pod_notification.dart' show PodNotification;
+
 /// 20250917 gjw Extras that were required for notepod. Not yet documented.
 /// 20251103 jesscmoore In common.dart, only authUserPred is
 /// used by notepod
 
-export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
+export 'src/solid/constants/common.dart'
+    show dataDir, profCard, authUserPred, notificationDir;
 
 /// Function to get resources in a user's POD
 

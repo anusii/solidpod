@@ -115,6 +115,7 @@ Future<List<String>> generateDefaultFolders() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final notificationDirLoc = [appDirName, notificationDir].join('/');
 
   final folders = [
     appDirName,
@@ -123,6 +124,7 @@ Future<List<String>> generateDefaultFolders() async {
     dataDirLoc,
     encDirLoc,
     logDirLoc,
+    notificationDirLoc,
   ];
   return folders;
 }
@@ -159,12 +161,14 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final notificationDirLoc = [appDirName, notificationDir].join('/');
 
   final files = {
     sharingDirLoc: [pubKeyFile, '$pubKeyFile.acl'],
     logDirLoc: [permLogFile, '$permLogFile.acl'],
     sharedDirLoc: ['.acl'],
     encDirLoc: [encKeyFile, indKeyFile],
+    notificationDirLoc: ['.acl'],
   };
   return files;
 }
@@ -236,7 +240,8 @@ Future<void> initPod(
     if (f.split('.').last == 'acl') {
       final items = f.split('.');
       final resourceUrl = items.getRange(0, items.length - 1).join('.');
-      late Set<AccessMode> publicAccess;
+      Set<AccessMode>? publicAccess;
+      Set<AccessMode>? authUserAccess;
       var isFile = true;
       switch (fileName) {
         case '$pubKeyFile.acl':
@@ -245,14 +250,19 @@ Future<void> initPod(
           publicAccess = {AccessMode.append};
         default:
           assert(fileName == '.acl');
-          publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
+          if (f.contains('/$notificationDir/')) {
+            authUserAccess = {AccessMode.read, AccessMode.write};
+          } else {
+            publicAccess = {AccessMode.read, AccessMode.write};
+          }
       }
 
       fileContent = await genAclTurtle(
         resourceUrl,
         isFile: isFile,
         publicAccess: publicAccess,
+        authUserAccess: authUserAccess,
       );
 
       aclFlag = true;
