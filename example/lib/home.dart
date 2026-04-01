@@ -233,7 +233,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     final recipientController = TextEditingController();
     final titleController = TextEditingController();
     final contentController = TextEditingController();
-    int selectedPriority = 0;
+    int selectedPriority = 1;
+    String? recipientError;
+    String? titleError;
 
     await showDialog(
       context: context,
@@ -248,16 +250,17 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   children: [
                     TextField(
                       controller: recipientController,
-                      decoration: const InputDecoration(
-                        labelText: 'Recipient WebID',
-                        hintText: demoWebID,
+                      decoration: InputDecoration(
+                        labelText: 'Recipient WebID *',
+                        errorText: recipientError,
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'Title',
+                      decoration: InputDecoration(
+                        labelText: 'Title *',
+                        errorText: titleError,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -281,7 +284,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ],
                       onChanged: (value) {
                         setDialogState(() {
-                          selectedPriority = value ?? 0;
+                          selectedPriority = value ?? 1;
                         });
                       },
                     ),
@@ -298,15 +301,18 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     final recipient = recipientController.text.trim();
                     final notifTitle = titleController.text.trim();
 
-                    if (recipient.isEmpty || notifTitle.isEmpty) {
-                      ScaffoldMessenger.of(stfContext).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Recipient WebID and title are required.'),
-                        ),
-                      );
-                      return;
-                    }
+                    final hasErrors =
+                        recipient.isEmpty || notifTitle.isEmpty;
+
+                    setDialogState(() {
+                      recipientError = recipient.isEmpty
+                          ? 'Recipient WebID is required'
+                          : null;
+                      titleError =
+                          notifTitle.isEmpty ? 'Title is required' : null;
+                    });
+
+                    if (hasErrors) return;
 
                     Navigator.pop(dialogContext);
 

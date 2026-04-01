@@ -30,8 +30,6 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show debugPrint;
-
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/models/pod_notification.dart';

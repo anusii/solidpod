@@ -250,7 +250,7 @@ export 'src/solid/models/pod_notification.dart' show PodNotification;
 /// used by notepod
 
 export 'src/solid/constants/common.dart'
-    show dataDir, profCard, authUserPred, notificationDir;
+    show appDirName, dataDir, profCard, authUserPred, notificationDir;
 
 /// Function to get resources in a user's POD
 
