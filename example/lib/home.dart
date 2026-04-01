@@ -273,7 +273,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
-                      value: selectedPriority,
+                      initialValue: selectedPriority,
                       decoration: const InputDecoration(
                         labelText: 'Priority',
                       ),
@@ -301,8 +301,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     final recipient = recipientController.text.trim();
                     final notifTitle = titleController.text.trim();
 
-                    final hasErrors =
-                        recipient.isEmpty || notifTitle.isEmpty;
+                    final hasErrors = recipient.isEmpty || notifTitle.isEmpty;
 
                     setDialogState(() {
                       recipientError = recipient.isEmpty
