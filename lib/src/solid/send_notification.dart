@@ -30,13 +30,14 @@ library;
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
+import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
-import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/models/pod_notification.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
-import 'package:solidpod/src/solid/write_pod.dart';
 
 /// Send a notification to a specified recipient's POD.
 ///
@@ -44,9 +45,16 @@ import 'package:solidpod/src/solid/write_pod.dart';
 /// notification folder (`appDirName/notification/`). The file is named using
 /// the current Unix timestamp in milliseconds for chronological sorting.
 ///
-/// Because the sender does not possess the recipient's security key, the
-/// notification is stored without encryption via [writePod] with
-/// `encrypted: false`.
+/// This function writes directly via [createResource] using an HTTP POST
+/// (not PUT) to the notification container. POST is used because the
+/// notification directory's ACL grants public **Append** access, and the
+/// Solid Protocol requires only `acl:Append` for POST requests to a
+/// container, whereas PUT requires `acl:Write`. A `Slug` header suggests
+/// the desired file name.
+///
+/// [writePod] is intentionally avoided because its pre-flight GET request
+/// may return 403 on another user's POD, aborting before the write is ever
+/// attempted.
 ///
 /// Arguments:
 /// - [recipientWebId]: The full WebID of the notification recipient
@@ -95,15 +103,17 @@ Future<void> sendNotification({
 
   final jsonContent = jsonEncode(notification.toJson());
 
-  // Write the notification JSON to the recipient's POD unencrypted.
-  // createAcl is false because the folder-level ACL already grants
-  // write access to authenticated users.
+  // debugPrint('[sendNotification] Writing to: $fileUrl');
 
-  await writePod(
+  // POST the notification JSON to the recipient's notification container.
+  // replaceIfExist: false triggers POST (instead of PUT), which only
+  // requires Append access on the container — matching the public Append
+  // ACL configured during POD initialisation.
+
+  await createResource(
     fileUrl,
-    jsonContent,
-    encrypted: false,
-    createAcl: false,
-    pathType: PathType.absoluteUrl,
+    content: jsonContent,
+    contentType: ResourceContentType.auto,
+    replaceIfExist: false,
   );
 }

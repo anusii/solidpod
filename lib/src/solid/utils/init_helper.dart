@@ -193,12 +193,16 @@ Future<void> initPod(
     dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
   }
 
-  // Require the creation of the encryption directory and
-  // the encKeyFile and indKeyFile in it.
+  // Determine whether this is a full first-time initialisation or a partial
+  // re-init (e.g. only the notification directory is missing). The encryption
+  // directory is only in dirUrls when it does not yet exist on the server.
 
   final encDirUrl = await getDirUrl(await getEncDirPath());
-  if (!dirUrls.contains(encDirUrl)) {
-    throw Exception('Can not initialise POD without creating $encDirUrl');
+  final isFullInit = dirUrls.contains(encDirUrl);
+
+  if (isFullInit) {
+    // First-time setup — the encryption directory must be present.
+    assert(dirUrls.contains(encDirUrl));
   }
 
   // Create the required directories.
@@ -224,10 +228,13 @@ Future<void> initPod(
     }
   }
 
-  // Create the encKeyFile, indKeyFile and pubKeyFile
-  // and remove them from the fileUrls list.
+  // Initialise encryption keys only during first-time setup. During a partial
+  // re-init the keys already exist on the server and must not be overwritten,
+  // as doing so would invalidate all previously encrypted data.
 
-  await KeyManager.initPodKeys(securityKey);
+  if (isFullInit) {
+    await KeyManager.initPodKeys(securityKey);
+  }
   fileUrls.remove(await getFileUrl(await getEncKeyPath()));
   fileUrls.remove(await getFileUrl(await getIndKeyPath()));
   fileUrls.remove(await getFileUrl(await getPubKeyPath()));
@@ -252,7 +259,13 @@ Future<void> initPod(
           assert(fileName == '.acl');
           isFile = false;
           if (f.contains('/$notificationDir/')) {
-            authUserAccess = {AccessMode.read, AccessMode.write};
+            // Grant public Append so that any user (including cross-pod
+            // senders) can POST new notification files. Read/Write/Control
+            // remain with the owner only. Using foaf:Agent rather than
+            // acl:AuthenticatedAgent because CSS does not reliably honour
+            // AuthenticatedAgent for cross-pod writes with DPoP tokens.
+
+            publicAccess = {AccessMode.append};
           } else {
             publicAccess = {AccessMode.read, AccessMode.write};
           }
