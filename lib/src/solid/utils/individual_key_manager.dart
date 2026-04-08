@@ -105,7 +105,7 @@ class IndividualKeyManager {
 
     assert(
       _indKeyMap!.containsKey(resourceUrl),
-      'Individual key map does not contain resourceUrl: $resourceUrl',
+      'Individual key map does not contain resourceUrl: $resourceUrl\n${_indKeyMap.toString()}',
     );
 
     final record = _indKeyMap![resourceUrl];
