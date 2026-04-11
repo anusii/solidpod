@@ -152,7 +152,7 @@ List<Widget> buildPermissionSection(
             MaterialPageRoute(
               builder: (context) => GrantPermissionUi(
                 backgroundColor: titleBackgroundColor,
-                resourceName: 'keyvalue/key-value.ttl',
+                resourceNames: ['keyvalue/key-value.ttl'],
                 // accessModeList: ['read', 'write'],
                 // recipientTypeList: ['indi', 'group'],
                 // isFile: false,
