@@ -72,3 +72,16 @@ class SecurityKeyNotAvailableException implements Exception {
   @override
   String toString() => 'SecurityKeyNotAvailableException: $message';
 }
+
+/// Thrown when a notification cannot be delivered because the recipient's Pod
+/// is not ready — either their WebID does not exist, they have not set up the
+/// app, or their notification folder has not yet been created.
+
+class RecipientNotReadyException implements Exception {
+  final String message;
+
+  RecipientNotReadyException(this.message);
+
+  @override
+  String toString() => 'RecipientNotReadyException: $message';
+}

@@ -63,6 +63,8 @@ import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 ///   Convention: 0 = low, 1 = medium, 2 = high
 ///
 /// Throws [NotLoggedInException] if the user is not authenticated.
+/// Throws [RecipientNotReadyException] if the recipient's WebID does not
+/// exist or their Pod lacks the notification folder for this app.
 
 Future<void> sendNotification({
   required String recipientWebId,
@@ -80,6 +82,36 @@ Future<void> sendNotification({
   if (senderWebId == null || senderWebId.isEmpty) {
     throw NotLoggedInException('Unable to retrieve sender WebID');
   }
+
+  // Pre-flight checks.
+
+  // 1. Verify the recipient's WebID exists (unauthenticated GET to the
+  //    public profile document).
+
+  final webIdStatus = await checkWebIdExists(recipientWebId);
+  if (webIdStatus == ResourceStatus.notExist) {
+    throw RecipientNotReadyException(
+      'The recipient WebID does not exist: $recipientWebId. '
+      'Please check the WebID is correct.',
+    );
+  }
+
+  // 2. Verify the recipient has initialised their Pod for this app.
+  //    checkPodInitialised performs an authenticated GET on the recipient's
+  //    shared directory — the same check used in the grant-permissions
+  //    workflow. If it returns false the recipient has never set up the app.
+
+  final podReady = await checkPodInitialised(recipientWebId);
+  if (!podReady) {
+    throw RecipientNotReadyException(
+      'The recipient ($recipientWebId) has not set up this app on their '
+      'Pod. They need to log in to the app first so that the required '
+      'folder structure is created, before you can send notifications '
+      'to them.',
+    );
+  }
+
+  // Build and send the notification.
 
   final timestamp = DateTime.now().millisecondsSinceEpoch;
 
@@ -101,17 +133,33 @@ Future<void> sendNotification({
 
   final jsonContent = jsonEncode(notification.toJson());
 
-  // debugPrint('[sendNotification] Writing to: $fileUrl');
-
   // POST the notification JSON to the recipient's notification container.
   // replaceIfExist: false triggers POST (instead of PUT), which only
   // requires Append access on the container — matching the public Append
   // ACL configured during POD initialisation.
+  //
+  // If the POST still fails (e.g. the notification folder was added in a
+  // newer app version that the recipient has not yet run), convert the
+  // error into a RecipientNotReadyException with actionable guidance.
 
-  await createResource(
-    fileUrl,
-    content: jsonContent,
-    contentType: ResourceContentType.auto,
-    replaceIfExist: false,
-  );
+  try {
+    await createResource(
+      fileUrl,
+      content: jsonContent,
+      contentType: ResourceContentType.auto,
+      replaceIfExist: false,
+    );
+  } on Exception catch (e) {
+    final errStr = e.toString();
+    if (errStr.contains('403') || errStr.contains('Forbidden')) {
+      throw RecipientNotReadyException(
+        'The recipient ($recipientWebId) does not have a notification '
+        'folder for this app. This typically happens when the recipient '
+        'has not run the latest version of the app. They need to log in '
+        'and update their app setup in their Pod before you can send '
+        'notifications to them.',
+      );
+    }
+    rethrow;
+  }
 }

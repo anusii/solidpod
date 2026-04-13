@@ -84,6 +84,7 @@ export 'src/solid/utils/exceptions.dart'
         AccessForbiddenException,
         AccessFailedException,
         NotLoggedInException,
+        RecipientNotReadyException,
         ResourceNotExistException,
         SecurityKeyNotAvailableException;
 
