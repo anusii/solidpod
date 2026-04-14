@@ -318,7 +318,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                     try {
                       await sendNotification(
                         recipientWebId: recipient,
-                        appName: AppConstants.shortName,
                         title: notifTitle,
                         content: contentController.text.trim().isEmpty
                             ? null
