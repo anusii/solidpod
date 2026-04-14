@@ -68,6 +68,7 @@ import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 Future<void> sendNotification({
   required String recipientWebId,
+  String appName = 'this app',
   required String title,
   String? content,
   int priority = 0,
@@ -104,10 +105,9 @@ Future<void> sendNotification({
   final podReady = await checkPodInitialised(recipientWebId);
   if (!podReady) {
     throw RecipientNotReadyException(
-      'The recipient ($recipientWebId) has not set up this app on their '
-      'Pod. They need to log in to the app first so that the required '
-      'folder structure is created, before you can send notifications '
-      'to them.',
+      '$recipientWebId has not logged in to $appName recently. Ask them to login to $appName, '
+      'which will create the notification '
+      'folder. Then you can send them notifications.',
     );
   }
 
@@ -154,9 +154,9 @@ Future<void> sendNotification({
     if (errStr.contains('403') || errStr.contains('Forbidden')) {
       throw RecipientNotReadyException(
         'The recipient ($recipientWebId) does not have a notification '
-        'folder for this app. This typically happens when the recipient '
-        'has not run the latest version of the app. They need to log in '
-        'and update their app setup in their Pod before you can send '
+        'folder for $appName. This typically happens when the recipient '
+        'has not run the latest version of $appName. They need to log in '
+        'to setup their Pod before you can send '
         'notifications to them.',
       );
     }
