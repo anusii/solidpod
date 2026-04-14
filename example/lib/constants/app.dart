@@ -29,6 +29,11 @@ import 'package:flutter/material.dart';
 
 const titleBackgroundColor = Color(0xFFF0E4D7);
 
+class AppConstants {
+  static const shortName = 'Demopod';
+  static const longName = 'Solid Pod Demonstrator';
+}
+
 // const dataFile = 'key-value.ttl';
 const dataFile = 'keyvalue/key-value.ttl';
 

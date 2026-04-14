@@ -30,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:solidui/solidui.dart' show SolidLogin, InfoButtonStyle;
 import 'package:window_manager/window_manager.dart';
 
+import 'package:demopod/constants/app.dart';
 import 'package:demopod/home.dart';
 import 'package:demopod/utils/is_desktop.dart';
 
@@ -78,13 +79,13 @@ class DemoPod extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Solid Pod Demonstrator',
+    return MaterialApp(
+      title: AppConstants.longName,
       home: SolidLogin(
         // Images generated using Bing Image Creator from Designer, powered by
         // DALL-E3.
 
-        title: 'SOLID POD DEMONSTRATOR',
+        title: AppConstants.longName.toUpperCase(),
         appDirectory: 'exampleApp',
         image: AssetImage('assets/images/demopod_image.png'),
         logo: AssetImage('assets/images/demopod_logo.png'),
