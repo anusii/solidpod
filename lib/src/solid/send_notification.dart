@@ -35,7 +35,8 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/models/pod_notification.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
-import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
+import 'package:solidpod/src/solid/utils/misc.dart'
+    show getAppNameVersion, isUserLoggedIn;
 
 /// Send a notification to a specified recipient's POD.
 ///
@@ -68,11 +69,12 @@ import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 Future<void> sendNotification({
   required String recipientWebId,
-  String appName = 'this app',
   required String title,
   String? content,
   int priority = 0,
 }) async {
+  final appName = (await getAppNameVersion()).name;
+
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
       'User must be logged in to send notifications',
