@@ -94,9 +94,19 @@ class IndividualKeyManager {
 
     assert(_indKeyMap != null);
 
-    if (!_indKeyMap!.containsKey(resourceUrl)) {
-      return null;
-    }
+    // [20260408 jesscmoore] Require individual key map _indKeyMap
+    // to contain IndividualKeyRecord object for resourceUrl,
+    // to avoid readPod returning undecrypted files if
+    // it fails to find a IndividualKeyRecord.
+    //
+    // if (!_indKeyMap!.containsKey(resourceUrl)) {
+    //   return null;
+    // }
+
+    assert(
+      _indKeyMap!.containsKey(resourceUrl),
+      'Individual key map does not contain resourceUrl: $resourceUrl\n${_indKeyMap.toString()}',
+    );
 
     final record = _indKeyMap![resourceUrl];
     assert(record != null);

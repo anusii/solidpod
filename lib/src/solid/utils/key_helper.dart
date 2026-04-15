@@ -157,7 +157,10 @@ Future<Map<String, IndKeyRecord>> readIndKeyFile() async {
       );
 
       // Use resource URL as key instead of relative path (in new version of CSS)
-      indKeyMap[await getFileUrl(getVal(v, pathPred) as String)] = IndKeyRecord(
+      final String relFilePath = await getVal(v, pathPred) as String;
+      final String fileUrl = await getFileUrl(relFilePath);
+
+      indKeyMap[fileUrl] = IndKeyRecord(
         encKeyBase64: getVal(v, sessionKeyPred) as String,
         ivBase64: getVal(v, ivPred) as String,
         resourcePath: getVal(v, pathPred) as String,
