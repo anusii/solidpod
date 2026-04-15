@@ -115,6 +115,7 @@ Future<List<String>> generateDefaultFolders() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final profileDirLoc = [appDirName, profileDir].join('/');
 
   final folders = [
     appDirName,
@@ -123,6 +124,7 @@ Future<List<String>> generateDefaultFolders() async {
     dataDirLoc,
     encDirLoc,
     logDirLoc,
+    profileDirLoc,
   ];
   return folders;
 }
@@ -159,12 +161,14 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final profileDirLoc = [appDirName, profileDir].join('/');
 
   final files = {
     sharingDirLoc: [pubKeyFile, '$pubKeyFile.acl'],
     logDirLoc: [permLogFile, '$permLogFile.acl'],
     sharedDirLoc: ['.acl'],
     encDirLoc: [encKeyFile, indKeyFile],
+    profileDirLoc: ['.acl'],
   };
   return files;
 }
@@ -245,8 +249,14 @@ Future<void> initPod(
           publicAccess = {AccessMode.append};
         default:
           assert(fileName == '.acl');
-          publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
+
+          // The shared directory ACL grants public read/write;
+          // the profile directory ACL is owner-only (empty publicAccess).
+
+          publicAccess = f.contains('/$sharedDir/')
+              ? {AccessMode.read, AccessMode.write}
+              : {};
       }
 
       fileContent = await genAclTurtle(

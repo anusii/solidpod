@@ -117,6 +117,12 @@ class _Directories {
 
   /// Logs directory name
   String get logs => common.logsDir;
+
+  /// Profile directory name
+  String get profile => common.profileDir;
+
+  /// The current application directory name
+  String get app => common.appDirName;
 }
 
 /// Standard file names used in POD structure.
@@ -143,6 +149,12 @@ class _Files {
 
   /// Authenticated user individual keys file: auth-user-ind-keys.ttl
   String get authUserIndividualKeys => common.authUserIndKeyFile;
+
+  /// Profile picture file: avatar.png
+  String get profilePicture => common.profilePictureFile;
+
+  /// Display name file: display-name.txt
+  String get displayName => common.displayNameFile;
 }
 
 /// Common predicate names used in TTL files.

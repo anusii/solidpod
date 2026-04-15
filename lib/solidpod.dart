@@ -210,6 +210,8 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        createResource,
+        deleteResource,
         getResource,
         getResourcesInContainer,
         initialStructureTest,
@@ -241,7 +243,14 @@ export 'src/solid/write_external_pod.dart';
 /// 20251103 jesscmoore In common.dart, only authUserPred is
 /// used by notepod
 
-export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
+export 'src/solid/constants/common.dart'
+    show
+        dataDir,
+        profCard,
+        authUserPred,
+        profileDir,
+        profilePictureFile,
+        displayNameFile;
 
 /// Function to get resources in a user's POD
 

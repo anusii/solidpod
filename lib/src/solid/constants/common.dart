@@ -56,6 +56,10 @@ const sharingDir = 'sharing';
 const sharedDir = 'shared';
 const encDir = 'encryption';
 const logsDir = 'logs';
+const profileDir = 'profile';
+
+const String profilePictureFile = 'avatar.png';
+const String displayNameFile = 'display-name.txt';
 
 /// String terms used as predicates in ttl files.
 
