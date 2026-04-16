@@ -132,11 +132,11 @@ Future<String> readPod(
 
     final encKey = await retrieveEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
 
-    // Return (decrypted) text
+    if (encKey == null) {
+      throw Exception('No encryption key found for $fileUrl');
+    }
 
-    return encKey != null
-        ? decryptData(encDataStr, encKey, IV.fromBase64(ivStr))
-        : fileContent;
+    return decryptData(encDataStr, encKey, IV.fromBase64(ivStr));
   } on Object catch (e, trace) {
     debugPrint(e.toString());
     debugPrint(trace.toString());
