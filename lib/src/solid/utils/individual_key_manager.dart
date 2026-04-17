@@ -95,6 +95,7 @@ class IndividualKeyManager {
     assert(_indKeyMap != null);
 
     if (!_indKeyMap!.containsKey(resourceUrl)) {
+      // Key not in own key map — allow caller to fall back to shared key map.
       return null;
     }
 

@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Graham Williams 20250910
+#
+# Count the number of lines of code in a file
+#
+# Check if exactly one argument is provided.
 
 IGNORE=false # Return an error if any files have more than N loc.
 MAX=300 # Value of N loc.
@@ -33,6 +39,7 @@ cleanse_lines() {
 	grep -v '^\s*(\?|:) \[' | # Remove lines that consist of '? [' or  ': ['
 	grep -v '\s*\w*: \[' | # Remove  parameter list lines like `   names: [`
 	grep -v "^\s*['][^']*[']" | # Remove lines that are only a string.
+	grep -v "^\s*\w*:\s*$" | # Remove lines that are only a parameter name.
 	cat
 }
 
@@ -82,6 +89,36 @@ while [[ "$1" != "" ]]; do
             ;;
     esac
 done
+
+# 20260324 gjw Ignore files listed in .locignore
+
+# Read .locignore patterns into an array
+
+if [ -e .locignore ]; then
+
+declare -a IGNORE_PATTERNS
+while IFS= read -r pattern; do
+    [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
+    IGNORE_PATTERNS+=("$pattern")
+done < .locignore
+
+fi
+
+# Filter FILES array
+
+declare -a FILTERED_FILES
+for file in "${FILES[@]}"; do
+    should_ignore=0
+    for pattern in "${IGNORE_PATTERNS[@]}"; do
+        if [[ "$file" == *"$pattern"* ]]; then
+            should_ignore=1
+            break
+        fi
+    done
+    [[ $should_ignore -eq 0 ]] && FILTERED_FILES+=("$file")
+done
+
+FILES=("${FILTERED_FILES[@]}")
 
 if [ "$CLEAN" = true ]; then
     for file in "${FILES[@]}"; do
