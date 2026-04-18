@@ -8,11 +8,7 @@ environment:
 
 dependencies:
   editable: ^2.0.0
-<<<<<<< HEAD
   file_picker: ^11.0.2
-=======
-  file_picker: 11.0.2
->>>>>>> dev
   flutter:
     sdk: flutter
   intl: any
