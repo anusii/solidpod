@@ -42,6 +42,7 @@ import 'package:solidui/solidui.dart'
 
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/features/permission_callback_demo.dart';
+import 'package:demopod/features/multiple_resource_sharing.dart';
 
 /// Builds the login management section widgets.
 
@@ -202,6 +203,27 @@ List<Widget> buildPermissionSection(
                 backgroundColor: titleBackgroundColor,
                 child: createHomeWidget(),
               ),
+            ),
+          );
+        }
+      },
+    ),
+    smallGapV,
+    ElevatedButton(
+      child: const Text('Share Multiple Specified Files'),
+      onPressed: () async {
+        final loggedIn = await loginIfRequired(
+          context,
+        );
+
+        if (loggedIn) {
+          await getKeyFromUserIfRequired(context, currentWidget);
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  MultiResourceShareDemo(child: createHomeWidget()),
             ),
           );
         }
