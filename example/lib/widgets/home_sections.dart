@@ -210,7 +210,7 @@ List<Widget> buildPermissionSection(
     ),
     smallGapV,
     ElevatedButton(
-      child: const Text('Share Multiple Specified Files'),
+      child: const Text('Share Multiple Specified Resources'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
           context,
