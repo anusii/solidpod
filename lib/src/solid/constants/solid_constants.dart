@@ -150,10 +150,13 @@ class _Files {
   /// Authenticated user individual keys file: auth-user-ind-keys.ttl
   String get authUserIndividualKeys => common.authUserIndKeyFile;
 
-  /// Profile picture file: avatar.png
+  /// Profile picture file: avatar.ttl (turtle wrapper around the image
+  /// bytes so the resource can be encrypted at rest like other linked
+  /// data on the user's POD).
   String get profilePicture => common.profilePictureFile;
 
-  /// Display name file: display-name.txt
+  /// Display name file: display-name.ttl (linked data using FOAF/VCard
+  /// predicates so the user's display name is queryable).
   String get displayName => common.displayNameFile;
 }
 

@@ -58,8 +58,17 @@ const encDir = 'encryption';
 const logsDir = 'logs';
 const profileDir = 'profile';
 
-const String profilePictureFile = 'avatar.png';
-const String displayNameFile = 'display-name.txt';
+/// Avatar resource. Stored as a turtle file so the same resource can hold
+/// either an unencrypted base64-wrapped image (when the user opts to make
+/// their profile public) or the encrypted form produced by `writePod()`
+/// (the default for an app using encryption).
+
+const String profilePictureFile = 'avatar.ttl';
+
+/// Display name resource. Always stored as linked data so that other apps
+/// and queries can interpret it via FOAF/VCard predicates.
+
+const String displayNameFile = 'display-name.ttl';
 
 /// String terms used as predicates in ttl files.
 

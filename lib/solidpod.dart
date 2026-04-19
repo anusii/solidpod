@@ -183,6 +183,12 @@ export 'src/solid/constants/web_acl.dart'
         publicAgent,
         authenticatedAgent;
 
+/// Helper to generate an ACL turtle string for a given resource. Useful for
+/// apps that need to rewrite a folder's ACL (e.g. switching between private
+/// and public access).
+
+export 'src/solid/utils/permission.dart' show genAclTurtle;
+
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
