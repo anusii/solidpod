@@ -206,9 +206,8 @@ Future<void> initPod(
   final indKeyUrl = await getFileUrl(await getIndKeyPath());
   final pubKeyUrl = await getFileUrl(await getPubKeyPath());
 
-  final encDirExists =
-      await checkResourceStatus(encDirUrl, isFile: false) ==
-          ResourceStatus.exist;
+  final encDirExists = await checkResourceStatus(encDirUrl, isFile: false) ==
+      ResourceStatus.exist;
   final encKeyExists = encDirExists &&
       await checkResourceStatus(encKeyUrl) == ResourceStatus.exist;
 
