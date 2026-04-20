@@ -115,6 +115,7 @@ Future<List<String>> generateDefaultFolders() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final profileDirLoc = [appDirName, profileDir].join('/');
 
   final folders = [
     appDirName,
@@ -123,6 +124,7 @@ Future<List<String>> generateDefaultFolders() async {
     dataDirLoc,
     encDirLoc,
     logDirLoc,
+    profileDirLoc,
   ];
   return folders;
 }
@@ -159,12 +161,14 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final profileDirLoc = [appDirName, profileDir].join('/');
 
   final files = {
     sharingDirLoc: [pubKeyFile, '$pubKeyFile.acl'],
     logDirLoc: [permLogFile, '$permLogFile.acl'],
     sharedDirLoc: ['.acl'],
     encDirLoc: [encKeyFile, indKeyFile],
+    profileDirLoc: ['.acl'],
   };
   return files;
 }
@@ -189,11 +193,30 @@ Future<void> initPod(
     dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
   }
 
-  // Require the creation of the encryption directory and
-  // the encKeyFile and indKeyFile in it.
+  // Determine whether the encryption infrastructure already exists on the
+  // server. If the encryption directory and its key files are already in
+  // place, the POD has been initialised before and we must NOT regenerate
+  // the keyset — doing so would overwrite the existing RSA pair on the
+  // server and orphan every previously encrypted resource. This case is
+  // hit when the wizard is re-run to add a newly required folder (such as
+  // the profile directory) on a previously initialised POD.
 
   final encDirUrl = await getDirUrl(await getEncDirPath());
-  if (!dirUrls.contains(encDirUrl)) {
+  final encKeyUrl = await getFileUrl(await getEncKeyPath());
+  final indKeyUrl = await getFileUrl(await getIndKeyPath());
+  final pubKeyUrl = await getFileUrl(await getPubKeyPath());
+
+  final encDirExists = await checkResourceStatus(encDirUrl, isFile: false) ==
+      ResourceStatus.exist;
+  final encKeyExists = encDirExists &&
+      await checkResourceStatus(encKeyUrl) == ResourceStatus.exist;
+
+  // Only require the encryption directory in the missing-folder list when
+  // it does not already exist on the server. Otherwise it is legitimate to
+  // call initPod() with a partial set of folders (e.g. just the profile
+  // directory) and we should simply top up whatever is missing.
+
+  if (!encDirExists && !dirUrls.contains(encDirUrl)) {
     throw Exception('Can not initialise POD without creating $encDirUrl');
   }
 
@@ -220,13 +243,27 @@ Future<void> initPod(
     }
   }
 
-  // Create the encKeyFile, indKeyFile and pubKeyFile
-  // and remove them from the fileUrls list.
+  if (encKeyExists) {
+    // The POD already has an encryption keyset on the server. Verify the
+    // user-supplied security key against the existing verification key and
+    // cache it locally so subsequent operations do not need to prompt the
+    // user again. setSecurityKey() throws if verification fails, which the
+    // wizard surfaces back to the user.
 
-  await KeyManager.initPodKeys(securityKey);
-  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
-  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
-  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+    await KeyManager.setSecurityKey(securityKey);
+  } else {
+    // First-time initialisation: create the encKeyFile, indKeyFile and
+    // pubKeyFile on the server, and cache the security key locally.
+
+    await KeyManager.initPodKeys(securityKey);
+  }
+
+  // The key files are managed by KeyManager — never recreate them as part
+  // of the generic file-creation loop below.
+
+  fileUrls.remove(encKeyUrl);
+  fileUrls.remove(indKeyUrl);
+  fileUrls.remove(pubKeyUrl);
 
   for (final f in fileUrls) {
     final fileName = f.split('/').last;
@@ -245,8 +282,14 @@ Future<void> initPod(
           publicAccess = {AccessMode.append};
         default:
           assert(fileName == '.acl');
-          publicAccess = {AccessMode.read, AccessMode.write};
           isFile = false;
+
+          // The shared directory ACL grants public read/write;
+          // the profile directory ACL is owner-only (empty publicAccess).
+
+          publicAccess = f.contains('/$sharedDir/')
+              ? {AccessMode.read, AccessMode.write}
+              : {};
       }
 
       fileContent = await genAclTurtle(
