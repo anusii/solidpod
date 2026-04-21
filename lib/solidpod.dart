@@ -183,6 +183,12 @@ export 'src/solid/constants/web_acl.dart'
         publicAgent,
         authenticatedAgent;
 
+/// Helper to generate an ACL turtle string for a given resource. Useful for
+/// apps that need to rewrite a folder's ACL (e.g. switching between private
+/// and public access).
+
+export 'src/solid/utils/permission.dart' show genAclTurtle;
+
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
@@ -210,6 +216,8 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        createResource,
+        deleteResource,
         getResource,
         getResourcesInContainer,
         initialStructureTest,
@@ -241,7 +249,14 @@ export 'src/solid/write_external_pod.dart';
 /// 20251103 jesscmoore In common.dart, only authUserPred is
 /// used by notepod
 
-export 'src/solid/constants/common.dart' show dataDir, profCard, authUserPred;
+export 'src/solid/constants/common.dart'
+    show
+        dataDir,
+        profCard,
+        authUserPred,
+        profileDir,
+        profilePictureFile,
+        displayNameFile;
 
 /// Function to get resources in a user's POD
 

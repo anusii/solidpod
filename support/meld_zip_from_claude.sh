@@ -33,21 +33,21 @@ mkdir tmp
 
 # Run meld with the file and find result
 
-if [ -d tmp/lib ]; then
+if [[ -d tmp/lib ]] && ! diff -rqw "lib" "tmp/lib" > /dev/null ; then
     meld tmp/lib lib
 fi
 
-if [ -d tmp/test ]; then
+if [[ -d tmp/test ]]  && ! diff -rqw "test" "tmp/test" > /dev/null ; then
     meld tmp/test test
 fi
 
-if [ -d tmp/integration_test ]; then
+if [[ -d tmp/integration_test ]]  && ! diff -rqw "integration_test" "tmp/integration_test" > /dev/null ; then
     meld tmp/integration_test integration_test
 fi
 
 # Check if pubspec included and if so compare.
 
-if [ -f tmp/pubspec.yaml ]; then
+if [[ -f tmp/pubspec.yaml ]] && ! diff -qw "tmp/pubspec.yaml" "pubspec.yaml" > /dev/null; then
   meld tmp/pubspec.yaml pubspec.yaml
 fi
 

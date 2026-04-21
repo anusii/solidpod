@@ -11,6 +11,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.13
 
++ Support user profile. [0.12.4 20260421 tonypioneer]
++ Key map + paths updates. Update file_picker. [0.12.3 20260420 jesscmoore]
 + Add silentLogout() [0.12.2 20260325 tonypioneer]
 + Fix logout issue [0.12.1 20260319 av]
 + Fix large file download issue [0.12.1 20260319 av]
