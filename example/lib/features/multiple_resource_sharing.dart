@@ -1,6 +1,6 @@
-/// A demonstration widget showcasing the onPermissionGranted callback functionality.
+/// A widget demonstrating sharing of multiple files.
 ///
-/// Copyright (C) 2025, Software Innovation Institute, ANU.
+/// Copyright (C) 2026, Software Innovation Institute, ANU.
 ///
 /// Licensed under the GNU General Public License, Version 3 (the "License").
 ///
@@ -19,7 +19,7 @@
 // You should have received a copy of the GNU General Public License along with
 // this program.  If not, see <https://opensource.org/license/gpl-3-0>.
 ///
-/// Authors: Ashley Tang
+/// Authors: Jess Moore
 
 library;
 
@@ -28,25 +28,25 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart' show GrantPermissionUi;
 
-import 'package:demopod/widgets/permission_demo_widgets.dart';
+// import 'package:demopod/widgets/permission_demo_widgets.dart';
 
-/// A widget demonstrating the onPermissionGranted callback functionality.
+/// A widget demonstrating sharing of multiple resources.
 
-class PermissionCallbackDemo extends StatefulWidget {
-  const PermissionCallbackDemo({required this.child, super.key});
+class MultiResourceShareDemo extends StatefulWidget {
+  const MultiResourceShareDemo({required this.child, super.key});
 
   final Widget child;
 
   @override
-  State<PermissionCallbackDemo> createState() => _PermissionCallbackDemoState();
+  State<MultiResourceShareDemo> createState() => _MultiResourceShareDemoState();
 }
 
-class _PermissionCallbackDemoState extends State<PermissionCallbackDemo> {
+class _MultiResourceShareDemoState extends State<MultiResourceShareDemo> {
   // Status tracking variables.
 
-  bool _workflowCompleted = false;
-  int _currentStep = 1;
-  String _statusMessage = 'Ready to start permission workflow';
+  // bool _workflowCompleted = false;
+  // int _currentStep = 1;
+  String _statusMessage = 'Ready to start granting permission to file list';
 
   // Sample files to demonstrate batch permission granting.
   // All files will be auto-created for the demo.
@@ -63,10 +63,10 @@ class _PermissionCallbackDemoState extends State<PermissionCallbackDemo> {
 
   void _resetDemo() {
     setState(() {
-      _workflowCompleted = false;
-      _currentStep = 1;
+      // _workflowCompleted = false;
+      // _currentStep = 1;
       _currentFileIndex = 0;
-      _statusMessage = 'Ready to start permission workflow';
+      _statusMessage = 'Ready to start granting permission to file list';
     });
   }
 
@@ -84,12 +84,12 @@ class _PermissionCallbackDemoState extends State<PermissionCallbackDemo> {
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
 demo:sampleData$fileNumber a demo:DemoResource ;
-    rdfs:label "Permission Callback Demo File $fileNumber" ;
+    rdfs:label "Multiple File Sharing Demo File $fileNumber" ;
     demo:created "${DateTime.now().toIso8601String()}" ;
-    demo:purpose "Demonstrating onPermissionGranted callback functionality" ;
+    demo:purpose "Demonstrating sharing of multiple files" ;
     demo:fileNumber "$fileNumber" ;
-    demo:description "This file demonstrates how callbacks enable automated workflows when sharing multiple files sequentially." ;
-    foaf:maker "SolidPod Permission Callback Demo" .
+    demo:description "This is a sameple file for demonstrating sharing multiple files sequentially." ;
+    foaf:maker "SolidPod Multi Resource Share Demo" .
 
 demo:exampleData$fileNumber
     demo:sampleProperty "Sample value $fileNumber" ;
@@ -104,7 +104,7 @@ demo:exampleData$fileNumber
         await writePod(fileName, demoContent);
       }
     } catch (e) {
-      debugPrint('❌ [CallbackDemo] Error creating demo files: $e');
+      debugPrint('❌ [MultiShareDemo] Error creating demo files: $e');
       rethrow; // Re-throw to show user the error
     }
   }
@@ -135,7 +135,7 @@ demo:exampleData$fileNumber
     }
 
     setState(() {
-      _currentStep = 2;
+      // _currentStep = 2;
       _statusMessage =
           'Navigate to permission screen for file ${_currentFileIndex + 1} of ${_sampleFiles.length}';
     });
@@ -152,54 +152,31 @@ demo:exampleData$fileNumber
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
               title: Text(
-                'Share "${_sampleFiles[_currentFileIndex]}" (${_currentFileIndex + 1}/${_sampleFiles.length})',
+                'Multi file sharing',
               ),
               backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
               foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
             ),
             body: GrantPermissionUi(
-              resourceNames: [_sampleFiles[_currentFileIndex]],
-              title: 'Demo: Grant Permission with Callback',
+              resourceNames: _sampleFiles,
+              title: 'Demo: Grant Permission on Multiple Files',
               accessModeList: const ['read'], // Simplified for demo.
               recipientTypeList: const ['indi'], // Individual permissions only.
               showAppBar: false,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              // ownerWebId: widget.bookOwner,
               child: widget.child,
 
-              // 🎯 Key callback being demonstrated.
+              // // Handle user cancellation/navigation back.
 
-              onPermissionGranted: () async {
-                // This callback is triggered when permissions are successfully granted.
-
-                if (mounted) {
-                  // Update our state to reflect success.
-
-                  setState(() {
-                    _currentStep = 3;
-                    _statusMessage =
-                        'Permission granted successfully! Processing next file...';
-                  });
-
-                  // Navigate back from the permission screen.
-
-                  Navigator.of(navContext).pop(true);
-
-                  // Continue with the next file in our workflow.
-
-                  await _continueWorkflow();
-                }
-              },
-
-              // Handle user cancellation/navigation back.
-
-              onNavigateBack: () {
-                if (mounted) {
-                  setState(() {
-                    _statusMessage = 'Permission granting cancelled by user';
-                  });
-                  Navigator.of(navContext).pop(false);
-                }
-              },
+              // onNavigateBack: () {
+              //   if (mounted) {
+              //     setState(() {
+              //       _statusMessage = 'Permission granting cancelled by user';
+              //     });
+              //     Navigator.of(navContext).pop(false);
+              //   }
+              // },
             ),
           ),
         ),
@@ -207,49 +184,12 @@ demo:exampleData$fileNumber
     );
   }
 
-  // Continue workflow after permission is granted.
-
-  Future<void> _continueWorkflow() async {
-    // Simulate some processing time.
-
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    if (!mounted) return;
-
-    _currentFileIndex++;
-
-    if (_currentFileIndex < _sampleFiles.length) {
-      // More files to process.
-
-      setState(() {
-        _currentStep = 2;
-        _statusMessage =
-            'Moving to next file: ${_sampleFiles[_currentFileIndex]}';
-      });
-
-      // Automatically start next file (in real app, you might want user confirmation).
-
-      await Future.delayed(const Duration(milliseconds: 800));
-      if (mounted) {
-        await _startPermissionWorkflow();
-      }
-    } else {
-      // All files processed.
-
-      setState(() {
-        _workflowCompleted = true;
-        _currentStep = 4;
-        _statusMessage = 'All files shared successfully! Workflow completed.';
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Permission Callback Demo'),
+        title: const Text('Multi File Sharing Demo'),
         backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
         elevation: 2,
@@ -296,13 +236,7 @@ demo:exampleData$fileNumber
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header section.
-
-              buildDemoHeaderSection(),
-
-              const SizedBox(height: 24),
-
-              // Current workflow status section.
+              // Demo status section.
 
               Container(
                 padding: const EdgeInsets.all(16),
@@ -322,7 +256,7 @@ demo:exampleData$fileNumber
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Workflow Status',
+                      'Demo Status',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -330,46 +264,22 @@ demo:exampleData$fileNumber
                     ),
                     const SizedBox(height: 12),
 
-                    // Progress indicator.
-
-                    Row(
-                      children: [
-                        buildStepIndicator(1, 'Start', _currentStep >= 1),
-                        buildStepConnector(_currentStep >= 2),
-                        buildStepIndicator(2, 'Grant', _currentStep >= 2),
-                        buildStepConnector(_currentStep >= 3),
-                        buildStepIndicator(3, 'Process', _currentStep >= 3),
-                        buildStepConnector(_currentStep >= 4),
-                        buildStepIndicator(4, 'Complete', _currentStep >= 4),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-
                     // Status message.
 
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _workflowCompleted
-                            ? Colors.green[50]
-                            : Colors.orange[50],
+                        color: Colors.green[50],
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: _workflowCompleted
-                              ? Colors.green[200]!
-                              : Colors.orange[200]!,
+                          color: Colors.green[200]!,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            _workflowCompleted
-                                ? Icons.check_circle
-                                : Icons.info,
-                            color: _workflowCompleted
-                                ? Colors.green[700]
-                                : Colors.orange[700],
+                            Icons.info,
+                            color: Colors.green[700],
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -377,9 +287,7 @@ demo:exampleData$fileNumber
                             child: Text(
                               _statusMessage,
                               style: TextStyle(
-                                color: _workflowCompleted
-                                    ? Colors.green[800]
-                                    : Colors.orange[800],
+                                color: Colors.green[800],
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -435,62 +343,27 @@ demo:exampleData$fileNumber
                     ),
                     const SizedBox(height: 12),
                     ...List.generate(_sampleFiles.length, (index) {
-                      final isProcessed = index < _currentFileIndex;
-                      final isCurrent =
-                          index == _currentFileIndex && _currentStep >= 2;
-
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isProcessed
-                              ? Colors.green[50]
-                              : isCurrent
-                                  ? Colors.blue[50]
-                                  : Colors.grey[50],
+                          color: Colors.blue[50],
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: isProcessed
-                                ? Colors.green[200]!
-                                : isCurrent
-                                    ? Colors.blue[200]!
-                                    : Colors.grey[200]!,
+                            color: Colors.green[200]!,
                           ),
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              isProcessed
-                                  ? Icons.check_circle
-                                  : isCurrent
-                                      ? Icons.radio_button_checked
-                                      : Icons.radio_button_unchecked,
-                              color: isProcessed
-                                  ? Colors.green[600]
-                                  : isCurrent
-                                      ? Colors.blue[600]
-                                      : Colors.grey[400],
-                            ),
-                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _sampleFiles[index],
                                 style: TextStyle(
                                   fontWeight: FontWeight.w500,
-                                  color: isProcessed || isCurrent
-                                      ? Colors.black87
-                                      : Colors.grey[600],
+                                  color: Colors.black87,
                                 ),
                               ),
                             ),
-                            if (isProcessed)
-                              const Text(
-                                'Shared ✓',
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
                           ],
                         ),
                       );
@@ -507,13 +380,9 @@ demo:exampleData$fileNumber
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: (_currentStep == 1 || _workflowCompleted)
-                          ? _startPermissionWorkflow
-                          : null,
+                      onPressed: _startPermissionWorkflow,
                       icon: const Icon(Icons.auto_awesome),
-                      label: Text(_workflowCompleted
-                          ? 'Run Demo Again'
-                          : 'Start Auto-Demo'),
+                      label: Text('Start Auto-Demo'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[600],
                         foregroundColor: Colors.white,

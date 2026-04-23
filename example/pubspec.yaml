@@ -15,13 +15,18 @@ dependencies:
   markdown_tooltip: ^0.0.10
   rdflib: ^0.2.12
   solidpod: ^0.12.0
-  solidui: ^0.3.2
+  solidui: ^0.3.18
   universal_io: ^2.3.1
   window_manager: ^0.5.1
 
 dependency_overrides:
   solidpod:
     path: ..
+  solidui:
+    # path: ../../solidui
+    git:
+      url: https://github.com/anusii/solidui.git
+      ref: jess/271_multi_share # dev
 
 dev_dependencies:
   dependency_validator: ^5.0.4
