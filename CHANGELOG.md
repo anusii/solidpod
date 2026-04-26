@@ -23,7 +23,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 + Publish to pub.dev [0.12.0 20260316 gjw]
 + Example app migrated to solidui [0.11.3 20260313 tony]
-+ Optimse pod initialisation check [0.11.2 20260219 tony]
++ Optimise pod initialisation check [0.11.2 20260219 tony]
 + Update support for SolidFile browser [0.11.1 20260219 tony]
 + Migrated most of remaining UI to solidui [0.11.0 20260213 tony]
 
@@ -36,7 +36,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 + Update dependency on solidui to 0.1.0 [0.10.1 20260203 gjw]
 + Migrate Security Key and Permission GUI to solidui [0.10.0 20260203 tonypioneer]
 
-## 0.10 Complete UI migrations - SecurityKey and Persmissions
+## 0.10 Complete UI migrations - SecurityKey and Permissions
 
 + Add fetch resource metadata function [0.9.20 20260131 anushkavid]
 + Refactor constants, security, and reactivity [0.9.19 20260131 miduo]
@@ -47,7 +47,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 + Restored retrieve permissions button [0.9.14 20260125 jesscmoore]
 + Export ResourceNotExistException [0.9.13 20260123 tonypioneer]
 + Move grant permission form to dialog [0.9.12 20260119 jesscmoore]
-+ Standardise action message colors [0.9.11 20260116 jesscmoore]
++ Standardise action message colours [0.9.11 20260116 jesscmoore]
 + Fixed sharing to public/auth users bug [0.9.10 20260115 jesscmoore]
 + Fixed error when reading large file as single chunk [0.9.9 20260117 cdawei]
 + Support custom folder structure [0.9.8 20260114 anushkavid]
@@ -107,7 +107,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 + Replace login animation with informative snackbar [0.6.9 20250711 atangster]
 + Add Access and Recipient options in `GrantPermissionUI()` [0.6.8 20250702 anushkavidanage]
 + Fix error when cancelling the authentication process [0.6.7 20250613]
-+ POD initialisation back button goes back usefully [0.6.6 20250509 atangser]
++ POD initialisation back button goes back usefully [0.6.6 20250509 atangster]
 
 ## [0.6.5 20250430]
 
