@@ -140,14 +140,9 @@ class IndividualKeyManager {
     );
     _indKeyMap![resourceUrl] = record;
 
-    final query = await getIndKeyQuery(
-      record,
-      operation: SparqlOperation.insert,
-      isFile: isFile,
-    );
-    _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
-
-    await updateFileByQuery(_indKeyUrl!, query);
+    // Use full PUT overwrite instead of SPARQL PATCH — CSS servers may accept
+    // the PATCH request (HTTP 200) without actually persisting the triples.
+    await saveIndividualKeys(_indKeyMap);
   }
 
   /// Remove the (encrypted) individual key for file.
@@ -163,18 +158,12 @@ class IndividualKeyManager {
     assert(_indKeyMap != null);
 
     if (_indKeyMap!.containsKey(resourceUrl)) {
-      final record = _indKeyMap!.remove(resourceUrl);
-      assert(record != null);
+      _indKeyMap!.remove(resourceUrl);
 
-      final query = await getIndKeyQuery(
-        record!,
-        operation: SparqlOperation.delete,
-        isFile: isFile,
-      );
-      _indKeyUrl ??= await getFileUrl(await getIndKeyPath());
-      await updateFileByQuery(_indKeyUrl!, query);
+      // Use full PUT overwrite instead of SPARQL PATCH.
+      await saveIndividualKeys(_indKeyMap);
 
-      debugPrint('Deleted $record');
+      debugPrint('Deleted individual key for $resourcePath');
     } else {
       debugPrint(
         'Individual key for "$resourcePath" does not exist, do nothing.',
