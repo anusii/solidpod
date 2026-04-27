@@ -55,6 +55,15 @@ class ResourceNotExistException implements Exception {
   String toString() => 'ResourceNotExistException: $message';
 }
 
+class ResourceNotDecryptableException implements Exception {
+  final String message;
+
+  ResourceNotDecryptableException(this.message);
+
+  @override
+  String toString() => 'ResourceNotDecryptableException: $message';
+}
+
 class NotLoggedInException implements Exception {
   final String message;
 
