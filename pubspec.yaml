@@ -32,7 +32,7 @@ dependencies:
   path: ^1.9.1
   pointycastle: ^4.0.0
   rdflib: ^0.2.12
-  solid_auth: ^0.1.28
+  solid_auth: ^0.1.29
   universal_io: ^2.3.1
 
 dev_dependencies:
