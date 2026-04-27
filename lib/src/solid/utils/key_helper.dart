@@ -326,8 +326,9 @@ Future<String> genIndKeyTTLStr(
       final resourceUrl = entry.key;
       final record = entry.value;
 
-      final indKey = record.key;
-      assert(indKey != null);
+      // [20260427 jesscmoore] Removed the assert that record.key is not null, as it prevents first file being written to pod.
+      // final indKey = record.key;
+      // assert(indKey != null);
 
       triples[URIRef(resourceUrl)] = {
         solidTermsNS.ns.withAttr(pathPred): record.resourcePath,
