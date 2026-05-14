@@ -49,7 +49,8 @@ export 'src/solid/constants/predicates.dart';
 
 /// Solid authentication function
 
-export 'src/solid/authenticate.dart' show solidAuthenticate;
+export 'src/solid/authenticate.dart'
+    show cancelSolidAuthenticate, isSolidAuthenticatePending, solidAuthenticate;
 
 /// Status class to represent different function outputs
 
@@ -86,7 +87,8 @@ export 'src/solid/utils/exceptions.dart'
         NotLoggedInException,
         ResourceNotDecryptableException,
         ResourceNotExistException,
-        SecurityKeyNotAvailableException;
+        SecurityKeyNotAvailableException,
+        SolidAuthCancelledException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 

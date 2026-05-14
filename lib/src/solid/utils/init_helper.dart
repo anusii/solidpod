@@ -98,6 +98,10 @@ Future<void> clearPodStructureInitialised() async {
     if (await secureStorage.containsKey(key: key)) {
       await secureStorage.delete(key: key);
     }
+  } on NotLoggedInException {
+    // Expected during account-switch flows where the caller logs out before
+    // clearing the flag. There is no user-specific key to delete, so this is
+    // a no-op rather than an error.
   } on Object catch (e) {
     debugPrint('clearPodStructureInitialised() failed: $e');
   }

@@ -32,6 +32,7 @@
 
 library;
 
+import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -41,6 +42,8 @@ import 'package:solid_auth/solid_auth.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
+import 'package:solidpod/src/solid/utils/exceptions.dart'
+    show SolidAuthCancelledException;
 import 'package:solidpod/src/solid/utils/misc.dart'
     show isUserLoggedIn, logoutPod;
 
@@ -52,6 +55,20 @@ final List<String> _scopes = <String>[
   'offline_access',
   'webid', // web ID is necessary to get refresh token
 ];
+
+/// Returns true while [solidAuthenticate] is awaiting the browser-based OAuth
+/// flow.
+
+bool isSolidAuthenticatePending() => isAuthenticatePending();
+
+/// Aborts any in-flight [solidAuthenticate] call. Delegates to
+/// `solid_auth.cancelAuthenticate()` which closes the local OAuth callback
+/// server and errors the pending awaiter, so this caller unwinds with a
+/// [SolidAuthCancelledException].
+
+void cancelSolidAuthenticate() {
+  unawaited(cancelAuthenticate());
+}
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
 ///
@@ -85,6 +102,7 @@ Future<List<dynamic>?> solidAuthenticate(
       // Authentication process for the POD issuer.
 
       final issuerUri = await getIssuer(serverId);
+
       authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
 
       // Validate authentication response before saving
@@ -130,6 +148,8 @@ Future<List<dynamic>?> solidAuthenticate(
     final profData = utf8.decode(await getResource(profCardUrl));
 
     return [authData, webId, profData];
+  } on AuthCancelledException catch (e) {
+    throw SolidAuthCancelledException(e.message);
   } on Object catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;
