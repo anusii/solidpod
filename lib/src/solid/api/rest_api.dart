@@ -421,8 +421,7 @@ Future<WebIdStatus> checkWebIdProfile(String webIdUrl) async {
       // Solid servers content-negotiate on `Accept`. List the common RDF
       // serialisations in preference order; the trailing `*/*;q=0.1` allows
       // us to still inspect the response if the server ignores `Accept`.
-      'Accept':
-          'text/turtle, '
+      'Accept': 'text/turtle, '
           'application/ld+json;q=0.95, '
           'application/n-triples;q=0.9, '
           'application/rdf+xml;q=0.85, '
