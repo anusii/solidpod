@@ -233,6 +233,16 @@ export 'src/solid/api/rest_api.dart'
         initialStructureTest,
         updateFileByQuery;
 
+/// WebID validation pipeline.
+
+export 'src/solid/utils/webid_validator.dart'
+    show
+        WebIdCheckResult,
+        WebIdCheckStatus,
+        isValidIpv4,
+        looksLikeIpv4Attempt,
+        validateWebId;
+
 /// Function to get the latest log enties
 
 export 'src/solid/api/common_permission.dart'
