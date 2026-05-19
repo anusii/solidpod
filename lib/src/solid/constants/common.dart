@@ -192,6 +192,28 @@ enum ResourceStatus {
   forbidden,
 }
 
+/// Outcome of validating that a URL points to a real Solid WebID profile
+/// document, as opposed to merely returning a 200 response. Plain existence
+/// is insufficient because many ordinary websites happily return 200 HTML
+/// for any unmatched path (SPA catch-alls, soft 404s, etc.), which would
+/// otherwise be mistaken for a valid WebID.
+enum WebIdStatus {
+  /// The URL responds with 200/204 and an RDF content type, so it is very
+  /// likely a genuine WebID profile document.
+  valid,
+
+  /// The URL responds with 200/204 but the body is not RDF (typically a
+  /// `text/html` page from a regular website). The URL is reachable but is
+  /// *not* a WebID profile.
+  notProfile,
+
+  /// The URL returned 404.
+  notExist,
+
+  /// Some other status code (e.g. 403, 5xx) — could not determine.
+  unknown,
+}
+
 /// Types of the content of resources
 enum ResourceContentType {
   /// Detect the MIME type automatically at runtime

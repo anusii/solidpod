@@ -374,6 +374,90 @@ Future<ResourceStatus> checkWebIdExists(String webIdUrl) async {
   }
 }
 
+/// MIME types accepted as evidence that a 200 response is an RDF document and
+/// therefore plausibly a Solid WebID profile. Anything else (most notably
+/// `text/html`) is rejected so that arbitrary websites cannot masquerade as
+/// WebIDs simply by responding 200 for an unknown path.
+const Set<String> _rdfProfileMimeTypes = {
+  'text/turtle',
+  'application/ld+json',
+  'application/n-triples',
+  'application/n-quads',
+  'application/rdf+xml',
+  'application/trig',
+  'text/n3',
+};
+
+bool _isRdfProfileContentType(String contentType) {
+  final ct = contentType.toLowerCase().trim();
+  if (ct.isEmpty) return false;
+  for (final mimeType in _rdfProfileMimeTypes) {
+    if (ct == mimeType || ct.startsWith('$mimeType;')) return true;
+  }
+  return false;
+}
+
+/// Validate that [webIdUrl] points to a real Solid WebID *profile document*,
+/// not just any HTTP resource that happens to return 200.
+///
+/// A plain existence check (status code only) is unsafe because many ordinary
+/// websites return a 200 HTML page for arbitrary paths — for example a
+/// WordPress site's catch-all "soft 404" — which would otherwise be
+/// indistinguishable from a real WebID. To guard against this we
+/// content-negotiate for the usual RDF serialisations and accept the URL only
+/// when the response carries an RDF `Content-Type`.
+///
+/// This function does not catch network exceptions; callers should wrap it in
+/// a try/catch when a host-resolution or connectivity error needs to be
+/// surfaced separately from a "not a profile" outcome.
+Future<WebIdStatus> checkWebIdProfile(String webIdUrl) async {
+  // HTTP requests never carry the URL fragment, but stripping it explicitly
+  // keeps the request URL and any debug logs honest.
+  final uri = Uri.parse(webIdUrl).removeFragment();
+
+  final response = await http.get(
+    uri,
+    headers: const <String, String>{
+      // Solid servers content-negotiate on `Accept`. List the common RDF
+      // serialisations in preference order; the trailing `*/*;q=0.1` allows
+      // us to still inspect the response if the server ignores `Accept`.
+      'Accept':
+          'text/turtle, '
+          'application/ld+json;q=0.95, '
+          'application/n-triples;q=0.9, '
+          'application/rdf+xml;q=0.85, '
+          'application/n-quads;q=0.8, '
+          'application/trig;q=0.75, '
+          'text/n3;q=0.7, '
+          '*/*;q=0.1',
+    },
+  );
+
+  if (response.statusCode == 404) {
+    return WebIdStatus.notExist;
+  }
+
+  if (response.statusCode != 200 && response.statusCode != 204) {
+    debugPrint(
+      'checkWebIdProfile: unexpected status\n'
+      'URL: $uri\n'
+      'Status: ${response.statusCode}\n'
+      'Body: ${response.body}',
+    );
+    return WebIdStatus.unknown;
+  }
+
+  final contentType = response.headers['content-type'] ?? '';
+  if (_isRdfProfileContentType(contentType)) {
+    return WebIdStatus.valid;
+  }
+
+  debugPrint(
+    'checkWebIdProfile: 200 but non-RDF content type "$contentType" for $uri',
+  );
+  return WebIdStatus.notProfile;
+}
+
 /// Given a WebID check if their POD is initialised using the Solidpod
 /// directory structure
 Future<bool> checkPodInitialised(String webIdUrl) async {
