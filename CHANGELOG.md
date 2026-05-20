@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.13
 
++ Check missing resources [0.12.9 20260520 tonypioneer]
 + Support checking webID [0.12.8 20260520 tonypioneer]
 + Update Try Another WebID workflow [0.12.7 20260520 tonypioneer]
 + Bug fix to ttl rdf for special chars #628 [0.12.6 20260518 tonypioneer]
