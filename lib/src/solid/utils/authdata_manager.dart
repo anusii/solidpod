@@ -1,3 +1,5 @@
+/// Manages authentication state for Solid-OIDC sessions.
+///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
 /// Licensed under the MIT License (the "License").
@@ -22,7 +24,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Dawei Chen
+/// Authors: Dawei Chen, Anushka Vidanage
 
 library;
 
@@ -30,12 +32,8 @@ import 'dart:convert' show jsonEncode, jsonDecode;
 
 import 'package:flutter/foundation.dart' show ValueNotifier;
 
-import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
-import 'package:jwt_decoder/jwt_decoder.dart' show JwtDecoder;
-import 'package:solid_auth/solid_auth.dart';
-// ignore: implementation_imports
-import 'package:solid_auth/src/openid/openid_client.dart'
-    show Credential, TokenResponse;
+import 'package:solid_auth/solid_auth.dart'
+    show DpopKeyManager, SolidAuthData, SolidAuthManager, SolidOidcConfig;
 
 import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;
 import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
@@ -44,245 +42,184 @@ import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
 /// Listen to this to get notified when login/logout happens.
 final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
 
-/// [AuthDataManager] is a class to manage auth data returned by
-/// solid-auth authenticate, including:
-/// - save auth data to secure storage
-/// - load auth data from secure storage
-/// - delete saved auth data from secure storage
-/// - refresh access token if necessary
+/// [AuthDataManager] manages the Solid-OIDC authentication session:
+/// - persists enough config to restore [SolidAuthManager] across app restarts
+/// - caches auth data in memory to avoid repeated secure-storage reads
+/// - delegates token refresh and logout to [SolidAuthManager]
 
 class AuthDataManager {
-  /// The web ID
+  /// In-memory [SolidAuthManager] for the active session.
+  static SolidAuthManager? _authManager;
+
+  /// Cached webId for fast access without loading the full session.
   static String? _webId;
 
-  /// The URL for logging out
-  static String? _logoutUrl;
-
-  /// The RSA keypair and their JWK format.
-  //
-  // It seems [String] as the first between the angle brackets does not work
-  static Map<dynamic, dynamic>? _rsaInfo;
-
-  /// The authentication response
-  static Credential? _authResponse;
-
-  /// The string key for storing auth data in secure storage
+  /// Secure-storage key for the session config needed to recreate [SolidAuthManager].
   static const String _authDataSecureStorageKey = '_solid_auth_data';
 
-  /// Save the auth data returned by solid-auth authenticate in secure storage
-  //
-  // It seems [String] as the first between the angle brackets does not work
-  static Future<void> saveAuthData(Map<dynamic, dynamic> authData) async {
-    const keys = [
-      'client',
-      'rsaInfo',
-      'authResponse',
-      'tokenResponse',
-      'accessToken',
-      'idToken',
-      'refreshToken',
-      'expiresIn',
-      'logoutUrl',
-    ];
+  /// Save auth data after a successful login.
+  ///
+  /// Stores [authData] and the [authManager] in memory, and persists
+  /// [oidcClientId] + [redirectUri] + issuer to secure storage so the session
+  /// can be restored on app restart via [initForIssuer].
+  static Future<void> saveAuthData(
+    SolidAuthData authData,
+    SolidAuthManager authManager, {
+    String? oidcClientId,
+    String? redirectUri,
+  }) async {
+    _authManager = authManager;
+    _webId = authData.webId;
 
-    for (final key in keys) {
-      assert(authData.containsKey(key));
-    }
-
-    final decodedToken = JwtDecoder.decode(authData['accessToken'] as String);
-    _webId = decodedToken['webid'] as String;
-    _logoutUrl = authData['logoutUrl'] as String;
-    _rsaInfo = authData['rsaInfo'] as Map<dynamic,
-        dynamic>; // Note that use Map<String, dynamic> does not seem to work
-    _authResponse = authData['authResponse'] as Credential;
-
+    final keyPair = authManager.keyManager.keyPair;
     await writeToSecureStorage(
       _authDataSecureStorageKey,
       jsonEncode({
-        'web_id': _webId,
-        'logout_url': _logoutUrl,
-        'rsa_info': jsonEncode({
-          ..._rsaInfo!,
-          // Overwrite the 'rsa' keypair in rsaInfo
-          'rsa': {
-            'public_key': _rsaInfo!['rsa'].publicKey as String,
-            'private_key': _rsaInfo!['rsa'].privateKey as String,
-          },
-        }),
-        'auth_response': _authResponse!.toJson(),
+        'web_id': authData.webId,
+        'issuer': authData.issuer,
+        'oidc_client_id': oidcClientId ?? '',
+        'redirect_uri': redirectUri ?? '',
+        'dpop_private_key': keyPair.privateKey,
+        'dpop_public_key': keyPair.publicKey,
       }),
     );
 
-    // Notify listeners that auth state has changed
     authStateNotifier.value = true;
-
-    // debugPrint('AuthDataManager => saveAuthData() done');
   }
 
-  /// Retrieve (and reconstruct) auth data from secure storage
-  //
-  // It seems [String] as the first between the angle brackets does not work
-  static Future<Map<dynamic, dynamic>?> loadAuthData() async {
-    if (_logoutUrl == null || _rsaInfo == null || _authResponse == null) {
-      final loaded = await _loadData();
-      if (!loaded) {
-        // debugPrint('AuthDataManager => loadAuthData() failed');
+  /// Returns current [SolidAuthData], refreshing the token if expired.
+  ///
+  /// If no in-memory manager exists, attempts to restore the session from
+  /// secure storage using [SolidAuthManager.initForIssuer].  Returns null
+  /// when the session cannot be restored (forces re-login).
+  static Future<SolidAuthData?> loadAuthData() async {
+    // Check if live manager already in memory.
+    if (_authManager != null) {
+      return _getRefreshedAuthData(_authManager!);
+    }
+
+    // Slow path: try to restore from secure storage.
+    final dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
+    if (dataStr == null) return null;
+
+    try {
+      final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
+      final storedClientId = dataMap['oidc_client_id'] as String? ?? '';
+      final storedRedirectUri = dataMap['redirect_uri'] as String? ?? '';
+      final storedIssuer = dataMap['issuer'] as String? ?? '';
+      _webId = dataMap['web_id'] as String?;
+
+      if (storedClientId.isEmpty ||
+          storedRedirectUri.isEmpty ||
+          storedIssuer.isEmpty) {
         return null;
       }
-    }
 
-    assert(_logoutUrl != null && _rsaInfo != null && _authResponse != null);
-    try {
-      final tokenResponse = await _getTokenResponse();
-      if (tokenResponse == null) {
-        throw Exception('Refreshing access token failed');
+      // Restore the DPoP key pair that was active when the access token was
+      // issued. DpopKeyManager is in-memory only, so without this the manager
+      // would generate a new key pair whose thumbprint doesn't match cnf.jkt
+      // in the stored access token, causing the server to reject every request.
+      final dpopPrivateKey = dataMap['dpop_private_key'] as String? ?? '';
+      final dpopPublicKey = dataMap['dpop_public_key'] as String? ?? '';
+      if (dpopPrivateKey.isNotEmpty && dpopPublicKey.isNotEmpty) {
+        await DpopKeyManager.restoreFromPem(
+          privateKeyPem: dpopPrivateKey,
+          publicKeyPem: dpopPublicKey,
+        );
       }
-      return {
-        'client': _authResponse!.client,
-        'rsaInfo': _rsaInfo,
-        'authResponse': _authResponse,
-        'tokenResponse': tokenResponse,
-        'accessToken': tokenResponse.accessToken,
-        'idToken': _authResponse!.idToken,
-        'refreshToken': _authResponse!.refreshToken,
-        'expiresIn': tokenResponse.expiresIn,
-        'logoutUrl': _logoutUrl,
-      };
+
+      final restoredManager = SolidAuthManager(
+        config: SolidOidcConfig(
+          clientId: storedClientId,
+          redirectUri: Uri.parse(storedRedirectUri),
+        ),
+      );
+
+      // Restores the OIDC session from the oidc package's own secure storage.
+      await restoredManager.initForIssuer(storedIssuer);
+
+      final authData = await _getRefreshedAuthData(restoredManager);
+      if (authData != null) {
+        _authManager = restoredManager;
+        authStateNotifier.value = true;
+      }
+
+      return authData;
     } on Object {
-      // Catch any object thrown (Dart programs can throw any non-null object)
-      // debugPrint('AuthDataManager => loadAuthData() failed: $e');
+      return null;
     }
-    return null;
   }
 
-  /// Remove/delete auth data from secure storage
+  /// Clears cached state and removes persisted config from secure storage.
+  ///
+  /// Does NOT contact the IdP — call [getAuthManager]?.logout() or
+  /// [getAuthManager]?.forgetUser() before this if needed.
   static Future<bool> removeAuthData() async {
     try {
+      _authManager = null;
+      _webId = null;
+
       if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
         await secureStorage.delete(key: _authDataSecureStorageKey);
-        _webId = null;
-        _logoutUrl = null;
-        _rsaInfo = null;
-        _authResponse = null;
       }
 
-      // Notify listeners that auth state has changed
       authStateNotifier.value = false;
-
       return true;
     } on Object {
-      // debugPrint('AuthDataManager => removeAuthData() failed: $e');
+      return false;
     }
-    return false;
   }
 
-  /// Returns the (refreshed) access token
+  /// Returns the current (refreshed if expired) access token, or null.
   static Future<String?> getAccessToken() async {
-    final tokenResponse = await _getTokenResponse();
-    if (tokenResponse != null) {
-      return tokenResponse.accessToken;
-    } else {
-      // debugPrint('AuthDataManager => getAccessToken() failed');
-    }
-    return null;
+    final authData = await loadAuthData();
+    return authData?.accessToken;
   }
 
-  /// Returns the (updated) token response
-  static Future<TokenResponse?> _getTokenResponse() async {
-    if (_authResponse == null) {
-      final loaded = await _loadData();
-      if (!loaded) {
-        // debugPrint('AuthDataManager => _getTokenResponse() failed');
-        return null;
-      }
-    }
-    assert(_authResponse != null);
-
-    try {
-      var tokenResponse = TokenResponse.fromJson(_authResponse!.response!);
-      if (JwtDecoder.isExpired(tokenResponse.accessToken!)) {
-        // debugPrint(
-        //   'AuthDataManager => _getTokenResponse() refreshing expired token',
-        // );
-        assert(_rsaInfo != null);
-        final rsaKeyPair = _rsaInfo!['rsa'] as KeyPair;
-        final publicKeyJwk = _rsaInfo!['pubKeyJwk'];
-        final tokenEndpoint =
-            _authResponse!.client.issuer.metadata['token_endpoint'] as String;
-        final dPopToken = genDpopToken(
-          tokenEndpoint,
-          rsaKeyPair,
-          publicKeyJwk,
-          'POST',
-        );
-        tokenResponse = await _authResponse!.getTokenResponse(
-          forceRefresh: true,
-          dPoPToken: dPopToken,
-        );
-        // TODO dc 20250106: Save refreshed token in secure storage
-      }
-      return tokenResponse;
-    } on Object {
-      // debugPrint('AuthDataManager => _getTokenResponse() failed: $e');
-    }
-    return null;
-  }
-
-  /// Returns the web ID
+  /// Returns the cached WebID, falling back to secure storage.
   static Future<String?> getWebId() async {
-    if (_webId == null) {
-      final loaded = await _loadData();
-      if (!loaded) {
-        // debugPrint('AuthDataManager => getWebId() failed');
-        return null;
-      }
-    }
-    assert(_webId != null);
-    return _webId;
-  }
+    if (_webId != null) return _webId;
 
-  /// Returns the logout URL
-  static Future<String?> getLogoutUrl() async {
-    if (_logoutUrl == null) {
-      final loaded = await _loadData();
-      if (!loaded) {
-        // debugPrint('AuthDataManager => getLogoutUrl() failed');
-        return null;
-      }
-    }
-    assert(_logoutUrl != null);
-    return _logoutUrl;
-  }
-
-  /// Reconstruct the rsaInfo from JSON string
-  static Map<dynamic, dynamic> _getRsaInfo(String rsaJson) {
-    final rsaInfo_ = jsonDecode(rsaJson) as Map<String, dynamic>;
-    final publicKey = rsaInfo_['rsa']['public_key'] as String;
-    final privateKey = rsaInfo_['rsa']['private_key'] as String;
-
-    return {...rsaInfo_, 'rsa': KeyPair(publicKey, privateKey)};
-  }
-
-  /// Retrieve auth data from secure storage
-  static Future<bool> _loadData() async {
     final dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
-
     if (dataStr != null) {
       try {
         final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
-        _webId = dataMap['web_id'] as String;
-        _logoutUrl = dataMap['logout_url'] as String;
-        _rsaInfo = _getRsaInfo(dataMap['rsa_info'] as String);
-        _authResponse = Credential.fromJson(
-          (dataMap['auth_response'] as Map).cast(),
-        );
-
-        return true;
+        _webId = dataMap['web_id'] as String?;
       } on Object {
-        // debugPrint('AuthDataManager => _loadData() failed: $e');
-        return false;
+        _webId = null;
       }
     }
-    return false;
+    return _webId;
+  }
+
+  /// Returns the logout endpoint URI from the OIDC discovery document, or null.
+  ///
+  /// Provided for backwards compatibility. Prefer calling
+  /// [getAuthManager]?.logout() directly.
+  static Future<String?> getLogoutUrl() async {
+    try {
+      return _authManager?.oidcManager.discoveryDocument.endSessionEndpoint
+          ?.toString();
+    } on Object {
+      return null;
+    }
+  }
+
+  /// Exposes the live [SolidAuthManager] for DPoP proof generation and logout.
+  static SolidAuthManager? getAuthManager() => _authManager;
+
+  /// Returns [SolidAuthData] from [manager], refreshing the token if expired.
+  static Future<SolidAuthData?> _getRefreshedAuthData(
+    SolidAuthManager manager,
+  ) async {
+    try {
+      var authData = manager.currentAuthData;
+      if (authData != null && authData.isExpired) {
+        authData = await manager.refreshToken();
+      }
+      return authData;
+    } on Object {
+      return null;
+    }
   }
 }

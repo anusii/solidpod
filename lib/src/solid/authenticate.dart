@@ -1,4 +1,4 @@
-/// Authenticate against a solid server and return null if authentication fails.
+/// Authenticate against a Solid server using Solid-OIDC.
 ///
 // Time-stamp: <Monday 2025-07-14 11:29:39 +1000 Graham Williams>
 ///
@@ -26,112 +26,110 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 ///
-/// Authors: Zheyuan Xu, Graham Williams
-
-// ignore_for_file: use_build_context_synchronously
+/// Authors: Zheyuan Xu, Graham Williams, Anushka Vidanage
 
 library;
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/material.dart' show BuildContext;
 
-import 'package:solid_auth/solid_auth.dart';
+import 'package:solid_auth/solid_auth.dart'
+    show SolidAuthManager, SolidOidcConfig;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show isUserLoggedIn, logoutPod;
-
-// Scopes variables used in the authentication process.
-
-final List<String> _scopes = <String>[
-  'openid',
-  'profile',
-  'offline_access',
-  'webid', // web ID is necessary to get refresh token
-];
+import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
 ///
-/// [serverId] is an issuer URI and is essential for the
-/// authentication process with the POD (Personal Online Datastore) issuer.
+/// [serverId] is the user's WebID or an issuer URI. Issuer resolution is
+/// handled internally by [SolidAuthManager].
 ///
-/// [context] of the current widget is required for the authenticate process.
+/// [context] is kept for API compatibility but is no longer required by the
+/// underlying Solid-OIDC flow.
 ///
-/// Return a list containing authentication data: user's webId; profile data.
+/// [clientId] must be the URL of the app's client profile JSON-LD
+/// document (or a pre-registered client ID). Required.
 ///
-/// Error Handling: The function has a catch all to return null if any exception
-/// occurs during the authentication process.
-
+/// [redirectUri] is the custom URL scheme for the OAuth to redirect to
+/// after authentication.
+///
+/// [postLogoutRedirectUri]  is an optional redirect URI for logout. If not
+/// set assign the same value as [redirectUri].
+///
+/// Returns `[SolidAuthData, webId, profileTurtle]` on success, null on failure.
 Future<List<dynamic>?> solidAuthenticate(
   String serverId,
-  BuildContext context,
-) async {
+  BuildContext context, {
+  required String clientId,
+  required String redirectUri,
+  String? postLogoutRedirectUri,
+}) async {
   try {
-    final loggedIn = await isUserLoggedIn();
-    Map<dynamic, dynamic>? authData;
-    if (loggedIn) {
-      authData = await AuthDataManager.loadAuthData();
-      if (authData == null) {
-        // Fall through to re-authenticate
+    // Return existing session without re-authenticating.
+    if (await isUserLoggedIn()) {
+      final authData = await AuthDataManager.loadAuthData();
+      if (authData != null) {
+        final profData = utf8.decode(
+          await getResource(authData.webId.replaceAll('#me', '')),
+        );
+        return [authData, authData.webId, profData];
       }
     }
 
-    // If not logged in or load failed, perform new authentication
-    if (!loggedIn || authData == null) {
-      debugPrint('solidAuthenticate() => solid_auth.authenticate($serverId)');
-      // Authentication process for the POD issuer.
-
-      final issuerUri = await getIssuer(serverId);
-      authData = await authenticate(Uri.parse(issuerUri), _scopes, context);
-
-      // Validate authentication response before saving
-      if (authData.isEmpty) {
-        return null;
-      }
-
-      if (authData.containsKey('error')) {
-        return null;
-      }
-
-      // Validate that required authentication fields are present
-      if (!authData.containsKey('accessToken') ||
-          authData['accessToken'] == null) {
-        return null;
-      }
-
-      // Let saveAuthData() decode the JWT and extract webId
-      // If webId extraction fails, saveAuthData() will handle it and skip saving
-      await AuthDataManager.saveAuthData(authData);
-
-      // Verify that webId was successfully extracted and saved
-      final webId = await AuthDataManager.getWebId();
-      if (webId == null || webId.isEmpty) {
-        return null;
-      }
-
-      // Proceed to fetch profile data with the authenticated credentials
-      final profCardUrl = webId.replaceAll('#me', '');
-      final profData = utf8.decode(await getResource(profCardUrl));
-
-      return [authData, webId, profData];
+    if (clientId.isEmpty) {
+      throw Exception(
+        'oidcClientId is required for Solid-OIDC authentication. '
+        'Provide the URL of your app\'s client profile JSON-LD document.',
+      );
     }
 
-    // Already logged in successfully - fetch profile data
-    final webId = await AuthDataManager.getWebId();
-    if (webId == null || webId.isEmpty) {
-      await logoutPod();
-      return null;
-    }
+    // Check if post logout redirect URI is set. If not use the
+    // same value of redirect URI.
+    postLogoutRedirectUri ??= redirectUri;
 
-    final profCardUrl = webId.replaceAll('#me', '');
-    final profData = utf8.decode(await getResource(profCardUrl));
+    final authManager = SolidAuthManager(
+      config: SolidOidcConfig(
+        clientId: clientId,
+        redirectUri: Uri.parse(redirectUri),
+        postLogoutRedirectUri: Uri.parse(postLogoutRedirectUri),
+      ),
+    );
 
-    return [authData, webId, profData];
+    final solidAuthData = await authManager.authenticate(serverId);
+    if (solidAuthData == null) return null;
+
+    await AuthDataManager.saveAuthData(
+      solidAuthData,
+      authManager,
+      oidcClientId: clientId,
+      redirectUri: redirectUri.toString(),
+    );
+
+    final profData = utf8.decode(
+      await getResource(solidAuthData.webId.replaceAll('#me', '')),
+    );
+
+    return [solidAuthData, solidAuthData.webId, profData];
   } on Object catch (e) {
     debugPrint('Solid Authenticate Failed: $e');
     return null;
   }
 }
+
+// /// Builds the OAuth redirect URI from [appUrlScheme] or [frontendRedirectUrl].
+// Uri _buildRedirectUri(String? appUrlScheme, String? frontendRedirectUrl) {
+//   if (frontendRedirectUrl != null && frontendRedirectUrl.isNotEmpty) {
+//     return Uri.parse(frontendRedirectUrl);
+//   }
+//   if (appUrlScheme != null && appUrlScheme.isNotEmpty) {
+//     return Uri.parse('$appUrlScheme://callback');
+//   }
+//   throw Exception(
+//     'Either appUrlScheme or frontendRedirectUrl must be provided '
+//     'for the OAuth redirect.',
+//   );
+// }

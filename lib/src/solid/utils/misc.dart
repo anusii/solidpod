@@ -33,13 +33,12 @@ library;
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:fast_rsa/fast_rsa.dart' show KeyPair;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:path/path.dart' as path;
 import 'package:rdflib/rdflib.dart';
-import 'package:solid_auth/solid_auth.dart' show genDpopToken, logout;
+import 'package:solid_auth/solid_auth.dart' show DpopTokenGenerator;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -428,13 +427,21 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
     throw Exception('Authentication data not available. Please login first.');
   }
 
-  final rsaInfo = authData['rsaInfo'];
-  final rsaKeyPair = rsaInfo['rsa'] as KeyPair;
-  final publicKeyJwk = rsaInfo['pubKeyJwk'];
+  final authManager = AuthDataManager.getAuthManager();
+  if (authManager == null) {
+    throw Exception('Auth manager not available. Please login first.');
+  }
+
+  final dPopToken = await DpopTokenGenerator.generateForRequest(
+    endpointUrl: resourceUrl,
+    httpMethod: httpMethod,
+    accessToken: authData.accessToken,
+    keyManager: authManager.keyManager,
+  );
 
   return (
-    accessToken: authData['accessToken'] as String,
-    dPopToken: genDpopToken(resourceUrl, rsaKeyPair, publicKeyJwk, httpMethod),
+    accessToken: authData.accessToken,
+    dPopToken: dPopToken,
   );
 }
 
@@ -442,79 +449,40 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
 ///
 /// This function performs a complete logout that includes:
 /// 1. Clearing all encryption keys from memory
-/// 2. Removing authentication data from secure storage
-/// 3. Calling the OAuth2 logout endpoint (with error tolerance on web)
+/// 2. Clearing application-specific caches
+/// 3. Calling the OIDC logout endpoint via SolidAuthManager (with error tolerance)
+/// 4. Removing authentication data from secure storage
 ///
-/// Returns true if logout succeeds or critical operations complete,
-/// false only if critical operations (key/auth cleanup) fail.
+/// Returns true if critical cleanup (key/auth data) succeeds.
 Future<bool> logoutPod() async {
   try {
-    // Step 1: Clear all cached encryption keys and security data from memory
-    // This is CRITICAL and must be done regardless of other failures
     await KeyManager.clear();
-    debugPrint('logoutPod() => KeyManager.clear() completed');
 
-    // Step 2: Get the logout URL before removing auth data
-    final logoutUrl = await AuthDataManager.getLogoutUrl();
-
-    // Step 3: Remove authentication data from secure storage
-    // This is CRITICAL - must succeed
-    final authDataRemoved = await AuthDataManager.removeAuthData();
-    if (!authDataRemoved) {
-      debugPrint(
-        'logoutPod() => WARNING: AuthDataManager.removeAuthData() failed',
-      );
-      // Don't return false yet - logout endpoint is still needed
-    }
-
-    // Step 3.5: Clear application-specific caches BEFORE network call
-    // This is CRITICAL to prevent race conditions where UI reads stale cache
-    // during logout, especially when network is slow
+    // Clear app caches before any network operations to prevent race conditions.
     if (_onLogoutClearCaches != null) {
       try {
         await _onLogoutClearCaches!();
       } on Object catch (e) {
-        debugPrint(
-          'logoutPod() => WARNING: Application cache callback failed (non-critical): $e',
-        );
-        // Continue - the critical auth data is already cleared
+        debugPrint('logoutPod() cache callback failed (non-critical): $e');
       }
-    } else {
-      debugPrint('logoutPod() => No application cache callback registered');
     }
 
-    // Step 4: Attempt OAuth2 logout
-    // This is OPTIONAL - should not block if it fails
-    if (logoutUrl != null && logoutUrl.isNotEmpty) {
-      try {
-        // Call the OAuth2 logout endpoint
-        // On web, this may fail with platform-related exceptions, but we continue anyway
-        await logout(logoutUrl);
-        debugPrint('logoutPod() => OAuth2 logout endpoint called successfully');
-      } on Object catch (e) {
-        // On Flutter Web, platform-related exceptions might occur
-        // This is NOT a critical failure - the local session is already cleared
-        debugPrint('logoutPod() => OAuth2 logout warning (non-critical): $e');
-        // Continue - local data is already cleared which is most important
-      }
-    } else {
-      debugPrint(
-        'logoutPod() => No logout URL available, skipping OAuth2 logout',
-      );
+    // Contact the OIDC logout endpoint and rotate the DPoP key.
+    // Must be called before removeAuthData() clears _authManager.
+    try {
+      await AuthDataManager.getAuthManager()?.logout();
+    } on Object catch (e) {
+      debugPrint('logoutPod() OAuth2 logout warning (non-critical): $e');
     }
 
-    // Success if we cleared the local data (most important part)
+    final authDataRemoved = await AuthDataManager.removeAuthData();
     return authDataRemoved;
   } on Object catch (e) {
-    // Catch any remaining exceptions
-    debugPrint('logoutPod() => CRITICAL ERROR: $e');
-    // Even if we reach here, attempt to clear auth data as fallback
+    debugPrint('logoutPod() CRITICAL ERROR: $e');
     try {
       await AuthDataManager.removeAuthData();
       await KeyManager.clear();
-    } catch (fallbackError) {
-      debugPrint('logoutPod() => Fallback cleanup also failed: $fallbackError');
-    }
+    } on Object catch (_) {}
     return false;
   }
 }
@@ -530,7 +498,15 @@ Future<bool> silentLogout() async {
   try {
     await KeyManager.clear();
 
-    final logoutUrl = await AuthDataManager.getLogoutUrl();
+    // Get logout URL from discovery doc before clearing the manager.
+    String? logoutUrl;
+    try {
+      logoutUrl = await AuthDataManager.getLogoutUrl();
+    } on Object catch (_) {}
+
+    // Clear local token state only — no browser redirect.
+    await AuthDataManager.getAuthManager()?.forgetUser();
+
     final authDataRemoved = await AuthDataManager.removeAuthData();
 
     if (_onLogoutClearCaches != null) {
@@ -542,7 +518,6 @@ Future<bool> silentLogout() async {
     }
 
     // Best-effort IdP session invalidation via headless HTTP GET.
-
     if (logoutUrl != null && logoutUrl.isNotEmpty) {
       try {
         await http.get(Uri.parse(logoutUrl));

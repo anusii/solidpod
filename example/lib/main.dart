@@ -93,6 +93,10 @@ class DemoPod extends StatelessWidget {
         infoButtonStyle: InfoButtonStyle(
           tooltip: 'Visit the DemoPod documentation.',
         ),
+        clientId:
+            'https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld',
+        redirectUri: 'http://localhost:4400/redirect',
+        postLogoutRedirectUri: 'http://localhost:4400/redirect',
         child: Home(),
       ),
     );

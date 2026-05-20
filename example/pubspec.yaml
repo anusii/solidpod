@@ -22,6 +22,8 @@ dependencies:
 dependency_overrides:
   solidpod:
     path: ..
+  solidui:
+    path: ../../solidui
 
 dev_dependencies:
   dependency_validator: ^5.0.4
