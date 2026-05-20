@@ -97,6 +97,7 @@ class DemoPod extends StatelessWidget {
             'https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld',
         redirectUri: 'http://localhost:4400/redirect',
         postLogoutRedirectUri: 'http://localhost:4400/redirect',
+        autoLogin: true,
         child: Home(),
       ),
     );

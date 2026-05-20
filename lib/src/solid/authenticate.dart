@@ -120,6 +120,29 @@ Future<List<dynamic>?> solidAuthenticate(
   }
 }
 
+/// Silently restores a previously saved login session without browser interaction.
+///
+/// Returns `[SolidAuthData, webId, profileTurtle]` if a valid persisted session
+/// is found, or `null` if there is no session or it cannot be restored.
+///
+/// Unlike [solidAuthenticate], this never opens a browser window. Use it on
+/// app startup to automatically skip the login page when the user is still
+/// logged in.
+Future<List<dynamic>?> tryRestoreSession() async {
+  try {
+    final authData = await AuthDataManager.loadAuthData();
+    if (authData == null) return null;
+
+    final profData = utf8.decode(
+      await getResource(authData.webId.replaceAll('#me', '')),
+    );
+    return [authData, authData.webId, profData];
+  } on Object catch (e) {
+    debugPrint('tryRestoreSession failed: $e');
+    return null;
+  }
+}
+
 // /// Builds the OAuth redirect URI from [appUrlScheme] or [frontendRedirectUrl].
 // Uri _buildRedirectUri(String? appUrlScheme, String? frontendRedirectUrl) {
 //   if (frontendRedirectUrl != null && frontendRedirectUrl.isNotEmpty) {
