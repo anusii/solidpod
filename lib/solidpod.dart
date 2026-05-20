@@ -38,7 +38,15 @@ export 'src/solid/constants/solid_constants.dart';
 // Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 
 export 'src/solid/constants/common.dart'
-    show foaf, terms, ResourceStatus, permStr, agentStr, whatIsWebID, demoWebID;
+    show
+        foaf,
+        terms,
+        ResourceStatus,
+        WebIdStatus,
+        permStr,
+        agentStr,
+        whatIsWebID,
+        demoWebID;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
 
@@ -219,12 +227,23 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        checkWebIdProfile,
         createResource,
         deleteResource,
         getResource,
         getResourcesInContainer,
         initialStructureTest,
         updateFileByQuery;
+
+/// WebID validation pipeline.
+
+export 'src/solid/utils/webid_validator.dart'
+    show
+        WebIdCheckResult,
+        WebIdCheckStatus,
+        isValidIpv4,
+        looksLikeIpv4Attempt,
+        validateWebId;
 
 /// Function to get the latest log enties
 
