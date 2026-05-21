@@ -95,8 +95,13 @@ class DemoPod extends StatelessWidget {
         ),
         clientId:
             'https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld',
-        redirectUri: 'http://localhost:4400/redirect',
-        postLogoutRedirectUri: 'http://localhost:4400/redirect',
+        // Use the following schemas depending on the platform
+        //  Web: https://anushkavidanage.github.io/solidpod/example/redirect.html
+        //  Mobile: com.example.demopod://redirect
+        //  Desktop: http://localhost:4400/redirect
+        //    (can use any port as long as it matches with the one in your id document)
+        redirectUri: 'com.example.demopod://redirect',
+        postLogoutRedirectUri: 'com.example.demopod://redirect',
         autoLogin: true,
         child: Home(),
       ),
