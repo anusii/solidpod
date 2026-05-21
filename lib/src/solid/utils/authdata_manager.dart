@@ -33,7 +33,7 @@ import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:flutter/foundation.dart' show ValueNotifier;
 
 import 'package:solid_auth/solid_auth.dart'
-    show DpopKeyManager, SolidAuthData, SolidAuthManager, SolidOidcConfig;
+    show SolidAuthData, SolidAuthManager, SolidOidcConfig;
 
 import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;
 import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
@@ -59,9 +59,10 @@ class AuthDataManager {
 
   /// Save auth data after a successful login.
   ///
-  /// Stores [authData] and the [authManager] in memory, and persists
-  /// [oidcClientId] + [redirectUri] + issuer to secure storage so the session
-  /// can be restored on app restart via [initForIssuer].
+  /// Stores [authData] and [authManager] in memory, and persists [oidcClientId]
+  /// and [redirectUri] to secure storage so [SolidAuthManager] can be
+  /// reconstructed on app restart. DPoP key pair and OIDC tokens are persisted
+  /// by [SolidAuthManager] internally via [SolidAuthSessionStore].
   static Future<void> saveAuthData(
     SolidAuthData authData,
     SolidAuthManager authManager, {
@@ -71,16 +72,15 @@ class AuthDataManager {
     _authManager = authManager;
     _webId = authData.webId;
 
-    final keyPair = authManager.keyManager.keyPair;
+    // Persist only the config needed to reconstruct SolidAuthManager on restart.
+    // DPoP key pair and OIDC tokens are persisted by solid_auth internally via
+    // SolidAuthSessionStore (called automatically inside SolidAuthManager.login()).
     await writeToSecureStorage(
       _authDataSecureStorageKey,
       jsonEncode({
         'web_id': authData.webId,
-        'issuer': authData.issuer,
         'oidc_client_id': oidcClientId ?? '',
         'redirect_uri': redirectUri ?? '',
-        'dpop_private_key': keyPair.privateKey,
-        'dpop_public_key': keyPair.publicKey,
       }),
     );
 
@@ -106,26 +106,10 @@ class AuthDataManager {
       final dataMap = jsonDecode(dataStr) as Map<String, dynamic>;
       final storedClientId = dataMap['oidc_client_id'] as String? ?? '';
       final storedRedirectUri = dataMap['redirect_uri'] as String? ?? '';
-      final storedIssuer = dataMap['issuer'] as String? ?? '';
       _webId = dataMap['web_id'] as String?;
 
-      if (storedClientId.isEmpty ||
-          storedRedirectUri.isEmpty ||
-          storedIssuer.isEmpty) {
+      if (storedClientId.isEmpty || storedRedirectUri.isEmpty) {
         return null;
-      }
-
-      // Restore the DPoP key pair that was active when the access token was
-      // issued. DpopKeyManager is in-memory only, so without this the manager
-      // would generate a new key pair whose thumbprint doesn't match cnf.jkt
-      // in the stored access token, causing the server to reject every request.
-      final dpopPrivateKey = dataMap['dpop_private_key'] as String? ?? '';
-      final dpopPublicKey = dataMap['dpop_public_key'] as String? ?? '';
-      if (dpopPrivateKey.isNotEmpty && dpopPublicKey.isNotEmpty) {
-        await DpopKeyManager.restoreFromPem(
-          privateKeyPem: dpopPrivateKey,
-          publicKeyPem: dpopPublicKey,
-        );
       }
 
       final restoredManager = SolidAuthManager(
@@ -135,12 +119,17 @@ class AuthDataManager {
         ),
       );
 
-      // Restores the OIDC session from the oidc package's own secure storage.
-      await restoredManager.initForIssuer(storedIssuer);
-
-      final authData = await _getRefreshedAuthData(restoredManager);
+      // Delegate to solid_auth's tryRestoreSession(), which handles:
+      //   1. Loading the stored issuer, scopes, and DPoP key pair PEMs from
+      //      SolidAuthSessionStore (persisted at login time).
+      //   2. Restoring the DpopKeyManager singleton with the original key pair
+      //      so proofs still match the cnf.jkt in the stored access token.
+      //   3. Calling initForIssuer() → OidcUserManager.init() which reloads
+      //      and transparently refreshes the OIDC tokens if needed.
+      final authData = await restoredManager.tryRestoreSession();
       if (authData != null) {
         _authManager = restoredManager;
+        _webId = authData.webId;
         authStateNotifier.value = true;
       }
 
