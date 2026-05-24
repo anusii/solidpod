@@ -96,6 +96,18 @@ If the package is being used to build either a `macos` or `web` app,
 the following changes are required in order to make the package fully
 functional.
 
+## General
+
+`solidpod` delegates authentication to [`package:solid_auth`](https://pub.dev/packages/solid_auth), 
+which is built on the OpenID-certified [`package:oidc`](https://pub.dev/packages/oidc) and 
+implements the Solid-OIDC protocol.
+
+Authentication requires a client ID document, which is a publicly hosted JSON-LD file 
+that identifies your app to the Solid identity provider. Pass its URL as the clientId 
+parameter to solidAuthenticate(). See the 
+[Solid-OIDC client identifiers spec](https://solid.github.io/solid-oidc/#clientids-document) 
+for how to create and host one.
+
 ## Android
 
 For a release be sure to update
@@ -194,6 +206,9 @@ A function to authenticate a user against a given Solid server
 final authData = await solidAuthenticate(
         'https://pods.solidcommunity.au/',
         context,
+        clientId: clientId,
+        redirectUri: redirectUri,
+        postLogoutRedirectUri: postLogoutRedirectUri,
       );
 ```
 
