@@ -49,23 +49,22 @@ to host personal online data stores (Pods). Numerous providers of
 Solid Server hosting are emerging allowing users to host and migrate
 their Pods on any such servers (or to run their own server).
 
-To know more about our work relatd to Solid Pods
+To know more about our work related to Solid Pods
 visit <https://solidcommunity.au>
 
 ## Features
 
-- [Authenticate](#authenticate-example) a user against a given Solid server.
-- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files
-in a POD.
+- [Authenticate](#authenticate-example) a user against a given Solid server (WebID or issuer URI).
+- [Silent session restore](#session-restore-example) on app startup — no browser required.
+- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files in a POD.
+- [Delete files and containers](#delete-a-file-from-the-pod) from a POD.
 - [Read, write and delete](#large-file-manager-example) large data files.
+- Grant and revoke access permissions between users.
 
 For UI components such as login screens, security key management,
 permission granting/revoking, and shared resource views, see the
 [solidui](https://pub.dev/packages/solidui) package.
 
-[Solid](https://solidproject.org/) is an open standard for a server
-providing Data Vaults  hosting personal online data stores
-(Pods). Numerous providers of Solid Server
 [hosts](https://solidproject.org/get_a_pod) support users host and
 migrate their Pods. Anyone can also host their own [Community Solid
 Server](https://communitysolidserver.github.io/CommunitySolidServer/latest/).
@@ -84,8 +83,8 @@ dependencies:
 ```
 
 An example project that uses `solidpod` can be found
-in the [example](https://github.com/anusii/solidui/tree/dev/example)
-folder of the [SolidUI](https://github.com/anusii/solidui) repository.
+in the [example](https://github.com/anusii/solidpod/tree/dev/example)
+folder of the [solidpod](https://github.com/anusii/solidpod) repository.
 
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
@@ -380,23 +379,29 @@ by the package.
 
 ### Authenticate Example
 
-A function to authenticate a user against a given Solid server
-`https://pods.solidcommunity.au/`. Return a list containing
- authentication data.
+Authenticates a user against a Solid server. The first argument can be
+either the user's **WebID** (preferred) or a bare issuer URI. Returns
+`[SolidAuthData, webId, profileTurtle]` on success, or `null` on failure.
 
 ```dart
-final authData = await solidAuthenticate(
-        'https://pods.solidcommunity.au/',
-        context,
-        clientId: "https://your-domain/client-profile.jsonld",
-        redirectUri: "https://your-domain/redirect.html",
-        postLogoutRedirectUri: "https://your-domain/redirect.html", \\ optional
-      );
+final result = await solidAuthenticate(
+  'https://pods.solidcommunity.au/alice/profile/card#me', // WebID or issuer URI
+  context,
+  clientId: 'https://your-domain/client-profile.jsonld',
+  redirectUri: 'https://your-domain/redirect.html',
+  postLogoutRedirectUri: 'https://your-domain/redirect.html', // optional
+);
+
+if (result != null) {
+  final authData = result[0] as SolidAuthData; // access token, id token, etc.
+  final webId   = result[1] as String;         // user's WebID
+  final profile = result[2] as String;         // Turtle-encoded profile document
+}
 ```
 
 **IMPORTANT**
 
-`redirectUri` and `postLogoutRedirectUri` must be registered in your client 
+`redirectUri` and `postLogoutRedirectUri` must be registered in your client
 ID document and match the correct format for each platform:
 
 | Platform | URI format | Notes |
@@ -428,6 +433,30 @@ document must list every URI used across platforms:
   ]
 }
 ```
+
+### Session Restore Example
+
+On app startup, call `tryRestoreSession()` to silently resume a previous
+session without opening a browser. It returns `[SolidAuthData, webId, profileTurtle]`
+if a valid persisted session exists, or `null` if the user needs to log in.
+
+```dart
+// In initState() or app startup code — before showing the login UI.
+final result = await tryRestoreSession();
+if (result != null) {
+  final authData = result[0] as SolidAuthData;
+  final webId   = result[1] as String;
+  final profile = result[2] as String;
+  // Navigate directly to the authenticated screen.
+} else {
+  // No valid session — show the login screen.
+}
+```
+
+`tryRestoreSession()` never opens a browser. It silently refreshes expired
+access tokens if a refresh token is available, and returns `null` if the
+session cannot be restored (in which case the stored session is cleared
+automatically so the next `solidAuthenticate()` starts clean).
 
 ### Read Pod File Example
 
@@ -493,7 +522,18 @@ the directory `parentDir` and encrypt both files using that key.
 ### Delete a File from the Pod
 
 ```dart
-deleteFile()
+// Obtain the full URL for the file first.
+final fileUrl = await getFileUrl('myfiles/my-data-file.ttl');
+
+// Delete the file, its ACL, and its encryption key (if any).
+// Also revokes any permissions previously granted to other users.
+await deleteFile(fileUrl: fileUrl);
+```
+
+To delete an entire directory and all of its contents recursively:
+
+```dart
+await deleteContainer('myapp/data', 'myfiles');
 ```
 
 ### Large File Manager Example
