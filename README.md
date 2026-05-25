@@ -106,9 +106,67 @@ Authentication requires a client ID document, which is a publicly hosted JSON-LD
 that identifies your app to the Solid identity provider. Pass its URL as the clientId 
 parameter to solidAuthenticate(). See the 
 [Solid-OIDC client identifiers spec](https://solid.github.io/solid-oidc/#clientids-document) 
-for how to create and host one.
+for how to create and host one. For an example client ID document refer to [here](https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld).
 
 ## Android
+
+As per [OIDC getting started guide](https://bdaya-dev.github.io/oidc/oidc-getting-started/) update the following.
+
+Go to `android/app/build.gradle`, and add the following line under `defaultConfig:`
+
+```gradle
+ defaultConfig {   
+    ...
+    manifestPlaceholders += [
+    'appAuthRedirectScheme': 'com.my.app'
+    ]
+}
+```
+
+Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts` file upgrade in the following way
+
+```gradle
+ defaultConfig {   
+    ...
+    manifestPlaceholders.putAll(mapOf(
+            "appAuthRedirectScheme" to "com.my.app"
+        ))
+}
+```
+
+Go to `android/app/src/main/AndroidManifest.xml`, and add the following under `application` tag:
+
+```xml
+<application
+  ...
+  android:fullBackupContent="@xml/backup_rules"
+  android:dataExtractionRules="@xml/data_extraction_rules"
+  >
+```
+
+Also under `activity` tab change the following:
+- Remove the line `android:taskAffinity=""`
+- Change `android:launchMode="singleTop"` to `android:launchMode="singleTask"`
+
+Now create the following file in `android\app\src\main\res\xml\backup_rules.xml`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+</full-backup-content>
+```
+
+Also create the following file in `android\app\src\main\res\xml\data_extraction_rules.xml`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+    </cloud-backup>
+</data-extraction-rules>
+```
 
 For a release be sure to update
 `android/app/src/main/AndroidManifest.xml` to include within the
@@ -150,11 +208,135 @@ so fill the missing.*
 
 ### web
 
-Inside the app directory go to the directory `/web/`. Inside create a
+<!-- Inside the app directory go to the directory `/web/`. Inside create a
 file called `callback.html`. Add the following piece of code into that
-file.
+file. -->
+
+In the same location where your client ID document is hosted, create
+a file called `redirect.html`. Add the following piece of `html` code into
+that file.
 
 ```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Flutter Oidc Redirect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript">
+    const stateNamespace = 'state';
+    const stateResponseNamespace = 'response.state';
+    const requestNamespace = 'request';
+
+    const requestBroadcastChannel = 'oidc_flutter_web/request';
+    const redirectBroadcastChannel = 'oidc_flutter_web/redirect';
+
+
+    //if the OP isn't requesting logout, handle redirect.
+    if (!handleFrontChannelLogout()) {
+      handleRedirect();
+    }
+
+    function handleRedirect() {
+      // For supported browsers: https://caniuse.com/broadcastchannel
+      var bc = new BroadcastChannel(redirectBroadcastChannel);
+      bc.postMessage(window.location.toString());
+      bc.close();
+      //The rest of this function handles same page redirects
+      let dataSrc;
+      dataSrc = new URLSearchParams(window.location.search);
+      var state = dataSrc.get('state');
+      if (!state) {
+        if (window.location.hash) {
+          dataSrc = new URLSearchParams(
+            window.location.hash.substring(1)
+          );
+          state = dataSrc.get('state');
+        }
+      }
+      if (!state) {
+        return;
+      }
+      const stateDataRaw = getLocalStorage(stateNamespace, state);
+      if (!stateDataRaw) {
+        console.error('state not found, key: ' + state);
+        return;
+      }
+      setLocalStorage(stateResponseNamespace, state, window.location.toString());
+      //we call JSON.parse twice, since shared_preferences double encodes json strings for some reason.
+      const parsedStateString = JSON.parse(stateDataRaw);
+      if (!parsedStateString) {
+        console.error('parsed state is null');
+        return;
+      }
+      // Read the mode from the state.
+      const webLaunchMode = parsedStateString.options?.webLaunchMode;
+      if (!webLaunchMode) {
+        console.error('webLaunchMode not found in parsed state.');
+        return;
+      }
+      if (webLaunchMode != 'samePage') {
+        return;
+      }
+      const original_uri = parsedStateString.original_uri;
+      if (!original_uri) {
+        console.warn("it's preferred that original_uri is used when webLaunchMode is samePage.");
+        return;
+      }
+      window.location.assign(original_uri);
+    }
+
+    function handleFrontChannelLogout() {
+      const queryParams = new URLSearchParams(window.location.search);
+      if (queryParams.get('requestType') == 'front-channel-logout') {
+        // For supported browsers: https://caniuse.com/broadcastchannel
+        var bc = new BroadcastChannel(requestBroadcastChannel);
+        bc.postMessage(window.location.toString());
+        bc.close();
+        // this puts a marker for the flutter app that the user wants to logout.
+        //
+        // in the flutter app, if this marker exists,
+        // we don't auth the cached user in `UserManager.init()`, and we clear the cached data.
+        setLocalStorage(requestNamespace, 'front-channel-logout', window.location.toString());
+        return true;
+      }
+      return false;
+    }
+
+    function getLocalStorage(namespace, key) {
+      const rawRes = localStorage.getItem('oidc.' + namespace + '.' + key);
+      if (!rawRes) {
+        return null;
+      }
+      return rawRes;
+    }
+    function setLocalStorage(namespace, key, value) {
+      const keysEntryKey = 'oidc.keys.' + namespace;
+      var keys = localStorage.getItem(keysEntryKey);
+      if (!keys) {
+        keys = "[]";
+      }
+      const parsedKeys = JSON.parse(keys);
+      if (!(parsedKeys instanceof Array)) {
+        console.error('parsedKeys is not an array.', parsedKeys);
+      }
+      parsedKeys.push(key);
+      localStorage.setItem(keysEntryKey, JSON.stringify(parsedKeys));
+      localStorage.setItem('oidc.' + namespace + '.' + key, value);
+    }
+  </script>
+</head>
+
+<body>
+  <h2>Authentication completed! Please close this page.</h2>
+</body>
+
+</html>
+```
+
+
+<!-- ```html
 <!DOCTYPE html>
 <html>
 
@@ -189,7 +371,7 @@ file.
 </body>
 
 </html>
-```
+``` -->
 
 ## Usage
 
@@ -206,10 +388,45 @@ A function to authenticate a user against a given Solid server
 final authData = await solidAuthenticate(
         'https://pods.solidcommunity.au/',
         context,
-        clientId: clientId,
-        redirectUri: redirectUri,
-        postLogoutRedirectUri: postLogoutRedirectUri,
+        clientId: "https://your-domain/client-profile.jsonld",
+        redirectUri: "https://your-domain/redirect.html",
+        postLogoutRedirectUri: "https://your-domain/redirect.html", \\ optional
       );
+```
+
+**IMPORTANT**
+
+`redirectUri` and `postLogoutRedirectUri` must be registered in your client 
+ID document and match the correct format for each platform:
+
+| Platform | URI format | Notes |
+|---|---|---|
+| Web | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
+| Android / iOS | `com.example.app://redirect` | Custom URI scheme registered with the OS |
+| Windows / Linux / macOS | `http://localhost:4400/redirect` | **Fixed port required** - see below |
+
+### Desktop: use a fixed port
+
+`oidc_desktop` binds a loopback HTTP server to the port in your 
+`redirectUri`. If you use port `0`, the OS assigns a random port 
+that is never registered in the client document, causing the Solid 
+server to reject logout with `post_logout_redirect_uri not registered`. 
+Use a fixed port (e.g. `4400`) in both the app and the client document.
+
+Both `redirect_uris` and `post_logout_redirect_uris` in the client ID 
+document must list every URI used across platforms:
+
+```json
+{
+  "redirect_uris": [
+    "https://your-domain/redirect.html",
+    "http://localhost:4400/redirect"
+  ],
+  "post_logout_redirect_uris": [
+    "https://your-domain/redirect.html",
+    "http://localhost:4400/redirect"
+  ]
+}
 ```
 
 ### Read Pod File Example
