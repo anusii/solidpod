@@ -31,6 +31,7 @@ FILES=(
     ${SCRIPTS}support/flutter.mk support/flutter.mk
     ${SCRIPTS}support/update.sh support/update.sh
     ${SCRIPTS}flutter/.gitignore .gitignore
+    ${SCRIPTS}Makefile Makefile
 )
 
 length=${#FILES[@]}
@@ -162,7 +163,6 @@ done
 
 SCRIPTSBB=${HOME}/projects/scriptsbb/flutter
 FILESBB=(
-    Makefile ${SCRIPTSBB}/Makefile.tmpl
     .pubignore ${SCRIPTSBB}/pubignore
     .github/workflows/ci.yaml ${SCRIPTSBB}/github/workflows/ci.yaml
     .github/workflows/installers.yaml ${SCRIPTSBB}/github/workflows/installers.yaml

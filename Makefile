@@ -2,7 +2,7 @@
 #
 # Generic Makefile
 #
-# Time-stamp: <Wednesday 2026-05-20 11:23:09 +1000 Graham Williams>
+# Time-stamp: <Friday 2026-05-22 07:27:06 +1000 Graham Williams>
 #
 # Copyright (c) Graham.Williams@togaware.com
 #
@@ -189,10 +189,19 @@ ginfo:
 		echo "No bump ID found."; \
 	fi
 
+ZFILES := lib test integration_test pubspec.yaml README.md
+
 .PHONY: zip
 zip:
-	rm -f ignore/$(APP)_lib.zip
-	zip -r ignore/$(APP)_lib.zip lib test integration_test pubspec.yaml README.md
+	@mkdir -p ignore
+	@rm -f ignore/$(APP)_lib.zip
+	@to_zip=""
+	@for f in $(ZFILES); do \
+		if [ -e "$$f" ]; then \
+			to_zip="$$to_zip $$f"; \
+		fi; \
+	done; \
+	zip -r ignore/$(APP)_lib.zip $$to_zip
 	open ignore/
 
 .PHONY: claude
