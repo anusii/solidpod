@@ -140,71 +140,103 @@ Future<SolidFunctionCallStatus> grantPermission({
             isFile,
           );
 
-          // Check if the file is encrypted
-          final fileIsEncrypted = await checkFileEnc(
+          // Check whether an individual encryption key has been recorded
+          // for the resource. This is the legacy "is encrypted" signal:
+          // it tells us the user originally chose to protect the file but
+          // it does not tell us whether the bytes on the server are still
+          // encrypted at this moment (see `isFileContentEncrypted`).
+          final fileHasIndKey = await checkFileEnc(
             resourceUrl,
             isExternalRes: isExternalRes,
           );
+          debugPrint(
+            '[grantPermission] resourceUrl="$resourceUrl" '
+            'recipientType=$recipientType '
+            'hasSpecificRecipients=$hasSpecificRecipients '
+            'fileHasIndKey=$fileHasIndKey '
+            'isExternalRes=$isExternalRes',
+          );
 
-          // If the file is encrypted then share the individual encryption key
-          // with the receiver
-          if (fileIsEncrypted) {
-            // Get the individual encryption key for the file
+          if (hasSpecificRecipients && fileHasIndKey) {
+            // Permission granted to specific individuals or groups: share
+            // the individual encryption key with each recipient via their
+            // POD so they can decrypt the file content.
+
             final indKey = isExternalRes
                 ? await KeyManager.getSharedIndividualKey(resourceUrl)
                 : await KeyManager.getIndividualKey(resourceUrl);
             assert(indKey != null);
 
-            // If permission granted to specific recipients
-            if (hasSpecificRecipients) {
-              // For each recipient share the individual encryption key
-
-              for (final recipientWebId in recipientWebIdList) {
-                // Setup recipient's public key
-                final recipientPubKey = RecipientPubKey(
-                  recipientWebId: recipientWebId as String,
-                );
-
-                // Encrypt individual key
-                final sharedIndKey = await recipientPubKey.encryptData(
-                  indKey!.base64,
-                );
-
-                // Encrypt resource URL
-                final sharedResPath = await recipientPubKey.encryptData(
-                  resourceUrl,
-                );
-
-                // Encrypt the list of permissions
-                permissionList.sort();
-                final sharedAccessList = await recipientPubKey.encryptData(
-                  permissionList.join(','),
-                );
-
-                // Generate unique ID for the resource being shared
-                final resUniqueId = getUniqueIdResUrl(
-                  resourceUrl,
-                  recipientWebId,
-                );
-
-                // Copy shared content to recipient's POD
-                await copySharedKey(
-                  recipientWebId,
-                  resUniqueId,
-                  sharedIndKey,
-                  sharedResPath,
-                  sharedAccessList,
-                );
-              }
-            } else {
-              // if the recipient type is either public or authenticated agent
-              // Copy the key to a publicly available or authenticated user accessible file
-              await copySharedKeyUserClass(
-                indKey!,
-                resourceUrl,
-                permissionList,
-                recipientType,
+            for (final recipientWebId in recipientWebIdList) {
+              // Setup recipient's public key
+              final recipientPubKey = RecipientPubKey(
+                recipientWebId: recipientWebId as String,
               );
+
+              // Encrypt individual key
+              final sharedIndKey = await recipientPubKey.encryptData(
+                indKey!.base64,
+              );
+
+              // Encrypt resource URL
+              final sharedResPath = await recipientPubKey.encryptData(
+                resourceUrl,
+              );
+
+              // Encrypt the list of permissions
+              permissionList.sort();
+              final sharedAccessList = await recipientPubKey.encryptData(
+                permissionList.join(','),
+              );
+
+              // Generate unique ID for the resource being shared
+              final resUniqueId = getUniqueIdResUrl(
+                resourceUrl,
+                recipientWebId,
+              );
+
+              // Copy shared content to recipient's POD
+              await copySharedKey(
+                recipientWebId,
+                resUniqueId,
+                sharedIndKey,
+                sharedResPath,
+                sharedAccessList,
+              );
+            }
+          } else if (!hasSpecificRecipients) {
+            // Permission granted to the Public or Authenticated User class:
+            // these recipients cannot be issued an individual key (they
+            // have no POD/private key under our control), so the only way
+            // for them to actually read the resource by navigating to its
+            // URL is for the file itself to be plaintext on the server.
+            //
+            // Always check the actual bytes on the server here, even when
+            // `fileHasIndKey` is false: this is more robust against the
+            // legacy case where the ind-key record might have been
+            // dropped while the file content is still encrypted.
+            //
+            // The individual key is intentionally kept in `ind-keys.ttl`
+            // so that the file can be re-encrypted later if public or
+            // authenticated-user access is revoked.
+            if (await isFileContentEncrypted(resourceUrl)) {
+              debugPrint('[grantPermission] decrypting "$resourceUrl" for '
+                  'public/authUser sharing');
+              await decryptFileInPlace(
+                resourceUrl,
+                isExternalRes: isExternalRes,
+              );
+            } else {
+              debugPrint('[grantPermission] outer layer already plaintext: '
+                  '"$resourceUrl"');
+
+              // Even when the outer encrypted-TTL wrapper is gone, the
+              // host app may still have an inner encryption layer that
+              // needs unwrapping (e.g. NotePod's per-note noteContent).
+              // Invoke the public-share decrypted hook directly so that
+              // a file left in this mixed state by an older version of
+              // solidpod is still made fully readable.
+              await applyPublicShareDecryptedHookInPlace(resourceUrl);
             }
           }
 
