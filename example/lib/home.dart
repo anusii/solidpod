@@ -46,6 +46,7 @@ import 'package:demopod/constants/app.dart';
 import 'package:demopod/dialogs/about.dart';
 import 'package:demopod/dialogs/alert.dart';
 import 'package:demopod/dialogs/file_metadata.dart';
+import 'package:demopod/features/check_file_encryption.dart';
 import 'package:demopod/features/create_acl_inherited_file.dart';
 import 'package:demopod/features/edit_keyvalue.dart';
 import 'package:demopod/features/file_service.dart';
@@ -438,6 +439,31 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               }
                             },
                             child: const Text('Delete Pod Data File')),
+                        smallGapV,
+
+                        // SolidPod API: isFileEncrypted()
+                        ElevatedButton(
+                          onPressed: () async {
+                            final loggedIn = await loginIfRequired(context);
+                            if (loggedIn) {
+                              final webId = await getWebId();
+                              setState(() {
+                                _webId = webId;
+                              });
+                              await getKeyFromUserIfRequired(context, widget);
+                              if (context.mounted) {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const CheckFileEncryption(),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text('Check File Encryption'),
+                        ),
                         smallGapV,
 
                         fileDemoButton,
