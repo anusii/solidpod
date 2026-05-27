@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.13
 
++ Implement checking file encryption [0.12.10 20260527 tonypioneer]
 + Check missing resources [0.12.9 20260520 tonypioneer]
 + Support checking webID [0.12.8 20260520 tonypioneer]
 + Update Try Another WebID workflow [0.12.7 20260520 tonypioneer]
