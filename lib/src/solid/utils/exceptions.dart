@@ -55,6 +55,15 @@ class ResourceNotExistException implements Exception {
   String toString() => 'ResourceNotExistException: $message';
 }
 
+class ResourceNotDecryptableException implements Exception {
+  final String message;
+
+  ResourceNotDecryptableException(this.message);
+
+  @override
+  String toString() => 'ResourceNotDecryptableException: $message';
+}
+
 class NotLoggedInException implements Exception {
   final String message;
 
@@ -84,4 +93,18 @@ class RecipientNotReadyException implements Exception {
 
   @override
   String toString() => 'RecipientNotReadyException: $message';
+}
+
+/// Thrown by [solidAuthenticate] when the in-flight authentication is aborted
+/// by [cancelSolidAuthenticate]. Callers can catch this to distinguish a
+/// deliberate cancellation from a genuine authentication failure such as a
+/// network error.
+
+class SolidAuthCancelledException implements Exception {
+  final String message;
+
+  SolidAuthCancelledException([this.message = 'Authentication was cancelled']);
+
+  @override
+  String toString() => 'SolidAuthCancelledException: $message';
 }

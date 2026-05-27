@@ -38,7 +38,15 @@ export 'src/solid/constants/solid_constants.dart';
 // Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 
 export 'src/solid/constants/common.dart'
-    show foaf, terms, ResourceStatus, permStr, agentStr, whatIsWebID, demoWebID;
+    show
+        foaf,
+        terms,
+        ResourceStatus,
+        WebIdStatus,
+        permStr,
+        agentStr,
+        whatIsWebID,
+        demoWebID;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
 
@@ -49,7 +57,8 @@ export 'src/solid/constants/predicates.dart';
 
 /// Solid authentication function
 
-export 'src/solid/authenticate.dart' show solidAuthenticate;
+export 'src/solid/authenticate.dart'
+    show cancelSolidAuthenticate, isSolidAuthenticatePending, solidAuthenticate;
 
 /// Status class to represent different function outputs
 
@@ -85,8 +94,10 @@ export 'src/solid/utils/exceptions.dart'
         AccessFailedException,
         NotLoggedInException,
         RecipientNotReadyException,
+        ResourceNotDecryptableException,
         ResourceNotExistException,
-        SecurityKeyNotAvailableException;
+        SecurityKeyNotAvailableException,
+        SolidAuthCancelledException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 
@@ -150,6 +161,15 @@ export 'src/solid/utils/init_helper.dart'
 
 export 'src/solid/read_pod.dart';
 
+/// Check whether a file stored in a POD is encrypted by solidpod.
+
+export 'src/solid/check_encryption.dart'
+    show
+        EncryptionStatus,
+        getFileEncryptionStatus,
+        isContentEncrypted,
+        isFileEncrypted;
+
 /// Read metadata of a resource stored in a POD
 
 export 'src/solid/read_res_metadata.dart';
@@ -184,6 +204,12 @@ export 'src/solid/constants/web_acl.dart'
         publicAgent,
         authenticatedAgent;
 
+/// Helper to generate an ACL turtle string for a given resource. Useful for
+/// apps that need to rewrite a folder's ACL (e.g. switching between private
+/// and public access).
+
+export 'src/solid/utils/permission.dart' show genAclTurtle;
+
 /// Functions to upload, download, and delete large file from a Solid server
 
 export 'src/solid/utils/large_file_helper.dart'
@@ -211,10 +237,23 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        checkWebIdProfile,
+        createResource,
+        deleteResource,
         getResource,
         getResourcesInContainer,
         initialStructureTest,
         updateFileByQuery;
+
+/// WebID validation pipeline.
+
+export 'src/solid/utils/webid_validator.dart'
+    show
+        WebIdCheckResult,
+        WebIdCheckStatus,
+        isValidIpv4,
+        looksLikeIpv4Attempt,
+        validateWebId;
 
 /// Function to get the latest log enties
 
@@ -251,7 +290,15 @@ export 'src/solid/models/pod_notification.dart' show PodNotification;
 /// used by notepod
 
 export 'src/solid/constants/common.dart'
-    show appDirName, dataDir, profCard, authUserPred, notificationDir;
+    show
+        appDirName,
+        dataDir,
+        profCard,
+        authUserPred,
+        notificationDir,
+        profileDir,
+        profilePictureFile,
+        displayNameFile;
 
 /// Function to get resources in a user's POD
 

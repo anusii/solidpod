@@ -36,6 +36,7 @@ import 'package:rdflib/rdflib.dart' show Namespace;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/schema.dart' show appsResId;
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -141,14 +142,22 @@ class SharedKeyManager {
     assert(record != null);
 
     if (record!.key == null) {
-      _rsaEncrypter ??= Encrypter(
-        RSA(privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey),
-      );
+      try {
+        _rsaEncrypter ??= Encrypter(
+          RSA(privateKey: RSAKeyParser().parse(privateKey) as RSAPrivateKey),
+        );
 
-      record.resourcePath = _rsaEncrypter!.decrypt64(record.encResourcePath);
-      record.accessList = _rsaEncrypter!.decrypt64(record.encAccessList);
-      record.key = Key.fromBase64(_rsaEncrypter!.decrypt64(record.encKey));
-      _sharedIndKeyMap![uniqueIdUrl] = record;
+        record.resourcePath = _rsaEncrypter!.decrypt64(record.encResourcePath);
+        record.accessList = _rsaEncrypter!.decrypt64(record.encAccessList);
+        record.key = Key.fromBase64(_rsaEncrypter!.decrypt64(record.encKey));
+        _sharedIndKeyMap![uniqueIdUrl] = record;
+      } on ArgumentError catch (e) {
+        // RSA decryption failed — the shared key was encrypted with a different
+        // public key (e.g. after pod re-initialisation rotated the key pair).
+        throw ResourceNotDecryptableException(
+          'Cannot decrypt shared key for $resourceUrl: $e',
+        );
+      }
     }
 
     return record.key!;

@@ -98,6 +98,10 @@ Future<void> clearPodStructureInitialised() async {
     if (await secureStorage.containsKey(key: key)) {
       await secureStorage.delete(key: key);
     }
+  } on NotLoggedInException {
+    // Expected during account-switch flows where the caller logs out before
+    // clearing the flag. There is no user-specific key to delete, so this is
+    // a no-op rather than an error.
   } on Object catch (e) {
     debugPrint('clearPodStructureInitialised() failed: $e');
   }
@@ -116,6 +120,7 @@ Future<List<String>> generateDefaultFolders() async {
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
   final notificationDirLoc = [appDirName, notificationDir].join('/');
+  final profileDirLoc = [appDirName, profileDir].join('/');
 
   final folders = [
     appDirName,
@@ -125,6 +130,7 @@ Future<List<String>> generateDefaultFolders() async {
     encDirLoc,
     logDirLoc,
     notificationDirLoc,
+    profileDirLoc,
   ];
   return folders;
 }
@@ -162,6 +168,7 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
   final notificationDirLoc = [appDirName, notificationDir].join('/');
+  final profileDirLoc = [appDirName, profileDir].join('/');
 
   final files = {
     sharingDirLoc: [pubKeyFile, '$pubKeyFile.acl'],
@@ -169,6 +176,7 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     sharedDirLoc: ['.acl'],
     encDirLoc: [encKeyFile, indKeyFile],
     notificationDirLoc: ['.acl'],
+    profileDirLoc: ['.acl'],
   };
   return files;
 }
@@ -193,16 +201,31 @@ Future<void> initPod(
     dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
   }
 
-  // Determine whether this is a full first-time initialisation or a partial
-  // re-init (e.g. only the notification directory is missing). The encryption
-  // directory is only in dirUrls when it does not yet exist on the server.
+  // Determine whether the encryption infrastructure already exists on the
+  // server. If the encryption directory and its key files are already in
+  // place, the POD has been initialised before and we must NOT regenerate
+  // the keyset — doing so would overwrite the existing RSA pair on the
+  // server and orphan every previously encrypted resource. This case is
+  // hit when the wizard is re-run to add a newly required folder (such as
+  // the notification or profile directory) on a previously initialised POD.
 
   final encDirUrl = await getDirUrl(await getEncDirPath());
-  final isFullInit = dirUrls.contains(encDirUrl);
+  final encKeyUrl = await getFileUrl(await getEncKeyPath());
+  final indKeyUrl = await getFileUrl(await getIndKeyPath());
+  final pubKeyUrl = await getFileUrl(await getPubKeyPath());
 
-  if (isFullInit) {
-    // First-time setup — the encryption directory must be present.
-    assert(dirUrls.contains(encDirUrl));
+  final encDirExists = await checkResourceStatus(encDirUrl, isFile: false) ==
+      ResourceStatus.exist;
+  final encKeyExists = encDirExists &&
+      await checkResourceStatus(encKeyUrl) == ResourceStatus.exist;
+
+  // Only require the encryption directory in the missing-folder list when
+  // it does not already exist on the server. Otherwise it is legitimate to
+  // call initPod() with a partial set of folders (e.g. just the notification
+  // or profile directory) and we should simply top up whatever is missing.
+
+  if (!encDirExists && !dirUrls.contains(encDirUrl)) {
+    throw Exception('Can not initialise POD without creating $encDirUrl');
   }
 
   // Create the required directories.
@@ -228,16 +251,27 @@ Future<void> initPod(
     }
   }
 
-  // Initialise encryption keys only during first-time setup. During a partial
-  // re-init the keys already exist on the server and must not be overwritten,
-  // as doing so would invalidate all previously encrypted data.
+  if (encKeyExists) {
+    // The POD already has an encryption keyset on the server. Verify the
+    // user-supplied security key against the existing verification key and
+    // cache it locally so subsequent operations do not need to prompt the
+    // user again. setSecurityKey() throws if verification fails, which the
+    // wizard surfaces back to the user.
 
-  if (isFullInit) {
+    await KeyManager.setSecurityKey(securityKey);
+  } else {
+    // First-time initialisation: create the encKeyFile, indKeyFile and
+    // pubKeyFile on the server, and cache the security key locally.
+
     await KeyManager.initPodKeys(securityKey);
   }
-  fileUrls.remove(await getFileUrl(await getEncKeyPath()));
-  fileUrls.remove(await getFileUrl(await getIndKeyPath()));
-  fileUrls.remove(await getFileUrl(await getPubKeyPath()));
+
+  // The key files are managed by KeyManager — never recreate them as part
+  // of the generic file-creation loop below.
+
+  fileUrls.remove(encKeyUrl);
+  fileUrls.remove(indKeyUrl);
+  fileUrls.remove(pubKeyUrl);
 
   for (final f in fileUrls) {
     final fileName = f.split('/').last;
@@ -258,16 +292,22 @@ Future<void> initPod(
         default:
           assert(fileName == '.acl');
           isFile = false;
-          if (f.contains('/$notificationDir/')) {
-            // Grant public Append so that any user (including cross-pod
-            // senders) can POST new notification files. Read/Write/Control
-            // remain with the owner only. Using foaf:Agent rather than
-            // acl:AuthenticatedAgent because CSS does not reliably honour
-            // AuthenticatedAgent for cross-pod writes with DPoP tokens.
 
+          // The notification directory ACL grants public Append so that any
+          // user (including cross-pod senders) can POST new notification
+          // files; Read/Write/Control remain with the owner only. Using
+          // foaf:Agent rather than acl:AuthenticatedAgent because CSS does
+          // not reliably honour AuthenticatedAgent for cross-pod writes
+          // with DPoP tokens. The shared directory ACL grants public
+          // read/write. The profile directory ACL is owner-only (empty
+          // publicAccess).
+
+          if (f.contains('/$notificationDir/')) {
             publicAccess = {AccessMode.append};
-          } else {
+          } else if (f.contains('/$sharedDir/')) {
             publicAccess = {AccessMode.read, AccessMode.write};
+          } else {
+            publicAccess = {};
           }
       }
 

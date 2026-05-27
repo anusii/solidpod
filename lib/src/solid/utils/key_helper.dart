@@ -157,7 +157,10 @@ Future<Map<String, IndKeyRecord>> readIndKeyFile() async {
       );
 
       // Use resource URL as key instead of relative path (in new version of CSS)
-      indKeyMap[await getFileUrl(getVal(v, pathPred) as String)] = IndKeyRecord(
+      final String relFilePath = await getVal(v, pathPred) as String;
+      final String fileUrl = await getFileUrl(relFilePath);
+
+      indKeyMap[fileUrl] = IndKeyRecord(
         encKeyBase64: getVal(v, sessionKeyPred) as String,
         ivBase64: getVal(v, ivPred) as String,
         resourcePath: getVal(v, pathPred) as String,
@@ -323,8 +326,9 @@ Future<String> genIndKeyTTLStr(
       final resourceUrl = entry.key;
       final record = entry.value;
 
-      final indKey = record.key;
-      assert(indKey != null);
+      // [20260427 jesscmoore] Removed the assert that record.key is not null, as it prevents first file being written to pod.
+      // final indKey = record.key;
+      // assert(indKey != null);
 
       triples[URIRef(resourceUrl)] = {
         solidTermsNS.ns.withAttr(pathPred): record.resourcePath,

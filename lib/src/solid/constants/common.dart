@@ -57,6 +57,19 @@ const sharedDir = 'shared';
 const encDir = 'encryption';
 const logsDir = 'logs';
 const notificationDir = 'notification';
+const profileDir = 'profile';
+
+/// Avatar resource. Stored as a turtle file so the same resource can hold
+/// either an unencrypted base64-wrapped image (when the user opts to make
+/// their profile public) or the encrypted form produced by `writePod()`
+/// (the default for an app using encryption).
+
+const String profilePictureFile = 'avatar.ttl';
+
+/// Display name resource. Always stored as linked data so that other apps
+/// and queries can interpret it via FOAF/VCard predicates.
+
+const String displayNameFile = 'display-name.ttl';
 
 /// String terms used as predicates in ttl files.
 
@@ -178,6 +191,28 @@ enum ResourceStatus {
 
   /// Resource access is forbidden
   forbidden,
+}
+
+/// Outcome of validating that a URL points to a real Solid WebID profile
+/// document, as opposed to merely returning a 200 response. Plain existence
+/// is insufficient because many ordinary websites happily return 200 HTML
+/// for any unmatched path (SPA catch-alls, soft 404s, etc.), which would
+/// otherwise be mistaken for a valid WebID.
+enum WebIdStatus {
+  /// The URL responds with 200/204 and an RDF content type, so it is very
+  /// likely a genuine WebID profile document.
+  valid,
+
+  /// The URL responds with 200/204 but the body is not RDF (typically a
+  /// `text/html` page from a regular website). The URL is reachable but is
+  /// *not* a WebID profile.
+  notProfile,
+
+  /// The URL returned 404.
+  notExist,
+
+  /// Some other status code (e.g. 403, 5xx) — could not determine.
+  unknown,
 }
 
 /// Types of the content of resources
