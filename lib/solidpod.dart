@@ -160,6 +160,15 @@ export 'src/solid/utils/init_helper.dart'
 
 export 'src/solid/read_pod.dart';
 
+/// Check whether a file stored in a POD is encrypted by solidpod.
+
+export 'src/solid/check_encryption.dart'
+    show
+        EncryptionStatus,
+        getFileEncryptionStatus,
+        isContentEncrypted,
+        isFileEncrypted;
+
 /// Read metadata of a resource stored in a POD
 
 export 'src/solid/read_res_metadata.dart';
