@@ -388,8 +388,16 @@ final result = await solidAuthenticate(
   'https://pods.solidcommunity.au/alice/profile/card#me', // WebID or issuer URI
   context,
   clientId: 'https://your-domain/client-profile.jsonld',
-  redirectUri: 'https://your-domain/redirect.html',
-  postLogoutRedirectUri: 'https://your-domain/redirect.html', // optional
+  redirectUris: [
+    'https://your-domain/redirect.html', // web
+    'com.example.app://redirect',        // Android / iOS
+    'http://localhost:4400/redirect',    // Windows / Linux / macOS
+  ],
+  postLogoutRedirectUris: [             // optional, defaults to redirectUris selection
+    'https://your-domain/redirect.html',
+    'com.example.app://redirect',
+    'http://localhost:4400/redirect',
+  ],
 );
 
 if (result != null) {
@@ -401,7 +409,9 @@ if (result != null) {
 
 **IMPORTANT**
 
-`redirectUri` and `postLogoutRedirectUri` must be registered in your client
+`redirectUris` and `postLogoutRedirectUris` take a list of URIs, one per
+platform. At runtime `solidAuthenticate()` picks the entry that matches the
+current platform. Every URI in the list must be registered in your client
 ID document and match the correct format for each platform:
 
 | Platform | URI format | Notes |
@@ -412,10 +422,10 @@ ID document and match the correct format for each platform:
 
 ### Desktop: use a fixed port
 
-`oidc_desktop` binds a loopback HTTP server to the port in your 
-`redirectUri`. If you use port `0`, the OS assigns a random port 
-that is never registered in the client document, causing the Solid 
-server to reject logout with `post_logout_redirect_uri not registered`. 
+`oidc_desktop` binds a loopback HTTP server to the port in the desktop
+entry of `redirectUris`. If you use port `0`, the OS assigns a random port
+that is never registered in the client document, causing the Solid server
+to reject logout with `post_logout_redirect_uri not registered`.
 Use a fixed port (e.g. `4400`) in both the app and the client document.
 
 Both `redirect_uris` and `post_logout_redirect_uris` in the client ID 
