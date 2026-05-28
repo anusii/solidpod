@@ -11,6 +11,10 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 0.13
 
++ Implement checking file encryption [0.12.10 20260527 tonypioneer]
++ Check missing resources [0.12.9 20260520 tonypioneer]
++ Support checking webID [0.12.8 20260520 tonypioneer]
++ Update Try Another WebID workflow [0.12.7 20260520 tonypioneer]
 + Bug fix to ttl rdf for special chars #628 [0.12.6 20260518 tonypioneer]
 + Upgrade solidauth and fix key file saving edge cases [0.12.5 20260427 jesscmoore]
 + Support user profile. [0.12.4 20260421 tonypioneer]

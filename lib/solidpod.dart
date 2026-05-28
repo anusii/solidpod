@@ -38,7 +38,15 @@ export 'src/solid/constants/solid_constants.dart';
 // Legacy exports for backward compatibility (deprecated, use SolidConstants instead)
 
 export 'src/solid/constants/common.dart'
-    show foaf, terms, ResourceStatus, permStr, agentStr, whatIsWebID, demoWebID;
+    show
+        foaf,
+        terms,
+        ResourceStatus,
+        WebIdStatus,
+        permStr,
+        agentStr,
+        whatIsWebID,
+        demoWebID;
 export 'src/solid/constants/schema.dart' show appsTerms;
 export 'src/solid/constants/path_type.dart' show PathType;
 
@@ -50,7 +58,12 @@ export 'src/solid/constants/predicates.dart';
 /// Solid authentication function
 
 export 'src/solid/authenticate.dart'
-    show solidAuthenticate, tryRestoreSession, pickRedirectUri;
+    show
+        solidAuthenticate,
+        tryRestoreSession,
+        pickRedirectUri,
+        cancelSolidAuthenticate,
+        isSolidAuthenticatePending;
 
 /// Status class to represent different function outputs
 
@@ -87,7 +100,8 @@ export 'src/solid/utils/exceptions.dart'
         NotLoggedInException,
         ResourceNotDecryptableException,
         ResourceNotExistException,
-        SecurityKeyNotAvailableException;
+        SecurityKeyNotAvailableException,
+        SolidAuthCancelledException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
 
@@ -150,6 +164,15 @@ export 'src/solid/utils/init_helper.dart'
 /// Read encrypted/non-encrypted files stored in a POD
 
 export 'src/solid/read_pod.dart';
+
+/// Check whether a file stored in a POD is encrypted by solidpod.
+
+export 'src/solid/check_encryption.dart'
+    show
+        EncryptionStatus,
+        getFileEncryptionStatus,
+        isContentEncrypted,
+        isFileEncrypted;
 
 /// Read metadata of a resource stored in a POD
 
@@ -218,12 +241,23 @@ export 'src/solid/shared_resources.dart';
 export 'src/solid/api/rest_api.dart'
     show
         checkResourceStatus,
+        checkWebIdProfile,
         createResource,
         deleteResource,
         getResource,
         getResourcesInContainer,
         initialStructureTest,
         updateFileByQuery;
+
+/// WebID validation pipeline.
+
+export 'src/solid/utils/webid_validator.dart'
+    show
+        WebIdCheckResult,
+        WebIdCheckStatus,
+        isValidIpv4,
+        looksLikeIpv4Attempt,
+        validateWebId;
 
 /// Function to get the latest log enties
 

@@ -15,11 +15,17 @@ appname=$(basename $PWD)
 
 # Find the latest zip file to run meld across.
 
-FIND_CLAUDE=$(find ~/Downloads -name "${appname}_lib*.zip" 2>/dev/null | head -1)
-echo "Found ${FIND_CLAUDE}"
+claude=$(find ${HOME}/Downloads -name "${appname}_lib*.zip" 2>/dev/null -printf '%T@ %p\n' | sort -rn | head -1 | cut -d' ' -f2-)
 
-if [ -z "$FIND_CLAUDE" ]; then
-    echo "Error: can not find the Claude zip file in Downloads ${appname}_lib.zip"
+if [[ ! -z "$claude" ]] && [[ "$(basename $claude)" != "${appname}_lib.zip" ]]; then
+    read -p "Continue with ${claude}? (y/N) " response
+    if [[ "$response" != "y" ]]; then
+        exit 1
+    fi
+fi
+
+if [ -z "$claude" ]; then
+    echo "No Claude zip file in Downloads: ${appname}_lib.zip"
     exit 1
 fi
 
@@ -29,7 +35,7 @@ mkdir tmp
 
 # Extract the zip file.
 
-(cd tmp; unzip "${FIND_CLAUDE}")
+(cd tmp; unzip "${claude}")
 
 # Run meld with the file and find result
 
@@ -45,13 +51,31 @@ if [[ -d tmp/integration_test ]]  && ! diff -rqw "integration_test" "tmp/integra
     meld tmp/integration_test integration_test
 fi
 
-# Check if pubspec included and if so compare.
+if [[ -f tmp/README.md ]]  && ! diff -qw "README.md" "tmp/README.md" > /dev/null ; then
+    meld tmp/README.md README.md
+fi
+
+# Check if pubspec included and if so compare if the difference is
+# other than the version line.
 
 if [[ -f tmp/pubspec.yaml ]] && ! diff -qw "tmp/pubspec.yaml" "pubspec.yaml" > /dev/null; then
-  meld tmp/pubspec.yaml pubspec.yaml
+    if ! diff -u <(grep -v -E '^version:' pubspec.yaml) <(grep -v -E '^version:' tmp/pubspec.yaml) >/dev/null; then
+	meld tmp/pubspec.yaml pubspec.yaml
+    fi
 fi
 
 # Remove the file after meld closes
 
 rm -rf tmp
-rm -i "${FIND_CLAUDE}"
+rm -i "${claude}"
+
+# Also remove any older file if there.
+
+if [[ "$(basename $claude)" != "${appname}_lib.zip" ]]; then
+    if [[ -f "${HOME}/Downloads/${appname}_lib.zip" ]]; then
+	read -p "Also remove ${HOME}/Downloads/${appname}_lib.zip? (y/N) " response
+	if [[ "$response" == "y" ]]; then
+            rm -f ~/Downloads/${appname}_lib.zip
+	fi
+    fi
+fi

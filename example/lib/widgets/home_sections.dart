@@ -43,6 +43,7 @@ import 'package:solidui/solidui.dart'
 import 'package:demopod/constants/app.dart';
 import 'package:demopod/features/permission_callback_demo.dart';
 import 'package:demopod/features/multiple_resource_sharing.dart';
+import 'package:demopod/utils/ensure_resource.dart';
 
 /// Builds the login management section widgets.
 
@@ -148,12 +149,25 @@ List<Widget> buildPermissionSection(
         if (loggedIn) {
           await getKeyFromUserIfRequired(context, currentWidget);
 
+          // Ensure the target resource exists on the Pod before opening the
+          // grant permission UI. The button previously failed with a "not
+          // found" error when keyvalue/key-value.ttl had never been created.
+
+          if (!context.mounted) return;
+          final ready = await ensurePodResourceExists(
+            context,
+            relativePath: dataFile,
+            defaultContent: createDemoTtlStr('key-value'),
+          );
+          if (!ready) return;
+
+          if (!context.mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => GrantPermissionUi(
                 backgroundColor: titleBackgroundColor,
-                resourceNames: ['keyvalue/key-value.ttl'],
+                resourceNames: [dataFile],
                 // accessModeList: ['read', 'write'],
                 // recipientTypeList: ['indi', 'group'],
                 // isFile: false,
@@ -253,6 +267,19 @@ List<Widget> buildPermissionSection(
         if (loggedIn) {
           await getKeyFromUserIfRequired(context, currentWidget);
 
+          // Ensure the target resource exists on the Pod before opening the
+          // shared resources UI. The button previously failed with a "not
+          // found" error when keyvalue/key-value.ttl had never been created.
+
+          if (!context.mounted) return;
+          final ready = await ensurePodResourceExists(
+            context,
+            relativePath: dataFile,
+            defaultContent: createDemoTtlStr('key-value'),
+          );
+          if (!ready) return;
+
+          if (!context.mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(
