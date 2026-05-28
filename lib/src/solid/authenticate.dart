@@ -32,7 +32,8 @@ library;
 
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart'
+    show debugPrint, defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart' show BuildContext;
 
 import 'package:solid_auth/solid_auth.dart'
@@ -42,6 +43,44 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
+
+/// Selects the appropriate redirect URI from [uris] based on the runtime
+/// platform, using the URI format as the discriminator:
+///
+/// | Platform | Matched format |
+/// |---|---|
+/// | Web | `https://` URI (same-origin BroadcastChannel requirement) |
+/// | Android / iOS | Custom scheme URI (not `http://` or `https://`) |
+/// | Desktop (Windows / macOS / Linux) | `http://localhost` loopback URI |
+///
+/// Falls back to the first element when no format-matched entry is found, so
+/// a single-element list always returns that element unchanged.
+///
+/// Throws [ArgumentError] if [uris] is empty.
+String pickRedirectUri(List<String> uris) {
+  if (uris.isEmpty) throw ArgumentError('redirectUris must not be empty');
+  if (uris.length == 1) return uris.first;
+
+  if (kIsWeb) {
+    return uris.firstWhere(
+      (u) => u.startsWith('https://'),
+      orElse: () => uris.first,
+    );
+  }
+  if (defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS) {
+    // Mobile platforms use a custom URI scheme (not http or https).
+    return uris.firstWhere(
+      (u) => !u.startsWith('http://') && !u.startsWith('https://'),
+      orElse: () => uris.first,
+    );
+  }
+  // Desktop: Windows / macOS / Linux use a localhost loopback URL.
+  return uris.firstWhere(
+    (u) => u.startsWith('http://localhost'),
+    orElse: () => uris.first,
+  );
+}
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
 ///
@@ -54,19 +93,28 @@ import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 /// [clientId] must be the URL of the app's client profile JSON-LD
 /// document (or a pre-registered client ID). Required.
 ///
-/// [redirectUri] is the custom URL scheme for the OAuth to redirect to
-/// after authentication.
+/// [redirectUris] is the preferred parameter: provide one URI per platform
+/// and [pickRedirectUri] selects the correct one automatically at runtime.
+/// For example:
+/// ```dart
+/// redirectUris: [
+///   'https://your-domain/redirect.html',  // web
+///   'com.example.app://redirect',          // android / ios
+///   'http://localhost:4400/redirect',      // desktop
+/// ]
+/// ```
 ///
-/// [postLogoutRedirectUri]  is an optional redirect URI for logout. If not
-/// set assign the same value as [redirectUri].
+/// [postLogoutRedirectUris] works the same way for the post-logout redirect.
+/// Defaults to the same selection as [redirectUris] when omitted.
+///
 ///
 /// Returns `[SolidAuthData, webId, profileTurtle]` on success, null on failure.
 Future<List<dynamic>?> solidAuthenticate(
   String serverId,
   BuildContext context, {
   required String clientId,
-  required String redirectUri,
-  String? postLogoutRedirectUri,
+  required List<String> redirectUris,
+  List<String> postLogoutRedirectUris = const [],
 }) async {
   try {
     // Return existing session without re-authenticating.
@@ -87,15 +135,25 @@ Future<List<dynamic>?> solidAuthenticate(
       );
     }
 
-    // Check if post logout redirect URI is set. If not use the
-    // same value of redirect URI.
-    postLogoutRedirectUri ??= redirectUri;
+    // Resolve the effective redirect URI.
+    final effectiveRedirectUri = pickRedirectUri(redirectUris);
+
+    if (effectiveRedirectUri.isEmpty) {
+      throw ArgumentError(
+        'A redirect URI is required. Provide at least one URI via redirectUris.',
+      );
+    }
+
+    // Resolve the post-logout URI the same way; default to the redirect URI.
+    final effectivePostLogoutUri = postLogoutRedirectUris.isNotEmpty
+        ? pickRedirectUri(postLogoutRedirectUris)
+        : effectiveRedirectUri;
 
     final authManager = SolidAuthManager(
       config: SolidOidcConfig(
         clientId: clientId,
-        redirectUri: Uri.parse(redirectUri),
-        postLogoutRedirectUri: Uri.parse(postLogoutRedirectUri),
+        redirectUri: Uri.parse(effectiveRedirectUri),
+        postLogoutRedirectUri: Uri.parse(effectivePostLogoutUri),
       ),
     );
 
@@ -106,7 +164,7 @@ Future<List<dynamic>?> solidAuthenticate(
       solidAuthData,
       authManager,
       oidcClientId: clientId,
-      redirectUri: redirectUri.toString(),
+      redirectUri: effectiveRedirectUri,
     );
 
     final profData = utf8.decode(

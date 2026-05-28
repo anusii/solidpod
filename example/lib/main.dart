@@ -100,8 +100,16 @@ class DemoPod extends StatelessWidget {
         //  Mobile: com.example.demopod://redirect
         //  Desktop: http://localhost:4400/redirect
         //    (can use any port as long as it matches with the one in your id document)
-        redirectUri: 'com.example.demopod://redirect',
-        postLogoutRedirectUri: 'com.example.demopod://redirect',
+        redirectUris: [
+          'https://anushkavidanage.github.io/solidpod/example/redirect.html',
+          'http://localhost:4400/redirect',
+          'com.example.demopod://redirect'
+        ],
+        postLogoutRedirectUris: [
+          'https://anushkavidanage.github.io/solidpod/example/redirect.html',
+          'http://localhost:4400/redirect',
+          'com.example.demopod://redirect'
+        ],
         autoLogin: true,
         child: Home(),
       ),

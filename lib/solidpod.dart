@@ -49,7 +49,8 @@ export 'src/solid/constants/predicates.dart';
 
 /// Solid authentication function
 
-export 'src/solid/authenticate.dart' show solidAuthenticate, tryRestoreSession;
+export 'src/solid/authenticate.dart'
+    show solidAuthenticate, tryRestoreSession, pickRedirectUri;
 
 /// Status class to represent different function outputs
 
