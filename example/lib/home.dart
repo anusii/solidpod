@@ -227,6 +227,80 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     }
   }
 
+  Future<void> _showFetchNotificationsDialog() async {
+    final loggedIn = await loginIfRequired(context);
+    if (!loggedIn) return;
+
+    // Make sure the security key is available so the local pair keys can
+    // be decrypted on demand.
+
+    await getKeyFromUserIfRequired(context, widget);
+
+    List<PodNotification> notifications;
+    try {
+      notifications = await fetchNotifications();
+    } on Exception catch (e) {
+      debugPrint('fetchNotifications failed: $e');
+      if (!context.mounted) return;
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Fetch Failed'),
+          content: Text('Could not fetch notifications:\n$e'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: Text('Notifications (${notifications.length})'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: notifications.isEmpty
+                ? const Text('No notifications yet.')
+                : ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: notifications.length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (_, i) {
+                      final n = notifications[i];
+                      final dt = DateTime.fromMillisecondsSinceEpoch(
+                        n.timestamp,
+                      );
+                      return ListTile(
+                        dense: true,
+                        title: Text(n.title),
+                        subtitle: Text(
+                          'From: ${n.senderWebId}\n'
+                          'At: $dt\n'
+                          'Priority: ${n.priority}'
+                          '${n.content == null ? '' : '\n${n.content}'}',
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _showSendNotificationDialog() async {
     final loggedIn = await loginIfRequired(context);
     if (!loggedIn) return;
@@ -333,6 +407,31 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             title: const Text('Success'),
                             content: const Text(
                               'Notification sent successfully.',
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    } on RecipientNotReadyException catch (e) {
+                      debugPrint('Recipient not ready: $e');
+                      if (context.mounted) {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Recipient Not Ready'),
+                            content: Text(
+                              'Could not send the notification to '
+                              '$recipient because their Pod has not been '
+                              'upgraded for the new notifications folder.\n\n'
+                              'Ask the recipient to log in to this app so '
+                              'the Update Wizard can finish setting up '
+                              'their Pod.\n\n'
+                              'Details: $e',
                             ),
                             actions: [
                               ElevatedButton(
@@ -654,6 +753,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           onPressed: _showSendNotificationDialog,
                           child: const Text('Send Notification'),
+                        ),
+                        smallGapV,
+                        ElevatedButton(
+                          onPressed: _showFetchNotificationsDialog,
+                          child: const Text('Fetch Notifications'),
                         ),
 
                         largeGapV,

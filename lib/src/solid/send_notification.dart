@@ -28,7 +28,7 @@
 
 library;
 
-import 'dart:convert';
+import 'package:encrypter_plus/encrypter_plus.dart' show Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -37,35 +37,25 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
     show getAppNameVersion, isUserLoggedIn;
+import 'package:solidpod/src/solid/utils/notification_pair_id.dart';
+import 'package:solidpod/src/solid/utils/notification_pair_key_manager.dart';
+import 'package:solidpod/src/solid/utils/notification_pair_outbox.dart';
 
-/// Send a notification to a specified recipient's POD.
-///
-/// The notification is written as an unencrypted JSON file to the recipient's
-/// notification folder (`appDirName/notification/`). The file is named using
-/// the current Unix timestamp in milliseconds for chronological sorting.
-///
-/// This function writes directly via [createResource] using an HTTP POST
-/// (not PUT) to the notification container. POST is used because the
-/// notification directory's ACL grants public **Append** access, and the
-/// Solid Protocol requires only `acl:Append` for POST requests to a
-/// container, whereas PUT requires `acl:Write`. A `Slug` header suggests
-/// the desired file name.
-///
-/// [writePod] is intentionally avoided because its pre-flight GET request
-/// may return 403 on another user's POD, aborting before the write is ever
-/// attempted.
+/// Send a notification to the POD identified by [recipientWebId].
 ///
 /// Arguments:
-/// - [recipientWebId]: The full WebID of the notification recipient
-///   (e.g. `https://pods.solidcommunity.au/john-doe/profile/card#me`)
-/// - [title]: The notification title
-/// - [content]: Optional notification body text
-/// - [priority]: Notification priority level (default: 0).
-///   Convention: 0 = low, 1 = medium, 2 = high
+///  - [recipientWebId]: WebID of the recipient POD.
+///  - [title]: required short title shown in the notification card.
+///  - [content]: optional longer body.
+///  - [priority]: 0 = low, 1 = medium, 2 = high.
 ///
-/// Throws [NotLoggedInException] if the user is not authenticated.
-/// Throws [RecipientNotReadyException] if the recipient's WebID does not
-/// exist or their Pod lacks the notification folder for this app.
+/// Throws:
+///  - [NotLoggedInException] when the caller is not authenticated.
+///  - [RecipientNotReadyException] when the recipient WebID does not
+///    resolve, or when the invite POST is rejected (typically because
+///    the recipient has not yet logged in to the upgraded app so the
+///    Update Wizard has not had a chance to create their notifications
+///    folder).
 
 Future<void> sendNotification({
   required String recipientWebId,
@@ -86,10 +76,7 @@ Future<void> sendNotification({
     throw NotLoggedInException('Unable to retrieve sender WebID');
   }
 
-  // Pre-flight checks.
-
-  // 1. Verify the recipient's WebID exists (unauthenticated GET to the
-  //    public profile document).
+  // Pre-flight: confirm the recipient WebID is a real profile document.
 
   final webIdStatus = await checkWebIdExists(recipientWebId);
   if (webIdStatus == ResourceStatus.notExist) {
@@ -99,69 +86,105 @@ Future<void> sendNotification({
     );
   }
 
-  // 2. Verify the recipient has initialised their Pod for this app.
-  //    checkPodInitialised performs an authenticated GET on the recipient's
-  //    shared directory — the same check used in the grant-permissions
-  //    workflow. If it returns false the recipient has never set up the app.
+  // Get (or lazily create) the AES key for this pair. Stored under the
+  // sender's encryption folder so subsequent sends reuse it.
 
-  final podReady = await checkPodInitialised(recipientWebId);
-  if (!podReady) {
-    throw RecipientNotReadyException(
-      '$recipientWebId has not logged in to $appName recently. Ask them to login to $appName, '
-      'which will create the notification '
-      'folder. Then you can send them notifications.',
-    );
-  }
+  final keyInfo = await NotificationPairKeyManager.getOrCreateKey(
+    recipientWebId,
+  );
 
-  // Build and send the notification.
-
-  final timestamp = DateTime.now().millisecondsSinceEpoch;
-
-  final notification = PodNotification(
+  final notification = PodNotification.create(
     senderWebId: senderWebId,
     recipientWebId: recipientWebId,
     title: title,
     content: content,
     priority: priority,
-    timestamp: timestamp,
   );
 
-  // Build the absolute file URL in the recipient's notification folder.
-  // WebID format: https://host/pod-name/profile/card#me
-  // Target:      https://host/pod-name/appDirName/notification/<timestamp>.json
+  // Append into the single-file outbox living in the sender's own POD.
+  // This is the read-decrypt-append-encrypt-write step.
 
-  final notificationPath = '$appDirName/$notificationDir/$timestamp.json';
-  final fileUrl = recipientWebId.replaceAll(profCard, notificationPath);
+  await NotificationPairOutbox.appendNotification(
+    partnerWebId: recipientWebId,
+    pairKey: keyInfo.pair.key,
+    notification: notification,
+  );
 
-  final jsonContent = jsonEncode(notification.toJson());
+  // Refresh the per-file ACL so the partner keeps Read access. This is
+  // idempotent; rewriting the same ACL is harmless and recovers from
+  // any out-of-band ACL edits.
 
-  // POST the notification JSON to the recipient's notification container.
-  // replaceIfExist: false triggers POST (instead of PUT), which only
-  // requires Append access on the container — matching the public Append
-  // ACL configured during POD initialisation.
-  //
-  // If the POST still fails (e.g. the notification folder was added in a
-  // newer app version that the recipient has not yet run), convert the
-  // error into a RecipientNotReadyException with actionable guidance.
+  final outboxUrl =
+      await NotificationPairOutbox.outboxUrlFor(recipientWebId);
+  await NotificationPairOutbox.ensureOutboxAcl(
+    outboxUrl: outboxUrl,
+    partnerWebId: recipientWebId,
+  );
 
-  try {
-    await createResource(
-      fileUrl,
-      content: jsonContent,
-      contentType: ResourceContentType.auto,
-      replaceIfExist: false,
-    );
-  } on Exception catch (e) {
-    final errStr = e.toString();
-    if (errStr.contains('403') || errStr.contains('Forbidden')) {
-      throw RecipientNotReadyException(
-        'The recipient ($recipientWebId) does not have a notification '
-        'folder for $appName. This typically happens when the recipient '
-        'has not run the latest version of $appName. They need to log in '
-        'to setup their Pod before you can send '
-        'notifications to them.',
+  // First send for this pair: deliver an RSA-encrypted invite so the
+  // recipient learns K_AB and the outbox URL on their next poll. Any
+  // 403/404 here is bubbled up as a RecipientNotReadyException because
+  // it means the recipient's notifications folder is missing or
+  // refuses cross-POD writes — both fixable by asking the recipient to
+  // log in once and let the Update Wizard run.
+
+  if (keyInfo.created) {
+    try {
+      await _deliverInvite(
+        senderWebId: senderWebId,
+        recipientWebId: recipientWebId,
+        pairKey: keyInfo.pair.key,
+        outboxUrl: outboxUrl,
       );
+    } on Object catch (e) {
+      final errStr = e.toString();
+      if (errStr.contains('403') ||
+          errStr.contains('Forbidden') ||
+          errStr.contains('404')) {
+        throw RecipientNotReadyException(
+          'Could not deliver the notification invite to $recipientWebId '
+          'for $appName. Their notifications folder is either missing or '
+          'does not accept cross-Pod writes. Ask them to log in to '
+          '$appName so the Update Wizard can create or repair the folder.',
+        );
+      }
+      rethrow;
     }
-    rethrow;
   }
+}
+
+/// POST an RSA-encrypted invite into the recipient's notifications
+/// folder. The folder ACL is expected to grant public Append, which is
+/// exactly what is needed to POST a new file from a different POD.
+
+Future<void> _deliverInvite({
+  required String senderWebId,
+  required String recipientWebId,
+  required Key pairKey,
+  required String outboxUrl,
+}) async {
+  final payload = await NotificationPairKeyManager.buildInvitePayload(
+    senderWebId: senderWebId,
+    partnerWebId: recipientWebId,
+    pairKey: pairKey,
+    outboxUrl: outboxUrl,
+  );
+
+  final senderPairId = derivePairId(senderWebId);
+  final inviteFileName =
+      NotificationPairKeyManager.inviteFileName(senderPairId);
+  final inviteUrl = recipientWebId.replaceAll(
+    profCard,
+    '$appDirName/$notificationDir/$inviteFileName',
+  );
+
+  // POST so the recipient folder's public Append ACL is sufficient
+  // (PUT would require Write which third parties do not have).
+
+  await createResource(
+    inviteUrl,
+    content: payload,
+    contentType: ResourceContentType.auto,
+    replaceIfExist: false,
+  );
 }

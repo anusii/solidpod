@@ -293,14 +293,15 @@ Future<void> initPod(
           assert(fileName == '.acl');
           isFile = false;
 
-          // The notification directory ACL grants public Append so that any
-          // user (including cross-pod senders) can POST new notification
-          // files; Read/Write/Control remain with the owner only. Using
-          // foaf:Agent rather than acl:AuthenticatedAgent because CSS does
-          // not reliably honour AuthenticatedAgent for cross-pod writes
-          // with DPoP tokens. The shared directory ACL grants public
-          // read/write. The profile directory ACL is owner-only (empty
-          // publicAccess).
+          // The notifications directory ACL grants public Append so that
+          // any user (including cross-pod senders) can POST encrypted
+          // per-notification files into a recipient's folder; Read/Write/
+          // Control remain with the owner only. Files inherit the
+          // container's default ACL so the owner can read everything
+          // landing in there, while third parties cannot enumerate or
+          // read each other's deliveries. The shared directory ACL
+          // grants public read/write. The profile directory ACL is
+          // owner-only (empty publicAccess).
 
           if (f.contains('/$notificationDir/')) {
             publicAccess = {AccessMode.append};

@@ -281,6 +281,17 @@ export 'src/solid/write_external_pod.dart';
 
 export 'src/solid/send_notification.dart';
 
+/// Receive (cross-POD) notifications from every paired sender
+
+export 'src/solid/fetch_notifications.dart' show fetchNotifications;
+
+/// Per-pair notification key utilities — exposed so apps that need to
+/// inspect or manage the local notification key store (rare) can do so
+/// without reaching into `src/`.
+
+export 'src/solid/utils/notification_pair_id.dart'
+    show derivePairId, derivePairDisplayName;
+
 /// Data model for POD notifications
 
 export 'src/solid/models/pod_notification.dart' show PodNotification;
