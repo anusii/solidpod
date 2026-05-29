@@ -164,7 +164,8 @@ class NotificationPairKeyManager {
   /// partner) or whether an existing key was reused.
 
   static Future<({NotificationPairKey pair, bool created})> getOrCreateKey(
-      String partnerWebId) async {
+    String partnerWebId,
+  ) async {
     final existing = await loadKey(partnerWebId);
     if (existing != null) return (pair: existing, created: false);
 
