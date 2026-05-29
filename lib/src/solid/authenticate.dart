@@ -96,9 +96,9 @@ String pickRedirectUri(List<String> uris) {
 /// server and errors the pending awaiter, so this caller unwinds with a
 /// [SolidAuthCancelledException].
 
-// void cancelSolidAuthenticate() {
-//   unawaited(cancelAuthenticate());
-// }
+void cancelSolidAuthenticate() {
+  // unawaited(cancelAuthenticate());
+}
 
 /// Asynchronously authenticate a user against a Solid server [serverId].
 ///
