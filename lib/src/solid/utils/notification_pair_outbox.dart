@@ -31,8 +31,9 @@ library;
 
 import 'dart:convert';
 
-import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
+
+import 'package:encrypter_plus/encrypter_plus.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';

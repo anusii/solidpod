@@ -114,8 +114,7 @@ Future<void> sendNotification({
   // idempotent; rewriting the same ACL is harmless and recovers from
   // any out-of-band ACL edits.
 
-  final outboxUrl =
-      await NotificationPairOutbox.outboxUrlFor(recipientWebId);
+  final outboxUrl = await NotificationPairOutbox.outboxUrlFor(recipientWebId);
   await NotificationPairOutbox.ensureOutboxAcl(
     outboxUrl: outboxUrl,
     partnerWebId: recipientWebId,

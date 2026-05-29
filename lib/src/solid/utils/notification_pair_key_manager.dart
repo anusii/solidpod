@@ -30,8 +30,9 @@ library;
 
 import 'dart:convert';
 
-import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
+
+import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:pointycastle/asymmetric/api.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -162,8 +163,8 @@ class NotificationPairKeyManager {
   /// was bootstrapped (and therefore an invite should be sent to the
   /// partner) or whether an existing key was reused.
 
-  static Future<({NotificationPairKey pair, bool created})>
-      getOrCreateKey(String partnerWebId) async {
+  static Future<({NotificationPairKey pair, bool created})> getOrCreateKey(
+      String partnerWebId) async {
     final existing = await loadKey(partnerWebId);
     if (existing != null) return (pair: existing, created: false);
 

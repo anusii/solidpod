@@ -105,8 +105,7 @@ Future<List<PodNotification>> fetchNotifications() async {
 /// left in place for retry on the next poll.
 
 Future<void> _processPendingInvites() async {
-  final notifDir =
-      await getDirUrl([appDirName, notificationDir].join('/'));
+  final notifDir = await getDirUrl([appDirName, notificationDir].join('/'));
 
   final status = await checkResourceStatus(notifDir, isFile: false);
   if (status != ResourceStatus.exist) return;
