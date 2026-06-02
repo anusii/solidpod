@@ -4,9 +4,7 @@
 # Localhost OAuth callbacks used in integration tests
 
 http://localhost:44007/
-
 http://localhost:8000/
-
 http://localhost/
 
 # POD OAuth endpoints that require authentication parameters
@@ -63,3 +61,7 @@ https://securetoken.google.com/
 
 # 20260112 dc Miscellaneous websites.
 https://github.com/*
+
+# URLs in comments
+http://localhost:4400/redirect
+https://your-domain/redirect.html
