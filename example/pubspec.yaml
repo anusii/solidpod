@@ -26,7 +26,7 @@ dependency_overrides:
     # path: ../../solidui
     git:
       url: https://github.com/anusii/solidui.git
-      ref: av/40_migrate_oidc_implementation_revert
+      ref: dev
 
 dev_dependencies:
   dependency_validator: ^5.0.4
