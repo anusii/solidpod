@@ -54,8 +54,17 @@ import 'package:solidpod/src/solid/utils/misc.dart'
 /// | Platform | Matched format |
 /// |---|---|
 /// | Web | `https://` URI (same-origin BroadcastChannel requirement) |
-/// | Android / iOS | Custom scheme URI (not `http://` or `https://`) |
-/// | Desktop (Windows / macOS / Linux) | `http://localhost` loopback URI |
+/// | Android / iOS / macOS | Custom scheme URI (not `http://` or `https://`) |
+/// | Desktop (Windows / Linux) | `http://localhost` loopback URI |
+///
+/// macOS is grouped with the mobile platforms because `package:oidc` resolves
+/// to `oidc_macos`, which performs the Authorization Code flow via
+/// `flutter_appauth`'s `ASWebAuthenticationSession`. That agent can only
+/// capture a custom-scheme callback and never starts a loopback HTTP server,
+/// so a `http://localhost` redirect simply opens the system browser and the
+/// callback is lost. Windows and Linux resolve to `oidc_desktop`, which does
+/// bind a loopback server on the redirect's port, so they keep the localhost
+/// URI.
 ///
 /// Falls back to the first element when no format-matched entry is found, so
 /// a single-element list always returns that element unchanged.
@@ -72,14 +81,17 @@ String pickRedirectUri(List<String> uris) {
     );
   }
   if (defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS) {
-    // Mobile platforms use a custom URI scheme (not http or https).
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS) {
+    // Android, iOS and macOS all authenticate through an
+    // ASWebAuthenticationSession-style agent, which requires a custom URI
+    // scheme (not http or https) rather than a loopback server.
     return uris.firstWhere(
       (u) => !u.startsWith('http://') && !u.startsWith('https://'),
       orElse: () => uris.first,
     );
   }
-  // Desktop: Windows / macOS / Linux use a localhost loopback URL.
+  // Remaining desktop platforms (Windows / Linux) use a localhost loopback URL.
   return uris.firstWhere(
     (u) => u.startsWith('http://localhost'),
     orElse: () => uris.first,
