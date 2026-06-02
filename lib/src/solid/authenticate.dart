@@ -30,7 +30,6 @@
 
 library;
 
-import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart'

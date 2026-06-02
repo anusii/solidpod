@@ -30,10 +30,7 @@
 
 library;
 
-import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as path;
-import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart';
