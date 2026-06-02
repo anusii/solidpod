@@ -49,23 +49,22 @@ to host personal online data stores (Pods). Numerous providers of
 Solid Server hosting are emerging allowing users to host and migrate
 their Pods on any such servers (or to run their own server).
 
-To know more about our work relatd to Solid Pods
+To know more about our work related to Solid Pods
 visit <https://solidcommunity.au>
 
 ## Features
 
-- [Authenticate](#authenticate-example) a user against a given Solid server.
-- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files
-in a POD.
+- [Authenticate](#authenticate-example) a user against a given Solid server (WebID or issuer URI).
+- [Silent session restore](#session-restore-example) on app startup — no browser required.
+- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files in a POD.
+- [Delete files and containers](#delete-a-file-from-the-pod) from a POD.
 - [Read, write and delete](#large-file-manager-example) large data files.
+- Grant and revoke access permissions between users.
 
 For UI components such as login screens, security key management,
 permission granting/revoking, and shared resource views, see the
 [solidui](https://pub.dev/packages/solidui) package.
 
-[Solid](https://solidproject.org/) is an open standard for a server
-providing Data Vaults  hosting personal online data stores
-(Pods). Numerous providers of Solid Server
 [hosts](https://solidproject.org/get_a_pod) support users host and
 migrate their Pods. Anyone can also host their own [Community Solid
 Server](https://communitysolidserver.github.io/CommunitySolidServer/latest/).
@@ -84,8 +83,8 @@ dependencies:
 ```
 
 An example project that uses `solidpod` can be found
-in the [example](https://github.com/anusii/solidui/tree/dev/example)
-folder of the [SolidUI](https://github.com/anusii/solidui) repository.
+in the [example](https://github.com/anusii/solidpod/tree/dev/example)
+folder of the [solidpod](https://github.com/anusii/solidpod) repository.
 
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
@@ -96,7 +95,77 @@ If the package is being used to build either a `macos` or `web` app,
 the following changes are required in order to make the package fully
 functional.
 
+## General
+
+`solidpod` delegates authentication to [`package:solid_auth`](https://pub.dev/packages/solid_auth), 
+which is built on the OpenID-certified [`package:oidc`](https://pub.dev/packages/oidc) and 
+implements the Solid-OIDC protocol.
+
+Authentication requires a client ID document, which is a publicly hosted JSON-LD file 
+that identifies your app to the Solid identity provider. Pass its URL as the clientId 
+parameter to solidAuthenticate(). See the 
+[Solid-OIDC client identifiers spec](https://solid.github.io/solid-oidc/#clientids-document) 
+for how to create and host one. For an example client ID document refer to [here](https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld).
+
 ## Android
+
+As per [OIDC getting started guide](https://bdaya-dev.github.io/oidc/oidc-getting-started/) update the following.
+
+Go to `android/app/build.gradle`, and add the following line under `defaultConfig:`
+
+```gradle
+ defaultConfig {   
+    ...
+    manifestPlaceholders += [
+    'appAuthRedirectScheme': 'com.my.app'
+    ]
+}
+```
+
+Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts` file upgrade in the following way
+
+```gradle
+ defaultConfig {   
+    ...
+    manifestPlaceholders.putAll(mapOf(
+            "appAuthRedirectScheme" to "com.my.app"
+        ))
+}
+```
+
+Go to `android/app/src/main/AndroidManifest.xml`, and add the following under `application` tag:
+
+```xml
+<application
+  ...
+  android:fullBackupContent="@xml/backup_rules"
+  android:dataExtractionRules="@xml/data_extraction_rules"
+  >
+```
+
+Also under `activity` tab change the following:
+- Remove the line `android:taskAffinity=""`
+- Change `android:launchMode="singleTop"` to `android:launchMode="singleTask"`
+
+Now create the following file in `android\app\src\main\res\xml\backup_rules.xml`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+</full-backup-content>
+```
+
+Also create the following file in `android\app\src\main\res\xml\data_extraction_rules.xml`
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+    </cloud-backup>
+</data-extraction-rules>
+```
 
 For a release be sure to update
 `android/app/src/main/AndroidManifest.xml` to include within the
@@ -138,11 +207,135 @@ so fill the missing.*
 
 ### web
 
-Inside the app directory go to the directory `/web/`. Inside create a
+<!-- Inside the app directory go to the directory `/web/`. Inside create a
 file called `callback.html`. Add the following piece of code into that
-file.
+file. -->
+
+In the same location where your client ID document is hosted, create
+a file called `redirect.html`. Add the following piece of `html` code into
+that file.
 
 ```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Flutter Oidc Redirect</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="text/javascript">
+    const stateNamespace = 'state';
+    const stateResponseNamespace = 'response.state';
+    const requestNamespace = 'request';
+
+    const requestBroadcastChannel = 'oidc_flutter_web/request';
+    const redirectBroadcastChannel = 'oidc_flutter_web/redirect';
+
+
+    //if the OP isn't requesting logout, handle redirect.
+    if (!handleFrontChannelLogout()) {
+      handleRedirect();
+    }
+
+    function handleRedirect() {
+      // For supported browsers: https://caniuse.com/broadcastchannel
+      var bc = new BroadcastChannel(redirectBroadcastChannel);
+      bc.postMessage(window.location.toString());
+      bc.close();
+      //The rest of this function handles same page redirects
+      let dataSrc;
+      dataSrc = new URLSearchParams(window.location.search);
+      var state = dataSrc.get('state');
+      if (!state) {
+        if (window.location.hash) {
+          dataSrc = new URLSearchParams(
+            window.location.hash.substring(1)
+          );
+          state = dataSrc.get('state');
+        }
+      }
+      if (!state) {
+        return;
+      }
+      const stateDataRaw = getLocalStorage(stateNamespace, state);
+      if (!stateDataRaw) {
+        console.error('state not found, key: ' + state);
+        return;
+      }
+      setLocalStorage(stateResponseNamespace, state, window.location.toString());
+      //we call JSON.parse twice, since shared_preferences double encodes json strings for some reason.
+      const parsedStateString = JSON.parse(stateDataRaw);
+      if (!parsedStateString) {
+        console.error('parsed state is null');
+        return;
+      }
+      // Read the mode from the state.
+      const webLaunchMode = parsedStateString.options?.webLaunchMode;
+      if (!webLaunchMode) {
+        console.error('webLaunchMode not found in parsed state.');
+        return;
+      }
+      if (webLaunchMode != 'samePage') {
+        return;
+      }
+      const original_uri = parsedStateString.original_uri;
+      if (!original_uri) {
+        console.warn("it's preferred that original_uri is used when webLaunchMode is samePage.");
+        return;
+      }
+      window.location.assign(original_uri);
+    }
+
+    function handleFrontChannelLogout() {
+      const queryParams = new URLSearchParams(window.location.search);
+      if (queryParams.get('requestType') == 'front-channel-logout') {
+        // For supported browsers: https://caniuse.com/broadcastchannel
+        var bc = new BroadcastChannel(requestBroadcastChannel);
+        bc.postMessage(window.location.toString());
+        bc.close();
+        // this puts a marker for the flutter app that the user wants to logout.
+        //
+        // in the flutter app, if this marker exists,
+        // we don't auth the cached user in `UserManager.init()`, and we clear the cached data.
+        setLocalStorage(requestNamespace, 'front-channel-logout', window.location.toString());
+        return true;
+      }
+      return false;
+    }
+
+    function getLocalStorage(namespace, key) {
+      const rawRes = localStorage.getItem('oidc.' + namespace + '.' + key);
+      if (!rawRes) {
+        return null;
+      }
+      return rawRes;
+    }
+    function setLocalStorage(namespace, key, value) {
+      const keysEntryKey = 'oidc.keys.' + namespace;
+      var keys = localStorage.getItem(keysEntryKey);
+      if (!keys) {
+        keys = "[]";
+      }
+      const parsedKeys = JSON.parse(keys);
+      if (!(parsedKeys instanceof Array)) {
+        console.error('parsedKeys is not an array.', parsedKeys);
+      }
+      parsedKeys.push(key);
+      localStorage.setItem(keysEntryKey, JSON.stringify(parsedKeys));
+      localStorage.setItem('oidc.' + namespace + '.' + key, value);
+    }
+  </script>
+</head>
+
+<body>
+  <h2>Authentication completed! Please close this page.</h2>
+</body>
+
+</html>
+```
+
+
+<!-- ```html
 <!DOCTYPE html>
 <html>
 
@@ -177,7 +370,7 @@ file.
 </body>
 
 </html>
-```
+``` -->
 
 ## Usage
 
@@ -186,16 +379,94 @@ by the package.
 
 ### Authenticate Example
 
-A function to authenticate a user against a given Solid server
-`https://pods.solidcommunity.au/`. Return a list containing
- authentication data.
+Authenticates a user against a Solid server. The first argument can be
+either the user's **WebID** (preferred) or a bare issuer URI. Returns
+`[SolidAuthData, webId, profileTurtle]` on success, or `null` on failure.
 
 ```dart
-final authData = await solidAuthenticate(
-        'https://pods.solidcommunity.au/',
-        context,
-      );
+final result = await solidAuthenticate(
+  'https://pods.solidcommunity.au/alice/profile/card#me', // WebID or issuer URI
+  context,
+  clientId: 'https://your-domain/client-profile.jsonld',
+  redirectUris: [
+    'https://your-domain/redirect.html', // web
+    'com.example.app://redirect',        // Android / iOS
+    'http://localhost:4400/redirect',    // Windows / Linux / macOS
+  ],
+  postLogoutRedirectUris: [             // optional, defaults to redirectUris selection
+    'https://your-domain/redirect.html',
+    'com.example.app://redirect',
+    'http://localhost:4400/redirect',
+  ],
+);
+
+if (result != null) {
+  final authData = result[0] as SolidAuthData; // access token, id token, etc.
+  final webId   = result[1] as String;         // user's WebID
+  final profile = result[2] as String;         // Turtle-encoded profile document
+}
 ```
+
+**IMPORTANT**
+
+`redirectUris` and `postLogoutRedirectUris` take a list of URIs, one per
+platform. At runtime `solidAuthenticate()` picks the entry that matches the
+current platform. Every URI in the list must be registered in your client
+ID document and match the correct format for each platform:
+
+| Platform | URI format | Notes |
+|---|---|---|
+| Web | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
+| Android / iOS | `com.example.app://redirect` | Custom URI scheme registered with the OS |
+| Windows / Linux / macOS | `http://localhost:4400/redirect` | **Fixed port required** - see below |
+
+### Desktop: use a fixed port
+
+`oidc_desktop` binds a loopback HTTP server to the port in the desktop
+entry of `redirectUris`. If you use port `0`, the OS assigns a random port
+that is never registered in the client document, causing the Solid server
+to reject logout with `post_logout_redirect_uri not registered`.
+Use a fixed port (e.g. `4400`) in both the app and the client document.
+
+Both `redirect_uris` and `post_logout_redirect_uris` in the client ID 
+document must list every URI used across platforms:
+
+```json
+{
+  "redirect_uris": [
+    "https://your-domain/redirect.html",
+    "http://localhost:4400/redirect"
+  ],
+  "post_logout_redirect_uris": [
+    "https://your-domain/redirect.html",
+    "http://localhost:4400/redirect"
+  ]
+}
+```
+
+### Session Restore Example
+
+On app startup, call `tryRestoreSession()` to silently resume a previous
+session without opening a browser. It returns `[SolidAuthData, webId, profileTurtle]`
+if a valid persisted session exists, or `null` if the user needs to log in.
+
+```dart
+// In initState() or app startup code — before showing the login UI.
+final result = await tryRestoreSession();
+if (result != null) {
+  final authData = result[0] as SolidAuthData;
+  final webId   = result[1] as String;
+  final profile = result[2] as String;
+  // Navigate directly to the authenticated screen.
+} else {
+  // No valid session — show the login screen.
+}
+```
+
+`tryRestoreSession()` never opens a browser. It silently refreshes expired
+access tokens if a refresh token is available, and returns `null` if the
+session cannot be restored (in which case the stored session is cleared
+automatically so the next `solidAuthenticate()` starts clean).
 
 ### Read Pod File Example
 
@@ -261,7 +532,18 @@ the directory `parentDir` and encrypt both files using that key.
 ### Delete a File from the Pod
 
 ```dart
-deleteFile()
+// Obtain the full URL for the file first.
+final fileUrl = await getFileUrl('myfiles/my-data-file.ttl');
+
+// Delete the file, its ACL, and its encryption key (if any).
+// Also revokes any permissions previously granted to other users.
+await deleteFile(fileUrl: fileUrl);
+```
+
+To delete an entire directory and all of its contents recursively:
+
+```dart
+await deleteContainer('myapp/data', 'myfiles');
 ```
 
 ### Large File Manager Example
