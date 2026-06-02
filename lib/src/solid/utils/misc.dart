@@ -30,7 +30,15 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
+import 'package:encrypter_plus/encrypter_plus.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:path/path.dart' as path;
+import 'package:rdflib/rdflib.dart';
+import 'package:solid_auth/solid_auth.dart' show DpopTokenGenerator;
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart';
@@ -138,6 +146,146 @@ Map<dynamic, dynamic> extractAclPerm(Map<dynamic, dynamic> aclFileContentMap) {
 /// Get resource name from URL
 String getResNameFromUrl(String resourceUrl) {
   return resourceUrl.split('/').last;
+}
+
+/// Get tokens necessary to fetch a resource from a POD
+///
+/// returns the access token and DPoP token
+Future<({String accessToken, String dPopToken})> getTokensForResource(
+  String resourceUrl,
+  String httpMethod,
+) async {
+  final authData = await AuthDataManager.loadAuthData();
+
+  if (authData == null) {
+    throw Exception('Authentication data not available. Please login first.');
+  }
+
+  final authManager = AuthDataManager.getAuthManager();
+  if (authManager == null) {
+    throw Exception('Auth manager not available. Please login first.');
+  }
+
+  final dPopToken = await DpopTokenGenerator.generateForRequest(
+    endpointUrl: resourceUrl,
+    httpMethod: httpMethod,
+    accessToken: authData.accessToken,
+    keyManager: authManager.keyManager,
+  );
+
+  return (
+    accessToken: authData.accessToken,
+    dPopToken: dPopToken,
+  );
+}
+
+/// Logging out the user with comprehensive error handling and platform support
+///
+/// This function performs a complete logout that includes:
+/// 1. Clearing all encryption keys from memory
+/// 2. Clearing application-specific caches
+/// 3. Calling the OIDC logout endpoint via SolidAuthManager (with error tolerance)
+/// 4. Removing authentication data from secure storage
+///
+/// Returns true if critical cleanup (key/auth data) succeeds.
+Future<bool> logoutPod() async {
+  try {
+    await KeyManager.clear();
+
+    // Clear app caches before any network operations to prevent race conditions.
+    if (_onLogoutClearCaches != null) {
+      try {
+        await _onLogoutClearCaches!();
+      } on Object catch (e) {
+        debugPrint('logoutPod() cache callback failed (non-critical): $e');
+      }
+    }
+
+    // Contact the OIDC logout endpoint and rotate the DPoP key.
+    // Must be called before removeAuthData() clears _authManager.
+    try {
+      await AuthDataManager.getAuthManager()?.logout();
+    } on Object catch (e) {
+      debugPrint('logoutPod() OAuth2 logout warning (non-critical): $e');
+    }
+
+    final authDataRemoved = await AuthDataManager.removeAuthData();
+    return authDataRemoved;
+  } on Object catch (e) {
+    debugPrint('logoutPod() CRITICAL ERROR: $e');
+    try {
+      await AuthDataManager.removeAuthData();
+      await KeyManager.clear();
+    } on Object catch (_) {}
+    return false;
+  }
+}
+
+/// Clear all login state without opening a browser.
+///
+/// Performs the same cleanup as [logoutPod] but invalidates the IdP session
+/// via a headless HTTP request rather than launching a visible browser
+/// window. Use this when switching accounts or recovering from stale
+/// credentials.
+
+Future<bool> silentLogout() async {
+  try {
+    await KeyManager.clear();
+
+    // Get logout URL from discovery doc before clearing the manager.
+    String? logoutUrl;
+    try {
+      logoutUrl = await AuthDataManager.getLogoutUrl();
+    } on Object catch (_) {}
+
+    // Clear local token state only — no browser redirect.
+    await AuthDataManager.getAuthManager()?.forgetUser();
+
+    final authDataRemoved = await AuthDataManager.removeAuthData();
+
+    if (_onLogoutClearCaches != null) {
+      try {
+        await _onLogoutClearCaches!();
+      } on Object catch (e) {
+        debugPrint('silentLogout() cache callback failed (non-critical): $e');
+      }
+    }
+
+    // Best-effort IdP session invalidation via headless HTTP GET.
+    if (logoutUrl != null && logoutUrl.isNotEmpty) {
+      try {
+        await http.get(Uri.parse(logoutUrl));
+      } on Object catch (e) {
+        debugPrint('silentLogout() headless logout failed (non-critical): $e');
+      }
+    }
+
+    return authDataRemoved;
+  } on Object catch (e) {
+    debugPrint('silentLogout() CRITICAL: $e');
+    try {
+      await AuthDataManager.removeAuthData();
+      await KeyManager.clear();
+    } on Object catch (_) {}
+    return false;
+  }
+}
+
+/// Removes header and footer (which mess up the TTL format) from a PEM-formatted public key string.
+///
+/// This function takes a public key string, typically in PEM format, and removes
+/// the standard PEM headers and footers.
+
+String trimPubKeyStr(String keyStr) {
+  final itemList = keyStr.split('\n');
+  itemList.remove('-----BEGIN RSA PUBLIC KEY-----');
+  itemList.remove('-----END RSA PUBLIC KEY-----');
+  itemList.remove('-----BEGIN PUBLIC KEY-----');
+  itemList.remove('-----END PUBLIC KEY-----');
+
+  final keyStrTrimmed = itemList.join();
+
+  return keyStrTrimmed;
 }
 
 /// Get date and time from a string

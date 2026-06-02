@@ -93,6 +93,24 @@ class DemoPod extends StatelessWidget {
         infoButtonStyle: InfoButtonStyle(
           tooltip: 'Visit the DemoPod documentation.',
         ),
+        clientId:
+            'https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld',
+        // Use the following schemas depending on the platform
+        //  Web: https://anushkavidanage.github.io/solidpod/example/redirect.html
+        //  Mobile: com.example.demopod://redirect
+        //  Desktop: http://localhost:4400/redirect
+        //    (can use any port as long as it matches with the one in your id document)
+        redirectUris: [
+          'https://anushkavidanage.github.io/solidpod/example/redirect.html',
+          'http://localhost:4400/redirect',
+          'com.example.demopod://redirect'
+        ],
+        postLogoutRedirectUris: [
+          'https://anushkavidanage.github.io/solidpod/example/redirect.html',
+          'http://localhost:4400/redirect',
+          'com.example.demopod://redirect'
+        ],
+        autoLogin: true,
         child: Home(),
       ),
     );

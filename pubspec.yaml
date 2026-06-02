@@ -33,7 +33,11 @@ dependencies:
   petitparser: ^6.1.0
   pointycastle: ^4.0.0
   rdflib: ^0.2.12
-  solid_auth: ^0.1.30
+  # solid_auth: ^0.1.29
+  solid_auth:
+    git:
+      url: https://github.com/anusii/solid_auth.git
+      ref: av/session-persistence
   universal_io: ^2.3.1
 
 dev_dependencies:
@@ -42,6 +46,12 @@ dev_dependencies:
   dependency_validator: ^5.0.4
   flutter_lints: ^6.0.0
   import_order_lint: ^0.2.2
+
+dependency_overrides: 
+  solid_auth:
+    git:
+      url: https://github.com/anusii/solid_auth.git
+      ref: av/session-persistence
 
 flutter:
   assets:

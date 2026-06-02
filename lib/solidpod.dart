@@ -58,7 +58,12 @@ export 'src/solid/constants/predicates.dart';
 /// Solid authentication function
 
 export 'src/solid/authenticate.dart'
-    show cancelSolidAuthenticate, isSolidAuthenticatePending, solidAuthenticate;
+    show
+        solidAuthenticate,
+        tryRestoreSession,
+        pickRedirectUri,
+        cancelSolidAuthenticate,
+        isSolidAuthenticatePending;
 
 /// Status class to represent different function outputs
 
