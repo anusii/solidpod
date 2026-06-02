@@ -30,8 +30,6 @@ library;
 
 import 'dart:core';
 
-import 'package:flutter/foundation.dart' show debugPrint;
-
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/api/revoke_permission_api.dart';
@@ -108,21 +106,18 @@ Future<SolidFunctionCallStatus> revokePermission({
       recipientWebIdList.add(recipientIndOrGroupWebId);
     }
 
-    // Whether the resource has an associated individual encryption key.
-    // This is the legacy "is encrypted" signal: it reflects the user's
-    // original intent but does not tell us whether the bytes on the
-    // server are encrypted at this moment (a file shared with the
-    // Public or Authenticated User class is decrypted in place by
-    // `grantPermission`).
-    final fileHasIndKey = await checkFileEnc(
+    // Check if the file is encrypted
+    final fileIsEncrypted = await checkFileEnc(
       resourceUrl,
       isExternalRes: isExternalRes,
     );
 
-    if (fileHasIndKey) {
+    // If the file is encrypted then remove the individual key from relavant
+    // users/ user classes
+    if (fileIsEncrypted) {
+      // If access revoked for specific recipients, remove key
+      // from recipient's POD
       if (specificRecipientTypeList.contains(recipientType)) {
-        // Remove the per-recipient copy of the individual key from each
-        // recipient's POD when access is revoked from specific recipients.
         for (final recipientWebId in recipientWebIdList) {
           // Check if POD file structure is still there
           if (await checkPodInitialised(recipientWebId as String)) {
@@ -134,11 +129,9 @@ Future<SolidFunctionCallStatus> revokePermission({
           }
         }
       } else {
-        // Best-effort cleanup of the legacy public/authenticated-user
-        // shared key file. Newer versions of solidpod no longer write to
-        // these files when granting public/auth-user access (the resource
-        // is decrypted in place instead), but PODs initialised by older
-        // versions may still contain stale entries.
+        // if the recipient type is either public or authenticated agent
+        // Remove the key from the publicly available or authenticated user
+        // accessible file
         await removeSharedKeyUserClass(resourceUrl, recipientType);
       }
     }
@@ -151,18 +144,6 @@ Future<SolidFunctionCallStatus> revokePermission({
       recipientType: recipientType,
       isFile: isFile,
     );
-
-    // When revoking access from the Public or Authenticated User class,
-    // re-encrypt the resource if it had previously been decrypted in
-    // place for sharing. The presence of an individual key indicates
-    // the user originally intended the file to be encrypted at rest;
-    // `encryptFileInPlace` is a no-op when the file is already in the
-    // encrypted TTL format or when no individual key is available.
-    if (fileHasIndKey && !specificRecipientTypeList.contains(recipientType)) {
-      debugPrint('[revokePermission] re-encrypting "$resourceUrl" after '
-          'revoking $recipientType access');
-      await encryptFileInPlace(resourceUrl, isExternalRes: isExternalRes);
-    }
 
     // Add log entry to owner, granter, and receiver permission log files
 

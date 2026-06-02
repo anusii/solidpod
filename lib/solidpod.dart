@@ -117,7 +117,6 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
-        applyPublicShareDecryptedHookInPlace,
         createContainer,
         createDir,
         isPathInCurrentApp,
@@ -190,13 +189,6 @@ export 'src/solid/write_pod.dart';
 /// The function to grant permission to a resource
 
 export 'src/solid/grant_permission.dart';
-
-/// Application-level hooks invoked by solidpod when a resource is
-/// decrypted in place for public/auth-user sharing, or re-encrypted
-/// in place after such sharing is revoked.
-
-export 'src/solid/public_sharing_hooks.dart'
-    show PublicSharingHooks, PublicSharingContentTransformer;
 
 /// The function to read permissions given to a resource
 

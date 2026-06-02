@@ -34,6 +34,7 @@ library;
 
 import 'dart:convert';
 
+import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
@@ -247,5 +248,65 @@ Future<void> copySharedKey(
       // Update the file using the insert query
       await updateFileByQuery(receiverSharedKeyFileUrl, insertQuery);
     }
+  }
+}
+
+/// Copy shared individual key, either publicly or for all authenticated users
+Future<void> copySharedKeyUserClass(
+  Key indKey,
+  String resourceUrl,
+  List<dynamic> permissionList,
+  RecipientType recipientType,
+) async {
+  // File contents variables
+  var userClassIndKeyFileUrl = '';
+  var aclContentStr = '';
+
+  if (recipientType == RecipientType.public) {
+    // Get the url of the file
+    userClassIndKeyFileUrl = await getFileUrl(await getPubIndKeyPath());
+
+    // Create ACL content for the file
+    aclContentStr = await genAclTurtle(
+      userClassIndKeyFileUrl,
+      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+      publicAccess: {AccessMode.read},
+    );
+  } else if (recipientType == RecipientType.authUser) {
+    // Get the url of the file
+    userClassIndKeyFileUrl = await getFileUrl(await getAuthUserIndKeyPath());
+
+    // Create ACL content for the file
+    aclContentStr = await genAclTurtle(
+      userClassIndKeyFileUrl,
+      ownerAccess: {AccessMode.read, AccessMode.write, AccessMode.control},
+      authUserAccess: {AccessMode.read},
+    );
+  }
+
+  // Check if individual key file exists. If not create a file
+  if (await checkResourceStatus(userClassIndKeyFileUrl, isFile: true) ==
+      ResourceStatus.notExist) {
+    // If file does not exist create a ttl file
+    final userClassIndKeyFileContent = await genUserClassIndKeyTTLStr([
+      resourceUrl,
+      indKey.base64,
+    ]);
+
+    await createResource(
+      userClassIndKeyFileUrl,
+      content: userClassIndKeyFileContent,
+    );
+
+    // Also create a corresponding acl file
+    await createResource('$userClassIndKeyFileUrl.acl', content: aclContentStr);
+  } else {
+    // Update the existing file using a sparql query
+    final prefix = '${solidTermsNS.prefix}: <$appsTerms>';
+    final insertQuery =
+        'PREFIX $prefix INSERT DATA {<$resourceUrl> ${solidTermsNS.prefix}:encryptionKey "${indKey.base64}"};';
+
+    // Update the file using the insert query
+    await updateFileByQuery(userClassIndKeyFileUrl, insertQuery);
   }
 }
