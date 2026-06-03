@@ -9,6 +9,10 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
+## 1.0
+
++ Migration to certified OpenID [1.0.0 20260604 anushkavidanage]
+
 ## 0.13
 
 + Implement checking file encryption [0.12.10 20260527 tonypioneer]
