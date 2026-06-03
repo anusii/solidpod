@@ -37,7 +37,7 @@ dependencies:
   solid_auth:
     git:
       url: https://github.com/anusii/solid_auth.git
-      ref: av/session-persistence
+      ref: dev
   universal_io: ^2.3.1
 
 dev_dependencies:
@@ -51,7 +51,7 @@ dependency_overrides:
   solid_auth:
     git:
       url: https://github.com/anusii/solid_auth.git
-      ref: av/session-persistence
+      ref: dev
 
 flutter:
   assets:
