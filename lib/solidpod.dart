@@ -62,8 +62,7 @@ export 'src/solid/authenticate.dart'
         solidAuthenticate,
         tryRestoreSession,
         pickRedirectUri,
-        cancelSolidAuthenticate,
-        isSolidAuthenticatePending;
+        cancelSolidAuthenticate;
 
 /// Status class to represent different function outputs
 

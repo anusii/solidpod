@@ -30,7 +30,6 @@
 
 library;
 
-import 'dart:async' show unawaited;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart'
@@ -45,8 +44,7 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart'
     show AuthDataManager;
 import 'package:solidpod/src/solid/utils/exceptions.dart'
     show SolidAuthCancelledException;
-import 'package:solidpod/src/solid/utils/misc.dart'
-    show isUserLoggedIn, logoutPod;
+import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 /// Selects the appropriate redirect URI from [uris] based on the runtime
 /// platform, using the URI format as the discriminator:
