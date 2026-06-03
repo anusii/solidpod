@@ -26,7 +26,7 @@ dependency_overrides:
     # path: ../../solidui
     git:
       url: https://github.com/anusii/solidui.git
-      ref: dev
+      ref: av/fix_solid_popup_login
 
 dev_dependencies:
   dependency_validator: ^5.0.4
