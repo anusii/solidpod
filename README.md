@@ -82,9 +82,9 @@ dependencies:
   solidpod: ^<latest-version>
 ```
 
-An example project that uses `solidpod` can be found
-in the [example](https://github.com/anusii/solidpod/tree/dev/example)
-folder of the [solidpod](https://github.com/anusii/solidpod) repository.
+An example project that uses `solidpod` can be found in the
+[example](https://github.com/anusii/solidpod/tree/dev/example) folder
+of the [solidpod](https://github.com/anusii/solidpod) repository.
 
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
@@ -97,15 +97,19 @@ functional.
 
 ## General
 
-`solidpod` delegates authentication to [`package:solid_auth`](https://pub.dev/packages/solid_auth), 
-which is built on the OpenID-certified [`package:oidc`](https://pub.dev/packages/oidc) and 
-implements the Solid-OIDC protocol.
+`solidpod` delegates authentication to
+[`package:solid_auth`](https://pub.dev/packages/solid_auth), which is
+built on the OpenID-certified
+[`package:oidc`](https://pub.dev/packages/oidc) and implements the
+Solid-OIDC protocol.
 
-Authentication requires a client ID document, which is a publicly hosted JSON-LD file 
-that identifies your app to the Solid identity provider. Pass its URL as the clientId 
-parameter to solidAuthenticate(). See the 
-[Solid-OIDC client identifiers spec](https://solid.github.io/solid-oidc/#clientids-document) 
-for how to create and host one. For an example client ID document refer to [here](https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld).
+Authentication requires a client ID document, which is a publicly
+hosted JSON-LD file that identifies your app to the Solid identity
+provider. Pass its URL as the clientId parameter to
+solidAuthenticate(). See the [Solid-OIDC client identifiers
+spec](https://solid.github.io/solid-oidc/#clientids-document) for how
+to create and host one. For an example client ID document refer to
+[here](https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld).
 
 ## Android
 
@@ -114,7 +118,7 @@ As per [OIDC getting started guide](https://bdaya-dev.github.io/oidc/oidc-gettin
 Go to `android/app/build.gradle`, and add the following line under `defaultConfig:`
 
 ```gradle
- defaultConfig {   
+ defaultConfig {
     ...
     manifestPlaceholders += [
     'appAuthRedirectScheme': 'com.my.app'
@@ -125,7 +129,7 @@ Go to `android/app/build.gradle`, and add the following line under `defaultConfi
 Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts` file upgrade in the following way
 
 ```gradle
- defaultConfig {   
+ defaultConfig {
     ...
     manifestPlaceholders.putAll(mapOf(
             "appAuthRedirectScheme" to "com.my.app"
@@ -414,11 +418,11 @@ platform. At runtime `solidAuthenticate()` picks the entry that matches the
 current platform. Every URI in the list must be registered in your client
 ID document and match the correct format for each platform:
 
-| Platform | URI format | Notes |
-|---|---|---|
-| Web | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
-| Android / iOS | `com.example.app://redirect` | Custom URI scheme registered with the OS |
-| Windows / Linux / macOS | `http://localhost:4400/redirect` | **Fixed port required** - see below |
+| Platform                | URI format                          | Notes                                                                              |
+|-------------------------|-------------------------------------|------------------------------------------------------------------------------------|
+| Web                     | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
+| Android / iOS           | `com.example.app://redirect`        | Custom URI scheme registered with the OS                                           |
+| Windows / Linux / macOS | `http://localhost:4400/redirect`    | **Fixed port required** - see below                                                |
 
 ### Desktop: use a fixed port
 
@@ -428,7 +432,7 @@ that is never registered in the client document, causing the Solid server
 to reject logout with `post_logout_redirect_uri not registered`.
 Use a fixed port (e.g. `4400`) in both the app and the client document.
 
-Both `redirect_uris` and `post_logout_redirect_uris` in the client ID 
+Both `redirect_uris` and `post_logout_redirect_uris` in the client ID
 document must list every URI used across platforms:
 
 ```json
@@ -605,7 +609,7 @@ issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
 <!-- markdownlint-disable MD036 -->
-*Time-stamp: <Monday 2026-05-18 16:21:57 +1000 Graham Williams>*
+*Time-stamp: <Wednesday 2026-06-03 16:48:48 +1000 Graham Williams>*
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
