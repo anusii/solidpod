@@ -196,7 +196,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     // First ensure we are logged in.
 
     final loggedIn = await loginIfRequired(
-      context,
+      clientId: clientIdVal,
+      redirectUris: redirectUrisList,
+      postLogoutRedirectUris: postLogoutRedirectUrisList,
+      context: context,
     );
 
     if (loggedIn) {
@@ -295,7 +298,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     final fileDemoButton = ElevatedButton(
         onPressed: () async {
           final loggedIn = await loginIfRequired(
-            context,
+            clientId: clientIdVal,
+            redirectUris: redirectUrisList,
+            postLogoutRedirectUris: postLogoutRedirectUrisList,
+            context: context,
           );
           if (loggedIn) {
             final webId = await getWebId();
@@ -321,7 +327,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     final inheritanceDemoButton = ElevatedButton(
         onPressed: () async {
           final loggedIn = await loginIfRequired(
-            context,
+            clientId: clientIdVal,
+            redirectUris: redirectUrisList,
+            postLogoutRedirectUris: postLogoutRedirectUrisList,
+            context: context,
           );
           if (loggedIn) {
             final webId = await getWebId();
@@ -344,7 +353,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     final inheritanceReadButton = ElevatedButton(
         onPressed: () async {
           final loggedIn = await loginIfRequired(
-            context,
+            clientId: clientIdVal,
+            redirectUris: redirectUrisList,
+            postLogoutRedirectUris: postLogoutRedirectUrisList,
+            context: context,
           );
           if (loggedIn) {
             final webId = await getWebId();
@@ -413,7 +425,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           child: const Text('Read/Write Pod Data File'),
                           onPressed: () async {
-                            await loginIfRequired(context);
+                            await loginIfRequired(
+                              clientId: clientIdVal,
+                              redirectUris: redirectUrisList,
+                              postLogoutRedirectUris:
+                                  postLogoutRedirectUrisList,
+                              context: context,
+                            );
                             await _readWritePrivateData();
                           },
                         ),
@@ -422,7 +440,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                           child: const Text('Read Metadata of Pod Data File'),
                           onPressed: () async {
-                            await loginIfRequired(context);
+                            await loginIfRequired(
+                              clientId: clientIdVal,
+                              redirectUris: redirectUrisList,
+                              postLogoutRedirectUris:
+                                  postLogoutRedirectUrisList,
+                              context: context,
+                            );
                             await _readMetaData();
                           },
                         ),
@@ -432,7 +456,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ElevatedButton(
                             onPressed: () async {
                               final loggedIn = await loginIfRequired(
-                                context,
+                                clientId: clientIdVal,
+                                redirectUris: redirectUrisList,
+                                postLogoutRedirectUris:
+                                    postLogoutRedirectUrisList,
+                                context: context,
                               );
                               if (loggedIn) {
                                 deleteDataFileDialog(dataFile, context);
@@ -444,7 +472,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         // SolidPod API: isFileEncrypted()
                         ElevatedButton(
                           onPressed: () async {
-                            final loggedIn = await loginIfRequired(context);
+                            final loggedIn = await loginIfRequired(
+                              clientId: clientIdVal,
+                              redirectUris: redirectUrisList,
+                              postLogoutRedirectUris:
+                                  postLogoutRedirectUrisList,
+                              context: context,
+                            );
                             if (loggedIn) {
                               final webId = await getWebId();
                               setState(() {
