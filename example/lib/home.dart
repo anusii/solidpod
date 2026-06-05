@@ -231,7 +231,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   Future<void> _showFetchNotificationsDialog() async {
-    final loggedIn = await loginIfRequired(context);
+    final loggedIn = await loginIfRequired(
+      clientId: clientIdVal,
+      redirectUris: redirectUrisList,
+      postLogoutRedirectUris: postLogoutRedirectUrisList,
+      context: context,
+    );
     if (!loggedIn) return;
 
     // Make sure the security key is available so the local pair keys can
@@ -305,7 +310,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   Future<void> _showSendNotificationDialog() async {
-    final loggedIn = await loginIfRequired(context);
+    final loggedIn = await loginIfRequired(
+      clientId: clientIdVal,
+      redirectUris: redirectUrisList,
+      postLogoutRedirectUris: postLogoutRedirectUrisList,
+      context: context,
+    );
     if (!loggedIn) return;
 
     final recipientController = TextEditingController();
