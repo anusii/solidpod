@@ -54,9 +54,12 @@ visit <https://solidcommunity.au>
 
 ## Features
 
-- [Authenticate](#authenticate-example) a user against a given Solid server (WebID or issuer URI).
-- [Silent session restore](#session-restore-example) on app startup — no browser required.
-- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data files in a POD.
+- [Authenticate](#authenticate-example) a user against a given Solid server (
+  WebID or issuer URI).
+- [Silent session restore](#session-restore-example) on app startup — no browser
+  required.
+- [Read](#read-pod-file-example) and [write](#write-to-pod-file-example) data
+  files in a POD.
 - [Delete files and containers](#delete-a-file-from-the-pod) from a POD.
 - [Read, write and delete](#large-file-manager-example) large data files.
 - Grant and revoke access permissions between users.
@@ -113,9 +116,12 @@ to create and host one. For an example client ID document refer to
 
 ## Android
 
-As per [OIDC getting started guide](https://bdaya-dev.github.io/oidc/oidc-getting-started/) update the following.
+As
+per [OIDC getting started guide](https://bdaya-dev.github.io/oidc/oidc-getting-started/)
+update the following.
 
-Go to `android/app/build.gradle`, and add the following line under `defaultConfig:`
+Go to `android/app/build.gradle`, and add the following line under
+`defaultConfig:`
 
 ```gradle
  defaultConfig {
@@ -126,7 +132,8 @@ Go to `android/app/build.gradle`, and add the following line under `defaultConfi
 }
 ```
 
-Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts` file upgrade in the following way
+Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts`
+file upgrade in the following way
 
 ```gradle
  defaultConfig {
@@ -137,17 +144,20 @@ Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts`
 }
 ```
 
-Go to `android/app/src/main/AndroidManifest.xml`, and add the following under `application` tag:
+Go to `android/app/src/main/AndroidManifest.xml`, and add the following under
+`application` tag:
 
 ```xml
+
 <application
-  ...
-  android:fullBackupContent="@xml/backup_rules"
-  android:dataExtractionRules="@xml/data_extraction_rules"
-  >
+        ...
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        >
 ```
 
 Also under `activity` tab change the following:
+
 - Remove the line `android:taskAffinity=""`
 - Change `android:launchMode="singleTop"` to `android:launchMode="singleTask"`
 
@@ -156,11 +166,12 @@ Now create the following file in `android\app\src\main\res\xml\backup_rules.xml`
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-        <exclude domain="sharedpref" path="FlutterSecureStorage"/>
+    <exclude domain="sharedpref" path="FlutterSecureStorage"/>
 </full-backup-content>
 ```
 
-Also create the following file in `android\app\src\main\res\xml\data_extraction_rules.xml`
+Also create the following file in
+`android\app\src\main\res\xml\data_extraction_rules.xml`
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -177,11 +188,11 @@ For a release be sure to update
 
 ```xml
  <!-- If your app opens https URLs -->
- <intent>
-          <action android:name="android.intent.action.VIEW" />
-          <category android:name="android.intent.category.BROWSABLE" />
-          <data android:scheme="https" />
- </intent>
+<intent>
+    <action android:name="android.intent.action.VIEW"/>
+    <category android:name="android.intent.category.BROWSABLE"/>
+    <data android:scheme="https"/>
+</intent>
 ```
 
 ### macos
@@ -192,18 +203,19 @@ there are two files named `DebugProfile.entitlements` and
 </dict>` tag in both files.
 
 ```xml
- <key>com.apple.security.app-sandbox</key>
- <true/>
- <key>com.apple.security.cs.allow-jit</key>
- <true/>
- <key>com.apple.security.network.server</key>
- <true/>
- <key>com.apple.security.network.client</key>
-    <true/>
- <key>keychain-access-groups</key>
-    <array/>
- <key>com.apple.security.keychain</key>
-    <true/>
+
+<key>com.apple.security.app-sandbox</key>
+<true/>
+<key>com.apple.security.cs.allow-jit</key>
+<true/>
+<key>com.apple.security.network.server</key>
+<true/>
+<key>com.apple.security.network.client</key>
+<true/>
+<key>keychain-access-groups</key>
+<array/>
+<key>com.apple.security.keychain</key>
+<true/>
 ```
 
 *Note: You may already have some of the above lines in those files. If
@@ -224,120 +236,120 @@ that file.
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <title>Flutter Oidc Redirect</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="text/javascript">
-    const stateNamespace = 'state';
-    const stateResponseNamespace = 'response.state';
-    const requestNamespace = 'request';
+    <meta charset="utf-8">
+    <title>Flutter Oidc Redirect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="text/javascript">
+        const stateNamespace = 'state';
+        const stateResponseNamespace = 'response.state';
+        const requestNamespace = 'request';
 
-    const requestBroadcastChannel = 'oidc_flutter_web/request';
-    const redirectBroadcastChannel = 'oidc_flutter_web/redirect';
+        const requestBroadcastChannel = 'oidc_flutter_web/request';
+        const redirectBroadcastChannel = 'oidc_flutter_web/redirect';
 
 
-    //if the OP isn't requesting logout, handle redirect.
-    if (!handleFrontChannelLogout()) {
-      handleRedirect();
-    }
-
-    function handleRedirect() {
-      // For supported browsers: https://caniuse.com/broadcastchannel
-      var bc = new BroadcastChannel(redirectBroadcastChannel);
-      bc.postMessage(window.location.toString());
-      bc.close();
-      //The rest of this function handles same page redirects
-      let dataSrc;
-      dataSrc = new URLSearchParams(window.location.search);
-      var state = dataSrc.get('state');
-      if (!state) {
-        if (window.location.hash) {
-          dataSrc = new URLSearchParams(
-            window.location.hash.substring(1)
-          );
-          state = dataSrc.get('state');
+        //if the OP isn't requesting logout, handle redirect.
+        if (!handleFrontChannelLogout()) {
+            handleRedirect();
         }
-      }
-      if (!state) {
-        return;
-      }
-      const stateDataRaw = getLocalStorage(stateNamespace, state);
-      if (!stateDataRaw) {
-        console.error('state not found, key: ' + state);
-        return;
-      }
-      setLocalStorage(stateResponseNamespace, state, window.location.toString());
-      //we call JSON.parse twice, since shared_preferences double encodes json strings for some reason.
-      const parsedStateString = JSON.parse(stateDataRaw);
-      if (!parsedStateString) {
-        console.error('parsed state is null');
-        return;
-      }
-      // Read the mode from the state.
-      const webLaunchMode = parsedStateString.options?.webLaunchMode;
-      if (!webLaunchMode) {
-        console.error('webLaunchMode not found in parsed state.');
-        return;
-      }
-      if (webLaunchMode != 'samePage') {
-        return;
-      }
-      const original_uri = parsedStateString.original_uri;
-      if (!original_uri) {
-        console.warn("it's preferred that original_uri is used when webLaunchMode is samePage.");
-        return;
-      }
-      window.location.assign(original_uri);
-    }
 
-    function handleFrontChannelLogout() {
-      const queryParams = new URLSearchParams(window.location.search);
-      if (queryParams.get('requestType') == 'front-channel-logout') {
-        // For supported browsers: https://caniuse.com/broadcastchannel
-        var bc = new BroadcastChannel(requestBroadcastChannel);
-        bc.postMessage(window.location.toString());
-        bc.close();
-        // this puts a marker for the flutter app that the user wants to logout.
-        //
-        // in the flutter app, if this marker exists,
-        // we don't auth the cached user in `UserManager.init()`, and we clear the cached data.
-        setLocalStorage(requestNamespace, 'front-channel-logout', window.location.toString());
-        return true;
-      }
-      return false;
-    }
+        function handleRedirect() {
+            // For supported browsers: https://caniuse.com/broadcastchannel
+            var bc = new BroadcastChannel(redirectBroadcastChannel);
+            bc.postMessage(window.location.toString());
+            bc.close();
+            //The rest of this function handles same page redirects
+            let dataSrc;
+            dataSrc = new URLSearchParams(window.location.search);
+            var state = dataSrc.get('state');
+            if (!state) {
+                if (window.location.hash) {
+                    dataSrc = new URLSearchParams(
+                            window.location.hash.substring(1)
+                    );
+                    state = dataSrc.get('state');
+                }
+            }
+            if (!state) {
+                return;
+            }
+            const stateDataRaw = getLocalStorage(stateNamespace, state);
+            if (!stateDataRaw) {
+                console.error('state not found, key: ' + state);
+                return;
+            }
+            setLocalStorage(stateResponseNamespace, state, window.location.toString());
+            //we call JSON.parse twice, since shared_preferences double encodes json strings for some reason.
+            const parsedStateString = JSON.parse(stateDataRaw);
+            if (!parsedStateString) {
+                console.error('parsed state is null');
+                return;
+            }
+            // Read the mode from the state.
+            const webLaunchMode = parsedStateString.options?.webLaunchMode;
+            if (!webLaunchMode) {
+                console.error('webLaunchMode not found in parsed state.');
+                return;
+            }
+            if (webLaunchMode != 'samePage') {
+                return;
+            }
+            const original_uri = parsedStateString.original_uri;
+            if (!original_uri) {
+                console.warn("it's preferred that original_uri is used when webLaunchMode is samePage.");
+                return;
+            }
+            window.location.assign(original_uri);
+        }
 
-    function getLocalStorage(namespace, key) {
-      const rawRes = localStorage.getItem('oidc.' + namespace + '.' + key);
-      if (!rawRes) {
-        return null;
-      }
-      return rawRes;
-    }
-    function setLocalStorage(namespace, key, value) {
-      const keysEntryKey = 'oidc.keys.' + namespace;
-      var keys = localStorage.getItem(keysEntryKey);
-      if (!keys) {
-        keys = "[]";
-      }
-      const parsedKeys = JSON.parse(keys);
-      if (!(parsedKeys instanceof Array)) {
-        console.error('parsedKeys is not an array.', parsedKeys);
-      }
-      parsedKeys.push(key);
-      localStorage.setItem(keysEntryKey, JSON.stringify(parsedKeys));
-      localStorage.setItem('oidc.' + namespace + '.' + key, value);
-    }
-  </script>
+        function handleFrontChannelLogout() {
+            const queryParams = new URLSearchParams(window.location.search);
+            if (queryParams.get('requestType') == 'front-channel-logout') {
+                // For supported browsers: https://caniuse.com/broadcastchannel
+                var bc = new BroadcastChannel(requestBroadcastChannel);
+                bc.postMessage(window.location.toString());
+                bc.close();
+                // this puts a marker for the flutter app that the user wants to logout.
+                //
+                // in the flutter app, if this marker exists,
+                // we don't auth the cached user in `UserManager.init()`, and we clear the cached data.
+                setLocalStorage(requestNamespace, 'front-channel-logout', window.location.toString());
+                return true;
+            }
+            return false;
+        }
+
+        function getLocalStorage(namespace, key) {
+            const rawRes = localStorage.getItem('oidc.' + namespace + '.' + key);
+            if (!rawRes) {
+                return null;
+            }
+            return rawRes;
+        }
+
+        function setLocalStorage(namespace, key, value) {
+            const keysEntryKey = 'oidc.keys.' + namespace;
+            var keys = localStorage.getItem(keysEntryKey);
+            if (!keys) {
+                keys = "[]";
+            }
+            const parsedKeys = JSON.parse(keys);
+            if (!(parsedKeys instanceof Array)) {
+                console.error('parsedKeys is not an array.', parsedKeys);
+            }
+            parsedKeys.push(key);
+            localStorage.setItem(keysEntryKey, JSON.stringify(parsedKeys));
+            localStorage.setItem('oidc.' + namespace + '.' + key, value);
+        }
+    </script>
 </head>
 
 <body>
-  <h2>Authentication completed! Please close this page.</h2>
+<h2>Authentication completed! Please close this page.</h2>
 </body>
 
 </html>
 ```
-
 
 <!-- ```html
 <!DOCTYPE html>
@@ -388,26 +400,30 @@ either the user's **WebID** (preferred) or a bare issuer URI. Returns
 `[SolidAuthData, webId, profileTurtle]` on success, or `null` on failure.
 
 ```dart
-final result = await solidAuthenticate(
-  'https://pods.solidcommunity.au/alice/profile/card#me', // WebID or issuer URI
-  context,
-  clientId: 'https://your-domain/client-profile.jsonld',
-  redirectUris: [
-    'https://your-domain/redirect.html', // web
-    'com.example.app://redirect',        // Android / iOS
-    'http://localhost:4400/redirect',    // Windows / Linux / macOS
-  ],
-  postLogoutRedirectUris: [             // optional, defaults to redirectUris selection
-    'https://your-domain/redirect.html',
-    'com.example.app://redirect',
-    'http://localhost:4400/redirect',
-  ],
+
+final result = await
+solidAuthenticate
+('https://pods.solidcommunity.au/alice/profile/card#me
+'
+, // WebID or issuer URI
+context,
+clientId: 'https://your-domain/client-profile.jsonld',
+redirectUris: [
+'https://your-domain/redirect.html', // web
+'com.example.app://redirect', // Android / iOS
+'http://localhost:4400/redirect', // Windows / Linux / macOS
+],
+postLogoutRedirectUris: [ // optional, defaults to redirectUris selection
+'https://your-domain/redirect.html',
+'com.example.app://redirect',
+'http://localhost:4400/redirect',
+],
 );
 
 if (result != null) {
-  final authData = result[0] as SolidAuthData; // access token, id token, etc.
-  final webId   = result[1] as String;         // user's WebID
-  final profile = result[2] as String;         // Turtle-encoded profile document
+final authData = result[0] as SolidAuthData; // access token, id token, etc.
+final webId = result[1] as String; // user's WebID
+final profile = result[2] as String; // Turtle-encoded profile document
 }
 ```
 
@@ -451,19 +467,22 @@ document must list every URI used across platforms:
 ### Session Restore Example
 
 On app startup, call `tryRestoreSession()` to silently resume a previous
-session without opening a browser. It returns `[SolidAuthData, webId, profileTurtle]`
+session without opening a browser. It returns
+`[SolidAuthData, webId, profileTurtle]`
 if a valid persisted session exists, or `null` if the user needs to log in.
 
 ```dart
 // In initState() or app startup code — before showing the login UI.
-final result = await tryRestoreSession();
-if (result != null) {
-  final authData = result[0] as SolidAuthData;
-  final webId   = result[1] as String;
-  final profile = result[2] as String;
-  // Navigate directly to the authenticated screen.
+final result = await
+
+tryRestoreSession();if (
+result != null) {
+final authData = result[0] as SolidAuthData;
+final webId = result[1] as String;
+final profile = result[2] as String;
+// Navigate directly to the authenticated screen.
 } else {
-  // No valid session — show the login screen.
+// No valid session — show the login screen.
 }
 ```
 
@@ -477,9 +496,13 @@ automatically so the next `solidAuthenticate()` starts clean).
 Read data from the file `data/myfiles/my-data-file.ttl`.
 
 ```dart
-final fileContent = await readPod(
-        'data/myfiles/my-data-file.ttl',
-      );
+
+final fileContent = await
+readPod
+('data/myfiles/my-data-file.ttl
+'
+,
+);
 ```
 
 ### Write to Pod File Example
@@ -489,14 +512,18 @@ Write data to the file `myfiles/my-data-file.ttl`.
 ```dart
 // Turtle string to be written to the file
 final turtleString =
-  '@prefix somePrefix: <http://www.perceive.net/schemas/relationship/> .
-<http://example.org/#green-goblin> somePrefix:enemyOf
-<http://example.org/#spiderman> .';
+    '@prefix somePrefix: <http://www.perceive.net/schemas/relationship/> .
+        < http: //example.org/#green-goblin> somePrefix:enemyOf
+<
+http: //example.org/#spiderman> .';
 
-await writePod(
- 'myfiles/my-data-file.ttl',
- turtleString,
- encrypted: false // non-required parameter. By default set to true
+await writePod
+('myfiles/my-data-file.ttl
+'
+,turtleString,
+encrypted
+:
+false // non-required parameter. By default set to true
 );
 ```
 
@@ -513,18 +540,20 @@ Above can be achieved using following lines of code.
 // Turtle string to be written to the file
 final childDataString = '<Sample TTL Data>';
 
-await writePod(
- 'parentDir/child-1.ttl',
- childDataString,
- createAcl: false,
- inheritKeyFrom: 'parentDir/',
+await writePod
+('parentDir/child-1.ttl
+'
+,childDataString,
+createAcl: false,
+inheritKeyFrom: 'parentDir/',
 );
 
 await writePod(
- 'parentDir/child-2.ttl',
- childDataString,
- createAcl: false,
- inheritKeyFrom: 'parentDir/',
+'parentDir/child-2.ttl',
+childDataString,
+createAcl: false,
+inheritKeyFrom: 'parentDir/'
+,
 );
 ```
 
@@ -537,17 +566,33 @@ the directory `parentDir` and encrypt both files using that key.
 
 ```dart
 // Obtain the full URL for the file first.
-final fileUrl = await getFileUrl('myfiles/my-data-file.ttl');
+final fileUrl = await
+getFileUrl
+('myfiles/my-data-file.ttl
+'
+);
 
 // Delete the file, its ACL, and its encryption key (if any).
 // Also revokes any permissions previously granted to other users.
-await deleteFile(fileUrl: fileUrl);
+await deleteFile
+(
+fileUrl
+:
+fileUrl
+);
 ```
 
 To delete an entire directory and all of its contents recursively:
 
 ```dart
-await deleteContainer('myapp/data', 'myfiles');
+await deleteContainer
+('myapp/data
+'
+,
+'
+myfiles
+'
+);
 ```
 
 ### Large File Manager Example
@@ -555,11 +600,12 @@ await deleteContainer('myapp/data', 'myfiles');
 To upload a large file in application `myapp`, use:
 
 ```dart
-await writeLargeFile(
-     // Name of the file in POD
-     remoteFilePath: 'my-large-file.bin',
-     // Path of the file where it is locally stored
-     localFilePath: 'D:/my-large-file.bin',
+await writeLargeFile
+(
+// Name of the file in POD
+remoteFilePath: 'my-large-file.bin',
+// Path of the file where it is locally stored
+localFilePath: 'D:/my-large-file.bin',
 )
 ```
 
@@ -568,20 +614,27 @@ The uploaded file will be stored in the `myapp/data` folder.
 To download a large file use:
 
 ```dart
-await readLargeFile(
-     // Name of the file in POD
-     remoteFilePath: 'my-large-file.bin',
-     // Path of the file where it will be locally downloaded
-     localFilePath: 'D:/my-large-file.bin',
+await readLargeFile
+(
+// Name of the file in POD
+remoteFilePath: 'my-large-file.bin',
+// Path of the file where it will be locally downloaded
+localFilePath: 'D:/my-large-file.bin',
 )
 ```
 
 To delete a large file use:
 
 ```dart
-await deleteLargeFile(
-     // Name of the file in POD
-     remoteFilePath: 'my-large-file.bin',
+await deleteLargeFile
+(
+// Name of the file in POD
+remoteFilePath
+:
+'
+my-large-file.bin
+'
+,
 )
 ```
 
@@ -589,7 +642,7 @@ await deleteLargeFile(
 
 A Solid Pod's internal storage structure consists of
 [turtle](https://www.w3.org/TR/turtle/) files containing security
-information about the pod's content (data files) and access.  The
+information about the pod's content (data files) and access. The
 internal structure is based on the solidpod
 [ontology](onto/solid_app_ontology_schema.png), which captures
 essential concepts about the app's security information, data files,
@@ -604,7 +657,7 @@ contribute to the package, how to file issues, what response they can
 expect from the package authors, and more. -->
 
 The source code can be accessed via the [GitHub
-repository](https://github.com/anusii/solidpod).  You can also file
+repository](https://github.com/anusii/solidpod). You can also file
 issues at [GitHub Issues](https://github.com/anusii/solidpod/issues).
 The authors of the package will respond to issues as best we can but.
 
@@ -613,7 +666,10 @@ The authors of the package will respond to issues as best we can but.
 <!-- markdownlint-enable MD036 -->
 
 <!-- markdownlint-disable MD053 -->
+
 [comment]: # (Local Variables:)
+
 [comment]: # (time-stamp-line-limit: -8)
+
 [comment]: # (End:)
 <!-- markdownlint-enable MD053 -->
