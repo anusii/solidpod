@@ -197,6 +197,11 @@ export 'src/solid/write_pod.dart';
 
 export 'src/solid/grant_permission.dart';
 
+/// The function to copy shared individual key, either publicly or for all
+/// authenticated users
+
+export 'src/solid/api/grant_permission_api.dart' show copySharedKeyUserClass;
+
 /// The function to read permissions given to a resource
 
 export 'src/solid/read_permission.dart';
