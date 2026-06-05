@@ -439,11 +439,11 @@ current platform. Every URI in the list must be registered in your client
 ID document and match the correct format for each platform:
 
 <!-- markdownlint-disable MD013 -->
-| Platform                | URI format                          | Notes                                                                              |
-|-------------------------|-------------------------------------|------------------------------------------------------------------------------------|
-| Web                     | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
-| Android / iOS           | `com.example.app://redirect`        | Custom URI scheme registered with the OS                                           |
-| Windows / Linux / macOS | `http://localhost:4400/redirect`    | **Fixed port required** - see below                                                |
+| Platform              | URI format                          | Notes                                                                              |
+|-----------------------|-------------------------------------|------------------------------------------------------------------------------------|
+| Web                   | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
+| Android / iOS / macOS | `com.example.app://redirect`        | Custom URI scheme registered with the OS                                           |
+| Windows / Linux       | `http://localhost:4400/redirect`    | **Fixed port required** - see below                                                |
 <!-- markdownlint-enable MD013 -->
 
 ### Desktop: use a fixed port
