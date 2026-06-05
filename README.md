@@ -111,14 +111,14 @@ hosted JSON-LD file that identifies your app to the Solid identity
 provider. Pass its URL as the clientId parameter to
 solidAuthenticate(). See the [Solid-OIDC client identifiers
 spec](https://solid.github.io/solid-oidc/#clientids-document) for how
-to create and host one. For an example client ID document refer to
-[here](https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld).
+to create and host one. For an example client ID document refer to the
+[client_profile.jsonld](https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld).
 
 ## Android
 
-As
-per [OIDC getting started guide](https://bdaya-dev.github.io/oidc/oidc-getting-started/)
-update the following.
+As per [OIDC getting started
+guide](https://bdaya-dev.github.io/oidc/oidc-getting-started/) update
+the following.
 
 Go to `android/app/build.gradle`, and add the following line under
 `defaultConfig:`
@@ -231,6 +231,7 @@ In the same location where your client ID document is hosted, create
 a file called `redirect.html`. Add the following piece of `html` code into
 that file.
 
+<!-- markdownlint-disable MD013 -->
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -350,6 +351,7 @@ that file.
 
 </html>
 ```
+<!-- markdownlint-enable MD013 -->
 
 <!-- ```html
 <!DOCTYPE html>
@@ -427,18 +429,22 @@ final profile = result[2] as String; // Turtle-encoded profile document
 }
 ```
 
+<!-- markdownlint-disable MD036 -->
 **IMPORTANT**
+<!-- markdownlint-enable MD036 -->
 
 `redirectUris` and `postLogoutRedirectUris` take a list of URIs, one per
 platform. At runtime `solidAuthenticate()` picks the entry that matches the
 current platform. Every URI in the list must be registered in your client
 ID document and match the correct format for each platform:
 
+<!-- markdownlint-disable MD013 -->
 | Platform                | URI format                          | Notes                                                                              |
 |-------------------------|-------------------------------------|------------------------------------------------------------------------------------|
 | Web                     | `https://your-domain/redirect.html` | Must be same origin as the app - `oidc` uses `BroadcastChannel` (same-origin only) |
 | Android / iOS           | `com.example.app://redirect`        | Custom URI scheme registered with the OS                                           |
 | Windows / Linux / macOS | `http://localhost:4400/redirect`    | **Fixed port required** - see below                                                |
+<!-- markdownlint-enable MD013 -->
 
 ### Desktop: use a fixed port
 
