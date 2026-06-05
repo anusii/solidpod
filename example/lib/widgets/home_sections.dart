@@ -143,7 +143,10 @@ List<Widget> buildPermissionSection(
           'Add/Delete Permissions from a Specific Resource (key-value.ttl)'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
-          context,
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
         );
 
         if (loggedIn) {
@@ -183,7 +186,10 @@ List<Widget> buildPermissionSection(
       child: const Text('Permission Callback Demo'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
-          context,
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
         );
 
         if (loggedIn) {
@@ -204,7 +210,10 @@ List<Widget> buildPermissionSection(
       child: const Text('Add/Delete Permissions from any Resource'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
-          context,
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
         );
 
         if (loggedIn) {
@@ -227,7 +236,10 @@ List<Widget> buildPermissionSection(
       child: const Text('Share Multiple Specified Resources'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
-          context,
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
         );
 
         if (loggedIn) {
@@ -261,7 +273,10 @@ List<Widget> buildPermissionSection(
           'View specific resource (key-value.ttl) your WebID has access to'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
-          context,
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
         );
 
         if (loggedIn) {
@@ -298,7 +313,10 @@ List<Widget> buildPermissionSection(
       child: const Text('View ALL Resources your WebID has access to'),
       onPressed: () async {
         final loggedIn = await loginIfRequired(
-          context,
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
         );
 
         if (loggedIn) {
@@ -343,7 +361,12 @@ List<Widget> buildSetupWizardSection(
     smallGapV,
     ElevatedButton(
       onPressed: () async {
-        final loggedIn = await loginIfRequired(context);
+        final loggedIn = await loginIfRequired(
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
+        );
 
         if (!loggedIn) {
           debugPrint('Please login to run the demo');

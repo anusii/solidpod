@@ -9,9 +9,14 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
+## 1.0
+
++ Fix macOS authentication issue [1.0.2 20260605 tonypioneer]
++ Fix solid popup login [1.0.1 20260604 anushkavidanage]
++ Migration to certified OpenID [1.0.0 20260604 anushkavidanage]
+
 ## 0.13
 
-+ Bug fix decrypting public file [0.12.11 tonypioneer]
 + Implement checking file encryption [0.12.10 20260527 tonypioneer]
 + Check missing resources [0.12.9 20260520 tonypioneer]
 + Support checking webID [0.12.8 20260520 tonypioneer]
