@@ -29,6 +29,8 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart';
 
+import 'package:demopod/constants/app.dart';
+
 Future<void> aboutDialog(BuildContext context) async {
   final appInfo = await getAppNameVersion();
 
@@ -37,8 +39,7 @@ Future<void> aboutDialog(BuildContext context) async {
   if (context.mounted) {
     showAboutDialog(
       context: context,
-      applicationName:
-          '${appInfo.name[0].toUpperCase()}${appInfo.name.substring(1)}',
+      applicationName: AppConstants.shortName,
       applicationVersion: appInfo.version,
       applicationLegalese: '© 2024 Software Innovation Institute ANU',
       applicationIcon: Image.asset(

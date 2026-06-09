@@ -96,6 +96,19 @@ class SecurityKeyVerificationException implements Exception {
   String toString() => 'SecurityKeyVerificationException: $message';
 }
 
+/// Thrown when a notification cannot be delivered because the recipient's Pod
+/// is not ready — either their WebID does not exist, they have not set up the
+/// app, or their notification folder has not yet been created.
+
+class RecipientNotReadyException implements Exception {
+  final String message;
+
+  RecipientNotReadyException(this.message);
+
+  @override
+  String toString() => 'RecipientNotReadyException: $message';
+}
+
 /// Thrown by [solidAuthenticate] when the in-flight authentication is aborted
 /// by [cancelSolidAuthenticate]. Callers can catch this to distinguish a
 /// deliberate cancellation from a genuine authentication failure such as a

@@ -97,6 +97,7 @@ export 'src/solid/utils/exceptions.dart'
         AccessForbiddenException,
         AccessFailedException,
         NotLoggedInException,
+        RecipientNotReadyException,
         ResourceNotDecryptableException,
         ResourceNotExistException,
         SecurityKeyNotAvailableException,
@@ -117,6 +118,7 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
+        applyPublicShareDecryptedHookInPlace,
         createContainer,
         createDir,
         isPathInCurrentApp,
@@ -134,6 +136,13 @@ export 'src/solid/utils/misc.dart'
         registerLogoutCacheCallback,
         setAppDirName,
         silentLogout;
+
+/// Application-level hooks invoked by solidpod when a resource is
+/// decrypted in place for public/auth-user sharing, or re-encrypted
+/// in place after such sharing is revoked.
+
+export 'src/solid/public_sharing_hooks.dart'
+    show PublicSharingHooks, PublicSharingContentTransformer;
 
 /// Helper for deleting files and containers from a Solid POD
 
@@ -189,6 +198,11 @@ export 'src/solid/write_pod.dart';
 /// The function to grant permission to a resource
 
 export 'src/solid/grant_permission.dart';
+
+/// The function to copy shared individual key, either publicly or for all
+/// authenticated users
+
+export 'src/solid/api/grant_permission_api.dart' show copySharedKeyUserClass;
 
 /// The function to read permissions given to a resource
 
@@ -281,15 +295,36 @@ export 'src/solid/read_external_pod.dart';
 
 export 'src/solid/write_external_pod.dart';
 
+/// Send notifications to another user's POD
+
+export 'src/solid/send_notification.dart';
+
+/// Receive (cross-POD) notifications from every paired sender
+
+export 'src/solid/fetch_notifications.dart' show fetchNotifications;
+
+/// Per-pair notification key utilities — exposed so apps that need to
+/// inspect or manage the local notification key store (rare) can do so
+/// without reaching into `src/`.
+
+export 'src/solid/utils/notification_pair_id.dart'
+    show derivePairId, derivePairDisplayName;
+
+/// Data model for POD notifications
+
+export 'src/solid/models/pod_notification.dart' show PodNotification;
+
 /// 20250917 gjw Extras that were required for notepod. Not yet documented.
 /// 20251103 jesscmoore In common.dart, only authUserPred is
 /// used by notepod
 
 export 'src/solid/constants/common.dart'
     show
+        appDirName,
         dataDir,
         profCard,
         authUserPred,
+        notificationDir,
         profileDir,
         profilePictureFile,
         displayNameFile;
