@@ -52,8 +52,8 @@ import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 /// | Platform | Matched format |
 /// |---|---|
 /// | Web | `https://` URI (same-origin BroadcastChannel requirement) |
-/// | Android / iOS | Custom scheme URI (not `http://` or `https://`) |
-/// | Desktop (Windows / macOS / Linux) | `http://localhost` loopback URI |
+/// | Android / iOS / macOS | Custom scheme URI (not `http://` or `https://`) |
+/// | Desktop (Windows / Linux) | `http://localhost` loopback URI |
 ///
 /// Falls back to the first element when no format-matched entry is found, so
 /// a single-element list always returns that element unchanged.
@@ -70,14 +70,19 @@ String pickRedirectUri(List<String> uris) {
     );
   }
   if (defaultTargetPlatform == TargetPlatform.android ||
-      defaultTargetPlatform == TargetPlatform.iOS) {
-    // Mobile platforms use a custom URI scheme (not http or https).
+      defaultTargetPlatform == TargetPlatform.iOS ||
+      defaultTargetPlatform == TargetPlatform.macOS) {
+    // Android, iOS and macOS all rely on a custom URI scheme. On macOS this
+    // is required because oidc_macos uses ASWebAuthenticationSession, which
+    // hands the redirect back to the app via a registered URL scheme rather
+    // than via an `http://localhost` callback server.
     return uris.firstWhere(
       (u) => !u.startsWith('http://') && !u.startsWith('https://'),
       orElse: () => uris.first,
     );
   }
-  // Desktop: Windows / macOS / Linux use a localhost loopback URL.
+  // Remaining desktop targets (Windows / Linux) use the oidc_desktop
+  // implementation, which starts a local loopback callback server.
   return uris.firstWhere(
     (u) => u.startsWith('http://localhost'),
     orElse: () => uris.first,
@@ -115,8 +120,8 @@ void cancelSolidAuthenticate() {
 /// ```dart
 /// redirectUris: [
 ///   'https://your-domain/redirect.html',  // web
-///   'com.example.app://redirect',          // android / ios
-///   'http://localhost:4400/redirect',      // desktop
+///   'com.example.app://redirect',          // android / ios / macOS
+///   'http://localhost:4400/redirect',      // desktop (Windows / Linux)
 /// ]
 /// ```
 ///
