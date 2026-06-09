@@ -29,8 +29,11 @@
 library;
 
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:crypto/crypto.dart' hide Hmac;
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:fast_rsa/fast_rsa.dart' as fast_rsa;
 import 'package:pointycastle/asymmetric/api.dart';
@@ -59,18 +62,112 @@ String getUniqueStrWebId(String webId) {
   return uniqueStr;
 }
 
-/// Derive the master key from the security key
-Key genMasterKey(String securityKey) => Key.fromUtf8(
+/// The current key-derivation scheme version.
+///
+/// Version 1 (legacy): master key = `sha256(securityKey)`, verification key =
+/// `sha224(securityKey)` — no salt, no work factor (see [genLegacyMasterKey]
+/// and [genLegacyVerificationKey]).
+///
+/// Version 2: a single salted Argon2id run is HKDF-expanded into two
+/// domain-separated outputs — the AES master key and the verification value
+/// (see [deriveKeys]). The version is stored alongside the keys in
+/// `encryption/enc-keys.ttl` so existing PODs can be detected and migrated.
+const int kdfVersion = 2;
+
+/// Generate random salt
+List<int> generateSalt() {
+  final random = Random.secure();
+  return List.generate(16, (_) => random.nextInt(256));
+}
+
+/// Derive the master key and verification value from the security key.
+///
+/// Runs Argon2id once (the expensive, salted step) to obtain a master secret,
+/// then HKDF-expands it into two domain-separated outputs: the AES-256 master
+/// key and the verification value stored on the POD. Because the two outputs
+/// use distinct `info` labels, the stored verification value reveals nothing
+/// about the master key, and brute-forcing it costs a full Argon2id run per
+/// guess.
+Future<({Key masterKey, String verificationKey})> deriveKeys(
+  String securityKey,
+  List<int> salt,
+) async {
+  final argon2 = Argon2id(
+    parallelism: 4,
+    memory: 10000, // 10,000 x 1kB = 10 MB
+    iterations: 1, // raise memory instead of iterations for better security
+    hashLength: 32, // 32 bytes = AES-256
+  );
+
+  final masterSecret = await argon2.deriveKeyFromPassword(
+    password: securityKey,
+    nonce: salt,
+  );
+
+  final hkdf = Hkdf(hmac: Hmac.sha256(), outputLength: 32);
+
+  // The salt is reused as the HKDF nonce (this implementation requires a
+  // non-empty nonce). Domain separation between the two outputs comes from
+  // the distinct `info` labels, not the nonce.
+  final mk = await hkdf.deriveKey(
+    secretKey: masterSecret,
+    nonce: salt,
+    info: utf8.encode('solidpod/v2/master-key'),
+  );
+  final vk = await hkdf.deriveKey(
+    secretKey: masterSecret,
+    nonce: salt,
+    info: utf8.encode('solidpod/v2/verification'),
+  );
+
+  return (
+    // Full 32 bytes => true 256-bit AES key.
+    masterKey: Key(Uint8List.fromList(await mk.extractBytes())),
+    verificationKey: base64.encode(await vk.extractBytes()),
+  );
+}
+
+/// Derive the master key from the security key using the legacy (version 1)
+/// scheme: plain `sha256` truncated to 32 hex chars.
+///
+/// Retained only to decrypt keys on PODs created before the version 2 scheme
+/// so they can be migrated. Do NOT use for new keys.
+Key genLegacyMasterKey(String securityKey) => Key.fromUtf8(
       sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
     );
 
-/// Derive the verification key from the security key
-String genVerificationKey(String securityKey) =>
+/// Derive the verification key from the security key using the legacy
+/// (version 1) scheme: plain `sha224` truncated to 32 hex chars.
+///
+/// Retained only to verify the security key on legacy PODs before migrating
+/// them. Do NOT use for new keys.
+String genLegacyVerificationKey(String securityKey) =>
     sha224.convert(utf8.encode(securityKey)).toString().substring(0, 32);
 
-/// Verify the security key
+/// Constant-time comparison of two strings.
+///
+/// Avoids leaking the length of a matching prefix via short-circuit timing
+/// (security finding H1). Returns false immediately only on a length
+/// mismatch, which is not secret here (hash/verification values have a fixed
+/// length).
+bool constantTimeEquals(String a, String b) {
+  if (a.length != b.length) {
+    return false;
+  }
+  var diff = 0;
+  for (var i = 0; i < a.length; i++) {
+    diff |= a.codeUnitAt(i) ^ b.codeUnitAt(i);
+  }
+  return diff == 0;
+}
+
+/// Verify the security key against a legacy (version 1) verification key.
+///
+/// This is part of the public API surface. Version 2 verification requires the
+/// stored salt and is performed inside `KeyManager`; this helper covers the
+/// legacy scheme only.
 bool verifySecurityKey(String securityKey, String verificationKey) =>
-    verificationKey == genVerificationKey(securityKey);
+    constantTimeEquals(verificationKey, genLegacyVerificationKey(securityKey));
 
 /// Create a random individual/session key
 Key genRandIndividualKey() => Key.fromSecureRandom(32);
@@ -96,8 +193,18 @@ String decryptPrivateKey(String encPrivateKey, Key masterKey, IV iv) =>
 String getPredicateUrl(String pred, {Namespace? ns}) =>
     (ns ?? solidTermsNS.ns).withAttr(pred).value;
 
-/// Read file `encryption/enc-keys.ttl' to get verification key and encrypted private key
-Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
+/// Read file `encryption/enc-keys.ttl' to get verification key and encrypted
+/// private key, together with the key-derivation salt and scheme version.
+///
+/// PODs created before the version 2 scheme have neither a salt nor a version
+/// triple; for those `saltB64` is null and `version` defaults to 1 (legacy).
+Future<
+    ({
+      String verificationKey,
+      PrvKeyRecord record,
+      String? saltB64,
+      int version,
+    })> readEncKeyFile() async {
   final encKeyUrl = await getFileUrl(await getEncKeyPath());
 
   final tripleMap = turtleToTripleMap(
@@ -122,7 +229,17 @@ Future<({String verificationKey, PrvKeyRecord record})> readEncKeyFile() async {
     ivBase64: getVal(ivPred) as String,
   );
 
-  return (verificationKey: verificationKey, record: prvKeyRecord);
+  // Salt and version are absent on legacy (version 1) PODs.
+  final saltB64 = getVal(saltPred) as String?;
+  final versionStr = getVal(keyVersionPred) as String?;
+  final version = versionStr == null ? 1 : int.parse(versionStr);
+
+  return (
+    verificationKey: verificationKey,
+    record: prvKeyRecord,
+    saltB64: saltB64,
+    version: version,
+  );
 }
 
 /// Read file `encryption/ind-keys.ttl' to get encrypted individual keys
@@ -293,20 +410,34 @@ final _bindNS = {
   termsNS.prefix: termsNS.ns,
 };
 
-/// Generate the content of encKeyFile
+/// Generate the content of encKeyFile.
+///
+/// When [saltB64] and [version] are provided (version 2+ scheme) they are
+/// written as additional triples so the key-derivation salt and scheme version
+/// can be recovered on subsequent logins. They are omitted for the legacy
+/// scheme to keep the file format backwards compatible.
 Future<String> genEncKeyTTLStr(
   String encKeyUrl,
   String verificationKey,
-  PrvKeyRecord prvKeyRecord,
-) async {
-  final triples = {
-    URIRef(encKeyUrl): {
-      termsNS.ns.withAttr(titlePred): encKeyFileTitle,
-      solidTermsNS.ns.withAttr(encKeyPred): verificationKey,
-      solidTermsNS.ns.withAttr(ivPred): prvKeyRecord.ivBase64,
-      solidTermsNS.ns.withAttr(prvKeyPred): prvKeyRecord.encKeyBase64,
-    },
+  PrvKeyRecord prvKeyRecord, {
+  String? saltB64,
+  int? version,
+}) async {
+  final predObjMap = {
+    termsNS.ns.withAttr(titlePred): encKeyFileTitle,
+    solidTermsNS.ns.withAttr(encKeyPred): verificationKey,
+    solidTermsNS.ns.withAttr(ivPred): prvKeyRecord.ivBase64,
+    solidTermsNS.ns.withAttr(prvKeyPred): prvKeyRecord.encKeyBase64,
   };
+
+  if (saltB64 != null) {
+    predObjMap[solidTermsNS.ns.withAttr(saltPred)] = saltB64;
+  }
+  if (version != null) {
+    predObjMap[solidTermsNS.ns.withAttr(keyVersionPred)] = version.toString();
+  }
+
+  final triples = {URIRef(encKeyUrl): predObjMap};
 
   return tripleMapToTurtle(triples, bindNamespaces: _bindNS);
 }
