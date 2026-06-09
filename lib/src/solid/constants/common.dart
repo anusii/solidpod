@@ -174,9 +174,36 @@ const String demoWebID =
     'https://pods.solidcommunity.au/john-doe/profile/card#me';
 
 /// Initialize a constant instance of FlutterSecureStorage for secure data storage.
-/// This instance provides encrypted storage to securely store key-value pairs.
+/// This instance provides encrypted storage to securely store key-value pairs
+/// (the security key, and the DPoP private key + OIDC tokens via
+/// [AuthDataManager]).
+///
+/// Platform notes (flutter_secure_storage v10):
+/// - Android: the default already uses AES-GCM with RSA-OAEP key wrapping
+///   (the old `encryptedSharedPreferences` flag is deprecated and ignored), so
+///   no Android options are needed.
+/// - iOS/macOS: pin the keychain accessibility to `first_unlock_this_device`.
+///   This keeps items reachable for background token refresh (after the first
+///   unlock following a reboot) while ensuring the device-bound secrets are
+///   NOT migrated to a new device via encrypted backups / iCloud. Losing the
+///   DPoP key on device migration simply forces a re-login, which is expected
+///   since the OIDC client is registered dynamically per session anyway.
+/// - Web: values ARE encrypted at rest — AES-GCM (256-bit) via the browser's
+///   Web Crypto API, stored in localStorage. The caveat is the encryption key:
+///   with the default options (no `wrapKey` in `WebOptions`, which we don't
+///   set) the AES key is stored unwrapped in the same localStorage, so any
+///   same-origin script (e.g. via XSS) can recover both key and ciphertext.
+///   Web therefore provides encryption-at-rest but not the full trust-no-one
+///   guarantee unless a `wrapKey` is supplied.
 
-FlutterSecureStorage secureStorage = const FlutterSecureStorage();
+FlutterSecureStorage secureStorage = const FlutterSecureStorage(
+  iOptions: IOSOptions(
+    accessibility: KeychainAccessibility.first_unlock_this_device,
+  ),
+  mOptions: MacOsOptions(
+    accessibility: KeychainAccessibility.first_unlock_this_device,
+  ),
+);
 
 /// Enum of resource status
 

@@ -111,7 +111,12 @@ class KeyManager {
         'KeyManager => clear() completed - all sensitive data cleared',
       );
     } on Object catch (e) {
-      debugPrint('KeyManager => clear() error during clearing: $e');
+      // Log only the exception type, never `$e`: this class handles the raw
+      // security key and master key, and a lower-level error could echo them
+      // (finding M1).
+      debugPrint(
+        'KeyManager => clear() error during clearing: ${e.runtimeType}',
+      );
 
       // Fallback: force-clear all memory state anyway.
 
@@ -124,7 +129,8 @@ class KeyManager {
         debugPrint('KeyManager => clear() fallback memory clear succeeded');
       } catch (fallbackError) {
         debugPrint(
-          'KeyManager => clear() fallback also failed: $fallbackError',
+          'KeyManager => clear() fallback also failed: '
+          '${fallbackError.runtimeType}',
         );
       }
     }
@@ -184,7 +190,7 @@ class KeyManager {
 
       await KeyStorage.writeSecurityKey(_securityKey!);
     } catch (e) {
-      debugPrint('KeyManager => initPodKeys() error: $e');
+      debugPrint('KeyManager => initPodKeys() error: ${e.runtimeType}');
 
       // Clear memory state on failure to prevent inconsistent state.
 
@@ -388,7 +394,7 @@ class KeyManager {
 
       return true;
     } catch (e) {
-      debugPrint('KeyManager => hasSecurityKey() error: $e');
+      debugPrint('KeyManager => hasSecurityKey() error: ${e.runtimeType}');
 
       // If verification key file doesn't exist, this will throw.
       // In that case, the key in storage is orphaned and should be removed.
@@ -445,7 +451,9 @@ class KeyManager {
         'KeyManager => forgetSecurityKey() cleared all sensitive data from memory',
       );
     } on Object catch (e) {
-      debugPrint('KeyManager => forgetSecurityKey() unexpected error: $e');
+      debugPrint(
+        'KeyManager => forgetSecurityKey() unexpected error: ${e.runtimeType}',
+      );
 
       // Fallback: null out everything anyway.
 
@@ -459,7 +467,8 @@ class KeyManager {
         );
       } catch (fallbackError) {
         debugPrint(
-          'KeyManager => forgetSecurityKey() fallback also failed: $fallbackError',
+          'KeyManager => forgetSecurityKey() fallback also failed: '
+          '${fallbackError.runtimeType}',
         );
       }
     }
