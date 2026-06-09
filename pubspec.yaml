@@ -21,6 +21,7 @@ dependencies:
 
   archive: ^4.0.8
   crypto: ^3.0.7
+  cryptography_plus: ^3.0.0
   encrypter_plus: ^5.1.0
   fast_rsa: ^3.8.6
   flutter_secure_storage: ^10.0.0
