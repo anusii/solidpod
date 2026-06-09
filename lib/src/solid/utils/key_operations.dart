@@ -103,7 +103,9 @@ class KeyOperations {
       _saltB64 = r.saltB64;
       _keyVersion = r.version;
     } catch (e) {
-      debugPrint('KeyOperations => loadEncryptionKey() error: $e');
+      // Log only the exception type, never `$e`: this path handles encryption
+      // key material (finding M1).
+      debugPrint('KeyOperations => loadEncryptionKey() error: ${e.runtimeType}');
       rethrow;
     }
   }
