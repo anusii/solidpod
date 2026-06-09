@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Notification support [1.0.4 20260609 tonypioneer]
 + Redo public file decryption [1.0.3 20260609 tonypioneer]
 + Fix macOS authentication issue [1.0.2 20260605 tonypioneer]
 + Fix solid popup login [1.0.1 20260604 anushkavidanage]
