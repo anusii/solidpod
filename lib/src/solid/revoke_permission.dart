@@ -30,6 +30,8 @@ library;
 
 import 'dart:core';
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/api/revoke_permission_api.dart';
@@ -144,6 +146,19 @@ Future<SolidFunctionCallStatus> revokePermission({
       recipientType: recipientType,
       isFile: isFile,
     );
+
+    // When revoking access from the Public or Authenticated User class,
+    // re-encrypt the resource if it had previously been decrypted in place
+    // by [grantPermission] for sharing. The presence of an individual key
+    // indicates the user originally intended the file to be encrypted at
+    // rest. [encryptFileInPlace] is a no-op when the file is already in the
+    // encrypted TTL format or when no individual key is available.
+
+    if (fileIsEncrypted && !specificRecipientTypeList.contains(recipientType)) {
+      debugPrint('[revokePermission] re-encrypting "$resourceUrl" after '
+          'revoking $recipientType access');
+      await encryptFileInPlace(resourceUrl, isExternalRes: isExternalRes);
+    }
 
     // Add log entry to owner, granter, and receiver permission log files
 

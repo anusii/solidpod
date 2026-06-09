@@ -117,6 +117,7 @@ export 'src/solid/utils/rdf.dart' show turtleToTripleMap, tripleMapToTurtle;
 
 export 'src/solid/utils/misc.dart'
     show
+        applyPublicShareDecryptedHookInPlace,
         createContainer,
         createDir,
         isPathInCurrentApp,
@@ -134,6 +135,13 @@ export 'src/solid/utils/misc.dart'
         registerLogoutCacheCallback,
         setAppDirName,
         silentLogout;
+
+/// Application-level hooks invoked by solidpod when a resource is
+/// decrypted in place for public/auth-user sharing, or re-encrypted
+/// in place after such sharing is revoked.
+
+export 'src/solid/public_sharing_hooks.dart'
+    show PublicSharingHooks, PublicSharingContentTransformer;
 
 /// Helper for deleting files and containers from a Solid POD
 
@@ -189,6 +197,11 @@ export 'src/solid/write_pod.dart';
 /// The function to grant permission to a resource
 
 export 'src/solid/grant_permission.dart';
+
+/// The function to copy shared individual key, either publicly or for all
+/// authenticated users
+
+export 'src/solid/api/grant_permission_api.dart' show copySharedKeyUserClass;
 
 /// The function to read permissions given to a resource
 
