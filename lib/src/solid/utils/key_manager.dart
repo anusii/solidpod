@@ -8,8 +8,12 @@
 ///
 /// Some terminology used in this class are defined as follows:
 /// - security key: the string user provides to unlock encrypted data in PODs
-/// - master key: the sha256 of the security key
-/// - verification key: the sha224 of the security key
+/// - master key: the AES key derived from the security key. Version 2 derives
+///   it via Argon2id + HKDF using a stored salt; legacy (version 1) PODs used
+///   plain sha256 (see [deriveKeys] / [genLegacyMasterKey]).
+/// - verification key: a value derived from the security key and stored on the
+///   POD to check the key is correct. Version 2 derives it via the same
+///   Argon2id run (HKDF, separate domain); legacy used plain sha224.
 /// - individual key: the AES key used to encrypt an individual file
 /// - public/private key pair: the RSA key pair for data sharing.
 ///
@@ -41,11 +45,14 @@
 
 library;
 
+import 'dart:convert' show base64;
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
+import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/individual_key_manager.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_operations.dart';
@@ -76,6 +83,10 @@ class KeyManager {
 
   static Key? _masterKey;
 
+  // Random salt
+
+  static List<int>? _salt;
+
   /// Remove stored security key and set all cached private members to null.
 
   static Future<void> clear() async {
@@ -88,6 +99,7 @@ class KeyManager {
 
       _securityKey = null;
       _masterKey = null;
+      _salt = null;
 
       // Clear all sub-managers.
 
@@ -133,8 +145,10 @@ class KeyManager {
       // NOTE: Do NOT save to local storage yet - must save to server first.
 
       _securityKey = securityKey;
-      _masterKey = genMasterKey(_securityKey!);
-      final verificationKey = genVerificationKey(_securityKey!);
+      _salt = generateSalt();
+      final keys = await deriveKeys(_securityKey!, _salt!);
+      _masterKey = keys.masterKey;
+      final verificationKey = keys.verificationKey;
 
       // Set the public-private key pair.
 
@@ -150,7 +164,12 @@ class KeyManager {
       // Save encKeyFile, indKeyFile, and pubKeyFile (on server) FIRST.
       // This ensures server has the verification key before we save locally.
 
-      await KeyOperations.saveEncryptionKey(verificationKey, prvKeyRecord);
+      await KeyOperations.saveEncryptionKey(
+        verificationKey,
+        prvKeyRecord,
+        saltB64: base64.encode(_salt!),
+        version: kdfVersion,
+      );
       await IndividualKeyManager.saveIndividualKeys(null);
       await KeyOperations.savePublicKey(pubKey);
 
@@ -185,15 +204,146 @@ class KeyManager {
         throw Exception('You must first set the security key!');
       }
 
-      if (!verifySecurityKey(_securityKey!, await getVerificationKey())) {
+      try {
+        _masterKey = await _resolveMasterKey(_securityKey!);
+      } on SecurityKeyVerificationException {
+        // Only forget the stored key on a genuine mismatch, not on transient
+        // errors (network, missing file).
         await forgetSecurityKey();
-        throw Exception('Unable to verify the security key!');
+        rethrow;
       }
-
-      _masterKey = genMasterKey(_securityKey!);
     }
 
     return _masterKey!;
+  }
+
+  /// Verify [securityKey] against the verification value stored on the POD and
+  /// return the derived master key.
+  ///
+  /// For version 2 PODs the master key is derived with Argon2id + HKDF using
+  /// the stored salt. For legacy (version 1) PODs the old sha256 master key is
+  /// returned. Throws [SecurityKeyVerificationException] when the key is wrong.
+  ///
+  /// Does NOT migrate; callers that want migration use [_resolveMasterKey].
+
+  static Future<({Key masterKey, int version})> _verifyAndDerive(
+    String securityKey,
+  ) async {
+    await KeyOperations.loadEncryptionKey();
+    final version = KeyOperations.getKeyVersion() ?? 1;
+    final storedVerification = await getVerificationKey();
+
+    if (version >= 2) {
+      final saltB64 = KeyOperations.getSalt();
+      if (saltB64 == null) {
+        throw Exception(
+          'Missing key-derivation salt for a version $version POD!',
+        );
+      }
+      final keys = await deriveKeys(securityKey, base64.decode(saltB64));
+      if (!constantTimeEquals(storedVerification, keys.verificationKey)) {
+        throw SecurityKeyVerificationException(
+          'Unable to verify the security key!',
+        );
+      }
+      _salt = base64.decode(saltB64);
+      return (masterKey: keys.masterKey, version: version);
+    }
+
+    // Legacy (version 1): verify with the old sha224 scheme.
+
+    if (!verifySecurityKey(securityKey, storedVerification)) {
+      throw SecurityKeyVerificationException(
+        'Unable to verify the security key!',
+      );
+    }
+    return (masterKey: genLegacyMasterKey(securityKey), version: 1);
+  }
+
+  /// Verify [securityKey] and return the master key, migrating legacy PODs to
+  /// the current scheme ([kdfVersion]) on the first successful login.
+
+  static Future<Key> _resolveMasterKey(String securityKey) async {
+    final r = await _verifyAndDerive(securityKey);
+    if (r.version < kdfVersion) {
+      return _migrateToV2(securityKey, r.masterKey);
+    }
+    return r.masterKey;
+  }
+
+  /// Re-derive version 2 keys for [targetSecurityKey] with a fresh salt and
+  /// re-encrypt all key material currently protected by [oldMasterKey].
+  ///
+  /// Re-encrypts the private key (in enc-keys.ttl) and all individual keys (in
+  /// ind-keys.ttl) under the new master key, and persists the new verification
+  /// value + salt + version on the server. Data files are NOT touched: each is
+  /// encrypted under its own individual key, only the master-key encryption of
+  /// those keys changes. Returns the new master key and salt; does NOT write
+  /// the security key to local storage.
+
+  static Future<({Key masterKey, List<int> salt})> _rekeyToV2(
+    Key oldMasterKey,
+    String targetSecurityKey,
+  ) async {
+    // Load and decrypt existing key material under the old master key.
+
+    await KeyOperations.loadEncryptionKey();
+    await IndividualKeyManager.loadIndividualKeys();
+
+    final prvKeyRecord = KeyOperations.getPrivateKeyRecord();
+    assert(prvKeyRecord != null);
+    prvKeyRecord!.key ??= decryptPrivateKey(
+      prvKeyRecord.encKeyBase64,
+      oldMasterKey,
+      IV.fromBase64(prvKeyRecord.ivBase64),
+    );
+
+    // Derive new version 2 keys with a fresh salt.
+
+    final newSalt = generateSalt();
+    final keys = await deriveKeys(targetSecurityKey, newSalt);
+    final newMasterKey = keys.masterKey;
+
+    // Re-encrypt the private key under the new master key.
+
+    final iv = genRandIV();
+    prvKeyRecord.ivBase64 = iv.base64;
+    prvKeyRecord.encKeyBase64 = encryptPrivateKey(
+      prvKeyRecord.key!,
+      newMasterKey,
+      iv,
+    );
+
+    await KeyOperations.saveEncryptionKey(
+      keys.verificationKey,
+      prvKeyRecord,
+      saltB64: base64.encode(newSalt),
+      version: kdfVersion,
+    );
+    KeyOperations.setVerificationKey(keys.verificationKey);
+    KeyOperations.setPrivateKeyRecord(prvKeyRecord);
+
+    // Re-encrypt all individual keys under the new master key.
+
+    await IndividualKeyManager.reEncryptIndividualKeys(
+      oldMasterKey,
+      newMasterKey,
+    );
+
+    return (masterKey: newMasterKey, salt: newSalt);
+  }
+
+  /// Re-key a legacy POD to the current scheme ([kdfVersion]) without changing
+  /// the security key. Returns the new master key.
+
+  static Future<Key> _migrateToV2(
+    String securityKey,
+    Key oldMasterKey,
+  ) async {
+    debugPrint('KeyManager => migrating POD keys to version $kdfVersion');
+    final r = await _rekeyToV2(oldMasterKey, securityKey);
+    _salt = r.salt;
+    return r.masterKey;
   }
 
   /// Get the verification key.
@@ -231,12 +381,10 @@ class KeyManager {
         return false;
       }
 
-      final verificationKey = await getVerificationKey();
+      // Verifying a version 2 key requires deriving it (Argon2id), so cache the
+      // resulting master key. Migrates legacy PODs on first successful login.
 
-      if (!verifySecurityKey(_securityKey!, verificationKey)) {
-        await forgetSecurityKey();
-        return false;
-      }
+      _masterKey ??= await _resolveMasterKey(_securityKey!);
 
       return true;
     } catch (e) {
@@ -258,12 +406,11 @@ class KeyManager {
       return;
     }
 
-    if (!verifySecurityKey(securityKey, await getVerificationKey())) {
-      throw Exception('Unable to verify the provided security key!');
-    }
+    // Verify the key and derive the master key (migrating legacy PODs on the
+    // way). Throws [SecurityKeyVerificationException] if the key is wrong.
 
+    _masterKey = await _resolveMasterKey(securityKey);
     _securityKey = securityKey;
-    _masterKey = genMasterKey(_securityKey!);
 
     await KeyStorage.writeSecurityKey(_securityKey!);
   }
@@ -324,58 +471,23 @@ class KeyManager {
     String currentSecurityKey,
     String newSecurityKey,
   ) async {
-    if (!verifySecurityKey(currentSecurityKey, await getVerificationKey())) {
-      throw Exception('Unable to verify the current security key!');
-    }
-
     assert(newSecurityKey.trim().isNotEmpty);
     assert(newSecurityKey != currentSecurityKey);
 
-    _securityKey = currentSecurityKey;
-    final oldMasterKey = genMasterKey(_securityKey!);
-    _masterKey = oldMasterKey;
+    // Verify the current key and derive its (possibly legacy) master key.
+    // Throws [SecurityKeyVerificationException] if the current key is wrong.
 
-    // Load and decrypt keys using old master key.
+    final old = await _verifyAndDerive(currentSecurityKey);
 
-    await KeyOperations.loadEncryptionKey();
-    await IndividualKeyManager.loadIndividualKeys();
+    // Re-key all material to version 2 under the new security key.
 
-    // Decrypt private key.
+    final r = await _rekeyToV2(old.masterKey, newSecurityKey);
 
-    var prvKeyRecord = KeyOperations.getPrivateKeyRecord();
-    assert(prvKeyRecord != null);
-    prvKeyRecord!.key ??= await getPrivateKey();
-
-    // Set the new security key, master key, and verification key.
+    // Commit the new in-memory state and persist the security key locally.
 
     _securityKey = newSecurityKey;
-    _masterKey = genMasterKey(_securityKey!);
-    final newVerificationKey = genVerificationKey(_securityKey!);
-
-    // Encrypt the private key using the new master key (and new IV).
-
-    final iv = genRandIV();
-    prvKeyRecord.ivBase64 = iv.base64;
-    prvKeyRecord.encKeyBase64 = encryptPrivateKey(
-      prvKeyRecord.key!,
-      _masterKey!,
-      iv,
-    );
-
-    // Save re-encrypted encryption keys.
-
-    await KeyOperations.saveEncryptionKey(newVerificationKey, prvKeyRecord);
-    KeyOperations.setVerificationKey(newVerificationKey);
-    KeyOperations.setPrivateKeyRecord(prvKeyRecord);
-
-    // Re-encrypt individual keys with new master key.
-
-    await IndividualKeyManager.reEncryptIndividualKeys(
-      oldMasterKey,
-      _masterKey!,
-    );
-
-    // Save security key to local secure storage.
+    _masterKey = r.masterKey;
+    _salt = r.salt;
 
     await KeyStorage.writeSecurityKey(_securityKey!);
   }
