@@ -56,6 +56,7 @@ const sharingDir = 'sharing';
 const sharedDir = 'shared';
 const encDir = 'encryption';
 const logsDir = 'logs';
+const notificationDir = 'notifications';
 const profileDir = 'profile';
 
 /// Avatar resource. Stored as a turtle file so the same resource can hold

@@ -119,6 +119,7 @@ Future<List<String>> generateDefaultFolders() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final notificationDirLoc = [appDirName, notificationDir].join('/');
   final profileDirLoc = [appDirName, profileDir].join('/');
 
   final folders = [
@@ -128,6 +129,7 @@ Future<List<String>> generateDefaultFolders() async {
     dataDirLoc,
     encDirLoc,
     logDirLoc,
+    notificationDirLoc,
     profileDirLoc,
   ];
   return folders;
@@ -165,6 +167,7 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
   final sharedDirLoc = [appDirName, sharedDir].join('/');
   final encDirLoc = [appDirName, encDir].join('/');
   final logDirLoc = [appDirName, logsDir].join('/');
+  final notificationDirLoc = [appDirName, notificationDir].join('/');
   final profileDirLoc = [appDirName, profileDir].join('/');
 
   final files = {
@@ -172,6 +175,7 @@ Future<Map<dynamic, dynamic>> generateDefaultFiles() async {
     logDirLoc: [permLogFile, '$permLogFile.acl'],
     sharedDirLoc: ['.acl'],
     encDirLoc: [encKeyFile, indKeyFile],
+    notificationDirLoc: ['.acl'],
     profileDirLoc: ['.acl'],
   };
   return files;
@@ -203,7 +207,7 @@ Future<void> initPod(
   // the keyset — doing so would overwrite the existing RSA pair on the
   // server and orphan every previously encrypted resource. This case is
   // hit when the wizard is re-run to add a newly required folder (such as
-  // the profile directory) on a previously initialised POD.
+  // the notification or profile directory) on a previously initialised POD.
 
   final encDirUrl = await getDirUrl(await getEncDirPath());
   final encKeyUrl = await getFileUrl(await getEncKeyPath());
@@ -217,8 +221,8 @@ Future<void> initPod(
 
   // Only require the encryption directory in the missing-folder list when
   // it does not already exist on the server. Otherwise it is legitimate to
-  // call initPod() with a partial set of folders (e.g. just the profile
-  // directory) and we should simply top up whatever is missing.
+  // call initPod() with a partial set of folders (e.g. just the notification
+  // or profile directory) and we should simply top up whatever is missing.
 
   if (!encDirExists && !dirUrls.contains(encDirUrl)) {
     throw Exception('Can not initialise POD without creating $encDirUrl');
@@ -277,7 +281,8 @@ Future<void> initPod(
     if (f.split('.').last == 'acl') {
       final items = f.split('.');
       final resourceUrl = items.getRange(0, items.length - 1).join('.');
-      late Set<AccessMode> publicAccess;
+      Set<AccessMode>? publicAccess;
+      Set<AccessMode>? authUserAccess;
       var isFile = true;
       switch (fileName) {
         case '$pubKeyFile.acl':
@@ -288,18 +293,30 @@ Future<void> initPod(
           assert(fileName == '.acl');
           isFile = false;
 
-          // The shared directory ACL grants public read/write;
-          // the profile directory ACL is owner-only (empty publicAccess).
+          // The notifications directory ACL grants public Append so that
+          // any user (including cross-pod senders) can POST encrypted
+          // per-notification files into a recipient's folder; Read/Write/
+          // Control remain with the owner only. Files inherit the
+          // container's default ACL so the owner can read everything
+          // landing in there, while third parties cannot enumerate or
+          // read each other's deliveries. The shared directory ACL
+          // grants public read/write. The profile directory ACL is
+          // owner-only (empty publicAccess).
 
-          publicAccess = f.contains('/$sharedDir/')
-              ? {AccessMode.read, AccessMode.write}
-              : {};
+          if (f.contains('/$notificationDir/')) {
+            publicAccess = {AccessMode.append};
+          } else if (f.contains('/$sharedDir/')) {
+            publicAccess = {AccessMode.read, AccessMode.write};
+          } else {
+            publicAccess = {};
+          }
       }
 
       fileContent = await genAclTurtle(
         resourceUrl,
         isFile: isFile,
         publicAccess: publicAccess,
+        authUserAccess: authUserAccess,
       );
 
       aclFlag = true;

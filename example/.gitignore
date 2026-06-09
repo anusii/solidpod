@@ -7,6 +7,8 @@ ignore
 # Platform-specific build folders
 /android/
 /ios/
+# Except Podfile
+!/ios/Podfile
 /linux/
 /macos/
 /windows/
