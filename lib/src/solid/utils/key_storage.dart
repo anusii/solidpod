@@ -47,7 +47,9 @@ class KeyStorage {
       final key = await secureStorage.read(key: _securityKeySecureStorageKey);
       return key != null;
     } catch (e) {
-      debugPrint('KeyStorage => hasStoredSecurityKey() error: $e');
+      // Log only the exception type, never `$e`: this path handles the raw
+      // security key and a lower-level error could echo it (finding M1).
+      debugPrint('KeyStorage => hasStoredSecurityKey() error: ${e.runtimeType}');
       return false;
     }
   }
@@ -58,7 +60,7 @@ class KeyStorage {
     try {
       return await secureStorage.read(key: _securityKeySecureStorageKey);
     } catch (e) {
-      debugPrint('KeyStorage => readSecurityKey() error: $e');
+      debugPrint('KeyStorage => readSecurityKey() error: ${e.runtimeType}');
       return null;
     }
   }
@@ -85,12 +87,15 @@ class KeyStorage {
           );
         } on Object catch (e) {
           debugPrint(
-            'KeyStorage => deleteSecurityKey() deletion failed (non-critical): $e',
+            'KeyStorage => deleteSecurityKey() deletion failed '
+            '(non-critical): ${e.runtimeType}',
           );
         }
       }
     } on Object catch (e) {
-      debugPrint('KeyStorage => deleteSecurityKey() unexpected error: $e');
+      debugPrint(
+        'KeyStorage => deleteSecurityKey() unexpected error: ${e.runtimeType}',
+      );
     }
   }
 }
