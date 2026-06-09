@@ -100,6 +100,7 @@ export 'src/solid/utils/exceptions.dart'
         ResourceNotDecryptableException,
         ResourceNotExistException,
         SecurityKeyNotAvailableException,
+        SecurityKeyVerificationException,
         SolidAuthCancelledException;
 
 /// Includes common TTL conversion functions such as parseTTLMap.
