@@ -59,6 +59,14 @@ class KeyOperations {
 
   static PrvKeyRecord? _prvKeyRecord;
 
+  // The base64 key-derivation salt (null on legacy version 1 PODs).
+
+  static String? _saltB64;
+
+  // The key-derivation scheme version (1 = legacy).
+
+  static int? _keyVersion;
+
   /// Clear all cached key data.
 
   static void clear() {
@@ -67,6 +75,8 @@ class KeyOperations {
     _verificationKey = null;
     _pubKey = null;
     _prvKeyRecord = null;
+    _saltB64 = null;
+    _keyVersion = null;
   }
 
   /// Load verification key and encrypted private key.
@@ -90,6 +100,8 @@ class KeyOperations {
       final r = await readEncKeyFile();
       _verificationKey = r.verificationKey;
       _prvKeyRecord = r.record;
+      _saltB64 = r.saltB64;
+      _keyVersion = r.version;
     } catch (e) {
       debugPrint('KeyOperations => loadEncryptionKey() error: $e');
       rethrow;
@@ -100,8 +112,10 @@ class KeyOperations {
 
   static Future<void> saveEncryptionKey(
     String verificationKey,
-    PrvKeyRecord prvKeyRecord,
-  ) async {
+    PrvKeyRecord prvKeyRecord, {
+    String? saltB64,
+    int? version,
+  }) async {
     _encKeyUrl ??= await getFileUrl(await getEncKeyPath());
 
     await createResource(
@@ -110,8 +124,15 @@ class KeyOperations {
         _encKeyUrl!,
         verificationKey,
         prvKeyRecord,
+        saltB64: saltB64,
+        version: version,
       ),
     );
+
+    // Keep the cache consistent with what was just persisted.
+
+    _saltB64 = saltB64;
+    _keyVersion = version;
   }
 
   /// Load the public key.
@@ -138,6 +159,14 @@ class KeyOperations {
   /// Get the cached verification key.
 
   static String? getVerificationKey() => _verificationKey;
+
+  /// Get the cached base64 key-derivation salt (null on legacy PODs).
+
+  static String? getSalt() => _saltB64;
+
+  /// Get the cached key-derivation scheme version (null if not yet loaded).
+
+  static int? getKeyVersion() => _keyVersion;
 
   /// Get the cached public key.
 
