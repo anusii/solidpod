@@ -106,7 +106,8 @@ class KeyOperations {
       // Log only the exception type, never `$e`: this path handles encryption
       // key material (finding M1).
       debugPrint(
-          'KeyOperations => loadEncryptionKey() error: ${e.runtimeType}');
+        'KeyOperations => loadEncryptionKey() error: ${e.runtimeType}',
+      );
       rethrow;
     }
   }
