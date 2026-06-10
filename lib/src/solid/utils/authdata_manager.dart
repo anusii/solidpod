@@ -197,14 +197,34 @@ class AuthDataManager {
   /// Exposes the live [SolidAuthManager] for DPoP proof generation and logout.
   static SolidAuthManager? getAuthManager() => _authManager;
 
-  /// Returns [SolidAuthData] from [manager], refreshing the token if expired.
+  /// Buffer before actual token expiry within which we proactively refresh.
+  ///
+  /// Refreshing slightly early avoids sending a token that expires mid-flight
+  /// and guards against minor client/server clock skew that would otherwise
+  /// produce a 401 on an apparently-valid token.
+  static const Duration _refreshBuffer = Duration(minutes: 2);
+
+  /// Returns [SolidAuthData] from [manager], refreshing the token if it is
+  /// expired or about to expire.
+  ///
+  /// We do not rely solely on `package:oidc`'s background refresh timer: that
+  /// timer is a foreground Dart [Timer] scheduled shortly before expiry and is
+  /// suspended while the app is backgrounded, so a token can be stale by the
+  /// time the user resumes. Checking the real expiry here (and refreshing
+  /// within [_refreshBuffer]) ensures every resource request uses a live token.
   static Future<SolidAuthData?> _getRefreshedAuthData(
     SolidAuthManager manager,
   ) async {
     try {
       var authData = manager.currentAuthData;
-      if (authData != null && authData.isExpired) {
-        authData = await manager.refreshToken();
+
+      final needsRefresh = authData == null ||
+          DateTime.now().add(_refreshBuffer).isAfter(authData.expiresAt);
+
+      if (needsRefresh) {
+        // Fall back to the existing (possibly stale) data if the refresh
+        // returns null, e.g. when no refresh token is available.
+        authData = await manager.refreshToken() ?? authData;
       }
       return authData;
     } on Object {
