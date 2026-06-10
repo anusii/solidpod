@@ -49,7 +49,8 @@ class KeyStorage {
     } catch (e) {
       // Log only the exception type, never `$e`: this path handles the raw
       // security key and a lower-level error could echo it (finding M1).
-      debugPrint('KeyStorage => hasStoredSecurityKey() error: ${e.runtimeType}');
+      debugPrint(
+          'KeyStorage => hasStoredSecurityKey() error: ${e.runtimeType}');
       return false;
     }
   }
