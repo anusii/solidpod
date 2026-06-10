@@ -82,6 +82,20 @@ class SecurityKeyNotAvailableException implements Exception {
   String toString() => 'SecurityKeyNotAvailableException: $message';
 }
 
+/// Thrown when a provided security key fails verification against the
+/// verification value stored on the POD (i.e. the key is wrong). Distinct from
+/// transient errors (network, missing file) so callers can decide to forget
+/// the stored security key only on a genuine mismatch.
+
+class SecurityKeyVerificationException implements Exception {
+  final String message;
+
+  SecurityKeyVerificationException(this.message);
+
+  @override
+  String toString() => 'SecurityKeyVerificationException: $message';
+}
+
 /// Thrown when a notification cannot be delivered because the recipient's Pod
 /// is not ready — either their WebID does not exist, they have not set up the
 /// app, or their notification folder has not yet been created.

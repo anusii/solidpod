@@ -21,6 +21,7 @@ dependencies:
 
   archive: ^4.0.8
   crypto: ^3.0.7
+  cryptography_plus: ^3.0.0
   encrypter_plus: ^5.1.0
   fast_rsa: ^3.8.6
   flutter_secure_storage: ^10.0.0
@@ -33,7 +34,12 @@ dependencies:
   petitparser: ^6.1.0
   pointycastle: ^4.0.0
   rdflib: ^0.2.12
-  solid_auth: ^1.0.0
+  # solid_auth: ^1.0.0
+  solid_auth:
+    # path: ../solid_auth
+    git:
+      url: https://github.com/anusii/solid_auth.git
+      ref: av/347_fix_token_refresh_expiry
   universal_io: ^2.3.1
 
 dev_dependencies:

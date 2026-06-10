@@ -182,6 +182,12 @@ class _Predicates {
   /// Encryption key predicate
   String get encryptionKey => common.encKeyPred;
 
+  /// Salt predicate (for the key-derivation function)
+  String get salt => common.saltPred;
+
+  /// Key-derivation scheme version predicate
+  String get keyVersion => common.keyVersionPred;
+
   /// Path predicate
   String get path => common.pathPred;
 
