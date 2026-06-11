@@ -31,6 +31,7 @@
 library;
 
 import 'package:flutter/services.dart' show PlatformException;
+
 import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';

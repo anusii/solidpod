@@ -285,9 +285,8 @@ class _FileServiceState extends State<FileService> {
                   uploadSharedInProgress = false;
                 });
                 if (context.mounted) {
-                  await alert(
-                      context, 'Failed to upload file to external POD. $e',
-                      'Error');
+                  await alert(context,
+                      'Failed to upload file to external POD. $e', 'Error');
                 }
                 debugPrint('$e');
               }
