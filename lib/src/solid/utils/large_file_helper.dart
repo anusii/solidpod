@@ -52,24 +52,36 @@ import 'package:solidpod/src/solid/utils/delete_helper.dart'
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart'
     show genRandIndividualKey, genRandIV;
+import 'package:solidpod/src/solid/utils/exceptions.dart'
+    show NotLoggedInException;
 import 'package:solidpod/src/solid/utils/misc.dart' show getDataDirPath;
+import 'package:solidpod/src/solid/utils/session.dart' show isUserLoggedIn;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
+import 'package:solidpod/src/solid/write_external_pod.dart'
+    show writeExternalPod;
 import 'package:solidpod/src/solid/write_pod.dart' show writePod;
 
 /// Get a large file previously sent using [writeLargeFile] with name
 /// [remoteFilePath] (relative to appname/data directory) and save it
 /// to a local file with path [localFilePath].
+///
+/// Set [isPodRelativePath] to true when [remoteFilePath] is relative to the
+/// POD root (e.g. `demopod/data/file.pdf`) rather than the current app's data
+/// directory. This is required to read a large file from a POD whose
+/// application directory differs from the current app (see [writeLargeFile]).
 Future<void> readLargeFile({
   required String remoteFilePath,
   required String localFilePath,
   String? ownerWebId,
+  bool isPodRelativePath = false,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
     remoteFilePath: remoteFilePath,
     ownerWebId: ownerWebId,
+    isPodRelativePath: isPodRelativePath,
     onProgress: onProgress,
   );
   final sink = File(localFilePath).openWrite();
@@ -86,11 +98,13 @@ Future<void> readLargeFile({
 Future<Uint8List> readLargeFileAsBytes({
   required String remoteFilePath,
   String? ownerWebId,
+  bool isPodRelativePath = false,
   void Function(int, int)? onProgress,
 }) async {
   final chunks = fetch(
     remoteFilePath: remoteFilePath,
     ownerWebId: ownerWebId,
+    isPodRelativePath: isPodRelativePath,
     onProgress: onProgress,
   );
   final builder = BytesBuilder();
@@ -105,11 +119,28 @@ Future<Uint8List> readLargeFileAsBytes({
 /// Send a large local file with path [localFilePath] to a remote server
 /// using name [remoteFilePath] (relative to appname/data directory),
 /// encrypt the file content if [encrypted] is true.
+///
+/// By default the file is written to the current user's own POD. To write to
+/// the POD of another owner (e.g. a note or community POD shared with the
+/// user), provide that owner's WebID via [ownerWebId]. This mirrors the
+/// [ownerWebId] parameter of [readLargeFile] and the [fileOwnerWebId]
+/// parameter of [writeExternalPod]. When writing to an external POD with
+/// encryption, [inheritKeyFrom] must point to a directory whose encryption
+/// key is shared with the user (the same contract as [writeExternalPod]),
+/// otherwise the per-file encryption key would be stored unencrypted.
+///
+/// Set [isPodRelativePath] to true when [remoteFilePath] is relative to the
+/// POD root (e.g. `demopod/data/file.pdf`) rather than the current app's data
+/// directory. This is required to write a large file to a POD whose
+/// application directory differs from the current app (for instance when the
+/// destination URL supplied by the user names a different app).
 Future<void> writeLargeFile({
   required String localFilePath,
   required String remoteFilePath,
+  String? ownerWebId,
   String? inheritKeyFrom,
   bool createAcl = true,
+  bool isPodRelativePath = false,
   void Function(int, int)? onProgress,
   bool encrypted = true,
 }) async {
@@ -119,8 +150,10 @@ Future<void> writeLargeFile({
     dataStream: file.openRead(),
     remoteFilePath: remoteFilePath,
     totalBytes: totalBytes,
+    ownerWebId: ownerWebId,
     inheritKeyFrom: inheritKeyFrom,
     createAcl: createAcl,
+    isPodRelativePath: isPodRelativePath,
     onProgress: (sent, total) {
       if (onProgress != null) {
         onProgress(sent, total!);
@@ -130,17 +163,33 @@ Future<void> writeLargeFile({
   );
 }
 
-/// Delete a large file previously sent using [sendLargeFile] with URL
+/// Delete a large file previously sent using [writeLargeFile] with URL
 /// [remoteFilePath] (relative to appname/data directory) in POD.
+///
+/// By default the file is deleted from the current user's own POD. To delete
+/// a large file owned by another user, provide that owner's WebID via
+/// [ownerWebId] (consistent with [writeLargeFile] and [readLargeFile]).
 Future<void> deleteLargeFile({
   required String remoteFilePath,
+  String? ownerWebId,
+  bool isPodRelativePath = false,
   void Function(int, int)? onProgress,
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
 
-  final filePath = [await getDataDirPath(), remoteFilePath].join('/');
-  final chunkDirUrl = await getDirUrl(_getChunkDirPath(filePath));
-  final fileUrl = await getFileUrl('$filePath.ttl');
+  String? externWebId;
+  if (ownerWebId != null && ownerWebId != await AuthDataManager.getWebId()) {
+    externWebId = ownerWebId;
+  }
+
+  final filePath = isPodRelativePath
+      ? remoteFilePath
+      : [await getDataDirPath(), remoteFilePath].join('/');
+  final chunkDirUrl = await getDirUrl(
+    _getChunkDirPath(filePath),
+    webId: externWebId,
+  );
+  final fileUrl = await getFileUrl('$filePath.ttl', webId: externWebId);
 
   if (await checkResourceStatus(fileUrl, isFile: true) !=
           ResourceStatus.exist &&
@@ -154,7 +203,9 @@ Future<void> deleteLargeFile({
   // on server to get the URLs of individual chunks
 
   final triples = turtleToTripleMap(
-    await readPod(fileUrl, pathType: PathType.absoluteUrl),
+    externWebId == null
+        ? await readPod(fileUrl, pathType: PathType.absoluteUrl)
+        : await readExternalPod(fileUrl),
   );
   assert(triples.length == 1);
   assert(triples.containsKey(fileUrl));
@@ -258,12 +309,19 @@ Uint8List _decryptBytes(Uint8List encData, Encrypter encrypter, IV iv) =>
 /// Send a stream of data [dataStream] to a remote server
 /// using name [remoteFilePath],
 /// encrypt the file content if [encrypted] is true.
+///
+/// If [ownerWebId] is provided and differs from the current user's WebID, the
+/// data (chunks and metadata) is written to that owner's external POD instead
+/// of the user's own POD. See [writeLargeFile] for the encryption contract
+/// when writing to an external POD.
 Future<void> send({
   required Stream<List<int>> dataStream,
   required String remoteFilePath,
   int? totalBytes,
+  String? ownerWebId,
   String? inheritKeyFrom,
   bool createAcl = true,
+  bool isPodRelativePath = false,
   void Function(int, int?)? onProgress,
   bool encrypted = true,
 }) async {
@@ -273,9 +331,43 @@ Future<void> send({
       'totalBytes is required in order to use the onProgress() callback',
     );
   }
-  final filePath = [await getDataDirPath(), remoteFilePath].join('/');
-  final chunkDirUrl = await getDirUrl(_getChunkDirPath(filePath));
-  final fileUrl = await getFileUrl('$filePath.ttl');
+
+  // A valid session is required to obtain the DPoP/access tokens used for
+  // every write below (mirrors writeExternalPod()).
+
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('User must be logged in to write to a POD.');
+  }
+
+  // Determine whether we are writing to an external owner's POD.
+  String? externWebId;
+  if (ownerWebId != null && ownerWebId != await AuthDataManager.getWebId()) {
+    externWebId = ownerWebId;
+  }
+
+  // When writing to an external POD we must NOT create explicit ACL files.
+  // Writing an `.acl` resource requires acl:Control on the target, which the
+  // sender does not hold — they were only granted Read/Write/Append on the
+  // shared parent directory (whose acl:default the chunk directory, chunks and
+  // metadata file then inherit). Attempting to PUT an `.acl` here would be
+  // rejected by the server with a 403 ForbiddenHttpError ("Failed to create
+  // resource"). ACL creation therefore only applies to writes into the user's
+  // own POD.
+
+  final effectiveCreateAcl = externWebId == null && createAcl;
+
+  // When isPodRelativePath is true, remoteFilePath already includes the
+  // application directory (e.g. demopod/data/file.pdf), so it must NOT be
+  // prefixed with the current app's data directory.
+
+  final filePath = isPodRelativePath
+      ? remoteFilePath
+      : [await getDataDirPath(), remoteFilePath].join('/');
+  final chunkDirUrl = await getDirUrl(
+    _getChunkDirPath(filePath),
+    webId: externWebId,
+  );
+  final fileUrl = await getFileUrl('$filePath.ttl', webId: externWebId);
 
   if (await checkResourceStatus(fileUrl, isFile: true) ==
           ResourceStatus.exist ||
@@ -284,24 +376,31 @@ Future<void> send({
     throw Exception('ERROR: $remoteFilePath already exists.');
   }
 
-  // Create the directory for storing chunked data
-  // await createResource(
-  //   chunkDirUrl,
-  //   isFile: false,
-  //   contentType: ResourceContentType.directory,
-  // );
+  // Create the directory that holds the chunked data.
 
-  // Create an empty TTL file in chunkDir/.init.ttl
-  // This is because CSS server will automatically create all nonexist
-  // intermediate directories when requested to create chunkDir/.init.ttl,
-  // but it won't do this if requsted to create only chunkDir/
+  await createResource(
+    chunkDirUrl,
+    isFile: false,
+    replaceIfExist: false,
+    contentType: ResourceContentType.directory,
+  );
+
+  // Create an empty TTL file in chunkDir/.init.ttl so the (chunked) large
+  // file always has a representative resource inside its chunk directory
+  // (deleteLargeFile() relies on this file being present).
+
   await createResource('$chunkDirUrl${_getChunkDirInitFileName()}');
 
-  // Create ACL of the directory if ACL is not inherited
-  if (createAcl) {
+  // Create ACL of the directory if ACL is not inherited (own POD only;
+  // external writes inherit the shared parent directory's ACL).
+  if (effectiveCreateAcl) {
     await createResource(
       '$chunkDirUrl.acl',
-      content: await genAclTurtle(chunkDirUrl, isFile: false),
+      content: await genAclTurtle(
+        chunkDirUrl,
+        isFile: false,
+        externalWebId: externWebId ?? '',
+      ),
     );
   }
 
@@ -330,11 +429,12 @@ Future<void> send({
       contentType: ResourceContentType.binary,
     );
 
-    // Create ACL of the chunk file if ACL is not inherited
-    if (createAcl) {
+    // Create ACL of the chunk file if ACL is not inherited (own POD only;
+    // external writes inherit the shared parent directory's ACL).
+    if (effectiveCreateAcl) {
       await createResource(
         '$chunkUrl.acl',
-        content: await genAclTurtle(chunkUrl),
+        content: await genAclTurtle(chunkUrl, externalWebId: externWebId ?? ''),
       );
     }
 
@@ -360,14 +460,33 @@ Future<void> send({
   };
 
   final bindNS = {siiNS.prefix: siiNS.ns, 'c': Namespace(ns: chunkDirUrl)};
+  final metadataTurtle = tripleMapToTurtle(triples, bindNamespaces: bindNS);
 
-  await writePod(
-    '$remoteFilePath.ttl',
-    tripleMapToTurtle(triples, bindNamespaces: bindNS),
-    encrypted: encrypted,
-    inheritKeyFrom: inheritKeyFrom,
-    createAcl: createAcl,
-  );
+  if (externWebId == null) {
+    // For a POD-relative path the metadata file lives outside the current
+    // app's data directory, so address it relative to the POD root rather
+    // than letting writePod() prepend the app's data directory.
+    await writePod(
+      isPodRelativePath ? '$filePath.ttl' : '$remoteFilePath.ttl',
+      metadataTurtle,
+      encrypted: encrypted,
+      inheritKeyFrom: inheritKeyFrom,
+      createAcl: effectiveCreateAcl,
+      pathType:
+          isPodRelativePath ? PathType.relativeToPod : PathType.relativeToData,
+    );
+  } else {
+    // Write the metadata file to the external owner's POD. The ACL of the
+    // metadata file is handled by writeExternalPod (inherited from the shared
+    // parent directory when inheritKeyFrom is provided).
+    await writeExternalPod(
+      fileUrl,
+      metadataTurtle,
+      externWebId,
+      encrypted: encrypted,
+      inheritKeyFrom: inheritKeyFrom,
+    );
+  }
 }
 
 /// Get a large file previously sent using [writeLargeFile] with name
@@ -375,6 +494,7 @@ Future<void> send({
 Stream<List<int>> fetch({
   required String remoteFilePath,
   String? ownerWebId,
+  bool isPodRelativePath = false,
   void Function(int, int)? onProgress,
 }) async* {
   // Check if the corresponding Turtle file and directory of chunks exist
@@ -384,7 +504,9 @@ Stream<List<int>> fetch({
     externWebId = ownerWebId;
   }
 
-  final filePath = [await getDataDirPath(), remoteFilePath].join('/');
+  final filePath = isPodRelativePath
+      ? remoteFilePath
+      : [await getDataDirPath(), remoteFilePath].join('/');
   final chunkDirUrl = await getDirUrl(
     _getChunkDirPath(filePath),
     webId: externWebId,

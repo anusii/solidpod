@@ -124,6 +124,17 @@ Future<String> setPermissionAcl(
     newPermSet.add(getAccessMode(permStr as String));
   }
 
+  // For a container (directory), creating NEW child resources requires the
+  // recipient to have Append access on the container. WAC treats Write and
+  // Append as independent modes, and some servers require Append explicitly to
+  // add a member to a container. So when Write is granted on a directory we
+  // also grant Append, allowing the recipient to write new files into the
+  // shared folder (the recipient's main use case for a shared directory).
+
+  if (!isFile && newPermSet.contains(AccessMode.write)) {
+    newPermSet.add(AccessMode.append);
+  }
+
   // if the recipient type of the permission is the public
   if (recipientType == RecipientType.public) {
     publicPermSet = newPermSet;

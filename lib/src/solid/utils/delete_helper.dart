@@ -38,7 +38,7 @@ import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show extractResourcePathFromUrl;
+    show extractResourcePathFromUrl, normalizeFilePath;
 
 /// Deletes a container (directory) and all of its contents recursively.
 ///
@@ -47,8 +47,10 @@ import 'package:solidpod/src/solid/utils/misc.dart'
 /// finally removing the container itself. Solid POD servers typically
 /// require a container to be empty before it can be deleted.
 ///
-/// [parentPath] is the normalised relative path to the parent directory
-/// (e.g. `'myapp/data'` or `''` for the POD root).
+/// [parentPath] is the relative path to the parent directory, interpreted
+/// relative to the app's data directory (`appname/data`), mirroring
+/// [createContainer]. An empty string refers to the data directory itself.
+/// A path that already begins with `appname/data` is used as-is.
 ///
 /// [folderName] is the name of the directory to delete.
 ///
@@ -57,7 +59,7 @@ import 'package:solidpod/src/solid/utils/misc.dart'
 Future<void> deleteContainer(String parentPath, String folderName) async {
   final folderPath =
       parentPath.isEmpty ? folderName : '$parentPath/$folderName';
-  final dirUrl = await getDirUrl(folderPath);
+  final dirUrl = await getDirUrl(await normalizeFilePath(folderPath, null));
 
   await _deleteContainerByUrl(dirUrl);
 }
