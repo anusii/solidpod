@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Bump solid_auth token refresh fix [1.0.6 20260612 gjw]
 + Bug fix for expiring tokens [1.0.5 20260610 anushkavidanage]
 + Notification support [1.0.4 20260609 tonypioneer]
 + Redo public file decryption [1.0.3 20260609 tonypioneer]
