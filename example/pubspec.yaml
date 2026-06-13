@@ -14,8 +14,8 @@ dependencies:
   intl: ^0.20.2
   markdown_tooltip: ^0.0.10
   rdflib: ^0.2.12
-  solidpod: ^1.0.5
-  solidui: ^1.0.6
+  solidpod: ^1.0.6
+  solidui: ^1.0.7
   universal_io: ^2.3.1
   window_manager: ^0.5.1
 
