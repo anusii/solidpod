@@ -45,6 +45,8 @@ dev_dependencies:
   import_order_lint: ^0.2.2
 
 flutter:
+  config:
+    enable-swift-package-manager: false
   assets:
     - assets/images/default_image.jpg
     - assets/images/default_logo.png
