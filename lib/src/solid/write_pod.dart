@@ -42,7 +42,8 @@ import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
-import 'package:solidpod/src/solid/write_external_pod.dart' show writeExternalPod;
+import 'package:solidpod/src/solid/write_external_pod.dart'
+    show writeExternalPod;
 
 /// Write [filePath] with content [fileContent] to POD in the
 /// data directory (within potential subdirectories encoded in [filePath]).
