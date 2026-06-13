@@ -37,6 +37,7 @@ import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
+import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
 import 'package:solidpod/src/solid/utils/data_encryption.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart';
@@ -57,13 +58,33 @@ import 'package:solidpod/src/solid/utils/rdf.dart';
 /// Arguments:
 /// - [filePath]: The path to the file to read
 /// - [pathType]: Optional type of relative file path to override the default (relative to `appname/data` directory)
+/// - [ownerWebId]: Optional WebID of the POD owner. When provided and it differs
+///   from the current user's WebID, the file is read from that owner's
+///   (external) POD via [readExternalPod] instead of the current user's own
+///   POD. This makes readPod the single entry point for reading own and
+///   external resources; [readExternalPod] remains a thin wrapper over
+///   `readPod(url, pathType: PathType.absoluteUrl)` and is still available for
+///   direct use.
 
 Future<String> readPod(
   String filePath, {
   PathType pathType = PathType.relativeToData,
+  String? ownerWebId,
 }) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException('User must be logged in to read from POD');
+  }
+
+  // When [ownerWebId] names another user's POD, delegate to the external-POD
+  // read path. Resolve the absolute file URL against the owner's POD first.
+
+  if (ownerWebId != null && ownerWebId != await getWebId()) {
+    final externalFileUrl = await generateResourceUrlFromPath(
+      resourcePath: filePath,
+      pathType: pathType,
+      webId: ownerWebId,
+    );
+    return await readExternalPod(externalFileUrl);
   }
 
   final fileUrl = await generateResourceUrlFromPath(

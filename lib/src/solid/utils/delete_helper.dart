@@ -38,7 +38,7 @@ import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show extractResourcePathFromUrl, normalizeFilePath;
+    show extractResourcePathFromUrl, getWebId, normalizeFilePath;
 
 /// Deletes a container (directory) and all of its contents recursively.
 ///
@@ -214,12 +214,30 @@ Future<void> deleteAclForResource(String resourceUrl) async {
 /// - [isKey] - flag describing whether the file to be deleted is a
 /// security key. Use this flag if file is a security key to avoid
 /// unnecessary operations that are not needed to delete a key.
+/// - [ownerWebId] - Optional WebID of the POD owner. When provided and it
+/// differs from the current user's WebID, the file is deleted from that
+/// owner's (external) POD via [deleteExternalFile] instead of the current
+/// user's own POD. In that case the owner-only steps (permission revocation,
+/// removing the owner's own encryption key) are skipped and the shared key is
+/// removed instead. An [AccessForbiddenException] is thrown if the user lacks
+/// delete permission. This makes deleteFile the single entry point for
+/// deleting from own and external PODs; [deleteExternalFile] remains available
+/// for direct use.
 
 Future<void> deleteFile({
   required String fileUrl,
   ResourceContentType contentType = ResourceContentType.turtleText,
   bool isKey = false,
+  String? ownerWebId,
 }) async {
+  // When [ownerWebId] names another user's POD, delegate to the external-file
+  // delete path (removes the shared key, skips owner-only steps).
+
+  if (ownerWebId != null && ownerWebId != await getWebId()) {
+    await deleteExternalFile(fileUrl, contentType: contentType);
+    return;
+  }
+
   if (await isFileProtected(fileUrl)) {
     throw Exception('Delete protected file is not allowed');
   }

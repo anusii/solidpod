@@ -46,6 +46,8 @@ import 'package:solidpod/src/solid/constants/schema.dart'
     show siiNS, SIIPredicate;
 import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
 import 'package:solidpod/src/solid/read_pod.dart' show readPod;
+import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart'
+    show revokePermissionToRecipients;
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/delete_helper.dart'
     show deleteAclForResource;
@@ -199,6 +201,18 @@ Future<void> deleteLargeFile({
     return;
   }
 
+  // For a large file on the user's OWN POD, revoke any recipients' access to
+  // the file's shareable resources (the metadata file and the chunk directory)
+  // before deleting them, so the recipients' permission logs no longer show
+  // access to a file that no longer exists. This mirrors deleteFile() for
+  // regular files. Revocation rewrites ACLs and is therefore only possible on
+  // the user's own POD, so it is skipped for external deletions.
+
+  if (externWebId == null) {
+    await _revokeLargeFileRecipients(fileUrl, isFile: true);
+    await _revokeLargeFileRecipients(chunkDirUrl, isFile: false);
+  }
+
   // Parse the Turtle file with metadata of the (chunked) large file
   // on server to get the URLs of individual chunks
 
@@ -245,6 +259,30 @@ Future<void> deleteLargeFile({
   await deleteResource(fileUrl, ResourceContentType.turtleText);
 
   debugPrint('Deleted $remoteFilePath');
+}
+
+// Revoke any recipients' access to a large file's resource identified by its
+// full [resourceUrl] (the metadata file when [isFile] is true, or the chunk
+// directory when false). A resource that was never shared has no recipients to
+// revoke (and may have no ACL), so any error is logged and swallowed rather
+// than aborting the surrounding deletion.
+
+Future<void> _revokeLargeFileRecipients(
+  String resourceUrl, {
+  required bool isFile,
+}) async {
+  try {
+    await revokePermissionToRecipients(
+      fileName: resourceUrl,
+      isFile: isFile,
+      isFileUrl: true,
+    );
+  } catch (e) {
+    debugPrint(
+      'Warning: could not revoke permissions for "$resourceUrl" '
+      '(ACL may not exist or it was never shared): $e',
+    );
+  }
 }
 
 // Return the URL of directory storing the chunked data
