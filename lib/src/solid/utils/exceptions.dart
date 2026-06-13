@@ -122,3 +122,31 @@ class SolidAuthCancelledException implements Exception {
   @override
   String toString() => 'SolidAuthCancelledException: $message';
 }
+
+/// Thrown by [changeCssAccountPassword] when the Solid server does not expose
+/// the Community Solid Server (CSS v7+) account management JSON API at
+/// `/.account/` (e.g. NSS, ESS, or older CSS versions). Callers should inform
+/// the user that password changes are not supported on their server.
+
+class CssAccountApiNotSupportedException implements Exception {
+  final String message;
+
+  CssAccountApiNotSupportedException(this.message);
+
+  @override
+  String toString() => 'CssAccountApiNotSupportedException: $message';
+}
+
+/// Thrown by [changeCssAccountPassword] when the CSS account API rejects the
+/// given email/password combination (i.e. the credentials are wrong). Distinct
+/// from transient errors (network, server) so callers can keep the dialog open
+/// and let the user correct their input.
+
+class CssWrongCredentialsException implements Exception {
+  final String message;
+
+  CssWrongCredentialsException(this.message);
+
+  @override
+  String toString() => 'CssWrongCredentialsException: $message';
+}
