@@ -50,15 +50,7 @@ export 'package:solidpod/src/solid/utils/session.dart';
 /// write again.
 
 Future<void> writeToSecureStorage(String key, String value) async {
-  final isKeyExist = await secureStorage.containsKey(key: key);
-
-  // Since write() method does not automatically overwrite an existing value.
-  // To overwrite an existing value, call delete() first.
-
-  if (isKeyExist) {
-    await secureStorage.delete(key: key);
-  }
-
+  await secureStorage.delete(key: key);
   await secureStorage.write(key: key, value: value);
 }
 
