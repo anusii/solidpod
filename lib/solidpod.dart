@@ -199,6 +199,15 @@ export 'src/solid/write_pod.dart';
 
 export 'src/solid/grant_permission.dart';
 
+/// The functions related to resource sharing groups.
+
+export 'src/solid/shared_groups.dart'
+    show
+        SharedGroup,
+        getSharedGroups,
+        saveSharedGroup,
+        deleteSharedGroup;
+
 /// The function to copy shared individual key, either publicly or for all
 /// authenticated users
 
