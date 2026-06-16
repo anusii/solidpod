@@ -38,7 +38,7 @@ import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart'
-    show extractResourcePathFromUrl, getWebId, normalizeFilePath;
+    show extractResourcePathFromUrl, isExternalOwner, normalizeFilePath;
 
 /// Deletes a container (directory) and all of its contents recursively.
 ///
@@ -233,7 +233,7 @@ Future<void> deleteFile({
   // When [ownerWebId] names another user's POD, delegate to the external-file
   // delete path (removes the shared key, skips owner-only steps).
 
-  if (ownerWebId != null && ownerWebId != await getWebId()) {
+  if (await isExternalOwner(ownerWebId)) {
     await deleteExternalFile(fileUrl, contentType: contentType);
     return;
   }

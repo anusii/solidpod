@@ -78,7 +78,7 @@ Future<String> readPod(
   // When [ownerWebId] names another user's POD, delegate to the external-POD
   // read path. Resolve the absolute file URL against the owner's POD first.
 
-  if (ownerWebId != null && ownerWebId != await getWebId()) {
+  if (await isExternalOwner(ownerWebId)) {
     final externalFileUrl = await generateResourceUrlFromPath(
       resourcePath: filePath,
       pathType: pathType,

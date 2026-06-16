@@ -38,7 +38,6 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
@@ -97,7 +96,7 @@ Future<void> writePod(
   // resource inherits the shared parent directory's ACL), and throws
   // AccessForbiddenException if the user lacks write permission.
 
-  if (ownerWebId != null && ownerWebId != await getWebId()) {
+  if (await isExternalOwner(ownerWebId)) {
     final externalFileUrl = await generateResourceUrlFromPath(
       resourcePath: filePath,
       pathType: pathType,
@@ -106,7 +105,7 @@ Future<void> writePod(
     await writeExternalPod(
       externalFileUrl,
       fileContent,
-      ownerWebId,
+      ownerWebId!, // Non-null because isExternalOwner() returned true.
       encrypted: encrypted,
       overwrite: overwrite,
       inheritKeyFrom: inheritKeyFrom,
@@ -183,11 +182,10 @@ Future<void> writePod(
 
   final content = encKey == null
       ? fileContent
-      : await getEncTTLStr(
+      : await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: encKey,
-          iv: genRandIV(),
           inheritKeyFrom: inheritKeyFrom == null
               ? null
               : await extractResourcePathFromUrl(inheritKeyUrl!),

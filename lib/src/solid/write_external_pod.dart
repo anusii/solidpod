@@ -38,7 +38,6 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart' show genRandIV;
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
@@ -47,7 +46,12 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// data directory (within potential subdirectories encoded in [fileUrl]).
 /// The content will be encrypted if the original content is true.
 ///
-/// dc 20260124: Refactor this function and writePod() to reuse code of shared logic
+/// The encryption boilerplate shared with [writePod] is factored out into
+/// [getEncTTLStrWithRandomIV], and the "own POD vs external POD" routing is
+/// shared via [isExternalOwner]. The remaining differences (how the encryption
+/// key is resolved, the resource-status handling and the deliberate absence of
+/// ACL creation) are intrinsic to writing into another user's shared POD and
+/// are intentionally kept separate.
 
 Future<void> writeExternalPod(
   String fileUrl,
@@ -92,11 +96,10 @@ Future<void> writeExternalPod(
         // final filePath =
         //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
 
-        content = await getEncTTLStr(
+        content = await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: key,
-          iv: genRandIV(),
         );
 
         if (!fileUrl.endsWith('.ttl')) {
@@ -118,11 +121,10 @@ Future<void> writeExternalPod(
         assert(key != null);
 
         // Generate encrypted file content
-        content = await getEncTTLStr(
+        content = await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: key!,
-          iv: genRandIV(),
           inheritKeyFrom: parentDirPath,
         );
       } else {
@@ -192,11 +194,10 @@ Future<void> writeExternalPod(
         }
 
         // Generate encrypted file content
-        content = await getEncTTLStr(
+        content = await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: key,
-          iv: genRandIV(),
         );
       }
 

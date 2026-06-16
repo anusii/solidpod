@@ -48,7 +48,6 @@ import 'package:solidpod/src/solid/read_external_pod.dart' show readExternalPod;
 import 'package:solidpod/src/solid/read_pod.dart' show readPod;
 import 'package:solidpod/src/solid/revoke_permission_to_recipients.dart'
     show revokePermissionToRecipients;
-import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/delete_helper.dart'
     show deleteAclForResource;
 import 'package:solidpod/src/solid/utils/exceptions.dart'
@@ -60,7 +59,8 @@ import 'package:solidpod/src/solid/utils/misc.dart' show getDataDirPath;
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/utils/rdf.dart'
     show tripleMapToTurtle, turtleToTripleMap;
-import 'package:solidpod/src/solid/utils/session.dart' show isUserLoggedIn;
+import 'package:solidpod/src/solid/utils/session.dart'
+    show isUserLoggedIn, resolveExternalOwner;
 import 'package:solidpod/src/solid/write_external_pod.dart'
     show writeExternalPod;
 import 'package:solidpod/src/solid/write_pod.dart' show writePod;
@@ -179,10 +179,7 @@ Future<void> deleteLargeFile({
 }) async {
   // Check if the corresponding Turtle file and directory of chunks exist
 
-  String? externWebId;
-  if (ownerWebId != null && ownerWebId != await AuthDataManager.getWebId()) {
-    externWebId = ownerWebId;
-  }
+  final externWebId = await resolveExternalOwner(ownerWebId);
 
   final filePath = isPodRelativePath
       ? remoteFilePath
@@ -378,10 +375,7 @@ Future<void> send({
   }
 
   // Determine whether we are writing to an external owner's POD.
-  String? externWebId;
-  if (ownerWebId != null && ownerWebId != await AuthDataManager.getWebId()) {
-    externWebId = ownerWebId;
-  }
+  final externWebId = await resolveExternalOwner(ownerWebId);
 
   // When writing to an external POD we must NOT create explicit ACL files.
   // Writing an `.acl` resource requires acl:Control on the target, which the
@@ -537,10 +531,7 @@ Stream<List<int>> fetch({
 }) async* {
   // Check if the corresponding Turtle file and directory of chunks exist
 
-  String? externWebId;
-  if (ownerWebId != null && ownerWebId != await AuthDataManager.getWebId()) {
-    externWebId = ownerWebId;
-  }
+  final externWebId = await resolveExternalOwner(ownerWebId);
 
   final filePath = isPodRelativePath
       ? remoteFilePath
