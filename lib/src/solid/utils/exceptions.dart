@@ -150,3 +150,16 @@ class CssWrongCredentialsException implements Exception {
   @override
   String toString() => 'CssWrongCredentialsException: $message';
 }
+
+/// Thrown by [createCssAccount] when the email address is already registered
+/// on the server. Callers should keep the dialog open and let the user choose
+/// a different email or navigate to the login screen.
+
+class CssEmailAlreadyRegisteredException implements Exception {
+  final String message;
+
+  CssEmailAlreadyRegisteredException(this.message);
+
+  @override
+  String toString() => 'CssEmailAlreadyRegisteredException: $message';
+}
