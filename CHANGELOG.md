@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Add CSS account and password change API [1.0.8 20260617 anushkavidanage]
 + Support writing large files to external pod [1.0.7 20260618 tonypioneer]
 + Bump solid_auth token refresh fix [1.0.6 20260612 gjw]
 + Bug fix for expiring tokens [1.0.5 20260610 anushkavidanage]
