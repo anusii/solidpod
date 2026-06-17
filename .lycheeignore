@@ -67,3 +67,4 @@ https://github.com/*
 # URLs in comments
 http://localhost:4400/redirect
 https://your-domain/redirect.html
+https://server/POD_NAME/APP_NAME/data/FILE_PATH

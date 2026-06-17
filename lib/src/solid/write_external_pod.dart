@@ -38,17 +38,20 @@ import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart' show genRandIV;
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
 /// Write file [fileUrl] with content [fileContent] to an external PODs in the
 /// data directory (within potential subdirectories encoded in [fileUrl]).
 /// The content will be encrypted if the original content is true.
 ///
-/// dc 20260124: Refactor this function and writePod() to reuse code of shared logic
+/// The encryption boilerplate shared with [writePod] is factored out into
+/// [getEncTTLStrWithRandomIV], and the "own POD vs external POD" routing is
+/// shared via [isExternalOwner]. The remaining differences (how the encryption
+/// key is resolved, the resource-status handling and the deliberate absence of
+/// ACL creation) are intrinsic to writing into another user's shared POD and
+/// are intentionally kept separate.
 
 Future<void> writeExternalPod(
   String fileUrl,
@@ -93,11 +96,10 @@ Future<void> writeExternalPod(
         // final filePath =
         //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
 
-        content = await getEncTTLStr(
+        content = await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: key,
-          iv: genRandIV(),
         );
 
         if (!fileUrl.endsWith('.ttl')) {
@@ -119,11 +121,10 @@ Future<void> writeExternalPod(
         assert(key != null);
 
         // Generate encrypted file content
-        content = await getEncTTLStr(
+        content = await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: key!,
-          iv: genRandIV(),
           inheritKeyFrom: parentDirPath,
         );
       } else {
@@ -152,27 +153,51 @@ Future<void> writeExternalPod(
       // and if inheritedFrom is set, then encrypt the file using the
       // inherited key
       if (inheritKeyFrom != null) {
-        // Get normalised directory path
-        String normalizedDirPath = await normalizeFilePath(
-          inheritKeyFrom,
-          null,
+        // Resolve the shared folder's URL on the external POD from the
+        // destination [fileUrl]. Prefer the app-data-relative resolution
+        // (which matches same-app cross-POD sharing); fall back to matching
+        // the raw folder segment so this also works when the external POD's
+        // application directory name differs from the current app's.
+
+        final keyFolder = inheritKeyFrom.endsWith('/')
+            ? inheritKeyFrom.substring(0, inheritKeyFrom.length - 1)
+            : inheritKeyFrom;
+
+        var parentDirUrl = getExtDirUrl(
+          fileUrl,
+          await normalizeFilePath(keyFolder, null),
         );
+        if (parentDirUrl.isEmpty) {
+          parentDirUrl = getExtDirUrl(fileUrl, keyFolder);
+        }
 
-        final parentDirUrl = getExtDirUrl(fileUrl, normalizedDirPath);
-
-        // Get file path
-        // final filePath =
-        //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
+        if (parentDirUrl.isEmpty) {
+          throw Exception(
+            'The "inherit encryption key" folder "$inheritKeyFrom" is not part '
+            'of the destination path. It must name the shared folder the file '
+            'is written into, e.g. "dir1/" for a destination ending in '
+            '".../dir1/<file>".',
+          );
+        }
 
         final key = await KeyManager.getSharedIndividualKey(parentDirUrl);
-        assert(key != null);
+        if (key == null) {
+          throw Exception(
+            'No shared encryption key was found for the folder "$parentDirUrl". '
+            'Before uploading an encrypted file the POD owner must (1) create '
+            'that folder with an inherited encryption key (e.g. via '
+            'setInheritKeyDir / "Create Resource with ACL Inheritance") and '
+            '(2) share the folder with your WebID, which also shares its key. '
+            'To upload without encryption, leave the "inherit encryption key" '
+            'field empty.',
+          );
+        }
 
         // Generate encrypted file content
-        content = await getEncTTLStr(
+        content = await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
-          key: key!,
-          iv: genRandIV(),
+          key: key,
         );
       }
 
@@ -180,23 +205,41 @@ Future<void> writeExternalPod(
     /// inherited file. This is tricky as the key is not created for this file
   }
 
-  // Create file on server
-  await createResource(fileUrl, content: content, contentType: contentType);
+  // Create / update the file on the external POD.
+  //
+  // This is the only write performed here, so a 403 means the current WebID
+  // simply does not have Write access to this specific resource. Surface an
+  // actionable message instead of the generic "Failed to create resource".
 
-  // Create the ACL file for the data file if necessary
-  // Check if file exsits AND if there is no inheritedFrom variable set. If this
-  // is set then the ACL file will be inherited
-
-  // dc 20260127 - a few questions:
-  // - does the code below require control access permission?
-  // - the code below may create an ACL file with default access sharing which allows
-  //   access from only the owner
-  // - if the parent folder is shared to others, then creating ACL for the individual
-  //   file may prevent others to access this file
-
-  final aclFileUrl = '$fileUrl.acl';
-  if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist &&
-      inheritKeyFrom == null) {
-    await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
+  try {
+    await createResource(fileUrl, content: content, contentType: contentType);
+  } on Object catch (e) {
+    final msg = e.toString().toLowerCase();
+    if (msg.contains('403') || msg.contains('forbidden')) {
+      throw AccessForbiddenException(
+        'Permission denied (HTTP 403) writing to "$fileUrl".\n'
+        'Your WebID does not have Write access to this resource. Ask the '
+        'owner to grant your WebID Write permission on this specific '
+        'resource.\n'
+        'Note: sharing only the parent folder does NOT grant write access to '
+        'a file that already has its own ACL — the owner must share the file '
+        'itself (or the file must inherit the folder ACL, i.e. have no ACL of '
+        'its own).',
+      );
+    }
+    rethrow;
   }
+
+  // Do NOT create an ACL file for the resource on the external POD.
+  //
+  // Writing an `.acl` resource requires acl:Control on the target, which the
+  // current user does not hold — they were only granted Read/Write/Append on
+  // the shared parent directory. Attempting to PUT an `.acl` here would be
+  // rejected with a 403 ForbiddenHttpError ("Failed to create resource").
+  //
+  // Moreover, even if it succeeded, generating a default (owner-only) ACL for
+  // this individual file would override the parent directory's shared access
+  // and could lock other recipients out. The resource therefore deliberately
+  // inherits the ACL of the shared parent directory (its acl:default), which
+  // the owner configured when sharing the directory.
 }

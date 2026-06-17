@@ -38,10 +38,11 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
+import 'package:solidpod/src/solid/write_external_pod.dart'
+    show writeExternalPod;
 
 /// Write [filePath] with content [fileContent] to POD in the
 /// data directory (within potential subdirectories encoded in [filePath]).
@@ -67,6 +68,14 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 ///     1. a single encryption key associated with the given directory is used to
 ///        encrypt the resource.
 ///     2. [fileContent] will be encrypted regardless of [encrypted] is True or False.
+/// - [ownerWebId] - Optional WebID of the POD owner. When provided and it differs
+///     from the current user's WebID, the content is written to that owner's
+///     (external) POD via [writeExternalPod] instead of the current user's own
+///     POD. In that case the resource inherits the ACL of the shared parent
+///     directory (no separate ACL is created, so [createAcl] is ignored), and an
+///     [AccessForbiddenException] is thrown if the user lacks write permission.
+///     This makes writePod the single entry point for writing to own and
+///     external PODs; [writeExternalPod] remains available for direct use.
 
 Future<void> writePod(
   String filePath,
@@ -76,9 +85,32 @@ Future<void> writePod(
   bool overwrite = false,
   PathType pathType = PathType.relativeToData,
   String? inheritKeyFrom,
+  String? ownerWebId,
 }) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException('User must be logged in to write to POD');
+  }
+
+  // When [ownerWebId] names another user's POD, delegate to the external-POD
+  // write path. It uses the shared encryption key, never creates an ACL (the
+  // resource inherits the shared parent directory's ACL), and throws
+  // AccessForbiddenException if the user lacks write permission.
+
+  if (await isExternalOwner(ownerWebId)) {
+    final externalFileUrl = await generateResourceUrlFromPath(
+      resourcePath: filePath,
+      pathType: pathType,
+      webId: ownerWebId,
+    );
+    await writeExternalPod(
+      externalFileUrl,
+      fileContent,
+      ownerWebId!, // Non-null because isExternalOwner() returned true.
+      encrypted: encrypted,
+      overwrite: overwrite,
+      inheritKeyFrom: inheritKeyFrom,
+    );
+    return;
   }
 
   final fileUrl = await generateResourceUrlFromPath(
@@ -150,11 +182,10 @@ Future<void> writePod(
 
   final content = encKey == null
       ? fileContent
-      : await getEncTTLStr(
+      : await getEncTTLStrWithRandomIV(
           fileUrl: fileUrl,
           fileContent: fileContent,
           key: encKey,
-          iv: genRandIV(),
           inheritKeyFrom: inheritKeyFrom == null
               ? null
               : await extractResourcePathFromUrl(inheritKeyUrl!),

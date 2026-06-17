@@ -28,7 +28,12 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart'
-    show ResourceStatus, checkResourceStatus, filenameToResourceUrl, writePod;
+    show
+        ResourceStatus,
+        checkResourceStatus,
+        createContainer,
+        filenameToResourceUrl,
+        writePod;
 
 import 'package:demopod/dialogs/alert.dart';
 
@@ -58,6 +63,7 @@ Future<bool> ensurePodResourceExists(
         return true;
 
       case ResourceStatus.notExist:
+        await _ensureParentContainerWithAcl(relativePath);
         await writePod(relativePath, defaultContent, encrypted: encrypted);
 
         if (context.mounted) {
@@ -100,4 +106,49 @@ Future<bool> ensurePodResourceExists(
     }
     return false;
   }
+}
+
+/// Ensures the parent folder of [relativePath] exists on the Pod with its own
+/// `.acl` file.
+///
+/// [relativePath] is a file path relative to the app's data directory (e.g.
+/// `keyvalue/key-value.ttl`). When the path contains no folder component the
+/// file sits directly in the data root and there is nothing to create.
+///
+/// If the parent folder already exists it is left untouched (it may already
+/// carry an `.acl`); otherwise [createContainer] creates it together with a
+/// default `.acl` so the folder can be shared.
+
+Future<void> _ensureParentContainerWithAcl(String relativePath) async {
+  final slash = relativePath.lastIndexOf('/');
+  if (slash < 0) return;
+
+  final dirPath = relativePath.substring(0, slash);
+
+  // Resolve the directory URL relative to the app data directory (the same
+  // convention used by writePod and createContainer). filenameToResourceUrl
+  // prepends `appname/data` and is idempotent for paths that already include
+  // it.
+
+  final dirUrl = await filenameToResourceUrl(
+    fileName: dirPath,
+    isFile: false,
+  );
+
+  // Skip creation if the folder already exists; createContainer would fail on
+  // an existing container, and an existing folder may already have its `.acl`.
+
+  if (await checkResourceStatus(dirUrl, isFile: false) ==
+      ResourceStatus.exist) {
+    return;
+  }
+
+  // Split the directory path into its parent path and leaf folder name as
+  // expected by createContainer.
+
+  final sep = dirPath.lastIndexOf('/');
+  final parentPath = sep < 0 ? '' : dirPath.substring(0, sep);
+  final folderName = sep < 0 ? dirPath : dirPath.substring(sep + 1);
+
+  await createContainer(parentPath, folderName);
 }
