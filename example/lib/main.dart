@@ -25,6 +25,8 @@
 
 library;
 
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:demopod/constants/app.dart';
 import 'package:flutter/material.dart';
 
@@ -34,7 +36,37 @@ import 'package:window_manager/window_manager.dart';
 import 'package:demopod/home.dart';
 import 'package:demopod/utils/is_desktop.dart';
 
+/// Whether [error] is the benign user-cancellation of an AppAuth/OIDC web
+/// authentication session — for example when the user dismisses the system
+/// sign-in / end-session web sheet, or when the plugin runs a background
+/// session check. It does not affect app state and is safe to ignore.
+
+bool _isBenignAuthCancellation(Object error) {
+  if (error.runtimeType.toString().contains('UserCancelled')) {
+    return true;
+  }
+  final msg = error.toString();
+  return msg.contains('org.openid.appauth') &&
+      (msg.contains('Code=-3') ||
+          msg.contains('WebAuthenticationSession') ||
+          msg.contains('UserCancelled'));
+}
+
 void main() async {
+  // Suppress the benign AppAuth/OIDC web-session cancellation that the plugin
+  // can raise as an uncaught async error (it otherwise surfaces as an
+  // "Unhandled Exception" in the console even though the operation in progress
+  // — e.g. granting a permission — has already succeeded). All other errors
+  // fall through to the previously installed / default handler.
+
+  final previousOnError = PlatformDispatcher.instance.onError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (_isBenignAuthCancellation(error)) {
+      return true;
+    }
+    return previousOnError?.call(error, stack) ?? false;
+  };
+
   // Remove [debugPrint] messages from production code.
 
   debugPrint = (String? message, {int? wrapWidth}) {

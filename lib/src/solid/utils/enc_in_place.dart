@@ -43,7 +43,8 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
 import 'package:solidpod/src/solid/public_sharing_hooks.dart';
 import 'package:solidpod/src/solid/utils/data_encryption.dart';
-import 'package:solidpod/src/solid/utils/key_helper.dart' show getPredicateUrl;
+import 'package:solidpod/src/solid/utils/key_helper.dart'
+    show genRandIV, getPredicateUrl;
 import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/pod_paths.dart';
 import 'package:solidpod/src/solid/utils/rdf.dart';
@@ -72,6 +73,28 @@ Future<String> getEncTTLStr({
 
   return tripleMapToTurtle(triples, bindNamespaces: bindNS);
 }
+
+/// Encrypt [fileContent] for [fileUrl] into the solidpod TTL wrapper using a
+/// freshly generated random IV.
+///
+/// Thin convenience wrapper over [getEncTTLStr] that captures the common
+/// "encrypt new content with a random IV" pattern shared by the write paths
+/// ([writePod] and [writeExternalPod]), so the `iv: genRandIV()` boilerplate
+/// is not repeated at every call site.
+
+Future<String> getEncTTLStrWithRandomIV({
+  required String fileUrl,
+  required String fileContent,
+  required Key key,
+  String? inheritKeyFrom,
+}) async =>
+    getEncTTLStr(
+      fileUrl: fileUrl,
+      fileContent: fileContent,
+      key: key,
+      iv: genRandIV(),
+      inheritKeyFrom: inheritKeyFrom,
+    );
 
 /// Extract the `(iv, encData)` pair from the encrypted-TTL wrapper written
 /// by [getEncTTLStr] for [fileUrl], or return `null` if [rawTtl] is not a

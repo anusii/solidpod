@@ -225,6 +225,103 @@ List<Widget> buildDeleteSectionUI({
   ];
 }
 
+/// Builds the upload-to-external-POD section UI.
+
+List<Widget> buildUploadSharedSectionUI({
+  required String? uploadSharedFile,
+  required bool uploadSharedDone,
+  required bool uploadSharedInProgress,
+  required TextEditingController uploadSharedUrlController,
+  required TextEditingController uploadSharedKeyRefController,
+  required Widget browseSharedButton,
+  required Widget uploadSharedButton,
+}) {
+  const smallGapH = SizedBox(width: 10);
+  const smallGapV = SizedBox(height: 10);
+
+  return [
+    const Text(
+      'Upload a local large file to an external POD',
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+    smallGapV,
+    Table(
+      columnWidths: const <int, TableColumnWidth>{
+        0: FixedColumnWidth(550),
+      },
+      children: [
+        TableRow(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  uploadSharedFile ??
+                      'Click the Browse button to choose a local file',
+                  style: TextStyle(
+                    color: uploadSharedFile == null ? Colors.red : Colors.blue,
+                    fontStyle: FontStyle.italic,
+                    fontSize: 16,
+                  ),
+                ),
+                smallGapH,
+                if (uploadSharedDone)
+                  const Icon(Icons.done, color: Colors.green),
+              ],
+            ),
+          ],
+        ),
+        TableRow(
+          children: [
+            TextFormField(
+              controller: uploadSharedUrlController,
+              enabled: !(uploadSharedInProgress || uploadSharedDone),
+              decoration: const InputDecoration(
+                hintText:
+                    'Destination URL, e.g. https://SERVER/POD_NAME/APP_NAME/data/FILE_PATH',
+                hintStyle: TextStyle(
+                  color: Colors.brown,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ],
+        ),
+        TableRow(
+          children: [
+            TextFormField(
+              controller: uploadSharedKeyRefController,
+              enabled: !(uploadSharedInProgress || uploadSharedDone),
+              decoration: const InputDecoration(
+                hintText:
+                    '(Optional) Inherit encryption key of shared folder, e.g. dir1/',
+                hintStyle: TextStyle(
+                  color: Colors.brown,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+    smallGapV,
+    Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        browseSharedButton,
+        smallGapH,
+        uploadSharedButton,
+      ],
+    ),
+  ];
+}
+
 /// Builds the download shared file section UI.
 
 List<Widget> buildDownloadSharedSectionUI({

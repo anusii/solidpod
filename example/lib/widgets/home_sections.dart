@@ -41,6 +41,7 @@ import 'package:solidui/solidui.dart'
         smallGapV;
 
 import 'package:demopod/constants/app.dart';
+import 'package:demopod/features/manage_acl_folder.dart';
 import 'package:demopod/features/permission_callback_demo.dart';
 import 'package:demopod/features/multiple_resource_sharing.dart';
 import 'package:demopod/utils/ensure_resource.dart';
@@ -176,6 +177,30 @@ List<Widget> buildPermissionSection(
                 // isFile: false,
                 child: createHomeWidget(),
               ),
+            ),
+          );
+        }
+      },
+    ),
+    smallGapV,
+    ElevatedButton(
+      child: const Text('Create/Delete a Folder with ACL'),
+      onPressed: () async {
+        final loggedIn = await loginIfRequired(
+          clientId: clientIdVal,
+          redirectUris: redirectUrisList,
+          postLogoutRedirectUris: postLogoutRedirectUrisList,
+          context: context,
+        );
+
+        if (loggedIn) {
+          await getKeyFromUserIfRequired(context, currentWidget);
+
+          if (!context.mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ManageAclFolder(),
             ),
           );
         }

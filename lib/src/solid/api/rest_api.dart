@@ -260,6 +260,16 @@ Future<void> createResource(
 
   if ([200, 201, 205].contains(response.statusCode)) {
     return;
+  } else if (response.statusCode == 403) {
+    // No write permission at this location. Surface a typed, actionable error
+    // so callers (e.g. writing to another user's POD) can distinguish a
+    // permission problem from a generic failure.
+
+    throw AccessForbiddenException(
+      'Permission denied (HTTP 403) creating resource "$resourceUrl". '
+      'You do not have write access to this location on the POD.'
+      '\nERROR: ${response.body}',
+    );
   } else {
     throw Exception(
       'Failed to create resource!'
@@ -290,7 +300,16 @@ Future<void> deleteResource(
     },
   );
 
-  if (response.statusCode != 200 && response.statusCode != 205) {
+  if (response.statusCode == 403) {
+    // No delete permission for this resource. Surface a typed, actionable
+    // error (e.g. when deleting from another user's POD without access).
+
+    throw AccessForbiddenException(
+      'Permission denied (HTTP 403) deleting resource "$resourceUrl". '
+      'You do not have delete access to this resource on the POD.'
+      '\nERROR: ${response.body}',
+    );
+  } else if (response.statusCode != 200 && response.statusCode != 205) {
     throw Exception(
       'Failed to delete resource!'
       '\nURL: $resourceUrl'
