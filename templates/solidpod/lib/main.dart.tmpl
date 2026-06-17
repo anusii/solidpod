@@ -1,0 +1,64 @@
+/// {{appName}} - main entry point for the application.
+///
+/// This file was generated from the `solidpod` app template
+/// (`dart run solidpod:create`). Edit it freely to suit your app.
+
+library;
+
+import 'package:flutter/material.dart';
+
+import 'package:solidui/solidui.dart';
+import 'package:window_manager/window_manager.dart';
+
+import 'package:{{projectName}}/app.dart';
+import 'package:{{projectName}}/constants/app.dart';
+
+// The main entry point for the application. We require [async] here because we
+// asynchronously [await] the window manager below. Eventually `main()` hands
+// over to the widget passed to [runApp].
+
+void main() async {
+  // Optionally, during development, we can use [debugPrint] to trace
+  // execution. The output is not shown on a `flutter --release`. To quieten the
+  // `flutter --debug` output we can globally map [debugPrint] to a no-op:
+  //
+  // debugPrint = (String? message, {int? wrapWidth}) {
+  //   null;
+  // };
+
+  // ── Desktop setup ──────────────────────────────────────────────────────────
+
+  // We ensure the Flutter bindings are initialised for the async operations
+  // below, particularly to set the desktop window [title].
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (isDesktop) {
+    await windowManager.ensureInitialized();
+
+    // For the desktop app we tune various window oriented settings. These are
+    // not required for mobile apps.
+
+    const windowOptions = WindowOptions(
+      title: appTitle,
+      minimumSize: Size(500, 800),
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+    );
+
+    // Await the window being shown and receiving focus before we run the app.
+
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
+
+  // ── Run the app ────────────────────────────────────────────────────────────
+
+  // The runApp() function takes the given Widget and makes it the root of the
+  // tree of widgets that the app creates.
+
+  runApp(const App());
+}

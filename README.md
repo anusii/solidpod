@@ -92,6 +92,47 @@ of the [solidpod](https://github.com/anusii/solidpod) repository.
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
 
+## Create a new app from the template
+
+`solidpod` ships with an app template — a ready-to-run Pod file browser,
+complete with a navigation rail and a status bar, built on
+[`solidui`](https://pub.dev/packages/solidui). It is the practical equivalent
+of a `flutter create --template=solidpod`, which stock Flutter cannot offer
+because the `--template` flag only accepts a fixed set of built-in types. We
+provide a small generator instead.
+
+From any checkout that depends on `solidpod`:
+
+```bash
+dart run solidpod:create my_pod_app
+```
+
+Or activate it once and use it anywhere:
+
+```bash
+flutter pub global activate solidpod
+solidpod create my_pod_app
+```
+
+The generator runs `flutter create` to lay down the platform folders, overlays
+the template (substituting your app name), and runs `flutter pub get`. Useful
+options:
+
+| Option                | Description                                              |
+|-----------------------|----------------------------------------------------------|
+| `--org <id>`          | Reverse-domain organisation id (default: `com.example`). |
+| `--title <text>`      | Window title shown by the app.                           |
+| `--description <text>`| `pubspec` description.                                    |
+| `-o, --output <dir>`  | Output directory (default: the app name).                |
+| `--no-flutter-create` | Render the template only; skip generating platform folders. |
+| `--no-pub-get`        | Skip the final `flutter pub get`.                        |
+
+The generated app starts at a `SolidLogin` screen and, once signed in, shows a
+`SolidScaffold` with a home page, an app-files browser and a whole-POD browser.
+After generating, update the Solid app registration (`clientId`,
+`redirectUris`, `link`) in `lib/app.dart` and the constants in
+`lib/constants/app.dart` for your own deployment.
+
 ## Prerequisites
 
 If the package is being used to build either a `macos` or `web` app,

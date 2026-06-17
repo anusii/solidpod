@@ -3,6 +3,18 @@ description: Support access to private data from PODs on Solid servers.
 version: 1.0.6
 homepage: https://github.com/anusii/solidpod
 
+# Scaffold a new Solid Pod file-browser app (a pod browser, with navigation
+# rail and status bar, built on solidui) from the bundled template:
+#
+#   dart run solidpod:create my_pod_app
+#
+# Or, after `flutter pub global activate solidpod`:
+#
+#   solidpod create my_pod_app
+
+executables:
+  solidpod: create
+
 environment:
   sdk: '>=3.2.3 <4.0.0'
   flutter: '>=1.17.0'

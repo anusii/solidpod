@@ -1,0 +1,50 @@
+# {{appName}}
+
+{{appDescription}}
+
+This app was generated from the [`solidpod`](https://pub.dev/packages/solidpod)
+app template — a Solid Pod file browser built with the
+[`solidui`](https://pub.dev/packages/solidui) widget set. It comes ready with:
+
+- a [`SolidLogin`] screen that connects to the user's data vault on their
+  chosen Solid server;
+- a [`SolidScaffold`] with a navigation rail (collapsing to a drawer on narrow
+  screens) and a status bar showing the server, login and security-key state;
+- a [`SolidFile`] browser for both the app's own folder and the whole POD;
+- theme switching, an About dialog and an Invite Others action.
+
+## Getting started
+
+```bash
+flutter pub get
+flutter run
+```
+
+## Next steps
+
+A few values were filled in with placeholders when this project was generated.
+Update them for your own deployment:
+
+- **Solid app registration** in `lib/app.dart` — the `clientId`,
+  `redirectUris` and `link` passed to `SolidLogin`. These identify your app to
+  the Solid server during login.
+- **App constants** in `lib/constants/app.dart` — the title, hosting URL and
+  the Invite Others message.
+- **Allowed upload types** in `lib/constants/app.dart` — `appUploadConfig`
+  currently restricts uploads to `.md` and `.txt`; widen `allowedExtensions`
+  to suit your app.
+- **Icons** in `assets/images/` — replace `app_icon.png` and `app_image.jpg`,
+  then run `dart run flutter_launcher_icons` to regenerate platform icons.
+
+## Project layout
+
+```
+lib/
+  main.dart            Application entry point and desktop window setup.
+  app.dart             Root widget; wraps the app in SolidLogin.
+  app_scaffold.dart    SolidScaffold with the nav bar, status bar and menu.
+  home.dart            Introductory home page.
+  constants/app.dart   App-wide constants (title, upload and invite configs).
+  screens/
+    browse_files.dart  Whole-POD file browser (SolidFile at the root).
+```
