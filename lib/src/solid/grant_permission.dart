@@ -44,6 +44,7 @@ import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show RecipientPubKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
 /// Grant access permissions to [fileName] to the type of recipient
 /// or specific recipients, if recipient type is individual or group,
@@ -101,6 +102,26 @@ Future<SolidFunctionCallStatus> grantPermission({
       isExternalRes: isExternalRes,
       isFile: isFile,
     );
+
+    // Ensure the resource has its own ACL file before attempting to share it.
+
+    if (!isExternalRes &&
+        !await resourceHasAcl(resourceUrl, isFile: isFile) &&
+        await checkResourceStatus(resourceUrl, isFile: isFile) ==
+            ResourceStatus.exist) {
+      debugPrint(
+        '[grantPermission] No ACL file found for "$resourceUrl"; '
+        'creating a default ACL so the resource can be shared.',
+      );
+      await createResource(
+        '$resourceUrl.acl',
+        content: await genAclTurtle(
+          resourceUrl,
+          externalWebId: ownerWebId,
+          isFile: isFile,
+        ),
+      );
+    }
 
     // Initially check if the resource has a corresponding ACL file. If not
     // return an error.
@@ -207,12 +228,16 @@ Future<SolidFunctionCallStatus> grantPermission({
                 sharedAccessList,
               );
             }
-          } else if (!hasSpecificRecipients) {
+          } else if (!hasSpecificRecipients && isFile) {
             // Permission granted to the Public or Authenticated User class:
             // these recipients cannot be issued an individual key (they have
             // no POD/private key under our control), so the only way for
             // them to actually read the resource by navigating to its URL is
             // for the file itself to be plaintext on the server.
+            //
+            // This only applies to files: a directory (container) has no byte
+            // content to decrypt, so the block is skipped for directories and
+            // only its ACL is updated above.
             //
             // Inspect the actual bytes on the server, not just whether
             // an ind-key record exists — this stays robust against the

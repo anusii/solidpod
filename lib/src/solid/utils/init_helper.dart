@@ -195,8 +195,15 @@ Future<void> initPod(
   }
 
   // Check (and generate) the directory URLs.
+  //
+  // 20260618 miduo666/gjw Only regenerate when the caller did not provide any
+  // list (null) rather than also checking if the directory is empty. It may be
+  // partially created yet we still may want to proceed. An empty list means "no
+  // directories to create" and should be respected. We used to guard with `||
+  // dirUrls.isEmpty` here as well. This would then skip to defaultDirs that do
+  // also need to be created, incase they have not been.
 
-  if (dirUrls == null || dirUrls.isEmpty) {
+  if (dirUrls == null) {
     final defaultDirs = await generateDefaultFolders();
     dirUrls = [for (final d in defaultDirs) await getDirUrl(d)];
   }

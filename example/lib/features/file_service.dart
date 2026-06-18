@@ -28,8 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/widgets/file_service_sections.dart';
+import 'package:solidpodeg/dialogs/alert.dart';
+import 'package:solidpodeg/widgets/file_service_sections.dart';
 
 class FileService extends StatefulWidget {
   const FileService({required this.child, required this.webId, super.key});
@@ -43,20 +43,24 @@ class FileService extends StatefulWidget {
 class _FileServiceState extends State<FileService> {
   String defaultRemoteFileName = 'large_file.bin';
   String? uploadFile;
+  String? uploadSharedFile;
   String? downloadFile;
   String? downloadSharedFile;
 
   double uploadPercent = 0.0;
+  double uploadSharedPercent = 0.0;
   double downloadPercent = 0.0;
   double downloadSharedPercent = 0.0;
   double deletePercent = 0.0;
 
   bool uploadDone = false;
+  bool uploadSharedDone = false;
   bool downloadDone = false;
   bool downloadSharedDone = false;
   bool deleteDone = false;
 
   bool uploadInProgress = false;
+  bool uploadSharedInProgress = false;
   bool downloadInProgress = false;
   bool downloadSharedInProgress = false;
   bool deleteInProgress = false;
@@ -64,6 +68,8 @@ class _FileServiceState extends State<FileService> {
   final remoteFolderController = TextEditingController();
   final keyRefFolderController = TextEditingController();
   final sharedUrlController = TextEditingController();
+  final uploadSharedUrlController = TextEditingController();
+  final uploadSharedKeyRefController = TextEditingController();
 
   final smallGapH = const SizedBox(width: 10);
   final smallGapV = const SizedBox(height: 10);
@@ -75,6 +81,55 @@ class _FileServiceState extends State<FileService> {
   String? getKeyRefPath() {
     final folder = keyRefFolderController.text.trim();
     return folder.isNotEmpty ? folder : null;
+  }
+
+  String? getUploadSharedKeyRefPath() {
+    final folder = uploadSharedKeyRefController.text.trim();
+    return folder.isNotEmpty ? folder : null;
+  }
+
+  /// Parse an external large-file URL of the form
+  /// `https://SERVER/POD_NAME/APP_NAME/data/FILE_PATH` into the owner's WebID
+  /// and the path of the file relative to the POD root.
+  ///
+  /// The returned [podRelativePath] keeps the `APP_NAME/data/FILE_PATH`
+  /// segments verbatim, so the file is read/written at exactly the URL the
+  /// user supplied (rather than under the current app's own data directory).
+  /// Pass it to the large-file APIs together with `isPodRelativePath: true`.
+  ///
+  /// Throws a [FormatException] with an actionable message if [url] is not a
+  /// valid http(s) URL with at least the four expected path segments. We
+  /// validate explicitly (rather than via `assert`) so the error reaches the
+  /// user instead of crashing in debug or silently misbehaving in release.
+
+  ({String ownerWebId, String podRelativePath}) parseExternalFileUrl(
+      String url) {
+    final uri = Uri.parse(url);
+
+    // Ignore any empty segments produced by leading/trailing slashes.
+    // Expected: [POD_NAME, APP_NAME, data, FILE_PATH, ...].
+
+    final segments =
+        uri.pathSegments.where((s) => s.isNotEmpty).toList(growable: false);
+
+    if ((uri.scheme != 'http' && uri.scheme != 'https') ||
+        uri.host.isEmpty ||
+        segments.length < 4) {
+      throw const FormatException(
+        'Invalid destination URL. Expected the form '
+        'https://SERVER/POD_NAME/APP_NAME/data/FILE_PATH',
+      );
+    }
+
+    final podName = segments.first;
+    final ownerWebId = [uri.origin, podName, 'profile/card#me'].join('/');
+
+    // Everything after POD_NAME is relative to the POD root, i.e.
+    // APP_NAME/data/FILE_PATH.
+
+    final podRelativePath = segments.skip(1).join('/');
+
+    return (ownerWebId: ownerWebId, podRelativePath: podRelativePath);
   }
 
   @override
@@ -91,6 +146,10 @@ class _FileServiceState extends State<FileService> {
   @override
   void dispose() {
     remoteFolderController.dispose();
+    keyRefFolderController.dispose();
+    sharedUrlController.dispose();
+    uploadSharedUrlController.dispose();
+    uploadSharedKeyRefController.dispose();
     super.dispose();
   }
 
@@ -113,6 +172,7 @@ class _FileServiceState extends State<FileService> {
     final uploadButton = ElevatedButton(
       onPressed: (uploadFile == null ||
               uploadInProgress ||
+              uploadSharedInProgress ||
               downloadInProgress ||
               downloadSharedInProgress ||
               deleteInProgress)
@@ -159,6 +219,79 @@ class _FileServiceState extends State<FileService> {
               }
             },
       child: const Text('Upload'),
+    );
+
+    final browseSharedButton = ElevatedButton(
+      onPressed: () async {
+        final result = await FilePicker.pickFiles();
+        if (result != null) {
+          setState(() {
+            uploadSharedFile = result.files.single.path!;
+            uploadSharedDone = false;
+            uploadSharedPercent = 0.0;
+          });
+        }
+      },
+      child: const Text('Browse'),
+    );
+
+    final uploadSharedButton = ElevatedButton(
+      onPressed: (uploadSharedFile == null ||
+              uploadInProgress ||
+              uploadSharedInProgress ||
+              downloadInProgress ||
+              downloadSharedInProgress ||
+              deleteInProgress)
+          ? null
+          : () async {
+              try {
+                final destUrl = uploadSharedUrlController.text.trim();
+                if (destUrl.isEmpty) {
+                  const msg = 'Destination URL is empty';
+                  await alert(context, msg);
+                  throw Exception(msg);
+                }
+
+                setState(() {
+                  uploadSharedInProgress = true;
+                });
+
+                final parsed = parseExternalFileUrl(destUrl);
+                final keyPath = getUploadSharedKeyRefPath();
+
+                if (!context.mounted) return;
+
+                await writeLargeFile(
+                    localFilePath: uploadSharedFile!,
+                    remoteFilePath: parsed.podRelativePath,
+                    isPodRelativePath: true,
+                    ownerWebId: parsed.ownerWebId,
+                    inheritKeyFrom: keyPath,
+                    createAcl: false,
+                    encrypted: keyPath != null,
+                    onProgress: (sent, total) {
+                      setState(() {
+                        uploadSharedDone = sent == total;
+                        uploadSharedPercent = sent / total;
+                      });
+                    });
+                if (uploadSharedDone) {
+                  setState(() {
+                    uploadSharedInProgress = false;
+                  });
+                }
+              } on Object catch (e) {
+                setState(() {
+                  uploadSharedInProgress = false;
+                });
+                if (context.mounted) {
+                  await alert(context,
+                      'Failed to upload file to external POD. $e', 'Error');
+                }
+                debugPrint('$e');
+              }
+            },
+      child: const Text('Upload to External POD'),
     );
 
     final downloadButton = ElevatedButton(
@@ -246,25 +379,16 @@ class _FileServiceState extends State<FileService> {
                     throw Exception(msg);
                   }
 
-                  // URL format: https://SERVER_URL/POD_NAME/APP_NAME/data/FILE_PATH
-                  final uri = Uri.parse(sharedFileUrl);
-
-                  // [POD_NAME, APP_NAME, data, FILE_PATH]
-                  assert(uri.pathSegments.length > 3);
-
-                  final podName = uri.pathSegments.first;
-                  final ownerWebId =
-                      [uri.origin, podName, 'profile/card#me'].join('/');
-
-                  final fileName = uri.pathSegments
-                      .getRange(3, uri.pathSegments.length)
-                      .join('/');
+                  // URL format:
+                  // https://SERVER_URL/POD_NAME/APP_NAME/data/FILE_PATH
+                  final parsed = parseExternalFileUrl(sharedFileUrl);
 
                   if (context.mounted) {
                     await readLargeFile(
-                        remoteFilePath: fileName,
+                        remoteFilePath: parsed.podRelativePath,
+                        isPodRelativePath: true,
                         localFilePath: outputFile,
-                        ownerWebId: ownerWebId,
+                        ownerWebId: parsed.ownerWebId,
                         onProgress: (received, total) {
                           setState(() {
                             downloadSharedDone = received == total;
@@ -344,6 +468,18 @@ class _FileServiceState extends State<FileService> {
       uploadButton: uploadButton,
     );
 
+    // Widgets of the upload-to-external-POD section
+
+    final uploadSharedSection = buildUploadSharedSectionUI(
+      uploadSharedFile: uploadSharedFile,
+      uploadSharedDone: uploadSharedDone,
+      uploadSharedInProgress: uploadSharedInProgress,
+      uploadSharedUrlController: uploadSharedUrlController,
+      uploadSharedKeyRefController: uploadSharedKeyRefController,
+      browseSharedButton: browseSharedButton,
+      uploadSharedButton: uploadSharedButton,
+    );
+
     // Widgets of the file download section
 
     final downloadSection = buildDownloadSectionUI(
@@ -389,6 +525,12 @@ class _FileServiceState extends State<FileService> {
 
                 largeGapV,
 
+                // Upload to external POD
+
+                ...uploadSharedSection,
+
+                largeGapV,
+
                 // Download
 
                 ...downloadSection,
@@ -416,6 +558,17 @@ class _FileServiceState extends State<FileService> {
                 right: 0,
                 child:
                     buildProgressBar('Uploading:', uploadDone, uploadPercent),
+              ),
+
+            // Uploading to external POD progress bar
+
+            if (uploadSharedInProgress)
+              Positioned(
+                top: 20,
+                left: 0,
+                right: 0,
+                child: buildProgressBar(
+                    'Uploading:', uploadSharedDone, uploadSharedPercent),
               ),
 
             // Downloading progress bar

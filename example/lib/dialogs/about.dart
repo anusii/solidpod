@@ -1,6 +1,6 @@
 /// about dialog for the app
 ///
-// Time-stamp: <Thursday 2024-06-27 13:38:24 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-06-18 12:20:15 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -29,7 +29,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart';
 
-import 'package:demopod/constants/app.dart';
+import 'package:solidpodeg/constants/app.dart';
 
 Future<void> aboutDialog(BuildContext context) async {
   final appInfo = await getAppNameVersion();
@@ -43,15 +43,16 @@ Future<void> aboutDialog(BuildContext context) async {
       applicationVersion: appInfo.version,
       applicationLegalese: '© 2024 Software Innovation Institute ANU',
       applicationIcon: Image.asset(
-        'assets/images/demopod_logo.png',
+        'assets/images/solidpodeg_logo.png',
         width: 100,
         height: 100,
       ),
       children: [
         const SizedBox(
           width: 300, // Limit the width.
-          child: SelectableText('\nA demostrator of SolidPod functionality.\n\n'
-              'Demopod is a demonstrator app for the solidpod package.'
+          child: SelectableText('\nA demonstrator of SolidPod functionality.'
+              '\n\n'
+              'SolidPodEg is a demonstrator app for the solidpod package.'
               ' It provides a collection of buttons to exhibit the different'
               ' calabilities provided by solidpod.\n\n'
               'Authors: Anuska Vidanage, Graham Williams, Dawei Chen.'),

@@ -27,7 +27,7 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart' show writePod, setInheritKeyDir;
 
-import 'package:demopod/constants/app.dart';
+import 'package:solidpodeg/constants/app.dart';
 
 // A widget to create a resource with inherited ACL.
 //

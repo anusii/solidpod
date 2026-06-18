@@ -96,6 +96,9 @@ export 'src/solid/utils/exceptions.dart'
     show
         AccessForbiddenException,
         AccessFailedException,
+        CssAccountApiNotSupportedException,
+        CssEmailAlreadyRegisteredException,
+        CssWrongCredentialsException,
         NotLoggedInException,
         RecipientNotReadyException,
         ResourceNotDecryptableException,
@@ -267,6 +270,12 @@ export 'src/solid/api/rest_api.dart'
         getResourcesInContainer,
         initialStructureTest,
         updateFileByQuery;
+
+/// Functions for the Community Solid Server (CSS v7+) account management
+/// JSON API: change password and create a new account.
+
+export 'src/solid/api/css_account_api.dart'
+    show changeCssAccountPassword, createCssAccount;
 
 /// WebID validation pipeline.
 

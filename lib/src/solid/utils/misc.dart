@@ -30,11 +30,15 @@
 
 library;
 
+import 'package:flutter/services.dart' show PlatformException;
+
 import 'package:intl/intl.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
+import 'package:solidpod/src/solid/utils/pod_paths.dart' show normalizeFilePath;
 
 export 'package:solidpod/src/solid/utils/enc_in_place.dart';
 export 'package:solidpod/src/solid/utils/pod_paths.dart';
@@ -46,13 +50,48 @@ export 'package:solidpod/src/solid/utils/session.dart';
 
 /// Write the given [key], [value] pair to the secure storage.
 ///
-/// If [key] already exisits then delete that first and then
-/// write again.
+/// `flutter_secure_storage`'s `write()` does not overwrite an existing value,
+/// so any existing entry must be removed first. We delete unconditionally
+/// rather than gating on `containsKey()`.
+///
+/// On iOS/macOS the keychain's uniqueness constraint for a generic-password
+/// item is account + service only — it does NOT include the accessibility
+/// attribute. However `containsKey()` scopes its lookup by the currently
+/// configured accessibility (`first_unlock_this_device`, see [secureStorage]).
+/// A stale item left behind by an earlier build with a different accessibility
+/// is therefore invisible to `containsKey()` yet still collides on the
+/// underlying `SecItemAdd`, surfacing as a [PlatformException] with OSStatus
+/// -25299 (`errSecDuplicateItem`, "The specified item already exists in the
+/// keychain."). The plugin's `delete()` strips the accessibility constraint,
+/// so calling it unconditionally clears any such orphan before we write.
 
 Future<void> writeToSecureStorage(String key, String value) async {
   await secureStorage.delete(key: key);
-  await secureStorage.write(key: key, value: value);
+
+  try {
+    await secureStorage.write(key: key, value: value);
+  } on PlatformException catch (e) {
+    // Belt and braces: if a duplicate still slips through (e.g. a leftover
+    // synchronizable variant), purge once more and retry the write.
+
+    if (_isDuplicateKeychainItem(e)) {
+      await secureStorage.delete(key: key);
+      await secureStorage.write(key: key, value: value);
+    } else {
+      rethrow;
+    }
+  }
 }
+
+/// Whether [e] reports the iOS/macOS keychain "item already exists" error
+/// (`errSecDuplicateItem`, OSStatus -25299).
+///
+/// The Darwin plugin reports it via a [PlatformException] whose `details`
+/// carry the raw OSStatus and whose `message` echoes the numeric code, so we
+/// check both rather than relying on the generic `code` string.
+
+bool _isDuplicateKeychainItem(PlatformException e) =>
+    e.details == -25299 || (e.message?.contains('-25299') ?? false);
 
 /// Create a directory with the given URL.
 
@@ -105,27 +144,61 @@ void validateContainerName(String folderName) {
 /// Combines [parentPath] and [folderName] into a relative path, resolves
 /// the full directory URL via [getDirUrl], and creates the container.
 ///
-/// [parentPath] is the normalised relative path to the parent directory
-/// (e.g. `'myapp/data'` or `''` for the POD root).
+/// [parentPath] is the relative path to the parent directory, interpreted
+/// relative to the app's data directory (`appname/data`), the same convention
+/// used by [writePod]. An empty string therefore refers to the data directory
+/// itself, e.g. `createContainer('', 'shared')` creates `appname/data/shared/`.
+/// A path that already begins with `appname/data` is used as-is, so callers
+/// (such as the file browser) may pass fully-qualified data paths too.
 ///
 /// [folderName] is the name of the new directory to create. It must not
 /// contain spaces or URL/filesystem-unsafe characters (see
 /// [validateContainerName]).
 ///
+/// [createAcl] controls whether a dedicated `.acl` file is created for the
+/// new folder (default: `true`). Without its own `.acl` file a container
+/// merely inherits the effective ACL of its parent, which means the folder
+/// — and resources placed within it — cannot be shared independently. We
+/// therefore generate a default `.acl` (granting the owner full access) so
+/// the folder is ready for sharing, mirroring how [setInheritKeyDir] and
+/// [writePod] behave for key-inherited folders and files.
+///
 /// Throws [ArgumentError] if the name is invalid, or an [Exception] if
 /// the directory already exists or a network error occurs.
 
-Future<void> createContainer(String parentPath, String folderName) async {
+Future<void> createContainer(
+  String parentPath,
+  String folderName, {
+  bool createAcl = true,
+}) async {
   // Validate the folder name before making any network calls.
 
   validateContainerName(folderName);
 
-  // Combine parent path and folder name, handling empty parent (POD root).
+  // Combine parent path and folder name, then resolve the path relative to
+  // the app data directory (idempotent for paths that already include it).
+  // getDirUrl() resolves relative to the POD root, so without this the folder
+  // would be created at the POD root instead of inside the data directory.
 
   final folderPath =
       parentPath.isEmpty ? folderName : '$parentPath/$folderName';
-  final dirUrl = await getDirUrl(folderPath);
+  final dirUrl = await getDirUrl(await normalizeFilePath(folderPath, null));
   await createDir(dirUrl);
+
+  // Create the corresponding `.acl` file for the new container so that the
+  // folder can be shared. The directory URL already ends with a trailing
+  // slash, so `$dirUrl.acl` yields the conventional `<folder>/.acl` location.
+
+  if (createAcl) {
+    final aclFileUrl = '$dirUrl.acl';
+    if (await checkResourceStatus(aclFileUrl, isFile: true) ==
+        ResourceStatus.notExist) {
+      await createResource(
+        aclFileUrl,
+        content: await genAclTurtle(dirUrl, isFile: false),
+      );
+    }
+  }
 }
 
 /// Extract permission details of a file into a map.

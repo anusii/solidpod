@@ -711,6 +711,31 @@ localFilePath: 'D:/my-large-file.bin',
 
 The uploaded file will be stored in the `myapp/data` folder.
 
+To upload a large file to an external owner's POD (for example, to add an
+image to a note or article that is owned by another POD), provide that
+owner's WebID via `ownerWebId`. This is consistent with the `ownerWebId`
+parameter of `readLargeFile` and the `fileOwnerWebId` parameter of
+`writeExternalPod`:
+
+```dart
+await writeLargeFile(
+  // Name of the file relative to the owner's `myapp/data` folder
+  remoteFilePath: 'images/my-image.png',
+  // Path of the file where it is locally stored
+  localFilePath: 'D:/my-image.png',
+  // WebID of the external owner whose POD the file is written to
+  ownerWebId: 'https://communitypod.example.org/profile/card#me',
+  // Inherit the encryption key of a directory shared with the user so the
+  // file content can be encrypted on the external POD
+  inheritKeyFrom: 'images/',
+);
+```
+
+When writing to an external POD with encryption, `inheritKeyFrom` must point
+to a directory whose encryption key is shared with the user (the same
+contract as `writeExternalPod`). Without it the per-file encryption key
+cannot be protected, so the content is written unencrypted.
+
 To download a large file use:
 
 ```dart

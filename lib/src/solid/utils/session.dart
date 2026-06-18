@@ -66,6 +66,30 @@ Future<({String name, String version})> getAppNameVersion() async =>
 
 Future<String?> getWebId() async => AuthDataManager.getWebId();
 
+/// Whether [ownerWebId] refers to a POD other than the current user's.
+///
+/// Returns true when [ownerWebId] is non-null and differs from the logged-in
+/// user's WebID — i.e. when an operation should be routed to the external-POD
+/// code path. Returns false when [ownerWebId] is null or names the current
+/// user's own POD.
+///
+/// Shared by the read/write/delete entry points so that the "own POD vs
+/// external POD" decision is made consistently in a single place.
+
+Future<bool> isExternalOwner(String? ownerWebId) async =>
+    ownerWebId != null && ownerWebId != await getWebId();
+
+/// Resolve [ownerWebId] to the WebID to use for external-POD operations.
+///
+/// Returns [ownerWebId] when it names another user's POD (see
+/// [isExternalOwner]), or null when the operation targets the current user's
+/// own POD. The returned value is suitable for passing as the `webId`
+/// argument of URL-resolution helpers, which treat null as "the current
+/// user's POD".
+
+Future<String?> resolveExternalOwner(String? ownerWebId) async =>
+    await isExternalOwner(ownerWebId) ? ownerWebId : null;
+
 /// Check whether a user is logged in or not.
 ///
 /// Check if the local storage has authentication

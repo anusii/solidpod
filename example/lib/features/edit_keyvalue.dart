@@ -31,9 +31,9 @@ import 'package:editable/editable.dart';
 import 'package:solidpod/solidpod.dart' show isUserLoggedIn, writePod;
 import 'package:solidui/solidui.dart' show getKeyFromUserIfRequired;
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/utils/rdf.dart';
+import 'package:solidpodeg/constants/app.dart';
+import 'package:solidpodeg/dialogs/alert.dart';
+import 'package:solidpodeg/utils/rdf.dart';
 
 class KeyValueEdit extends StatefulWidget {
   /// Constructor

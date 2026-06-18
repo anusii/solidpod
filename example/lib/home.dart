@@ -1,6 +1,6 @@
 /// A screen to demonstrate various capabilities of solidlogin.
 ///
-// Time-stamp: <Wednesday 2025-09-17 08:23:30 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-06-18 12:21:56 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -42,19 +42,20 @@ import 'package:solidui/solidui.dart'
         loginIfRequired,
         smallGapV;
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/dialogs/about.dart';
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/dialogs/file_metadata.dart';
-import 'package:demopod/features/check_file_encryption.dart';
-import 'package:demopod/features/create_acl_inherited_file.dart';
-import 'package:demopod/features/edit_keyvalue.dart';
-import 'package:demopod/features/file_service.dart';
-import 'package:demopod/features/read_acl_inherited_file.dart';
-import 'package:demopod/features/view_keys.dart';
-import 'package:demopod/main.dart';
-import 'package:demopod/utils/rdf.dart';
-import 'package:demopod/widgets/home_sections.dart';
+import 'package:solidpodeg/constants/app.dart';
+import 'package:solidpodeg/dialogs/about.dart';
+import 'package:solidpodeg/dialogs/alert.dart';
+import 'package:solidpodeg/dialogs/file_metadata.dart';
+import 'package:solidpodeg/features/absolute_url_demo.dart';
+import 'package:solidpodeg/features/check_file_encryption.dart';
+import 'package:solidpodeg/features/create_acl_inherited_file.dart';
+import 'package:solidpodeg/features/edit_keyvalue.dart';
+import 'package:solidpodeg/features/file_service.dart';
+import 'package:solidpodeg/features/read_acl_inherited_file.dart';
+import 'package:solidpodeg/features/view_keys.dart';
+import 'package:solidpodeg/main.dart';
+import 'package:solidpodeg/utils/rdf.dart';
+import 'package:solidpodeg/widgets/home_sections.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -486,16 +487,44 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  // A section heading, optionally with a trailing widget (e.g. a toggle)
+  // pushed to the right-hand edge.
+
+  Widget _sectionHeading(String title, {Widget? trailing}) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (trailing != null) ...[
+          const Spacer(),
+          trailing,
+        ],
+      ],
+    );
+  }
+
+  // Lay a group of buttons out as a wrapping row so that several buttons sit
+  // side by side rather than one per line.
+
+  Widget _buttonRow(List<Widget> buttons) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 8,
+      children: buttons,
+    );
+  }
+
   Widget _build(BuildContext context, String title) {
     // Build the widget.
 
     // Include a timestamp on the screen.
 
     final dateStr = DateFormat('HH:mm:ss dd MMMM yyyy').format(DateTime.now());
-
-    // A small horizontal spacing for the widget.
-
-    const smallGapH = SizedBox(width: 10.0);
 
     // Some handy widgets that will be displyed. These are defined here to
     // reduce the complexity of the code below.
@@ -532,19 +561,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           style: TextStyle(
             color: _webId == null ? Colors.red : Colors.green,
             fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-
-    const welcomeHeading = Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Pod Data File',
-          style: TextStyle(
-            fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -632,6 +648,36 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         },
         child: const Text('Read Resource with ACL Inheritance'));
 
+    // Entry point to test read/write/delete using an absolute-URL path
+    // (PathType.absoluteUrl). Handy for verifying that the core file
+    // operations work against a full resource URL on the user's own POD.
+
+    final absoluteUrlDemoButton = ElevatedButton(
+        onPressed: () async {
+          final loggedIn = await loginIfRequired(
+            clientId: clientIdVal,
+            redirectUris: redirectUrisList,
+            postLogoutRedirectUris: postLogoutRedirectUrisList,
+            context: context,
+          );
+          if (loggedIn) {
+            final webId = await getWebId();
+            setState(() {
+              _webId = webId;
+            });
+
+            await getKeyFromUserIfRequired(context, widget);
+
+            if (context.mounted) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const AbsoluteUrlDemo()));
+            }
+          }
+        },
+        child: const Text('Read/Write/Delete by Absolute URL'));
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -652,21 +698,26 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         date,
                         webid,
                         largeGapV,
-                        welcomeHeading,
-                        smallGapV,
-                        Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+
+                        // Pod Data File section. The 'Encrypt Data?' toggle is
+                        // shown to the right of the heading. This first section
+                        // gathers all of the core data upload/download
+                        // operations, including the absolute-URL entry point.
+
+                        _sectionHeading(
+                          'Pod Data File',
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              smallGapH,
                               const Text(
                                 'Encrypt Data?',
                                 style: TextStyle(fontWeight: FontWeight.bold),
                               ),
-                              smallGapH,
                               Switch(
                                 value: _writeEncrypted,
                                 onChanged: (val) {
@@ -674,42 +725,41 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                     _writeEncrypted = val;
                                   });
                                 },
-                              )
-                            ]),
-                        smallGapV,
-
-                        ElevatedButton(
-                          child: const Text('Read/Write Pod Data File'),
-                          onPressed: () async {
-                            await loginIfRequired(
-                              clientId: clientIdVal,
-                              redirectUris: redirectUrisList,
-                              postLogoutRedirectUris:
-                                  postLogoutRedirectUrisList,
-                              context: context,
-                            );
-                            await _readWritePrivateData();
-                          },
+                              ),
+                            ],
+                          ),
                         ),
                         smallGapV,
+                        _buttonRow([
+                          ElevatedButton(
+                            child: const Text('Read/Write Pod Data File'),
+                            onPressed: () async {
+                              await loginIfRequired(
+                                clientId: clientIdVal,
+                                redirectUris: redirectUrisList,
+                                postLogoutRedirectUris:
+                                    postLogoutRedirectUrisList,
+                                context: context,
+                              );
+                              await _readWritePrivateData();
+                            },
+                          ),
+                          ElevatedButton(
+                            child: const Text('Read Metadata of Pod Data File'),
+                            onPressed: () async {
+                              await loginIfRequired(
+                                clientId: clientIdVal,
+                                redirectUris: redirectUrisList,
+                                postLogoutRedirectUris:
+                                    postLogoutRedirectUrisList,
+                                context: context,
+                              );
+                              await _readMetaData();
+                            },
+                          ),
 
-                        ElevatedButton(
-                          child: const Text('Read Metadata of Pod Data File'),
-                          onPressed: () async {
-                            await loginIfRequired(
-                              clientId: clientIdVal,
-                              redirectUris: redirectUrisList,
-                              postLogoutRedirectUris:
-                                  postLogoutRedirectUrisList,
-                              context: context,
-                            );
-                            await _readMetaData();
-                          },
-                        ),
-                        smallGapV,
-
-                        // SolidPod API: deleteDataFile()
-                        ElevatedButton(
+                          // SolidPod API: deleteDataFile()
+                          ElevatedButton(
                             onPressed: () async {
                               final loggedIn = await loginIfRequired(
                                 clientId: clientIdVal,
@@ -722,157 +772,128 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 deleteDataFileDialog(dataFile, context);
                               }
                             },
-                            child: const Text('Delete Pod Data File')),
-                        smallGapV,
+                            child: const Text('Delete Pod Data File'),
+                          ),
 
-                        // SolidPod API: isFileEncrypted()
-                        ElevatedButton(
-                          onPressed: () async {
-                            final loggedIn = await loginIfRequired(
-                              clientId: clientIdVal,
-                              redirectUris: redirectUrisList,
-                              postLogoutRedirectUris:
-                                  postLogoutRedirectUrisList,
-                              context: context,
-                            );
-                            if (loggedIn) {
-                              final webId = await getWebId();
-                              setState(() {
-                                _webId = webId;
-                              });
-                              await getKeyFromUserIfRequired(context, widget);
-                              if (context.mounted) {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CheckFileEncryption(),
-                                  ),
-                                );
+                          // SolidPod API: isFileEncrypted()
+                          ElevatedButton(
+                            onPressed: () async {
+                              final loggedIn = await loginIfRequired(
+                                clientId: clientIdVal,
+                                redirectUris: redirectUrisList,
+                                postLogoutRedirectUris:
+                                    postLogoutRedirectUrisList,
+                                context: context,
+                              );
+                              if (loggedIn) {
+                                final webId = await getWebId();
+                                setState(() {
+                                  _webId = webId;
+                                });
+                                await getKeyFromUserIfRequired(context, widget);
+                                if (context.mounted) {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const CheckFileEncryption(),
+                                    ),
+                                  );
+                                }
                               }
-                            }
-                          },
-                          child: const Text('Check File Encryption'),
-                        ),
-                        smallGapV,
+                            },
+                            child: const Text('Check File Encryption'),
+                          ),
+                          fileDemoButton,
 
-                        fileDemoButton,
+                          // Absolute-URL read/write/delete entry point, kept
+                          // alongside the other core file operations.
 
-                        largeGapV,
-
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'ACL Inheritance',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        inheritanceDemoButton,
-
-                        smallGapV,
-
-                        inheritanceReadButton,
+                          absoluteUrlDemoButton,
+                        ]),
 
                         largeGapV,
 
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Notifications',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                        _sectionHeading('ACL Inheritance'),
                         smallGapV,
-                        ElevatedButton(
-                          onPressed: _showSendNotificationDialog,
-                          child: const Text('Send Notification'),
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                          onPressed: _showFetchNotificationsDialog,
-                          child: const Text('Fetch Notifications'),
-                        ),
+                        _buttonRow([
+                          inheritanceDemoButton,
+                          inheritanceReadButton,
+                        ]),
 
                         largeGapV,
 
-                        const Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Local Security Key Management',
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
+                        _sectionHeading('Notifications'),
                         smallGapV,
-                        ElevatedButton(
-                          child: const Text('Show Security Key (Encrypted)'),
-                          onPressed: () async {
-                            await _showPrivateData(title);
-                          },
-                        ),
-                        smallGapV,
-                        ElevatedButton(
-                          child: const Text(
-                              'Show Security Key Prompt (For Demonstration)'),
-                          onPressed: () async {
-                            // Use the dedicated helper method.
+                        _buttonRow([
+                          ElevatedButton(
+                            onPressed: _showSendNotificationDialog,
+                            child: const Text('Send Notification'),
+                          ),
+                          ElevatedButton(
+                            onPressed: _showFetchNotificationsDialog,
+                            child: const Text('Fetch Notifications'),
+                          ),
+                        ]),
 
-                            await _showSecurityKeyPrompt();
-                          },
-                        ),
+                        largeGapV,
+
+                        _sectionHeading('Local Security Key Management'),
                         smallGapV,
-                        ElevatedButton(
+                        _buttonRow([
+                          ElevatedButton(
+                            child: const Text('Show Security Key (Encrypted)'),
+                            onPressed: () async {
+                              await _showPrivateData(title);
+                            },
+                          ),
+                          ElevatedButton(
+                            child: const Text(
+                                'Show Security Key Prompt (For Demonstration)'),
+                            onPressed: () async {
+                              // Use the dedicated helper method.
+
+                              await _showSecurityKeyPrompt();
+                            },
+                          ),
+                          ElevatedButton(
                             onPressed: () {
                               changeKeyPopup(context, widget);
                             },
-                            child: const Text('Change Security Key on Pod')),
-                        smallGapV,
-                        ElevatedButton(
-                          child: const Text('Forget Security Key Locally'),
-                          onPressed: () async {
-                            late String msg;
-                            try {
-                              await KeyManager.forgetSecurityKey();
-                              msg = 'Successfully forgot local security key.';
-                              _resetWebId();
-                            } on Exception catch (e) {
-                              msg = 'Failed to forget local security key: $e';
-                            }
-                            await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Notice'),
-                                content: Text(msg),
-                                actions: [
-                                  ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('OK'))
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                            child: const Text('Change Security Key on Pod'),
+                          ),
+                          ElevatedButton(
+                            child: const Text('Forget Security Key Locally'),
+                            onPressed: () async {
+                              late String msg;
+                              try {
+                                await KeyManager.forgetSecurityKey();
+                                msg = 'Successfully forgot local security key.';
+                                _resetWebId();
+                              } on Exception catch (e) {
+                                msg = 'Failed to forget local security key: $e';
+                              }
+                              await showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Notice'),
+                                  content: Text(msg),
+                                  actions: [
+                                    ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('OK'))
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ]),
                         ...buildLoginManagementSection(
                           context,
                           _resetWebId,
-                          () => const DemoPod(),
+                          () => const SolidPodEg(),
                         ),
                         ...buildPermissionSection(
                           context,
@@ -902,7 +923,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final appName = snapshot.data?.name;
-          final title = 'Demonstrating solidpod functionality using '
+          final title = 'Demonstrating SolidPod functionalities using '
               '${appName!.isNotEmpty ? appName[0].toUpperCase() + appName.substring(1) : ""}';
           _webId = snapshot.data?.webId;
           return _build(context, title);
