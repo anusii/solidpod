@@ -50,7 +50,8 @@ Future<void> aboutDialog(BuildContext context) async {
       children: [
         const SizedBox(
           width: 300, // Limit the width.
-          child: SelectableText('\nA demostrator of SolidPod functionality.\n\n'
+          child: SelectableText('\nA demonstrator of SolidPod functionality.'
+              '\n\n'
               'Demopod is a demonstrator app for the solidpod package.'
               ' It provides a collection of buttons to exhibit the different'
               ' calabilities provided by solidpod.\n\n'
