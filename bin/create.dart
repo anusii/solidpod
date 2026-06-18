@@ -33,6 +33,14 @@ const _binaryExtensions = {
   '.webp',
 };
 
+// Operating-system and editor cruft that must never be copied into a generated
+// project (and would otherwise break the text decoder).
+
+const _junkFiles = {
+  '.DS_Store',
+  'Thumbs.db',
+};
+
 // Dart reserved words that cannot be used as a package name.
 
 const _reservedWords = {
@@ -78,6 +86,16 @@ Future<void> main(List<String> arguments) async {
   final appDescription = args.description ??
       '$appName - manage files on your personal online data store (POD).';
   final orgName = args.org;
+
+  // The project name is used as-is almost everywhere (package name, imports,
+  // applicationId, POD folder, and the clientId / redirect URL paths, which all
+  // permit underscores). The ONE exception is the custom redirect URI scheme: a
+  // URI scheme may not contain underscores (RFC 3986 allows only letters,
+  // digits and "+", "-", "."), and an Android intent-filter scheme must be
+  // lower case. So we derive a scheme name with the underscores stripped, and
+  // use it only inside the `org.scheme://` redirect.
+
+  final schemeName = projectName.replaceAll('_', '');
   final outputDir = Directory(args.output ?? projectName);
 
   final templateDir = await _resolveTemplateDir();
@@ -96,6 +114,7 @@ Future<void> main(List<String> arguments) async {
     '{{appTitle}}': appTitle,
     '{{appDescription}}': appDescription,
     '{{orgName}}': orgName,
+    '{{schemeName}}': schemeName,
   };
 
   stdout.writeln('Creating Solid Pod app "$appName" in ${outputDir.path}/ ...');
@@ -136,7 +155,15 @@ Future<void> main(List<String> arguments) async {
     defaultTest.deleteSync();
   }
 
-  // Step 4: resolve dependencies now that the pubspec lists solidui.
+  // Step 4: wire up the OIDC redirect on the platforms that flutter create does
+  // not configure (Android manifest placeholder and the iOS URL scheme). The
+  // macOS entitlements are supplied by the template overlay above.
+
+  if (args.runFlutterCreate) {
+    _patchAuthRedirect(outputDir, scheme: '$orgName.$schemeName');
+  }
+
+  // Step 5: resolve dependencies now that the pubspec lists solidui.
 
   if (args.runPubGet && args.runFlutterCreate) {
     stdout.writeln('Running flutter pub get ...');
@@ -157,6 +184,14 @@ void _renderTemplate({
   for (final entity in source.listSync(recursive: true)) {
     if (entity is! File) continue;
 
+    final name = entity.uri.pathSegments.last;
+
+    // Skip operating-system and editor junk that may sit alongside the template
+    // (e.g. macOS .DS_Store), so it never lands in the generated project nor
+    // trips up the text decoder below.
+
+    if (_junkFiles.contains(name)) continue;
+
     // Path of the file relative to the template root.
 
     var relative = entity.path.substring(sourcePath.length);
@@ -173,11 +208,19 @@ void _renderTemplate({
     final destination = File('${target.path}/$relative');
     destination.parent.createSync(recursive: true);
 
+    // Known-binary files are copied verbatim. Anything else we attempt to read
+    // as text for token substitution, falling back to a byte copy if it turns
+    // out not to be valid UTF-8 (so an unexpected binary never crashes us).
+
     if (_isBinary(relative)) {
       destination.writeAsBytesSync(entity.readAsBytesSync());
-    } else {
+      continue;
+    }
+    try {
       final rendered = _substitute(entity.readAsStringSync(), tokens);
       destination.writeAsStringSync(rendered);
+    } on FileSystemException {
+      destination.writeAsBytesSync(entity.readAsBytesSync());
     }
   }
 }
@@ -194,6 +237,100 @@ bool _isBinary(String path) {
   final dot = path.lastIndexOf('.');
   if (dot < 0) return false;
   return _binaryExtensions.contains(path.substring(dot).toLowerCase());
+}
+
+// ── OIDC redirect wiring ───────────────────────────────────────────────────
+
+// flutter create does not register the custom redirect scheme that the OIDC
+// login needs. We add the Android manifest placeholder and the iOS URL scheme
+// here; the macOS network-client/keychain entitlements come from the template.
+
+void _patchAuthRedirect(Directory output, {required String scheme}) {
+  _patchAndroidRedirectScheme(output, scheme);
+  _patchIosUrlScheme(output, scheme);
+}
+
+void _patchAndroidRedirectScheme(Directory output, String scheme) {
+  // flutter_appauth reads `appAuthRedirectScheme` from the manifest placeholders
+  // declared in the app-level Gradle file (Kotlin or Groovy DSL).
+
+  final placeholder = 'appAuthRedirectScheme';
+
+  final kts = File('${output.path}/android/app/build.gradle.kts');
+  if (kts.existsSync()) {
+    final content = kts.readAsStringSync();
+    if (content.contains(placeholder)) return;
+    final patched = content.replaceFirstMapped(
+      RegExp(r'versionName = flutter\.versionName\n'),
+      (m) => '${m[0]}        manifestPlaceholders.putAll(mapOf(\n'
+          '            "$placeholder" to "$scheme",\n'
+          '        ))\n',
+    );
+    if (patched != content) {
+      kts.writeAsStringSync(patched);
+    } else {
+      stderr.writeln(
+        'Warning: could not add $placeholder to build.gradle.kts; add '
+        'manifestPlaceholders["$placeholder"] = "$scheme" to defaultConfig '
+        'manually.',
+      );
+    }
+    return;
+  }
+
+  final groovy = File('${output.path}/android/app/build.gradle');
+  if (groovy.existsSync()) {
+    final content = groovy.readAsStringSync();
+    if (content.contains(placeholder)) return;
+    final patched = content.replaceFirstMapped(
+      RegExp(r'versionName flutterVersionName\n'),
+      (m) => '${m[0]}        manifestPlaceholders = [$placeholder: "$scheme"]\n',
+    );
+    if (patched != content) {
+      groovy.writeAsStringSync(patched);
+    } else {
+      stderr.writeln(
+        'Warning: could not add $placeholder to build.gradle; add '
+        'manifestPlaceholders = [$placeholder: "$scheme"] to defaultConfig '
+        'manually.',
+      );
+    }
+  }
+}
+
+void _patchIosUrlScheme(Directory output, String scheme) {
+  final plist = File('${output.path}/ios/Runner/Info.plist');
+  if (!plist.existsSync()) return;
+
+  final content = plist.readAsStringSync();
+  if (content.contains('CFBundleURLTypes')) return;
+
+  // Register the custom scheme so iOS can return to the app after login.
+
+  final block = '''
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$scheme</string>
+			</array>
+		</dict>
+	</array>
+''';
+
+  final patched = content.replaceFirst(
+    RegExp(r'\n</dict>\n</plist>'),
+    '\n$block</dict>\n</plist>',
+  );
+  if (patched != content) {
+    plist.writeAsStringSync(patched);
+  } else {
+    stderr.writeln(
+      'Warning: could not add CFBundleURLTypes to ios/Runner/Info.plist; add '
+      'the "$scheme" URL scheme manually.',
+    );
+  }
 }
 
 // ── Template location ──────────────────────────────────────────────────────
@@ -437,5 +574,8 @@ Next steps:
 
 Then update the Solid app registration (clientId, redirectUris, link) in
 lib/app.dart and the constants in lib/constants/app.dart for your deployment.
+
+On macOS/iOS, enable signing once in Xcode (Signing & Capabilities -> Team)
+so the keychain-backed login can build. See the generated README for details.
 ''');
 }

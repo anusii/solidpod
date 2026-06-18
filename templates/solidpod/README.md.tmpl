@@ -27,7 +27,14 @@ Update them for your own deployment:
 
 - **Solid app registration** in `lib/app.dart` — the `clientId`,
   `redirectUris` and `link` passed to `SolidLogin`. These identify your app to
-  the Solid server during login.
+  the Solid server during login. **The `clientId` URL must actually resolve to
+  a Client Identifier Document (a `client-profile.jsonld`) that lists these
+  exact `redirectUris`.** Until you publish that document (and list your
+  `{{orgName}}.{{schemeName}}://redirect` scheme in it), the identity provider has
+  no client to validate and the login page will not appear — this is the most
+  common reason a freshly generated app cannot reach the login screen. See the
+  [Solid-OIDC client identifiers](https://solidproject.org/TR/oidc#clientids)
+  documentation.
 - **App constants** in `lib/constants/app.dart` — the title, hosting URL and
   the Invite Others message.
 - **Allowed upload types** in `lib/constants/app.dart` — `appUploadConfig`
@@ -35,6 +42,29 @@ Update them for your own deployment:
   to suit your app.
 - **Icons** in `assets/images/` — replace `app_icon.png` and `app_image.jpg`,
   then run `dart run flutter_launcher_icons` to regenerate platform icons.
+
+## Login (OIDC) setup
+
+> **Required before login works:** publish this app's Client Identifier
+> Document. The identity provider fetches your `clientId` URL to learn which
+> `redirect_uris` are allowed; if it is missing the login is cancelled after the
+> consent screen (`ASWebAuthenticationSession Code=1`). A ready-to-deploy
+> `client-profile.jsonld` and `redirect.html` were generated in the
+> [`solid/`](solid/) folder — see `solid/README.md` for where to publish them.
+
+The OIDC redirect is pre-wired so that login works on every platform:
+
+- **macOS** — `macos/Runner/*.entitlements` grant `network.client` (so the
+  login web session can open), keychain access (for token storage) and
+  user-selected file access (for uploads/downloads).
+- **Android** — `android/app/build.gradle.kts` sets the `appAuthRedirectScheme`
+  manifest placeholder.
+- **iOS** — `ios/Runner/Info.plist` registers the custom URL scheme.
+
+Because the macOS/iOS apps now request keychain and sandbox capabilities, you
+must enable signing once: open `macos/Runner.xcworkspace` (or
+`ios/Runner.xcworkspace`) in Xcode and pick your team under **Signing &
+Capabilities**, or run `flutter run` with a configured Apple developer account.
 
 ## Project layout
 
@@ -47,4 +77,8 @@ lib/
   constants/app.dart   App-wide constants (title, upload and invite configs).
   screens/
     browse_files.dart  Whole-POD file browser (SolidFile at the root).
+solid/
+  client-profile.jsonld  Solid-OIDC client document to publish (see Login setup).
+  redirect.html          Web/post-logout redirect helper to publish alongside it.
+  README.md              Where and how to publish the two files above.
 ```

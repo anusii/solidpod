@@ -1,0 +1,48 @@
+# Solid-OIDC client registration for {{appName}}
+
+**Login will not work until the two files in this folder are published on the
+public web at the location your `clientId` points to.** This is the single most
+common reason a freshly generated Solid app cannot complete login: the identity
+provider fetches the `clientId` URL to learn which `redirect_uris` are allowed,
+and if that document is missing (HTTP 404) it refuses to hand control back to
+the app after the consent screen (you will see an
+`ASWebAuthenticationSession Code=1` / cancelled error).
+
+This folder contains:
+
+- `client-profile.jsonld` — the Solid-OIDC Client Identifier Document. Its
+  `redirect_uris` exactly match those passed to `SolidLogin` in `lib/app.dart`.
+- `redirect.html` — the web/post-logout redirect helper used by the `oidc`
+  package (only needed for the web build, but deploy it too).
+
+## Where to publish
+
+The app currently uses:
+
+```
+clientId: https://solidcommunity.au/apps/{{projectName}}/client-profile.jsonld
+```
+
+Publish both files so that they are reachable (HTTP 200, public, no auth) at:
+
+```
+https://solidcommunity.au/apps/{{projectName}}/client-profile.jsonld
+https://solidcommunity.au/apps/{{projectName}}/redirect.html
+```
+
+- **If you maintain solidcommunity.au** (the ANU Solid Community), deploy these
+  to `apps/{{projectName}}/` alongside the other apps (this is how `filepod` is set
+  up).
+- **Otherwise**, host them on any public URL you control (your own Pod's public
+  folder, a static site, GitHub Pages, …) and then update `clientId` **and** the
+  matching `https://…/redirect.html` entry in `lib/app.dart` to that URL.
+
+## Verify
+
+```bash
+curl -I https://solidcommunity.au/apps/{{projectName}}/client-profile.jsonld   # expect 200
+```
+
+The `redirect_uris` in the published document must be byte-for-byte identical to
+the `redirectUris` list in `lib/app.dart`, including the
+`{{orgName}}.{{schemeName}}://redirect` custom scheme.

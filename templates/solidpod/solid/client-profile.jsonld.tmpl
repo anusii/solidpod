@@ -1,0 +1,25 @@
+{
+  "@context": "https://www.w3.org/ns/solid/oidc-context.jsonld",
+  "client_id": "https://solidcommunity.au/apps/{{projectName}}/client-profile.jsonld",
+  "client_name": "{{appName}}",
+  "application_type": "native",
+  "redirect_uris": [
+    "https://solidcommunity.au/apps/{{projectName}}/redirect.html",
+    "{{orgName}}.{{schemeName}}://redirect",
+    "http://localhost:4400/redirect"
+  ],
+  "post_logout_redirect_uris": [
+    "https://solidcommunity.au/apps/{{projectName}}/redirect.html",
+    "{{orgName}}.{{schemeName}}://redirect",
+    "http://localhost:4400/redirect"
+  ],
+  "scope": "openid profile offline_access webid",
+  "grant_types": [
+    "authorization_code",
+    "refresh_token"
+  ],
+  "response_types": [
+    "code"
+  ],
+  "token_endpoint_auth_method": "none"
+}
