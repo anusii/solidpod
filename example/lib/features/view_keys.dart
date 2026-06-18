@@ -29,8 +29,8 @@ import 'package:flutter/material.dart';
 
 import 'package:solidpod/solidpod.dart' show KeyManager;
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/utils/rdf.dart' show getEncKeyContent;
+import 'package:solidpodeg/constants/app.dart';
+import 'package:solidpodeg/utils/rdf.dart' show getEncKeyContent;
 
 /// A widget to show the user all the encryption keys stored in their Solid Pod.
 

@@ -1,6 +1,6 @@
 /// A template app to begin a Solid Pod project.
 ///
-// Time-stamp: <Thursday 2026-06-18 11:54:19 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-06-18 12:20:57 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -27,14 +27,14 @@ library;
 
 import 'dart:ui' show PlatformDispatcher;
 
-import 'package:demopod/constants/app.dart';
+import 'package:solidpodeg/constants/app.dart';
 import 'package:flutter/material.dart';
 
 import 'package:solidui/solidui.dart' show SolidLogin, InfoButtonStyle;
 import 'package:window_manager/window_manager.dart';
 
-import 'package:demopod/home.dart';
-import 'package:demopod/utils/is_desktop.dart';
+import 'package:solidpodeg/home.dart';
+import 'package:solidpodeg/utils/is_desktop.dart';
 
 /// Whether [error] is the benign user-cancellation of an AppAuth/OIDC web
 /// authentication session — for example when the user dismisses the system
@@ -89,7 +89,7 @@ void main() async {
 
       // The [title] is used for the window manager's window title.
 
-      title: 'DemoPod - Demonstrate Private Solid Pod',
+      title: 'SolidPodEg - Demonstrate Private Solid Pod',
     );
 
     await windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -101,11 +101,11 @@ void main() async {
 
   // Ready to run the app.
 
-  runApp(const DemoPod());
+  runApp(const SolidPodEg());
 }
 
-class DemoPod extends StatelessWidget {
-  const DemoPod({super.key});
+class SolidPodEg extends StatelessWidget {
+  const SolidPodEg({super.key});
 
   // This widget is the root of our application.
 
@@ -119,17 +119,18 @@ class DemoPod extends StatelessWidget {
 
         title: AppConstants.longName.toUpperCase(),
         appDirectory: 'solidpodeg',
-        image: AssetImage('assets/images/demopod_image.png'),
-        logo: AssetImage('assets/images/demopod_logo.png'),
-        link: 'https://github.com/anusii/solidpod/blob/main/demopod/README.md',
+        image: AssetImage('assets/images/solidpodeg_image.png'),
+        logo: AssetImage('assets/images/solidpodeg_logo.png'),
+        link:
+            'https://github.com/anusii/solidpod/blob/main/solidpodeg/README.md',
         required: false,
         infoButtonStyle: InfoButtonStyle(
-          tooltip: 'Visit the DemoPod documentation.',
+          tooltip: 'Visit the SolidPodEg documentation.',
         ),
         clientId: clientIdVal,
         // Use the following schemas depending on the platform
         //  Web: https://anushkavidanage.github.io/solidpod/example/redirect.html
-        //  Mobile: com.example.demopod://redirect
+        //  Mobile: com.example.solidpodeg://redirect
         //  Desktop: http://localhost:4400/redirect
         //    (can use any port as long as it matches with the one in your id document)
         redirectUris: redirectUrisList,

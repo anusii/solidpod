@@ -1,6 +1,6 @@
 /// Constants used throughout the app.
 ///
-// Time-stamp: <Wednesday 2024-05-15 10:07:05 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-06-18 12:22:14 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -30,7 +30,7 @@ import 'package:flutter/material.dart';
 const titleBackgroundColor = Color(0xFFF0E4D7);
 
 class AppConstants {
-  static const shortName = 'Demopod';
+  static const shortName = 'SolidPodEg';
   static const longName = 'Solid Pod Demonstrator';
 }
 
@@ -63,11 +63,11 @@ const clientIdVal =
 const redirectUrisList = [
   'https://anushkavidanage.github.io/solidpod/example/redirect.html',
   'http://localhost:4400/redirect',
-  'com.example.demopod://redirect',
+  'com.example.solidpodeg://redirect',
 ];
 
 const postLogoutRedirectUrisList = [
   'https://anushkavidanage.github.io/solidpod/example/redirect.html',
   'http://localhost:4400/redirect',
-  'com.example.demopod://redirect',
+  'com.example.solidpodeg://redirect',
 ];

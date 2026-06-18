@@ -38,7 +38,7 @@ import 'package:solidpod/solidpod.dart'
         isFileEncrypted,
         writePod;
 
-import 'package:demopod/constants/app.dart';
+import 'package:solidpodeg/constants/app.dart';
 
 /// A small demo that lets the user check whether an arbitrary file on the
 /// POD is encrypted by solidpod.

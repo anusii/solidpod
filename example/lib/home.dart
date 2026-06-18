@@ -1,6 +1,6 @@
 /// A screen to demonstrate various capabilities of solidlogin.
 ///
-// Time-stamp: <Wednesday 2025-09-17 08:23:30 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-06-18 12:21:56 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -42,20 +42,20 @@ import 'package:solidui/solidui.dart'
         loginIfRequired,
         smallGapV;
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/dialogs/about.dart';
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/dialogs/file_metadata.dart';
-import 'package:demopod/features/absolute_url_demo.dart';
-import 'package:demopod/features/check_file_encryption.dart';
-import 'package:demopod/features/create_acl_inherited_file.dart';
-import 'package:demopod/features/edit_keyvalue.dart';
-import 'package:demopod/features/file_service.dart';
-import 'package:demopod/features/read_acl_inherited_file.dart';
-import 'package:demopod/features/view_keys.dart';
-import 'package:demopod/main.dart';
-import 'package:demopod/utils/rdf.dart';
-import 'package:demopod/widgets/home_sections.dart';
+import 'package:solidpodeg/constants/app.dart';
+import 'package:solidpodeg/dialogs/about.dart';
+import 'package:solidpodeg/dialogs/alert.dart';
+import 'package:solidpodeg/dialogs/file_metadata.dart';
+import 'package:solidpodeg/features/absolute_url_demo.dart';
+import 'package:solidpodeg/features/check_file_encryption.dart';
+import 'package:solidpodeg/features/create_acl_inherited_file.dart';
+import 'package:solidpodeg/features/edit_keyvalue.dart';
+import 'package:solidpodeg/features/file_service.dart';
+import 'package:solidpodeg/features/read_acl_inherited_file.dart';
+import 'package:solidpodeg/features/view_keys.dart';
+import 'package:solidpodeg/main.dart';
+import 'package:solidpodeg/utils/rdf.dart';
+import 'package:solidpodeg/widgets/home_sections.dart';
 
 /// A widget for the demonstration screen of the application.
 
@@ -893,7 +893,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         ...buildLoginManagementSection(
                           context,
                           _resetWebId,
-                          () => const DemoPod(),
+                          () => const SolidPodEg(),
                         ),
                         ...buildPermissionSection(
                           context,

@@ -28,7 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart' show GrantPermissionUi;
 
-// import 'package:demopod/widgets/permission_demo_widgets.dart';
+// import 'package:solidpodeg/widgets/permission_demo_widgets.dart';
 
 /// A widget demonstrating sharing of multiple resources.
 

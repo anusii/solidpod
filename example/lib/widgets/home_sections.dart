@@ -40,11 +40,11 @@ import 'package:solidui/solidui.dart'
         largeGapV,
         smallGapV;
 
-import 'package:demopod/constants/app.dart';
-import 'package:demopod/features/manage_acl_folder.dart';
-import 'package:demopod/features/permission_callback_demo.dart';
-import 'package:demopod/features/multiple_resource_sharing.dart';
-import 'package:demopod/utils/ensure_resource.dart';
+import 'package:solidpodeg/constants/app.dart';
+import 'package:solidpodeg/features/manage_acl_folder.dart';
+import 'package:solidpodeg/features/permission_callback_demo.dart';
+import 'package:solidpodeg/features/multiple_resource_sharing.dart';
+import 'package:solidpodeg/utils/ensure_resource.dart';
 
 // A bold section heading shared by the extracted sections below.
 
@@ -79,7 +79,7 @@ Widget _buttonRow(List<Widget> buttons) {
 List<Widget> buildLoginManagementSection(
   BuildContext context,
   VoidCallback onResetWebId,
-  Widget Function() createDemoPod,
+  Widget Function() createSolidPodEg,
 ) {
   return [
     largeGapV,
@@ -128,7 +128,7 @@ List<Widget> buildLoginManagementSection(
             'remote solid server to log you out of your Pod.',
         child: ElevatedButton(
           onPressed: () async {
-            await logoutPopup(context, createDemoPod());
+            await logoutPopup(context, createSolidPodEg());
           },
           child: const Text('Logout From Remote Solid Server'),
         ),

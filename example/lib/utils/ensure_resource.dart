@@ -35,7 +35,7 @@ import 'package:solidpod/solidpod.dart'
         filenameToResourceUrl,
         writePod;
 
-import 'package:demopod/dialogs/alert.dart';
+import 'package:solidpodeg/dialogs/alert.dart';
 
 /// Ensures the resource at [relativePath] exists in the user's Pod.
 ///

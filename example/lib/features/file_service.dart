@@ -28,8 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:solidpod/solidpod.dart';
 
-import 'package:demopod/dialogs/alert.dart';
-import 'package:demopod/widgets/file_service_sections.dart';
+import 'package:solidpodeg/dialogs/alert.dart';
+import 'package:solidpodeg/widgets/file_service_sections.dart';
 
 class FileService extends StatefulWidget {
   const FileService({required this.child, required this.webId, super.key});
