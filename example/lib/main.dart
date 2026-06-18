@@ -1,6 +1,6 @@
 /// A template app to begin a Solid Pod project.
 ///
-// Time-stamp: <Monday 2025-07-14 11:46:50 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-06-18 11:54:19 +1000 Graham Williams>
 ///
 /// Copyright (C) 2024, Software Innovation Institute, ANU.
 ///
@@ -118,7 +118,7 @@ class DemoPod extends StatelessWidget {
         // DALL-E3.
 
         title: AppConstants.longName.toUpperCase(),
-        appDirectory: 'exampleApp',
+        appDirectory: 'solidpodeg',
         image: AssetImage('assets/images/demopod_image.png'),
         logo: AssetImage('assets/images/demopod_logo.png'),
         link: 'https://github.com/anusii/solidpod/blob/main/demopod/README.md',
