@@ -114,6 +114,22 @@ flutter pub global activate solidpod
 solidpod create my_pod_app
 ```
 
+For Windows users, command `solidpod` can be added to the system by the 
+following steps:
+
+- Run **PowerShell**
+- Run the following commands:
+```shell
+$pubCacheBin = "$env:LOCALAPPDATA\Pub\Cache\bin"
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+
+if ($userPath -notlike "*$pubCacheBin*") {
+  [Environment]::SetEnvironmentVariable("Path", "$userPath;$pubCacheBin", "User")
+}
+```
+- Close **Powershell**
+- Open **Command Prompter** or **PowerShell** and use `solidpod` command.
+
 The generator runs `flutter create` to lay down the platform folders, overlays
 the template (substituting your app name), and runs `flutter pub get`. Useful
 options:
