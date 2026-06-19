@@ -118,14 +118,14 @@ The generator runs `flutter create` to lay down the platform folders, overlays
 the template (substituting your app name), and runs `flutter pub get`. Useful
 options:
 
-| Option                | Description                                              |
-|-----------------------|----------------------------------------------------------|
-| `--org <id>`          | Reverse-domain organisation id (default: `com.example`). |
-| `--title <text>`      | Window title shown by the app.                           |
-| `--description <text>`| `pubspec` description.                                    |
-| `-o, --output <dir>`  | Output directory (default: the app name).                |
-| `--no-flutter-create` | Render the template only; skip generating platform folders. |
-| `--no-pub-get`        | Skip the final `flutter pub get`.                        |
+| Option                | Description                                          |
+|-----------------------|------------------------------------------------------|
+| `--org <id>`          | Reverse-domain org id (default: `com.example`).      |
+| `--title <text>`      | Window title shown by the app.                       |
+| `--description <text>`| `pubspec` description.                               |
+| `-o, --output <dir>`  | Output directory (default: the app name).            |
+| `--no-flutter-create` | Render template only; skip platform folders.         |
+| `--no-pub-get`        | Skip the final `flutter pub get`.                    |
 
 The generated app starts at a `SolidLogin` screen and, once signed in, shows a
 `SolidScaffold` with a home page, an app-files browser and a whole-POD browser.
@@ -161,7 +161,7 @@ If you maintain the Solid server — for example the Australian Solid Community
 (`solidcommunity.au`) — deploy them alongside the other apps exactly as
 `filepod` does:
 
-```
+```console
 https://solidcommunity.au/apps/my_pod_app/client-profile.jsonld
 https://solidcommunity.au/apps/my_pod_app/redirect.html
 ```

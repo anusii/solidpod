@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Add app template for a 'create' experience [1.0.9 20260619 tonypioneer]
 + Add CSS account and password change API [1.0.8 20260617 anushkavidanage]
 + Support writing large files to external pod [1.0.7 20260618 tonypioneer]
 + Bump solid_auth token refresh fix [1.0.6 20260612 gjw]
