@@ -148,19 +148,21 @@ Replace `/path/to/solidpod` below with the path to your local checkout.
   `activate` command after editing the generator itself; edits to the template
   files are picked up without re-activating.
 
-For Windows users, command `solidpod` can be added to the system by the 
+For Windows users, command `solidpod` can be added to the system by the
 following steps:
 
 - Run **PowerShell**
 - Run the following commands:
-```shell
-$pubCacheBin = "$env:LOCALAPPDATA\Pub\Cache\bin"
-$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
-if ($userPath -notlike "*$pubCacheBin*") {
-  [Environment]::SetEnvironmentVariable("Path", "$userPath;$pubCacheBin", "User")
-}
-```
+  ```shell
+  $pubCacheBin = "$env:LOCALAPPDATA\Pub\Cache\bin"
+  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+
+  if ($userPath -notlike "*$pubCacheBin*") {
+    [Environment]::SetEnvironmentVariable("Path", "$userPath;$pubCacheBin", "User")
+  }
+  ```
+
 - Close **Powershell**
 - Open **Command Prompter** or **PowerShell** and use `solidpod` command.
 
