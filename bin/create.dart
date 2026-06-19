@@ -170,8 +170,11 @@ Future<void> main(List<String> arguments) async {
     await _runProcess('flutter', ['pub', 'get'], outputDir.path);
   }
 
-  _printNextSteps(stdout, outputDir.path,
-      runFlutterCreate: args.runFlutterCreate);
+  _printNextSteps(
+    stdout,
+    outputDir.path,
+    runFlutterCreate: args.runFlutterCreate,
+  );
 }
 
 // ── Template rendering ─────────────────────────────────────────────────────
@@ -566,8 +569,11 @@ Example:
 ''');
 }
 
-void _printNextSteps(IOSink out, String path,
-    {required bool runFlutterCreate}) {
+void _printNextSteps(
+  IOSink out,
+  String path, {
+  required bool runFlutterCreate,
+}) {
   out.writeln('''
 
 Done! Your Solid Pod app is ready in $path/
