@@ -92,6 +92,100 @@ of the [solidpod](https://github.com/anusii/solidpod) repository.
 <!-- TODO: List prerequisites and provide or pointer to information on how
 to start using the package. -->
 
+## Create a new app from the template
+
+`solidpod` ships with an app template — a ready-to-run Pod file browser,
+complete with a navigation rail and a status bar, built on
+[`solidui`](https://pub.dev/packages/solidui). It is the practical equivalent
+of a `flutter create --template=solidpod`, which stock Flutter cannot offer
+because the `--template` flag only accepts a fixed set of built-in types. We
+provide a small generator instead.
+
+From any checkout that depends on `solidpod`:
+
+```bash
+dart run solidpod:create my_pod_app
+```
+
+Or activate it once and use it anywhere:
+
+```bash
+flutter pub global activate solidpod
+solidpod create my_pod_app
+```
+
+The generator runs `flutter create` to lay down the platform folders, overlays
+the template (substituting your app name), and runs `flutter pub get`. Useful
+options:
+
+| Option                | Description                                              |
+|-----------------------|----------------------------------------------------------|
+| `--org <id>`          | Reverse-domain organisation id (default: `com.example`). |
+| `--title <text>`      | Window title shown by the app.                           |
+| `--description <text>`| `pubspec` description.                                    |
+| `-o, --output <dir>`  | Output directory (default: the app name).                |
+| `--no-flutter-create` | Render the template only; skip generating platform folders. |
+| `--no-pub-get`        | Skip the final `flutter pub get`.                        |
+
+The generated app starts at a `SolidLogin` screen and, once signed in, shows a
+`SolidScaffold` with a home page, an app-files browser and a whole-POD browser.
+
+### Enabling login (Solid-OIDC client registration)
+
+Before login will work you must publish a Client Identifier Document for the
+app. The generator writes a ready-to-deploy copy of it, together with the web
+redirect helper, into the generated project's `solid/` folder:
+
+- `solid/client-profile.jsonld` — the Solid-OIDC Client Identifier Document. Its
+  `redirect_uris` are generated to match, byte for byte, the `redirectUris`
+  passed to `SolidLogin` in `lib/app.dart`.
+- `solid/redirect.html` — the web and post-logout redirect helper used by the
+  `oidc` package.
+
+Two points are worth understanding:
+
+- `client-profile.jsonld` is **not** a file the app creates on your POD, and it
+  cannot be — the app is not yet authenticated at login time. It must already be
+  hosted, and be publicly readable, at the URL given as the `clientId`. During
+  login the identity provider fetches that URL to learn which `redirect_uris`
+  are permitted; if it is missing (HTTP 404) the provider refuses to hand
+  control back to the app after the consent screen, and login fails with an
+  `ASWebAuthenticationSession Code=1` (cancelled) error.
+- The POD data folders (for example `<appDir>/data` and `<appDir>/sharing`) are
+  created by solidpod's `generateDefaultFolders()` **after** a successful login.
+  If they have not appeared, it is because login has not completed — that is a
+  symptom of the missing client profile, not the cause.
+
+To enable login, publish both files at the location your `clientId` points to.
+If you maintain the Solid server — for example the Australian Solid Community
+(`solidcommunity.au`) — deploy them alongside the other apps exactly as
+`filepod` does:
+
+```
+https://solidcommunity.au/apps/my_pod_app/client-profile.jsonld
+https://solidcommunity.au/apps/my_pod_app/redirect.html
+```
+
+Then confirm the document is reachable (a public `200`, requiring no
+authentication):
+
+```bash
+curl -I https://solidcommunity.au/apps/my_pod_app/client-profile.jsonld
+```
+
+Once it returns `200`, run `flutter run` and the login redirect will complete
+(`filepod`'s own document returns `200`, which is why it can sign in).
+Otherwise, host the two files at any public URL you control and update the
+`clientId` — and the matching `redirect.html` entry in `redirectUris` — in
+`lib/app.dart` accordingly. Note that only the custom redirect **scheme**
+(`<org>.<name-without-underscores>://redirect`, e.g. `com.example.mypodapp`)
+drops the underscores from the project name, because a URI scheme may not
+contain them; every other identifier keeps the project name as-is.
+
+After generating, also review the remaining placeholders — the `clientId`,
+`redirectUris` and `link` in `lib/app.dart`, and the constants in
+`lib/constants/app.dart` — and update them for your own deployment.
+
 ## Prerequisites
 
 If the package is being used to build either a `macos` or `web` app,
