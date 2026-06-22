@@ -101,18 +101,70 @@ of a `flutter create --template=solidpod`, which stock Flutter cannot offer
 because the `--template` flag only accepts a fixed set of built-in types. We
 provide a small generator instead.
 
-From any checkout that depends on `solidpod`:
-
-```bash
-dart run solidpod:create my_pod_app
-```
-
-Or activate it once and use it anywhere:
+The recommended way is to activate the generator once and then run it from any
+directory:
 
 ```bash
 flutter pub global activate solidpod
 solidpod create my_pod_app
 ```
+
+Alternatively, `dart run solidpod:create` works **only from within a package
+that already depends on `solidpod`** (for example a clone of the `solidpod`
+repository), because `dart run` must resolve the `solidpod:create` executable
+through that project's `pubspec.yaml`:
+
+```bash
+dart run solidpod:create my_pod_app
+```
+
+Running `dart run solidpod:create` from an unrelated directory fails with
+`Found no pubspec.yaml file in <folder> or parent directories` — use the global
+activation above instead.
+
+### Running from a local checkout (before publishing)
+
+If you are working on a branch of `solidpod` that is not yet published to
+pub.dev, you can still generate an app from any directory without publishing.
+Replace `/path/to/solidpod` below with the path to your local checkout.
+
+- Run the generator script directly. This always uses your current working tree
+  — both `bin/create.dart` and the template files — so it picks up your edits
+  on every run:
+
+  ```bash
+  dart run /path/to/solidpod/bin/create.dart my_pod_app
+  ```
+
+- Or activate the local checkout and use the short `solidpod create` command
+  anywhere:
+
+  ```bash
+  flutter pub global activate --source path /path/to/solidpod
+  solidpod create my_pod_app
+  ```
+
+  Note that this takes a snapshot of `bin/create.dart`, so re-run the
+  `activate` command after editing the generator itself; edits to the template
+  files are picked up without re-activating.
+
+For Windows users, command `solidpod` can be added to the system by the
+following steps:
+
+- Run **PowerShell**
+- Run the following commands:
+
+  ```shell
+  $pubCacheBin = "$env:LOCALAPPDATA\Pub\Cache\bin"
+  $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+
+  if ($userPath -notlike "*$pubCacheBin*") {
+    [Environment]::SetEnvironmentVariable("Path", "$userPath;$pubCacheBin", "User")
+  }
+  ```
+
+- Close **Powershell**
+- Open **Command Prompter** or **PowerShell** and use `solidpod` command.
 
 The generator runs `flutter create` to lay down the platform folders, overlays
 the template (substituting your app name), and runs `flutter pub get`. Useful

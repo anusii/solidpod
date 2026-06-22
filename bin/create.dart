@@ -170,7 +170,11 @@ Future<void> main(List<String> arguments) async {
     await _runProcess('flutter', ['pub', 'get'], outputDir.path);
   }
 
-  _printNextSteps(stdout, outputDir.path, runFlutterCreate: args.runFlutterCreate);
+  _printNextSteps(
+    stdout,
+    outputDir.path,
+    runFlutterCreate: args.runFlutterCreate,
+  );
 }
 
 // ── Template rendering ─────────────────────────────────────────────────────
@@ -284,7 +288,8 @@ void _patchAndroidRedirectScheme(Directory output, String scheme) {
     if (content.contains(placeholder)) return;
     final patched = content.replaceFirstMapped(
       RegExp(r'versionName flutterVersionName\n'),
-      (m) => '${m[0]}        manifestPlaceholders = [$placeholder: "$scheme"]\n',
+      (m) =>
+          '${m[0]}        manifestPlaceholders = [$placeholder: "$scheme"]\n',
     );
     if (patched != content) {
       groovy.writeAsStringSync(patched);
@@ -403,7 +408,8 @@ Future<bool> _runProcess(
     );
     final code = await process.exitCode;
     if (code != 0) {
-      stderr.writeln('Error: `$executable ${args.join(' ')}` exited with $code.');
+      stderr
+          .writeln('Error: `$executable ${args.join(' ')}` exited with $code.');
       return false;
     }
     return true;
@@ -563,7 +569,11 @@ Example:
 ''');
 }
 
-void _printNextSteps(IOSink out, String path, {required bool runFlutterCreate}) {
+void _printNextSteps(
+  IOSink out,
+  String path, {
+  required bool runFlutterCreate,
+}) {
   out.writeln('''
 
 Done! Your Solid Pod app is ready in $path/

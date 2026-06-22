@@ -15,6 +15,8 @@ ARCHIVE
 ignore
 pubspec.yaml.*
 
+!templates/solidpod/pubspec.yaml.tmpl
+
 .flutter-plugins*
 
 qtest_*.txt
