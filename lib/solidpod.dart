@@ -198,6 +198,19 @@ export 'src/solid/utils/res_metadata.dart';
 
 export 'src/solid/write_pod.dart';
 
+/// Read and write the profile of an arbitrary app folder on the user's POD,
+/// using that app's own security key (independent of the current app).
+
+export 'src/solid/cross_app_profile.dart'
+    show
+        AppEncryptionNotSetupException,
+        PodAppKey,
+        PodAppProfile,
+        appHasEncryption,
+        readAppProfile,
+        verifyAppSecurityKey,
+        writeAppProfile;
+
 /// The function to grant permission to a resource
 
 export 'src/solid/grant_permission.dart';
