@@ -244,7 +244,8 @@ Future<PodAppKey> verifyAppSecurityKey(
     final keys = await deriveKeys(securityKey, base64.decode(saltB64));
     if (!constantTimeEquals(verificationKey, keys.verificationKey)) {
       throw SecurityKeyVerificationException(
-          'Unable to verify the security key');
+        'Unable to verify the security key',
+      );
     }
     return PodAppKey(masterKey: keys.masterKey, version: version);
   }
@@ -533,7 +534,8 @@ Future<void> writeAppProfile(
   }
   if (private && key == null) {
     throw ArgumentError(
-        'A verified key is required to write a private profile');
+      'A verified key is required to write a private profile',
+    );
   }
 
   final root = _normaliseRoot(appRootUrl);

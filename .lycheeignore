@@ -82,6 +82,8 @@ https://pods.example.au/john-doe/profile/card#me
 https://github.com/gjwgit/myapp/blob/main/README.md
 https://github.com/anusii/solidpod/blob/main/solidpodeg/README.md
 https://server/POD_NAME/APP_NAME/data/FILE_PATH
+https://server/alice/
+https://server/alice/myapp/
 
 # 20260605 gjw Failing solid servers
 
