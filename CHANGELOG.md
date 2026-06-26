@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Support profile editing [1.0.11 20260626 tonypioneer]
 + Bug fix template for dart run [1.0.10 20260622 tonypioneer]
 + Add app template for a 'create' experience [1.0.9 20260619 tonypioneer]
 + Add CSS account and password change API [1.0.8 20260617 anushkavidanage]
