@@ -1,0 +1,9 @@
+# Dependencies for solid_load_test.py.
+#
+# httpx        - async HTTP client used to drive the CSS account API and the
+#                authenticated resource requests concurrently.
+# cryptography - EC key generation and ECDSA signing for DPoP proofs, plus
+#                PBKDF2/AES-GCM for the per-user security key.
+
+httpx>=0.27
+cryptography>=42.0

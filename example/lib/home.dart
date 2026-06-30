@@ -51,6 +51,7 @@ import 'package:solidpodeg/features/check_file_encryption.dart';
 import 'package:solidpodeg/features/create_acl_inherited_file.dart';
 import 'package:solidpodeg/features/edit_keyvalue.dart';
 import 'package:solidpodeg/features/file_service.dart';
+import 'package:solidpodeg/features/load_test.dart';
 import 'package:solidpodeg/features/read_acl_inherited_file.dart';
 import 'package:solidpodeg/features/view_keys.dart';
 import 'package:solidpodeg/main.dart';
@@ -888,6 +889,29 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 ),
                               );
                             },
+                          ),
+                        ]),
+
+                        largeGapV,
+
+                        // Load Testing section. Drives the headless Python
+                        // load tester (loadtest/solid_load_test.py) so Pod
+                        // hosting, login and read/write access can be tested
+                        // at scale (up to ~100 concurrent users).
+
+                        _sectionHeading('Load Testing'),
+                        smallGapV,
+                        _buttonRow([
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoadTest(),
+                                ),
+                              );
+                            },
+                            child: const Text('Run Load Test'),
                           ),
                         ]),
                         ...buildLoginManagementSection(

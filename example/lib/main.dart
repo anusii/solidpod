@@ -130,7 +130,7 @@ class SolidPodEg extends StatelessWidget {
         clientId: clientIdVal,
         // Use the following schemas depending on the platform
         //  Web: https://anushkavidanage.github.io/solidpod/example/redirect.html
-        //  Mobile: com.example.solidpodeg://redirect
+        //  Mobile/macOS: com.example.solidpodeg://redirect
         //  Desktop: http://localhost:4400/redirect
         //    (can use any port as long as it matches with the one in your id document)
         redirectUris: redirectUrisList,

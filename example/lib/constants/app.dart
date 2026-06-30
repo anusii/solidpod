@@ -63,11 +63,11 @@ const clientIdVal =
 const redirectUrisList = [
   'https://anushkavidanage.github.io/solidpod/example/redirect.html',
   'http://localhost:4400/redirect',
-  'com.example.solidpodeg://redirect',
+  'com.example.demopod://redirect', // Was com.example.solidpodeg
 ];
 
 const postLogoutRedirectUrisList = [
   'https://anushkavidanage.github.io/solidpod/example/redirect.html',
   'http://localhost:4400/redirect',
-  'com.example.solidpodeg://redirect',
+  'com.example.demopod://redirect', // Was com.example.solidpodeg
 ];
