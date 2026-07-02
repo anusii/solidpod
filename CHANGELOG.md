@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Add load test to the example app [1.0.13 20260702 tonypioneer]
 + Migrate TEMPALTE to solidui [1.0.12 20260629 tonypioneer]
 + Support profile editing [1.0.11 20260626 tonypioneer]
 + Bug fix template for dart run [1.0.10 20260622 tonypioneer]
