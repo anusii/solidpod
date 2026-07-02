@@ -127,19 +127,19 @@ Go to `android/app/build.gradle`, and add the following line under
  defaultConfig {
     ...
     manifestPlaceholders += [
-    'appAuthRedirectScheme': 'com.my.app'
+    'appAuthRedirectScheme': 'com.example.myapp'
     ]
 }
 ```
 
-Replace `com.my.app` with your `applicationId`. If you have a `build.gradle.kts`
+Replace `com.example.myapp` with your `applicationId`. If you have a `build.gradle.kts`
 file upgrade in the following way
 
 ```gradle
  defaultConfig {
     ...
     manifestPlaceholders.putAll(mapOf(
-            "appAuthRedirectScheme" to "com.my.app"
+            "appAuthRedirectScheme" to "com.example.myapp"
         ))
 }
 ```
