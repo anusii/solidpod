@@ -25,6 +25,7 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 const titleBackgroundColor = Color(0xFFF0E4D7);
@@ -57,17 +58,31 @@ demo:exampleData$fileName
 ''';
 }
 
+/// URL of the Solid-OIDC client identifier document. Must be publicly readable
+/// and its own `client_id` field must equal this URL. The source document lives
+/// in the project root as `client-profile.jsonld`.
 const clientIdVal =
-    'https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld';
+    'https://anusii.github.io/solidpodeg/client-profile.jsonld';
 
-const redirectUrisList = [
-  'https://anushkavidanage.github.io/solidpod/example/redirect.html',
-  'http://localhost:4400/redirect.html',
-  'com.example.demopod://redirect', // Was com.example.solidpodeg
-];
+/// Redirect URIs offered to the Solid-OIDC flow.
+List<String> get redirectUrisList {
+  if (kIsWeb) {
+    return ['${Uri.base.origin}/redirect.html'];
+  }
+  return const [
+    'com.example.solidpodeg://redirect',
+    'http://localhost:4400/redirect.html',
+  ];
+}
 
-const postLogoutRedirectUrisList = [
-  'https://anushkavidanage.github.io/solidpod/example/redirect.html',
-  'http://localhost:4400/redirect.html',
-  'com.example.demopod://redirect', // Was com.example.solidpodeg
-];
+/// Post-logout redirect URIs, derived the same origin-aware way as
+/// [redirectUrisList].
+List<String> get postLogoutRedirectUrisList {
+  if (kIsWeb) {
+    return ['${Uri.base.origin}/redirect.html'];
+  }
+  return const [
+    'com.example.solidpodeg://redirect',
+    'http://localhost:4400/redirect.html',
+  ];
+}
