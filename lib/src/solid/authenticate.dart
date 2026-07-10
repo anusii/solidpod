@@ -47,11 +47,12 @@ import 'package:solidpod/src/solid/utils/exceptions.dart'
 import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
 
 /// Selects the appropriate redirect URI from [uris] based on the runtime
-/// platform, using the URI format as the discriminator:
+/// platform, using the URI format (and, on web, the origin) as the
+/// discriminator:
 ///
 /// | Platform | Matched format |
 /// |---|---|
-/// | Web | `https://` URI (same-origin BroadcastChannel requirement) |
+/// | Web | The entry whose origin equals the app's current origin ([Uri.base]) |
 /// | Android / iOS / macOS | Custom scheme URI (not `http://` or `https://`) |
 /// | Desktop (Windows / Linux) | `http://localhost` loopback URI |
 ///
@@ -64,9 +65,20 @@ String pickRedirectUri(List<String> uris) {
   if (uris.length == 1) return uris.first;
 
   if (kIsWeb) {
+    final currentOrigin = Uri.base.origin;
     return uris.firstWhere(
-      (u) => u.startsWith('https://'),
-      orElse: () => uris.first,
+      (u) {
+        final parsed = Uri.tryParse(u);
+        if (parsed == null) return false;
+        if (!parsed.isScheme('http') && !parsed.isScheme('https')) {
+          return false;
+        }
+        return parsed.origin == currentOrigin;
+      },
+      orElse: () => uris.firstWhere(
+        (u) => u.startsWith('https://'),
+        orElse: () => uris.first,
+      ),
     );
   }
   if (defaultTargetPlatform == TargetPlatform.android ||
