@@ -61,8 +61,7 @@ demo:exampleData$fileName
 /// URL of the Solid-OIDC client identifier document. Must be publicly readable
 /// and its own `client_id` field must equal this URL. The source document lives
 /// in the project root as `client-profile.jsonld`.
-const clientIdVal =
-    'https://anusii.github.io/solidpodeg/client-profile.jsonld';
+const clientIdVal = 'https://anusii.github.io/solidpodeg/client-profile.jsonld';
 
 /// Redirect URIs offered to the Solid-OIDC flow.
 List<String> get redirectUrisList {
