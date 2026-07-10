@@ -65,6 +65,7 @@ String pickRedirectUri(List<String> uris) {
   if (uris.length == 1) return uris.first;
 
   if (kIsWeb) {
+    final currentOrigin = Uri.base.origin;
     return uris.firstWhere(
       (u) {
         final parsed = Uri.tryParse(u);
