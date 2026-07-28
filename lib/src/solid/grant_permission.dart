@@ -31,7 +31,6 @@ library;
 import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
-import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/grant_permission_api.dart';
@@ -39,6 +38,8 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
+import 'package:solidpod/src/solid/read_permission.dart'
+    show getUserClassPermissions;
 import 'package:solidpod/src/solid/revoke_permission.dart' show revokePermission;
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -46,7 +47,7 @@ import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show RecipientPubKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle, readAcl;
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 
 /// Grant access permissions to [fileName] to the type of recipient
 /// or specific recipients, if recipient type is individual or group,
@@ -175,26 +176,16 @@ Future<SolidFunctionCallStatus> grantPermission({
           // `setPermissionAcl` below, so `revokePermission`'s own ACL read
           // still sees the pre-existing grant.
           if (hasSpecificRecipients && revokePublicAccessOnSpecificGrant) {
-            final currentPermMap = extractAclPerm(await readAcl(resourceUrl));
-            for (final classGrant in <(RecipientType, URIRef)>[
-              (RecipientType.public, publicAgent),
-              (RecipientType.authUser, authenticatedAgent),
-            ]) {
-              final (classType, classAgent) = classGrant;
-              String? receiverId;
-              for (final id in currentPermMap.keys) {
-                if (id is String &&
-                    currentPermMap[id][agentStr] == agentClassPred &&
-                    URIRef(id) == classAgent) {
-                  receiverId = id;
-                  break;
-                }
-              }
-              if (receiverId == null) continue;
-
-              final grantedPerms =
-                  (currentPermMap[receiverId][permStr] as List)
-                      .cast<String>();
+            final existingClassPerms = await getUserClassPermissions(
+              fileName: resourceUrl,
+              isFile: isFile,
+              isFileUrl: true,
+              isExternalRes: isExternalRes,
+            );
+            for (final classType in existingClassPerms.keys) {
+              final classAgent = classType == RecipientType.public
+                  ? publicAgent
+                  : authenticatedAgent;
               debugPrint(
                 '[grantPermission] revoking existing $classType access on '
                 '"$resourceUrl" before granting to $recipientType',
@@ -202,7 +193,7 @@ Future<SolidFunctionCallStatus> grantPermission({
               await revokePermission(
                 fileName: resourceUrl,
                 isFileUrl: true,
-                permissionList: grantedPerms,
+                permissionList: existingClassPerms[classType]!,
                 recipientIndOrGroupWebId: classAgent.value,
                 recipientType: classType,
                 ownerWebId: ownerWebId,

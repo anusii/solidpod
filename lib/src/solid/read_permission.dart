@@ -30,6 +30,12 @@ library;
 
 import 'dart:core';
 
+import 'package:rdflib/rdflib.dart';
+
+import 'package:solidpod/src/solid/constants/common.dart'
+    show agentClassPred, agentStr, permStr;
+import 'package:solidpod/src/solid/constants/web_acl.dart'
+    show RecipientType, authenticatedAgent, publicAgent;
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart';
@@ -69,4 +75,42 @@ Future<Map<dynamic, dynamic>> readPermission({
   final Map<dynamic, dynamic> permMap = extractAclPerm(aclContentMap);
 
   return permMap;
+}
+
+/// The Public/Authenticated-User access modes currently granted on
+/// [fileName], keyed by [RecipientType.public]/[RecipientType.authUser].
+/// A class with no current grant is omitted from the result.
+///
+/// Single source of truth for "does this resource currently have a
+/// Public/AuthenticatedUser grant" — used both by [grantPermission] (to
+/// decide whether an individual/group grant must first revoke and
+/// re-encrypt) and by solidui's confirmation dialog for the same action.
+
+Future<Map<RecipientType, List<String>>> getUserClassPermissions({
+  required String fileName,
+  required bool isFile,
+  bool isFileUrl = false,
+  bool isExternalRes = false,
+}) async {
+  final permMap = await readPermission(
+    fileName: fileName,
+    isFile: isFile,
+    isFileUrl: isFileUrl,
+    isExternalRes: isExternalRes,
+  );
+
+  final result = <RecipientType, List<String>>{};
+  for (final receiverId in permMap.keys) {
+    if (receiverId is! String ||
+        permMap[receiverId][agentStr] != agentClassPred) {
+      continue;
+    }
+    final perms = (permMap[receiverId][permStr] as List).cast<String>();
+    if (URIRef(receiverId) == publicAgent) {
+      result[RecipientType.public] = perms;
+    } else if (URIRef(receiverId) == authenticatedAgent) {
+      result[RecipientType.authUser] = perms;
+    }
+  }
+  return result;
 }
