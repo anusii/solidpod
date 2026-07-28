@@ -31,6 +31,7 @@ library;
 import 'dart:core';
 
 import 'package:flutter/material.dart' hide Key;
+import 'package:rdflib/rdflib.dart';
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/grant_permission_api.dart';
@@ -38,13 +39,14 @@ import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
+import 'package:solidpod/src/solid/revoke_permission.dart' show revokePermission;
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_helper.dart' show RecipientPubKey;
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
-import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
+import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle, readAcl;
 
 /// Grant access permissions to [fileName] to the type of recipient
 /// or specific recipients, if recipient type is individual or group,
@@ -70,6 +72,17 @@ import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 /// - [isFile] Optional flag describing whether the resources is a file or
 /// not.
 /// - [groupName] - Optional name of the group permission.
+/// - [revokePublicAccessOnSpecificGrant] - When [recipientType] is
+/// individual or group and the resource currently has a Public or
+/// Authenticated User class grant (and is therefore plaintext on the
+/// server, per the decryption step this function performs for those
+/// recipient classes), revoke that grant and re-encrypt the resource
+/// before proceeding. Without this, the resource would end up both still
+/// readable by the previously-granted class *and* holding a stale
+/// individual key that does not match the (still plaintext) content.
+/// Defaults to `true`; set to `false` to keep today's behaviour where
+/// granting to a specific recipient never touches an existing
+/// public/authUser grant.
 
 Future<SolidFunctionCallStatus> grantPermission({
   required String fileName,
@@ -81,6 +94,7 @@ Future<SolidFunctionCallStatus> grantPermission({
   bool isFile = true,
   bool isExternalRes = false,
   String? groupName,
+  bool revokePublicAccessOnSpecificGrant = true,
 }) async {
   if (!await isUserLoggedIn()) {
     throw NotLoggedInException(
@@ -150,6 +164,55 @@ Future<SolidFunctionCallStatus> grantPermission({
       // if recipient pods have been initialised
       if (allRecipientsInitialised || !hasSpecificRecipients) {
         if (resStatus == ResourceStatus.exist) {
+          // Sharing to a specific individual/group assumes the resource is
+          // ciphertext under an individual key (see the `fileHasIndKey`
+          // branch below). If it's currently also granted to the Public or
+          // Authenticated User class, it's plaintext on the server (that
+          // class has no key of its own to decrypt with) — so revoke that
+          // grant and re-encrypt first. Otherwise the resource would end up
+          // both still openly readable *and* holding a stale individual key
+          // that doesn't match the (still plaintext) bytes. Must run before
+          // `setPermissionAcl` below, so `revokePermission`'s own ACL read
+          // still sees the pre-existing grant.
+          if (hasSpecificRecipients && revokePublicAccessOnSpecificGrant) {
+            final currentPermMap = extractAclPerm(await readAcl(resourceUrl));
+            for (final classGrant in <(RecipientType, URIRef)>[
+              (RecipientType.public, publicAgent),
+              (RecipientType.authUser, authenticatedAgent),
+            ]) {
+              final (classType, classAgent) = classGrant;
+              String? receiverId;
+              for (final id in currentPermMap.keys) {
+                if (id is String &&
+                    currentPermMap[id][agentStr] == agentClassPred &&
+                    URIRef(id) == classAgent) {
+                  receiverId = id;
+                  break;
+                }
+              }
+              if (receiverId == null) continue;
+
+              final grantedPerms =
+                  (currentPermMap[receiverId][permStr] as List)
+                      .cast<String>();
+              debugPrint(
+                '[grantPermission] revoking existing $classType access on '
+                '"$resourceUrl" before granting to $recipientType',
+              );
+              await revokePermission(
+                fileName: resourceUrl,
+                isFileUrl: true,
+                permissionList: grantedPerms,
+                recipientIndOrGroupWebId: classAgent.value,
+                recipientType: classType,
+                ownerWebId: ownerWebId,
+                granterWebId: granterWebId,
+                isFile: isFile,
+                isExternalRes: isExternalRes,
+              );
+            }
+          }
+
           // Add the permission line to the relevant ACL file
           await setPermissionAcl(
             resourceUrl,
