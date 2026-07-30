@@ -28,12 +28,16 @@
 
 library;
 
+import 'dart:convert' show utf8;
+
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart' show Key;
 import 'package:mime/mime.dart' as mime;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/check_encryption.dart'
+    show isContentEncrypted;
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -58,7 +62,18 @@ import 'package:solidpod/src/solid/write_external_pod.dart'
 /// Arguments:
 /// - [filePath]: The path (relative to appname/data/) of the file to write
 /// - [fileContent]: The content to write to the file
-/// - [encrypted]: Whether to encrypt the file content (default: true)
+/// - [encrypted]: Whether to encrypt the file content. Defaults to `null`,
+///     meaning "not specified by the caller": for a new file (or when
+///     [overwrite] is false) this behaves as `true`; when [overwrite] is true
+///     and the file already exists, the file's *current* at-rest state on the
+///     server is mirrored instead (plaintext stays plaintext, ciphertext stays
+///     ciphertext). This matters for a resource that was decrypted in place
+///     for Public/Authenticated User sharing (see `decryptFileInPlace`) —
+///     without this, an unrelated edit would silently re-encrypt it and break
+///     that sharing grant, since a class-based ACL grant has no key to
+///     decrypt with. Pass `true`/`false` explicitly to override this and
+///     force a specific encryption state regardless of what's currently on
+///     the server.
 /// - [createAcl]: Whether to create a separate acl for the resource (default: true)
 /// - [overwrite]: Whether to overwrite the content of an existing file (default: false)
 /// - [pathType]: Optional type of relative path (for both [filePath] and [inheritKeyFrom])
@@ -80,7 +95,7 @@ import 'package:solidpod/src/solid/write_external_pod.dart'
 Future<void> writePod(
   String filePath,
   String fileContent, {
-  bool encrypted = true,
+  bool? encrypted,
   bool createAcl = true,
   bool overwrite = false,
   PathType pathType = PathType.relativeToData,
@@ -133,6 +148,27 @@ Future<void> writePod(
     );
   }
 
+  final status = await checkResourceStatus(fileUrl);
+
+  // Resolve the effective encryption flag. When the caller didn't specify
+  // [encrypted] and this is an overwrite of an existing file, mirror the
+  // file's current at-rest state instead of assuming `true` — otherwise an
+  // unrelated edit would silently re-encrypt a file that was deliberately
+  // decrypted in place for Public/Authenticated User sharing (see
+  // `decryptFileInPlace`), stranding a resource whose ACL still promises
+  // open access but whose bytes no longer are.
+
+  var resolvedEncrypted = encrypted ?? true;
+  if (encrypted == null &&
+      inheritKeyFrom == null &&
+      overwrite &&
+      status == ResourceStatus.exist) {
+    final currentContent = utf8.decode(await getResource(fileUrl));
+    // Determine current encryption state
+    resolvedEncrypted =
+        isContentEncrypted(fileUrl: fileUrl, content: currentContent);
+  }
+
   Key? encKey;
   String? inheritKeyUrl;
   if (inheritKeyFrom != null) {
@@ -143,7 +179,7 @@ Future<void> writePod(
     );
   }
 
-  if (encrypted || inheritKeyFrom != null) {
+  if (resolvedEncrypted || inheritKeyFrom != null) {
     if (!fileUrl.endsWith('.ttl')) {
       throw Exception(
         'Encrypted text file should be in turtle format, '
@@ -154,7 +190,7 @@ Future<void> writePod(
     encKey = await configureEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
   }
 
-  switch (await checkResourceStatus(fileUrl)) {
+  switch (status) {
     case ResourceStatus.exist:
       if (overwrite) {
         debugPrint('NOTE: Overwriting existing file "$filePath"');

@@ -34,6 +34,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/check_encryption.dart' show isContentEncrypted;
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -44,7 +45,17 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 
 /// Write file [fileUrl] with content [fileContent] to an external PODs in the
 /// data directory (within potential subdirectories encoded in [fileUrl]).
-/// The content will be encrypted if the original content is true.
+///
+/// [encrypted] defaults to `null`, meaning "not specified by the caller": when
+/// overwriting an existing file, the file's *current* at-rest state on the
+/// server is mirrored (plaintext stays plaintext, ciphertext stays
+/// ciphertext) rather than always re-encrypting just because a shared
+/// individual key happens to be on record. This matters for a resource the
+/// owner decrypted in place for Public/Authenticated User sharing (see
+/// `decryptFileInPlace` in solidpod) — without this, a recipient with write
+/// access editing the file would silently re-encrypt it and break that
+/// sharing grant. Pass `true`/`false` explicitly to force a specific
+/// encryption state regardless of what's currently on the server.
 ///
 /// The encryption boilerplate shared with [writePod] is factored out into
 /// [getEncTTLStrWithRandomIV], and the "own POD vs external POD" routing is
@@ -57,7 +68,7 @@ Future<void> writeExternalPod(
   String fileUrl,
   String fileContent,
   String fileOwnerWebId, {
-  bool encrypted = true,
+  bool? encrypted,
   bool overwrite = true,
   String? inheritKeyFrom,
 }) async {
@@ -89,9 +100,16 @@ Future<void> writeExternalPod(
     case ResourceStatus.exist:
       final remoteFileContent = utf8.decode(await getResource(fileUrl));
 
+      // When the caller didn't specify [encrypted], mirror whatever is
+      // actually on the server right now instead of assuming a shared key
+      // on record means the file should be (re-)encrypted — the owner may
+      // have decrypted it in place for Public/Authenticated User sharing.
+      final wantEncrypted = encrypted ??
+          isContentEncrypted(fileUrl: fileUrl, content: remoteFileContent);
+
       final key = await KeyManager.getSharedIndividualKey(fileUrl);
 
-      if (key != null) {
+      if (wantEncrypted && key != null) {
         // Get file path
         // final filePath =
         //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
@@ -108,7 +126,7 @@ Future<void> writeExternalPod(
             'but the extension of provided filename "$fileUrl" is not ".ttl"',
           );
         }
-      } else if (hasInheritedKey(remoteFileContent, fileUrl)) {
+      } else if (wantEncrypted && hasInheritedKey(remoteFileContent, fileUrl)) {
         // Get file path
         // final filePath =
         //     fileUrl.replaceAll(fileOwnerWebId.replaceAll(profCard, ''), '');
