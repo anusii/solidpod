@@ -40,7 +40,8 @@ import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/models/log_entry.dart';
 import 'package:solidpod/src/solid/read_permission.dart'
     show getUserClassPermissions;
-import 'package:solidpod/src/solid/revoke_permission.dart' show revokePermission;
+import 'package:solidpod/src/solid/revoke_permission.dart'
+    show revokePermission;
 import 'package:solidpod/src/solid/solid_func_call_status.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/get_url_helper.dart';

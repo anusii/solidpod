@@ -34,7 +34,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
-import 'package:solidpod/src/solid/check_encryption.dart' show isContentEncrypted;
+import 'package:solidpod/src/solid/check_encryption.dart'
+    show isContentEncrypted;
 import 'package:solidpod/src/solid/common_func.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
