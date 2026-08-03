@@ -11,7 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
-+ Preserve encryption state on overwrite in writePod/writeExternalPod [1.0.14 20260730 jesscmoore]
++ Preserve encryption state on overwrite [1.0.14 20260730 jesscmoore]
 + Add load test to the example app [1.0.13 20260702 tonypioneer]
 + Migrate TEMPLATE to solidui [1.0.12 20260629 tonypioneer]
 + Support profile editing [1.0.11 20260626 tonypioneer]
