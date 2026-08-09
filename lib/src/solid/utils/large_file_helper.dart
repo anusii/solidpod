@@ -225,14 +225,23 @@ Future<void> deleteLargeFile({
   final chunkPred = SIIPredicate.dataChunk.uriRef.value;
   assert(map!.containsKey(chunkPred));
 
-  // Delete the individual chunks
+  // Delete the individual chunks.
+  //
+  // turtleToTripleMap() yields a bare String when a predicate has a single
+  // object and an Iterable when it has several, so a file small enough to fit
+  // in one chunk arrives here as a String. Normalise as the read path does
+  // (see getChunkStream below); iterating the String directly threw
+  // "type 'String' is not a subtype of type 'Iterable<dynamic>'".
 
-  final chunkUrls = map![chunkPred];
-  final chunkCount = chunkUrls!.length;
+  final chunkObj = map![chunkPred];
+  assert(chunkObj != null);
+  final chunkUrls = chunkObj is Iterable
+      ? chunkObj.map((e) => e as String).toList()
+      : [chunkObj as String];
+  final chunkCount = chunkUrls.length;
   var deleted = 0;
 
-  for (final url in chunkUrls) {
-    final chunkUrl = url as String;
+  for (final chunkUrl in chunkUrls) {
     await deleteResource(chunkUrl, ResourceContentType.binary);
     // await deleteAclForResource(chunkUrl);  // this may not be necessary
 
@@ -255,7 +264,10 @@ Future<void> deleteLargeFile({
 
   await deleteResource(fileUrl, ResourceContentType.turtleText);
 
-  debugPrint('Deleted $remoteFilePath');
+  // A successful delete is not announced, matching deleteFile() for ordinary
+  // files, which logs only warnings. Callers that replace a large file delete
+  // then write, so announcing it printed a "Deleted" line per file for what
+  // was really an overwrite.
 }
 
 // Revoke any recipients' access to a large file's resource identified by its
