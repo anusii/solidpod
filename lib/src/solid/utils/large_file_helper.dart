@@ -543,9 +543,6 @@ Stream<List<int>> fetch({
 
   final fileUrl = await getFileUrl('$filePath.ttl', webId: externWebId);
 
-  debugPrint('fileUrl: $fileUrl');
-  debugPrint('chunkDirUrl: $chunkDirUrl');
-
   if (await checkResourceStatus(fileUrl, isFile: true) !=
           ResourceStatus.exist ||
       await checkResourceStatus(chunkDirUrl, isFile: false) !=
