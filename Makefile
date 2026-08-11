@@ -2,7 +2,7 @@
 #
 # Generic Makefile
 #
-# Time-stamp: <Monday 2026-06-15 20:31:20 +1000 Graham Williams>
+# Time-stamp: <Monday 2026-08-03 05:30:27 +1000 Graham Williams>
 #
 # Copyright (c) Graham.Williams@togaware.com
 #
@@ -28,9 +28,19 @@ DEST=/var/www/html/$(APP)
 # The host for the repository of packages, the path on the server to
 # the download folder, and the URL to the downloads.
 
-REPO=solidcommunity.au
-RLOC=/var/www/html/web/installers/
-DWLD=https://$(REPO)/installers/
+# Directory basename (e.g., rattle)
+
+DIRBASE := $(notdir $(CURDIR))
+
+ifeq ($(DIRBASE),rattle)
+  REPO=togaware.com
+  RLOC=apps/access/
+  DWLD=https://access.togaware.com/
+else
+  REPO=solidcommunity.au
+  RLOC=/var/www/html/web/installers/
+  DWLD=https://$(REPO)/installers/
+endif
 
 ########################################################################
 # Supported Makefile modules.
@@ -173,8 +183,14 @@ debin:
 # at the end as it requires interaction (sudo password) and if earlier
 # it will hold up the oher non-interactive builds.
 
+ifeq ($(DIRBASE),rattle)
+GINSTALLS := upload
+else
+GINSTALLS := upload prod apk appbundle
+endif
+
 .PHONY: ginstall
-ginstall: upload prod apk appbundle
+ginstall: $(GINSTALLS)
 
 .PHONY: ginfo
 ginfo:
@@ -189,7 +205,7 @@ ginfo:
 		echo "No bump ID found."; \
 	fi
 
-ZFILES := lib test integration_test pubspec.yaml README.md CLAUDE.md
+ZFILES := lib test integration_test pubspec.yaml analysis_options.yaml README.md CLAUDE.md bluelink_fetch.py
 
 .PHONY: zip
 zip:

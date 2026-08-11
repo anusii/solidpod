@@ -122,12 +122,12 @@ Future<SolidFunctionCallStatus> revokePermissionToRecipients({
         debugPrint(
           'Permission revoked for ${recipientWebIdList.length} recipients',
         );
-      } else {
-        debugPrint('No other users have access to this file.');
-        debugPrint(
-          'No permission revoked, as no other users have access to this file.',
-        );
       }
+
+      // A resource that was never shared has nothing to revoke. That is the
+      // ordinary case and is logged nowhere: deleteLargeFile() revokes both
+      // the metadata file and the chunk directory, so saying so put four
+      // lines of nothing-happened in the log for every file deleted.
 
       return SolidFunctionCallStatus.success;
     } catch (e) {
