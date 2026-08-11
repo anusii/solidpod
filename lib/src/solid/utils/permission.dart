@@ -31,6 +31,8 @@ import 'dart:convert';
 import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
+import 'package:solidpod/src/solid/constants/common.dart'
+    show ResourceStatus, authAgent, pubAgent;
 import 'package:solidpod/src/solid/constants/web_acl.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart' show getResAclFile;
@@ -182,6 +184,38 @@ Future<Map<dynamic, dynamic>> readAcl(
   final aclContent = utf8.decode(await getResource(resourceAclUrl));
 
   return parseACL(aclContent);
+}
+
+/// Whether [resourceUrl]'s ACL currently grants read access to the Public
+/// or Authenticated User agent class.
+///
+/// Those agent classes cannot be issued an individual decryption key (see
+/// `decryptFileInPlace`), so a `true` result means the resource's bytes are
+/// expected to stay plaintext at rest for as long as the grant exists —
+/// [writePod] uses this to avoid silently re-encrypting a resource that a
+/// prior `grantPermission` call deliberately decrypted for sharing.
+///
+/// Returns `false` when the resource has no dedicated ACL file yet (nothing
+/// to check).
+
+Future<bool> hasPublicOrAuthUserGrant(
+  String resourceUrl, {
+  bool isFile = true,
+}) async {
+  final aclFileUrl = getResAclFile(resourceUrl, isFile);
+  if (await checkResourceStatus(aclFileUrl) != ResourceStatus.exist) {
+    return false;
+  }
+
+  final aclMap = await readAcl(resourceUrl, isFile);
+  for (final predicates in aclMap.values) {
+    final agentClasses = (predicates as Map)['agentClass'];
+    if (agentClasses is List &&
+        (agentClasses.contains(pubAgent) || agentClasses.contains(authAgent))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /// Retrieves the list of WebIDs defined in a ttl file as a vcard:Group

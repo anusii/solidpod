@@ -16,7 +16,6 @@ env:
   FLUTTER_VERSION: '3.44.2'
 
 jobs:
-
   analyze:
     runs-on: ubuntu-latest
     if: github.event.repository.private == false
@@ -103,8 +102,7 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2
         with: # Don't fail for now but then create an issue - useful?
-          args:
-            --exclude-file .lycheeignore
+          args: --exclude-path .lycheeignore
             --no-progress
             '*.md'
             './**/*.dart'

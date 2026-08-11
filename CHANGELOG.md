@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Preserve encryption state on overwrite [1.0.16 20260811 jesscmoore]
 + Fix deleting a large file stored as a single chunk [1.0.15 20260809 gjw]
 + Remove debug output when reading a large file [1.0.14 20260809 gjw]
 + Add load test to the example app [1.0.13 20260702 tonypioneer]
@@ -34,8 +35,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 + Check missing resources [0.12.9 20260520 tonypioneer]
 + Support checking webID [0.12.8 20260520 tonypioneer]
 + Update Try Another WebID workflow [0.12.7 20260520 tonypioneer]
-+ Bug fix to ttl rdf for special chars #628 [0.12.6 20260518 tonypioneer]
-+ Upgrade solidauth and fix key file saving edge cases [0.12.5 20260427 jesscmoore]
++ Bug fix to ttl RDF for special chars #628 [0.12.6 20260518 tonypioneer]
++ Upgrade solid_auth and fix key file saving edge cases [0.12.5 20260427 jesscmoore]
 + Support user profile. [0.12.4 20260421 tonypioneer]
 + Key map + paths updates. Update file_picker. [0.12.3 20260420 jesscmoore]
 + Add silentLogout() [0.12.2 20260325 tonypioneer]
