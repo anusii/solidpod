@@ -39,8 +39,10 @@ import 'package:web/web.dart' as web;
 // turns an extension-type factory with named parameters into a plain JS object.
 
 extension type _AesKeyGenParams._(JSObject _) implements JSObject {
-  external factory _AesKeyGenParams(
-      {required String name, required int length});
+  external factory _AesKeyGenParams({
+    required String name,
+    required int length,
+  });
 }
 
 extension type _AesGcmParams._(JSObject _) implements JSObject {
