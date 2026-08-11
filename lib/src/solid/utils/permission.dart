@@ -211,8 +211,7 @@ Future<bool> hasPublicOrAuthUserGrant(
   for (final predicates in aclMap.values) {
     final agentClasses = (predicates as Map)['agentClass'];
     if (agentClasses is List &&
-        (agentClasses.contains(pubAgent) ||
-            agentClasses.contains(authAgent))) {
+        (agentClasses.contains(pubAgent) || agentClasses.contains(authAgent))) {
       return true;
     }
   }
