@@ -43,6 +43,8 @@ import 'package:solidpod/src/solid/utils/get_url_helper.dart';
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart' show KeyManager;
 import 'package:solidpod/src/solid/utils/misc.dart';
+import 'package:solidpod/src/solid/utils/permission.dart'
+    show hasPublicOrAuthUserGrant;
 
 /// Write file [fileUrl] with content [fileContent] to an external PODs in the
 /// data directory (within potential subdirectories encoded in [fileUrl]).
@@ -55,8 +57,19 @@ import 'package:solidpod/src/solid/utils/misc.dart';
 /// owner decrypted in place for Public/Authenticated User sharing (see
 /// `decryptFileInPlace` in solidpod) — without this, a recipient with write
 /// access editing the file would silently re-encrypt it and break that
-/// sharing grant. Pass `true`/`false` explicitly to force a specific
-/// encryption state regardless of what's currently on the server.
+/// sharing grant.
+///
+/// Passing `true`/`false` explicitly overrides the mirroring above and
+/// forces that encryption state. Leave [encrypted] unset whenever you're
+/// only touching content and not intentionally changing whether it's
+/// encrypted. If forcing encryption would break an active
+/// Public/Authenticated sharing grant on the resource (i.e. its ACL still
+/// grants that class access — readable only when the caller happens to hold
+/// acl:Control on it, which a recipient with mere Read/Write access
+/// typically does not), the call throws
+/// [PublicShareEncryptionConflictException] instead of silently stranding
+/// the grant. The resource owner should call `revokePermission` to remove
+/// the grant first (it handles re-encrypting the resource itself).
 ///
 /// The encryption boilerplate shared with [writePod] is factored out into
 /// [getEncTTLStrWithRandomIV], and the "own POD vs external POD" routing is
@@ -109,6 +122,29 @@ Future<void> writeExternalPod(
           isContentEncrypted(fileUrl: fileUrl, content: remoteFileContent);
 
       final key = await KeyManager.getSharedIndividualKey(fileUrl);
+
+      // Refuse to write ciphertext over a resource whose ACL still grants
+      // the Public or Authenticated User agent class access — that grant
+      // only works while the resource stays plaintext. This only fires when
+      // [wantEncrypted] was forced by an explicit `encrypted: true`; the
+      // auto-detect path above already mirrors the resource's actual
+      // current state, so a resource that's genuinely still plaintext never
+      // trips it. (When the caller lacks acl:Control on the resource, the
+      // ACL read fails closed to "no grant found" rather than blocking the
+      // write — see [hasPublicOrAuthUserGrant].)
+
+      if (encrypted == true &&
+          (key != null || hasInheritedKey(remoteFileContent, fileUrl)) &&
+          await hasPublicOrAuthUserGrant(fileUrl)) {
+        throw PublicShareEncryptionConflictException(
+          'Refusing to write encrypted content to "$fileUrl": its ACL '
+          'grants Public/Authenticated User access, which requires the '
+          'resource to stay plaintext. Ask the resource owner to call '
+          'revokePermission() to remove that grant (it re-encrypts the '
+          'resource as part of revocation), or omit "encrypted" (or pass '
+          'encrypted: false) to preserve its current plaintext state.',
+        );
+      }
 
       if (wantEncrypted && key != null) {
         // Get file path

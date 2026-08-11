@@ -163,3 +163,25 @@ class CssEmailAlreadyRegisteredException implements Exception {
   @override
   String toString() => 'CssEmailAlreadyRegisteredException: $message';
 }
+
+/// Thrown by [writePod] when a write would encrypt a resource whose ACL
+/// still grants the Public or Authenticated User agent class access — a
+/// grant that only works while the resource stays plaintext (those agent
+/// classes cannot be issued an individual decryption key). This usually
+/// means the resource was deliberately decrypted in place for sharing (see
+/// `decryptFileInPlace`) and the caller passed an explicit `encrypted: true`
+/// (or `inheritKeyFrom`) without meaning to undo that sharing grant.
+///
+/// To fix: call `revokePermission` to remove the Public/Authenticated grant
+/// first (it re-encrypts the resource as part of revocation), or omit
+/// `encrypted` / pass `encrypted: false` to preserve the current plaintext
+/// state.
+
+class PublicShareEncryptionConflictException implements Exception {
+  final String message;
+
+  PublicShareEncryptionConflictException(this.message);
+
+  @override
+  String toString() => 'PublicShareEncryptionConflictException: $message';
+}

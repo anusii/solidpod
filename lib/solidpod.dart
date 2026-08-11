@@ -100,6 +100,7 @@ export 'src/solid/utils/exceptions.dart'
         CssEmailAlreadyRegisteredException,
         CssWrongCredentialsException,
         NotLoggedInException,
+        PublicShareEncryptionConflictException,
         RecipientNotReadyException,
         ResourceNotDecryptableException,
         ResourceNotExistException,
