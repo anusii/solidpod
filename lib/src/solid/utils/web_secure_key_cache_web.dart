@@ -31,23 +31,10 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
-
-// JS object literals for the Web Crypto algorithm parameters. `js_interop`
-// turns an extension-type factory with named parameters into a plain JS object.
-
-extension type _AesKeyGenParams._(JSObject _) implements JSObject {
-  external factory _AesKeyGenParams({
-    required String name,
-    required int length,
-  });
-}
-
-extension type _AesGcmParams._(JSObject _) implements JSObject {
-  external factory _AesGcmParams({required String name, required JSAny iv});
-}
 
 const String _dbName = 'solidpod_secure';
 const String _storeName = 'kv';
@@ -59,6 +46,19 @@ const String _ctId = 'security_key_ct';
 
 class WebSecureKeyCache {
   static web.SubtleCrypto get _subtle => web.window.crypto.subtle;
+
+  // JS object literals for the Web Crypto algorithm parameters. Built with
+  // setProperty rather than an extension-type factory so the sunset
+  // dart_code_metrics unused-code check (which cannot parse extension types)
+  // does not report false positives.
+
+  static JSObject _aesKeyGenParams() => JSObject()
+    ..setProperty('name'.toJS, 'AES-GCM'.toJS)
+    ..setProperty('length'.toJS, 256.toJS);
+
+  static JSObject _aesGcmParams(JSAny iv) => JSObject()
+    ..setProperty('name'.toJS, 'AES-GCM'.toJS)
+    ..setProperty('iv'.toJS, iv);
 
   // IndexedDB helpers.
 
@@ -112,7 +112,7 @@ class WebSecureKeyCache {
     }
     final key = (await _subtle
         .generateKey(
-          _AesKeyGenParams(name: 'AES-GCM', length: 256),
+          _aesKeyGenParams(),
           false, // extractable: false — bytes can never be exported.
           <JSString>['encrypt'.toJS, 'decrypt'.toJS].toJS,
         )
@@ -134,7 +134,7 @@ class WebSecureKeyCache {
             .toDart;
     final ctBuf = (await _subtle
         .encrypt(
-          _AesGcmParams(name: 'AES-GCM', iv: iv.toJS),
+          _aesGcmParams(iv.toJS),
           wrapKey,
           Uint8List.fromList(utf8.encode(securityKey)).toJS,
         )
@@ -156,7 +156,7 @@ class WebSecureKeyCache {
     }
     final ptBuf = (await _subtle
         .decrypt(
-          _AesGcmParams(name: 'AES-GCM', iv: ivAny),
+          _aesGcmParams(ivAny),
           keyAny as web.CryptoKey,
           ctAny as JSUint8Array,
         )
