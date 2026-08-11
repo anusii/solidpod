@@ -85,6 +85,8 @@ https://server/POD_NAME/APP_NAME/data/FILE_PATH
 https://server/alice/
 https://server/alice/myapp/
 https://anusii.github.io/solidpodeg/client-profile.jsonld
+https://anushkavidanage.github.io/solidpod/example/redirect.html
+https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld
 
 # 20260605 gjw Failing solid servers
 
