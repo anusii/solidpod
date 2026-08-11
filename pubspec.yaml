@@ -4,7 +4,7 @@ version: 1.0.15
 homepage: https://github.com/anusii/solidpod
 
 environment:
-  sdk: '>=3.2.3 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
   flutter: '>=1.17.0'
 
 # To automatically upgrade package dependencies to the latest versions:
@@ -36,6 +36,7 @@ dependencies:
   rdflib: ^0.2.12
   solid_auth: ^1.0.2
   universal_io: ^2.3.1
+  web: ^1.1.0
 
 dev_dependencies:
   build_runner: ^2.10.5

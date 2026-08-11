@@ -196,6 +196,14 @@ const String demoWebID =
 ///   same-origin script (e.g. via XSS) can recover both key and ciphertext.
 ///   Web therefore provides encryption-at-rest but not the full trust-no-one
 ///   guarantee unless a `wrapKey` is supplied.
+///
+///   Because of this, the *security key* — which derives the master key that
+///   protects every encrypted resource — is NEVER persisted here on web. It is
+///   kept in memory for the session only ([KeyStorage] handles this) and must
+///   be re-entered after a page reload. The DPoP private key and OIDC tokens
+///   ([AuthDataManager]) are still cached in web localStorage as a usability
+///   trade-off; they grant session access but not data decryption, and expire.
+///   Supplying a `WebOptions.wrapKey` would harden those too.
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage(
   iOptions: IOSOptions(
