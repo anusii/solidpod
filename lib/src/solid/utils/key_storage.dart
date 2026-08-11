@@ -75,7 +75,8 @@ class KeyStorage {
         debugPrint('KeyStorage => purged legacy web security key');
       }
     } on Object catch (e) {
-      debugPrint('KeyStorage => _purgeLegacyWebEntry() error: ${e.runtimeType}');
+      debugPrint(
+          'KeyStorage => _purgeLegacyWebEntry() error: ${e.runtimeType}');
     }
   }
 
@@ -126,7 +127,8 @@ class KeyStorage {
       } on Object catch (e) {
         // Any decode/crypto error => behave as if not cached (re-prompt).
 
-        debugPrint('KeyStorage => readSecurityKey(web) error: ${e.runtimeType}');
+        debugPrint(
+            'KeyStorage => readSecurityKey(web) error: ${e.runtimeType}');
         _webSecurityKey = null;
       }
       return _webSecurityKey;

@@ -39,7 +39,8 @@ import 'package:web/web.dart' as web;
 // turns an extension-type factory with named parameters into a plain JS object.
 
 extension type _AesKeyGenParams._(JSObject _) implements JSObject {
-  external factory _AesKeyGenParams({required String name, required int length});
+  external factory _AesKeyGenParams(
+      {required String name, required int length});
 }
 
 extension type _AesGcmParams._(JSObject _) implements JSObject {
@@ -108,12 +109,12 @@ class WebSecureKeyCache {
       return existing as web.CryptoKey;
     }
     final key = (await _subtle
-            .generateKey(
-              _AesKeyGenParams(name: 'AES-GCM', length: 256),
-              false, // extractable: false — bytes can never be exported.
-              <JSString>['encrypt'.toJS, 'decrypt'.toJS].toJS,
-            )
-            .toDart) as web.CryptoKey;
+        .generateKey(
+          _AesKeyGenParams(name: 'AES-GCM', length: 256),
+          false, // extractable: false — bytes can never be exported.
+          <JSString>['encrypt'.toJS, 'decrypt'.toJS].toJS,
+        )
+        .toDart) as web.CryptoKey;
     await _put(db, _wrapKeyId, key);
     return key;
   }
@@ -130,12 +131,12 @@ class WebSecureKeyCache {
         (web.window.crypto.getRandomValues(Uint8List(12).toJS) as JSUint8Array)
             .toDart;
     final ctBuf = (await _subtle
-            .encrypt(
-              _AesGcmParams(name: 'AES-GCM', iv: iv.toJS),
-              wrapKey,
-              Uint8List.fromList(utf8.encode(securityKey)).toJS,
-            )
-            .toDart) as JSArrayBuffer;
+        .encrypt(
+          _AesGcmParams(name: 'AES-GCM', iv: iv.toJS),
+          wrapKey,
+          Uint8List.fromList(utf8.encode(securityKey)).toJS,
+        )
+        .toDart) as JSArrayBuffer;
 
     await _put(db, _ivId, iv.toJS);
     await _put(db, _ctId, ctBuf.toDart.asUint8List().toJS);
@@ -152,12 +153,12 @@ class WebSecureKeyCache {
       return null;
     }
     final ptBuf = (await _subtle
-            .decrypt(
-              _AesGcmParams(name: 'AES-GCM', iv: ivAny),
-              keyAny as web.CryptoKey,
-              ctAny as JSUint8Array,
-            )
-            .toDart) as JSArrayBuffer;
+        .decrypt(
+          _AesGcmParams(name: 'AES-GCM', iv: ivAny),
+          keyAny as web.CryptoKey,
+          ctAny as JSUint8Array,
+        )
+        .toDart) as JSArrayBuffer;
     return utf8.decode(ptBuf.toDart.asUint8List());
   }
 
