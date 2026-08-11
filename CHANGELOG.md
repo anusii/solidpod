@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Switch public to private sharing [1.0.17 20260811 jesscmoore]
 + Preserve encryption state on overwrite [1.0.16 20260811 jesscmoore]
 + Fix deleting a large file stored as a single chunk [1.0.15 20260809 gjw]
 + Remove debug output when reading a large file [1.0.14 20260809 gjw]

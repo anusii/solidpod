@@ -79,12 +79,14 @@ https://securetoken.google.com/
 
 file:///home/runner/work/solidui/solidui/lib/src/utils/scheme
 https://pods.example.au/john-doe/profile/card#me
+https://anushkavidanage.github.io/solidpod/example/client-profile.jsonld
+https://anushkavidanage.github.io/solidpod/example/redirect.html
+https://anusii.github.io/solidpodeg/client-profile.jsonld
 https://github.com/gjwgit/myapp/blob/main/README.md
 https://github.com/anusii/solidpod/blob/main/solidpodeg/README.md
 https://server/POD_NAME/APP_NAME/data/FILE_PATH
 https://server/alice/
 https://server/alice/myapp/
-https://anusii.github.io/solidpodeg/client-profile.jsonld
 
 # 20260605 gjw Failing solid servers
 
