@@ -189,13 +189,16 @@ const String demoWebID =
 ///   NOT migrated to a new device via encrypted backups / iCloud. Losing the
 ///   DPoP key on device migration simply forces a re-login, which is expected
 ///   since the OIDC client is registered dynamically per session anyway.
-/// - Web: values ARE encrypted at rest — AES-GCM (256-bit) via the browser's
-///   Web Crypto API, stored in localStorage. The caveat is the encryption key:
-///   with the default options (no `wrapKey` in `WebOptions`, which we don't
-///   set) the AES key is stored unwrapped in the same localStorage, so any
-///   same-origin script (e.g. via XSS) can recover both key and ciphertext.
-///   Web therefore provides encryption-at-rest but not the full trust-no-one
-///   guarantee unless a `wrapKey` is supplied.
+/// - Web: values are AES-GCM-encrypted (256-bit) via the browser's Web Crypto
+///   API. The caveat is the encryption key: with the default options the AES
+///   key is stored *unwrapped* in the same storage as the ciphertext, so any
+///   same-origin script (e.g. via XSS) could recover both. To limit exposure
+///   we set `useSessionStorage: true`, which places everything in
+///   `sessionStorage` rather than `localStorage`. The store is then scoped to
+///   the browsing session: it is per-tab, is not shared with other tabs, and
+///   is cleared when the tab/window is closed — so the security key is not left
+///   on disk across sessions. (Note `sessionStorage` does survive an in-tab
+///   reload/refresh; only closing the tab clears it.)
 
 FlutterSecureStorage secureStorage = const FlutterSecureStorage(
   iOptions: IOSOptions(
@@ -204,6 +207,10 @@ FlutterSecureStorage secureStorage = const FlutterSecureStorage(
   mOptions: MacOsOptions(
     accessibility: KeychainAccessibility.first_unlock_this_device,
   ),
+  // Web only: use sessionStorage instead of localStorage so cached secrets
+  // (security key, DPoP key, tokens) do not persist beyond the browsing
+  // session. Ignored on native platforms.
+  webOptions: WebOptions(useSessionStorage: true),
 );
 
 /// Enum of resource status
