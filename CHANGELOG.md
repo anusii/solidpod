@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Session store on web for secrets [1.0.16 20260819 tonypioneer]
 + Fix deleting a large file stored as a single chunk [1.0.15 20260809 gjw]
 + Remove debug output when reading a large file [1.0.14 20260809 gjw]
 + Add load test to the example app [1.0.13 20260702 tonypioneer]
