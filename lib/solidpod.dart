@@ -60,6 +60,7 @@ export 'src/solid/constants/predicates.dart';
 export 'src/solid/authenticate.dart'
     show
         solidAuthenticate,
+        prewarmSolidAuthenticate,
         tryRestoreSession,
         pickRedirectUri,
         cancelSolidAuthenticate;

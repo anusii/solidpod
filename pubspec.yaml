@@ -29,12 +29,15 @@ dependencies:
   intl: ^0.20.2
   jwt_decoder: ^2.0.1
   mime: ^2.0.0
+  oidc: ^0.14.0
   package_info_plus: ^9.0.0
   path: ^1.9.1
   petitparser: ^6.1.0
   pointycastle: ^4.0.0
   rdflib: ^0.2.12
-  solid_auth: ^1.0.2
+  # solid_auth: ^1.0.2
+  solid_auth:
+    path: ../solid_auth
   universal_io: ^2.3.1
 
 dev_dependencies:

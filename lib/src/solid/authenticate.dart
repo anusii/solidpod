@@ -36,6 +36,8 @@ import 'package:flutter/foundation.dart'
     show debugPrint, defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart' show BuildContext;
 
+import 'package:oidc/oidc.dart' show OidcPlatformSpecificOptions;
+
 import 'package:solid_auth/solid_auth.dart'
     show SolidAuthManager, SolidOidcConfig;
 
@@ -115,6 +117,71 @@ void cancelSolidAuthenticate() {
   // unawaited(cancelAuthenticate());
 }
 
+// State cached by prewarmSolidAuthenticate() and consumed (then cleared) by
+// the next solidAuthenticate() call, so long as its parameters match.
+SolidAuthManager? _prewarmedManager;
+String? _prewarmedServerId;
+String? _prewarmedClientId;
+String? _prewarmedRedirectUri;
+OidcPlatformSpecificOptions? _prewarmedOidcOptions;
+
+void _clearPrewarmedManager() {
+  _prewarmedManager = null;
+  _prewarmedServerId = null;
+  _prewarmedClientId = null;
+  _prewarmedRedirectUri = null;
+  _prewarmedOidcOptions = null;
+}
+
+/// Resolves [serverId]'s issuer and initialises the underlying OIDC manager
+/// ahead of time, so a later [solidAuthenticate] call with the exact same
+/// [serverId], [clientId], [redirectUris], and [oidcOptions] can skip
+/// straight to the browser redirect.
+///
+/// This exists for Safari: `window.open()` must fire within the same
+/// user-gesture handling as the login button's click, but [solidAuthenticate]
+/// normally awaits a WebID HTTP GET and an OIDC discovery-document GET first,
+/// which pushes it past that window and gets the popup silently blocked.
+/// Call this speculatively — e.g. when the login screen first shows a fixed
+/// default server — so the button click reuses an already-initialised
+/// manager instead. Failures are swallowed; [solidAuthenticate] will simply
+/// redo the work from scratch.
+Future<void> prewarmSolidAuthenticate(
+  String serverId, {
+  required String clientId,
+  required List<String> redirectUris,
+  List<String> postLogoutRedirectUris = const [],
+  OidcPlatformSpecificOptions? oidcOptions,
+}) async {
+  if (clientId.isEmpty || redirectUris.isEmpty) return;
+  try {
+    if (await isUserLoggedIn()) return;
+
+    final effectiveRedirectUri = pickRedirectUri(redirectUris);
+    final effectivePostLogoutUri = postLogoutRedirectUris.isNotEmpty
+        ? pickRedirectUri(postLogoutRedirectUris)
+        : effectiveRedirectUri;
+
+    final manager = SolidAuthManager(
+      config: SolidOidcConfig(
+        clientId: clientId,
+        redirectUri: Uri.parse(effectiveRedirectUri),
+        postLogoutRedirectUri: Uri.parse(effectivePostLogoutUri),
+        options: oidcOptions,
+      ),
+    );
+    await manager.prewarm(serverId);
+
+    _prewarmedManager = manager;
+    _prewarmedServerId = serverId;
+    _prewarmedClientId = clientId;
+    _prewarmedRedirectUri = effectiveRedirectUri;
+    _prewarmedOidcOptions = oidcOptions;
+  } on Object catch (e) {
+    debugPrint('prewarmSolidAuthenticate() failed: $e');
+  }
+}
+
 /// Asynchronously authenticate a user against a Solid server [serverId].
 ///
 /// [serverId] is the user's WebID or an issuer URI. Issuer resolution is
@@ -140,6 +207,18 @@ void cancelSolidAuthenticate() {
 /// [postLogoutRedirectUris] works the same way for the post-logout redirect.
 /// Defaults to the same selection as [redirectUris] when omitted.
 ///
+/// [oidcOptions] passes through platform-specific `package:oidc` settings.
+/// On web, the default navigation mode opens a new popup/tab via
+/// `window.open()`, which Safari's popup blocker silently blocks because it
+/// fires after the async WebID/issuer-discovery lookups below rather than
+/// synchronously within the click handler. Call [prewarmSolidAuthenticate]
+/// ahead of the click to remove those awaits from this call's path instead.
+///
+/// `OidcPlatformSpecificOptions_Web_NavigationMode.samePage` avoids the
+/// popup entirely via a full-page redirect, but the browser fully reloads
+/// mid-flow, so any code awaiting this call never resumes — only pass it if
+/// your caller doesn't rely on that continuation running (solidui's stock
+/// widgets do, so don't set this when using them).
 ///
 /// Returns `[SolidAuthData, webId, profileTurtle]` on success, null on failure.
 Future<List<dynamic>?> solidAuthenticate(
@@ -148,6 +227,7 @@ Future<List<dynamic>?> solidAuthenticate(
   required String clientId,
   required List<String> redirectUris,
   List<String> postLogoutRedirectUris = const [],
+  OidcPlatformSpecificOptions? oidcOptions,
 }) async {
   try {
     // Return existing session without re-authenticating.
@@ -182,13 +262,24 @@ Future<List<dynamic>?> solidAuthenticate(
         ? pickRedirectUri(postLogoutRedirectUris)
         : effectiveRedirectUri;
 
-    final authManager = SolidAuthManager(
-      config: SolidOidcConfig(
-        clientId: clientId,
-        redirectUri: Uri.parse(effectiveRedirectUri),
-        postLogoutRedirectUri: Uri.parse(effectivePostLogoutUri),
-      ),
-    );
+    // Reuse the manager warmed up by prewarmSolidAuthenticate() when it
+    // matches this call's parameters — that's what lets the redirect below
+    // fire without first re-running the WebID lookup and discovery fetch.
+    final authManager = (_prewarmedManager != null &&
+            _prewarmedServerId == serverId &&
+            _prewarmedClientId == clientId &&
+            _prewarmedRedirectUri == effectiveRedirectUri &&
+            _prewarmedOidcOptions == oidcOptions)
+        ? _prewarmedManager!
+        : SolidAuthManager(
+            config: SolidOidcConfig(
+              clientId: clientId,
+              redirectUri: Uri.parse(effectiveRedirectUri),
+              postLogoutRedirectUri: Uri.parse(effectivePostLogoutUri),
+              options: oidcOptions,
+            ),
+          );
+    _clearPrewarmedManager();
 
     final solidAuthData = await authManager.authenticate(serverId);
     if (solidAuthData == null) return null;
