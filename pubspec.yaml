@@ -37,7 +37,9 @@ dependencies:
   rdflib: ^0.2.12
   # solid_auth: ^1.0.2
   solid_auth:
-    path: ../solid_auth
+    git:
+      url: https://github.com/anusii/solid_auth.git
+      ref: av/693_streamline_login_logout
   universal_io: ^2.3.1
 
 dev_dependencies:
