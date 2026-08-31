@@ -37,7 +37,6 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart' show BuildContext;
 
 import 'package:oidc/oidc.dart' show OidcPlatformSpecificOptions;
-
 import 'package:solid_auth/solid_auth.dart'
     show SolidAuthManager, SolidOidcConfig;
 
