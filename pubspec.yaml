@@ -1,6 +1,6 @@
 name: solidpod
 description: Support access to private data from PODs on Solid servers.
-version: 1.0.18
+version: 1.0.19
 homepage: https://github.com/anusii/solidpod
 
 environment:
