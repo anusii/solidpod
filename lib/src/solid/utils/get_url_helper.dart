@@ -62,7 +62,23 @@ Future<String> _getResourceUrl(
   assert(wId != null);
   assert(wId!.contains(profCard));
 
-  final resourceUrl = wId!.replaceAll(profCard, resourcePath);
+  // final resourceUrl = wId!.replaceAll(profCard, resourcePath);
+
+  final uri = Uri.tryParse(wId!);
+
+  if (uri == null) {
+    throw Exception('WebID is null');
+  }
+
+  if (uri.pathSegments.isEmpty) {
+    throw Exception('Invalide WebID ($wId)');
+  }
+
+  final resourceUrl = [
+    uri.origin,
+    uri.pathSegments.first,
+    resourcePath,
+  ].join('/');
 
   if (!isFile && !resourceUrl.endsWith('/')) {
     return '$resourceUrl/';
