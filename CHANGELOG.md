@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Support both user.server and server/user URIs [1.0.18 20260902 dc]
 + Streamline login logout [1.0.17 20260828 anushkavidanage]
 + Session store on web for secrets [1.0.16 20260819 tonypioneer]
 + Fix deleting a large file stored as a single chunk [1.0.15 20260809 gjw]
