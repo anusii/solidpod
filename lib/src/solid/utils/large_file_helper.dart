@@ -34,7 +34,7 @@ import 'dart:typed_data' show BytesBuilder, Uint8List;
 import 'package:flutter/foundation.dart' hide Key;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:rdflib/rdflib.dart' show Namespace, URIRef, Literal;
+import 'package:rdf/rdf.dart' show Namespace, URIRef, Literal;
 import 'package:universal_io/io.dart' show File;
 
 import 'package:solidpod/src/solid/api/rest_api.dart'

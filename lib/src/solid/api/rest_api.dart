@@ -40,7 +40,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mime/mime.dart' as mime;
-import 'package:rdflib/rdflib.dart';
+import 'package:rdf/rdf.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
@@ -619,8 +619,8 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 
   if (profResponse.statusCode == 200) {
     //debugPrint(profResponse.body.runtimeType as String); // String
-    // NB: rdflib-0.2.8 (dart) is not able to parse this but
-    //     rdflib-7.0.0 (python) can parse it
+    // NB: rdflib-0.2.8 (dart, now the `rdf` package) is not able to parse this
+    //     but rdflib-7.0.0 (python) can parse it
     //
     // final g = Graph();
     // g.parseTurtle(profResponse.body);
@@ -644,7 +644,7 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 
 /// A heuristic to parse the response body of a request getting the list of
 /// resources in a container.
-/// This heuristic is a temporary solution before rdflib (dart) is capable
+/// This heuristic is a temporary solution before `rdf` (dart) is capable
 /// of parsing the response body.
 ({List<String> subDirs, List<String> files}) _parseGetContainerResponse(
   String responseBody,

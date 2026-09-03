@@ -32,7 +32,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
 import 'package:pointycastle/asymmetric/api.dart';
-import 'package:rdflib/rdflib.dart' show Namespace;
+import 'package:rdf/rdf.dart' show Namespace;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/schema.dart' show appsResId;

@@ -34,7 +34,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show debugPrint;
 
 import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:rdflib/rdflib.dart' show Literal, Namespace, URIRef;
+import 'package:rdf/rdf.dart' show Literal, Namespace, URIRef;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
@@ -145,7 +145,7 @@ String _podOwnerBase(String appRootUrl) {
   return idx < 0 ? '$trimmed/' : '${trimmed.substring(0, idx)}/';
 }
 
-// First string value of a triple object, which rdflib may surface as either a
+// First string value of a triple object, which the `rdf` package may surface as either a
 // bare string or an iterable of strings.
 
 String? _firstString(dynamic value) {
@@ -453,7 +453,7 @@ String _buildDisplayNameTtl(String webId, String name) {
       VcardPredicate.fn.uriRef: Literal(name),
     },
   };
-  // rdflib auto-binds foaf:, so only the vcard prefix needs registering.
+  // The `rdf` package auto-binds foaf:, so only the vcard prefix needs registering.
   return tripleMapToTurtle(
     triples,
     bindNamespaces: {'vcard': Namespace(ns: vcard)},

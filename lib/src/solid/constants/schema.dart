@@ -28,7 +28,7 @@
 
 library;
 
-import 'package:rdflib/rdflib.dart';
+import 'package:rdf/rdf.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart'
     show acl, foaf, rdf, terms, vcard;

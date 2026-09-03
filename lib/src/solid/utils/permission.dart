@@ -28,7 +28,7 @@ library;
 
 import 'dart:convert';
 
-import 'package:rdflib/rdflib.dart' show URIRef, Namespace;
+import 'package:rdf/rdf.dart' show URIRef, Namespace;
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/web_acl.dart';

@@ -30,7 +30,7 @@
 
 library;
 
-import 'package:rdflib/rdflib.dart' show URIRef;
+import 'package:rdf/rdf.dart' show URIRef;
 
 import 'package:solidpod/src/solid/constants/common.dart'
     show acl, foaf, rdf, terms, vcard, xsd;

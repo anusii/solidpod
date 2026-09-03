@@ -35,7 +35,7 @@ library;
 import 'dart:convert';
 
 import 'package:encrypter_plus/encrypter_plus.dart';
-import 'package:rdflib/rdflib.dart';
+import 'package:rdf/rdf.dart';
 
 import 'package:solidpod/src/solid/api/rest_api.dart';
 import 'package:solidpod/src/solid/constants/common.dart';

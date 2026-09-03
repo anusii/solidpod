@@ -29,7 +29,7 @@
 library;
 
 import 'package:petitparser/petitparser.dart';
-import 'package:rdflib/rdflib.dart';
+import 'package:rdf/rdf.dart';
 
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/schema.dart';
@@ -44,7 +44,7 @@ const String _literalEnd = '\u0003';
 // parse tree is walked.
 //
 // The overridden method names use the SCREAMING_SNAKE_CASE convention defined
-// by the W3C Turtle grammar and inherited from rdflib's [EvaluatorDefinition],
+// by the W3C Turtle grammar and inherited from the `rdf` package's [EvaluatorDefinition],
 // so the `non_constant_identifier_names` lint is intentionally ignored.
 
 // ignore_for_file: non_constant_identifier_names
@@ -257,7 +257,7 @@ String _stripAngleBrackets(String token) {
   return token;
 }
 
-// Remove Turtle comments. Mirrors rdflib's behaviour: a line starting with
+// Remove Turtle comments. Mirrors the `rdf` package's behaviour: a line starting with
 // `#` is dropped entirely, and an inline ` # ` comment is trimmed to the end
 // of the line. Comments inside string literals are not stripped, as the
 // pattern only matches ` # ` preceded by whitespace, which cannot appear
@@ -277,7 +277,7 @@ String _stripComments(String content) {
 
 // Collapse a `"""..."""` (or `'''...'''`) long literal onto a single line so
 // the line-based grammar can match it. Mirrors the preprocessing performed
-// by rdflib's [Graph.parseTurtle].
+// by the `rdf` package's [Graph.parseTurtle].
 
 String _preprocessLongLiterals(String content) {
   final regex = RegExp(

@@ -29,7 +29,7 @@
 
 library;
 
-import 'package:rdflib/rdflib.dart' show Namespace, URIRef;
+import 'package:rdf/rdf.dart' show Namespace, URIRef;
 
 import 'package:solidpod/src/solid/constants/common.dart'
     show
@@ -61,8 +61,8 @@ final thisDir = URIRef('./');
 final bindAclNamespaces = {
   thisFile.prefix: thisFile.ns,
   aclNS.prefix: aclNS.ns,
-  // foafNS.prefix: foafNS.ns, // already binded in rdflib
-  // rdfNS.prefix: rdfNS.ns // already binded in rdflib
+  // foafNS.prefix: foafNS.ns, // already binded in `rdf`
+  // rdfNS.prefix: rdfNS.ns // already binded in `rdf`
 };
 
 // NOTE: Common predicates (RdfPredicate, FoafPredicate, VcardPredicate,
