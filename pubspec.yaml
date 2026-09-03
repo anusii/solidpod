@@ -1,6 +1,6 @@
 name: solidpod
 description: Support access to private data from PODs on Solid servers.
-version: 1.0.18
+version: 1.0.19
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -19,31 +19,31 @@ dependencies:
   flutter:
     sdk: flutter
 
-  archive: ^4.0.8
+  archive: ^4.0.9
   crypto: ^3.0.7
   cryptography_plus: ^3.0.0
   encrypter_plus: ^5.1.0
   fast_rsa: ^3.8.6
-  flutter_secure_storage: ^10.0.0
+  flutter_secure_storage: ^10.3.1
   http: ^1.6.0
-  intl: ^0.20.2
+  intl: ^0.20.3
   jwt_decoder: ^2.0.1
-  mime: ^2.0.0
+  mime: ^2.1.0
   oidc: ^0.14.0
-  package_info_plus: ^9.0.0
+  package_info_plus: ^10.2.1
   path: ^1.9.1
-  petitparser: ^6.1.0
+  petitparser: ^7.0.2
   pointycastle: ^4.0.0
-  rdflib: ^0.2.12
+  rdflib: ^0.2.13
   solid_auth: ^1.0.5
   universal_io: ^2.3.1
 
 dev_dependencies:
-  build_runner: ^2.10.5
+  build_runner: ^2.15.1
   custom_lint: ^0.8.1
-  dependency_validator: ^5.0.4
+  dependency_validator: ^5.0.6
   flutter_lints: ^6.0.0
-  import_order_lint: ^0.2.2
+  import_order_lint: ^0.2.3
 
 flutter:
   config:

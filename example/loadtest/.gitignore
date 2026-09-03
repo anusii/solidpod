@@ -1,3 +1,0 @@
-# Local virtualenv for the load tester (created per README.md).
-.venv/
-__pycache__/
