@@ -34,7 +34,7 @@ dependencies:
   path: ^1.9.1
   petitparser: ^7.0.2
   pointycastle: ^4.0.0
-  rdflib: ^0.2.13
+  rdf: ^1.0.0
   solid_auth: ^1.0.5
   universal_io: ^2.3.1
 
