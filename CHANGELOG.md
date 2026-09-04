@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Migrate oidc from 0->4 [1.0.20 20260904 gjw]
 + Update dependency (including rdf 1.0.0, renamed from rdflib) [1.0.19]
 + Support both user.server and server/user URIs [1.0.18 20260902 dc]
 + Streamline login logout [1.0.17 20260828 anushkavidanage]
