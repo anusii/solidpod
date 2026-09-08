@@ -292,3 +292,33 @@ enum FileOpenMode {
   /// String value of the mode
   final String value;
 }
+
+/// Request headers that stop a GET being answered from a stale HTTP cache.
+///
+/// Solid servers commonly mark responses cacheable for a long period —
+/// Community Solid Server sends `Cache-Control: max-age=86400` (24 hours) with
+/// `Vary: Accept,Authorization,Origin`. On the web, `package:http` is backed by
+/// the browser's `fetch`, which honours that, so a container listing or
+/// resource read is answered from the browser cache rather than the POD for a
+/// full day. Reads then return whatever was true when the cache entry was
+/// written: newly created resources are invisible and deleted ones linger.
+///
+/// This is web-only in practice — `dart:io`'s `HttpClient`, used on every
+/// native platform, implements no shared cache — which is why the symptom
+/// appears only in Flutter web builds.
+///
+/// `no-cache` rather than `no-store`: the response may still be stored, but it
+/// must be revalidated with the origin before reuse. Where the server supplies
+/// a validator, answered with `304 Not Modified` rather than a full
+/// re-download. Community Solid Server advertises `ETag` support via
+/// `Access-Control-Expose-Headers`, but does not send a validator on every
+/// response (a container listing observed in testing carried neither `ETag`
+/// nor `Last-Modified`), so some reads will be full re-fetches. That is the
+/// intended trade: correctness over a saved round trip.
+///
+/// `Pragma` is the HTTP/1.0 spelling, sent alongside for intermediaries that
+/// predate `Cache-Control`.
+const Map<String, String> noHttpCacheHeaders = <String, String>{
+  'Cache-Control': 'no-cache',
+  'Pragma': 'no-cache',
+};

@@ -342,6 +342,7 @@ Future<ResourceStatus> checkResourceStatus(
       'Authorization': 'DPoP $accessToken',
       'Link': isFile ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
+      ...noHttpCacheHeaders,
     },
   );
 
@@ -372,6 +373,7 @@ Future<ResourceStatus> checkWebIdExists(String webIdUrl) async {
       headers: <String, String>{
         'Content-Type': ResourceContentType.any.value,
         'Link': fileTypeLink,
+        ...noHttpCacheHeaders,
       },
     );
 
@@ -448,6 +450,7 @@ Future<WebIdStatus> checkWebIdProfile(String webIdUrl) async {
           'application/trig;q=0.75, '
           'text/n3;q=0.7, '
           '*/*;q=0.1',
+      ...noHttpCacheHeaders,
     },
   );
 
@@ -586,6 +589,7 @@ Future<Uint8List> getResource(String resourceUrl) async {
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'DPoP': dPopToken,
+      ...noHttpCacheHeaders,
     },
   );
 
@@ -614,6 +618,7 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
       'Authorization': 'DPoP $accessToken',
       'Connection': 'keep-alive',
       'DPoP': dPopToken,
+      ...noHttpCacheHeaders,
     },
   );
 
