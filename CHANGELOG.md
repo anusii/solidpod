@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Disable caching for web [1.0.21 20260908 jesscmoore]
 + Migrate oidc from 0->4 [1.0.20 20260904 gjw]
 + Update dependency (including rdf 1.0.0, renamed from rdflib) [1.0.19]
 + Support both user.server and server/user URIs [1.0.18 20260902 dc]
@@ -39,8 +40,8 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 + Check missing resources [0.12.9 20260520 tonypioneer]
 + Support checking webID [0.12.8 20260520 tonypioneer]
 + Update Try Another WebID workflow [0.12.7 20260520 tonypioneer]
-+ Bug fix to ttl rdf for special chars #628 [0.12.6 20260518 tonypioneer]
-+ Upgrade solidauth and fix key file saving edge cases [0.12.5 20260427 jesscmoore]
++ Bug fix to ttl RDF for special chars #628 [0.12.6 20260518 tonypioneer]
++ Upgrade solid_auth and fix key file saving edge cases [0.12.5 20260427 jesscmoore]
 + Support user profile. [0.12.4 20260421 tonypioneer]
 + Key map + paths updates. Update file_picker. [0.12.3 20260420 jesscmoore]
 + Add silentLogout() [0.12.2 20260325 tonypioneer]
