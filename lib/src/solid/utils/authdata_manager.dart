@@ -87,18 +87,43 @@ class AuthDataManager {
     authStateNotifier.value = true;
   }
 
+  /// The restore currently in flight, shared by concurrent callers.
+  static Future<SolidAuthData?>? _restoreInFlight;
+
+  /// The token refresh currently in flight, shared by concurrent callers.
+  static Future<SolidAuthData?>? _refreshInFlight;
+
   /// Returns current [SolidAuthData], refreshing the token if expired.
   ///
   /// If no in-memory manager exists, attempts to restore the session from
   /// secure storage using [SolidAuthManager.initForIssuer].  Returns null
   /// when the session cannot be restored (forces re-login).
-  static Future<SolidAuthData?> loadAuthData() async {
+  ///
+  /// Concurrent callers share a single restore (and a single refresh) rather
+  /// than each starting their own. Both paths end in a `refresh_token` grant,
+  /// and the Solid server issues single-use refresh tokens: a second grant
+  /// sent with the same token is rejected as `invalid_grant`, and
+  /// [SolidAuthManager.tryRestoreSession] responds to that failure by clearing
+  /// the stored session — discarding the session the first caller had just
+  /// successfully refreshed. On startup two callers are routine (solidui's
+  /// auto-login and its login-status notifier both run on the first frame),
+  /// so without this the session is destroyed on every launch.
+  static Future<SolidAuthData?> loadAuthData() {
     // Check if live manager already in memory.
     if (_authManager != null) {
-      return _getRefreshedAuthData(_authManager!);
+      return _refreshInFlight ??= _getRefreshedAuthData(
+        _authManager!,
+      ).whenComplete(() => _refreshInFlight = null);
     }
 
-    // Slow path: try to restore from secure storage.
+    return _restoreInFlight ??= _restoreFromStorage().whenComplete(
+      () => _restoreInFlight = null,
+    );
+  }
+
+  /// Restores the session from secure storage. Call via [loadAuthData], which
+  /// ensures only one restore runs at a time.
+  static Future<SolidAuthData?> _restoreFromStorage() async {
     final dataStr = await secureStorage.read(key: _authDataSecureStorageKey);
     if (dataStr == null) return null;
 
