@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Fix always being asked to log in again on startup [1.0.22 20260911 gjw]
 + Disable caching for web [1.0.21 20260908 jesscmoore]
 + Migrate oidc from 0->4 [1.0.20 20260904 gjw]
 + Update dependency (including rdf 1.0.0, renamed from rdflib) [1.0.19]
