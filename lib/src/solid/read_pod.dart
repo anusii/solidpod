@@ -92,23 +92,14 @@ Future<String> readPod(
     pathType: pathType,
   );
 
-  final fileStatus = await checkResourceStatus(fileUrl);
-
-  if (fileStatus != ResourceStatus.exist) {
-    switch (fileStatus) {
-      case ResourceStatus.notExist:
-        throw ResourceNotExistException('$fileUrl does not exist');
-      case ResourceStatus.forbidden:
-        throw AccessForbiddenException('Access to $fileUrl is not allowed');
-      case ResourceStatus.unknown:
-        throw Exception('Unknown error.');
-      default:
-        {}
-    }
-  }
-
   try {
-    // Retrieve raw content
+    // Retrieve raw content.
+    //
+    // No separate existence check first: that was a second GET of the very
+    // same resource, so every read downloaded the file twice and paid two
+    // round trips instead of one. getResource() reports a missing or
+    // forbidden resource through ResourceNotExistException /
+    // AccessForbiddenException, which is what the check used to raise.
 
     final fileContent = utf8.decode(await getResource(fileUrl));
 
@@ -158,6 +149,13 @@ Future<String> readPod(
     }
 
     return decryptData(encDataStr, encKey, IV.fromBase64(ivStr));
+  } on ResourceNotExistException {
+    // A missing resource is an ordinary outcome callers handle themselves;
+    // do not dump a stack trace for it.
+
+    rethrow;
+  } on AccessForbiddenException {
+    rethrow;
   } on Object catch (e, trace) {
     debugPrint(e.toString());
     debugPrint(trace.toString());

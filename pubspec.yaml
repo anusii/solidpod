@@ -35,7 +35,7 @@ dependencies:
   petitparser: ^7.0.2
   pointycastle: ^4.0.0
   rdf: ^1.0.0
-  solid_auth: ^1.0.9
+  solid_auth: ^1.0.10
   universal_io: ^2.3.1
 
 dev_dependencies:
@@ -44,6 +44,12 @@ dev_dependencies:
   dependency_validator: ^5.0.6
   flutter_lints: ^6.0.0
   import_order_lint: ^0.2.3
+
+dependency_overrides:
+  solid_auth:
+    git:
+      url: https://github.com/anusii/solid_auth.git
+      ref: tony/553_upload_performance
 
 flutter:
   config:

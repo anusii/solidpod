@@ -37,6 +37,7 @@ import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:solid_auth/solid_auth.dart' show DpopTokenGenerator;
 
+import 'package:solidpod/src/solid/api/http_client.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
@@ -192,6 +193,11 @@ Future<bool> logoutPod() async {
     }
 
     final authDataRemoved = await AuthDataManager.removeAuthData();
+
+    // Drop the pooled connections so no authenticated socket is kept open.
+
+    closePodHttpClient();
+
     return authDataRemoved;
   } on Object catch (e) {
     debugPrint('logoutPod() CRITICAL ERROR: $e');
@@ -244,6 +250,8 @@ Future<bool> silentLogout() async {
         debugPrint('silentLogout() headless logout failed (non-critical): $e');
       }
     }
+
+    closePodHttpClient();
 
     return authDataRemoved;
   } on Object catch (e) {

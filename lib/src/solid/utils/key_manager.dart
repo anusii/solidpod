@@ -564,6 +564,28 @@ class KeyManager {
     );
   }
 
+  /// Add the (encrypted) individual keys for several resources, saving the
+  /// key file once for the whole batch.
+  ///
+  /// See [IndividualKeyManager.addIndividualKeys] for why this matters when
+  /// many files are written in one go.
+
+  static Future<void> addIndividualKeys({
+    required Map<String, Key> indKeys,
+    bool isFile = true,
+  }) async {
+    await IndividualKeyManager.addIndividualKeys(
+      indKeys: indKeys,
+      masterKey: await getMasterKey(),
+      isFile: isFile,
+    );
+  }
+
+  /// Whether an individual key is already registered for [resourceUrl].
+
+  static Future<bool> hasIndividualKey(String resourceUrl) async =>
+      IndividualKeyManager.hasIndividualKey(resourceUrl);
+
   /// Remove the (encrypted) individual key for file.
 
   static Future<void> removeIndividualKey({
