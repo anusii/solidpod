@@ -194,13 +194,8 @@ Future<List<dynamic>> initialStructureTest(
 /// on a server using HTTP requests:
 /// - PUT request: create or replace a resource if exists (e.g. an ACL file)
 /// - POST request: create a resource (e.g. a TTL file or a directory)
-///
-/// Returns the HTTP status code of the successful response. A 201 means the
-/// server created a new resource, 200/205 that it replaced an existing one.
-/// Callers can use that to skip a separate existence check (see [writePod],
-/// which only probes for an ACL when the data file already existed).
 
-Future<int> createResource(
+Future<void> createResource(
   String resourceUrl, {
   dynamic content = '',
   bool isFile = true,
@@ -264,7 +259,7 @@ Future<int> createResource(
   );
 
   if ([200, 201, 205].contains(response.statusCode)) {
-    return response.statusCode;
+    return;
   } else if (response.statusCode == 403) {
     // No write permission at this location. Surface a typed, actionable error
     // so callers (e.g. writing to another user's POD) can distinguish a

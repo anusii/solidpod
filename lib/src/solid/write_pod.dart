@@ -28,6 +28,8 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show debugPrint;
+
 import 'package:encrypter_plus/encrypter_plus.dart' show Key;
 import 'package:mime/mime.dart' as mime;
 
@@ -155,37 +157,40 @@ Future<void> writePod(
     encKey = await configureEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
   }
 
-  // Whether the file is known not to exist yet. Only meaningful when we
-  // actually probed for it below; null means "not checked".
+  // Check what is already at the target before uploading anything, so that an
+  // existing file is never silently replaced when overwrite is false and a
+  // forbidden or indeterminate target is reported before the upload rather
+  // than through whatever the upload happens to fail with.
+  //
+  // The probe uses HEAD, not GET: only the status code is wanted, and a GET
+  // downloaded the whole file that was about to be replaced. On a server that
+  // does not answer HEAD, checkResourceStatus() falls back to GET, so the
+  // outcome is unchanged.
 
-  bool? fileExisted;
-
-  // With overwrite=true the PUT below replaces whatever is there, so probing
-  // first only costs a round trip (and, before checkResourceStatus grew a
-  // HEAD path, a full download of the file we are about to replace). A 403
-  // still surfaces as AccessForbiddenException, raised by createResource().
-
-  if (!overwrite) {
-    switch (await checkResourceStatus(fileUrl, useHead: true)) {
-      case ResourceStatus.exist:
+  switch (await checkResourceStatus(fileUrl, useHead: true)) {
+    case ResourceStatus.exist:
+      if (overwrite) {
+        debugPrint('NOTE: Overwriting existing file "$filePath"');
+      } else {
         throw Exception(
           'File "$filePath" already exists and '
           'overwrite=$overwrite, writePod() aborted',
         );
+      }
 
-      case ResourceStatus.unknown:
-        throw Exception(
-          'Unable to determine if file "$fileUrl" exists, writePod() aborted',
-        );
+    case ResourceStatus.unknown:
+      throw Exception(
+        'Unable to determine if file "$fileUrl" exists, writePod() aborted',
+      );
 
-      case ResourceStatus.forbidden:
-        throw AccessForbiddenException(
-          'Access to file "$fileUrl" is forbidden, writePod() aborted',
-        );
+    case ResourceStatus.forbidden:
+      throw AccessForbiddenException(
+        'Access to file "$fileUrl" is forbidden, writePod() aborted',
+      );
 
-      case ResourceStatus.notExist:
-        fileExisted = false;
-    }
+    case ResourceStatus.notExist: // Empty case falls through.
+      // debugPrint('File "$fileUrl" does not exist');
+      {}
   }
 
   final content = encKey == null
@@ -201,7 +206,7 @@ Future<void> writePod(
 
   // Create file on server
 
-  final writeStatus = await createResource(
+  await createResource(
     fileUrl,
     content: content,
     contentType: encKey == null
@@ -209,22 +214,12 @@ Future<void> writePod(
         : ResourceContentType.turtleText,
   );
 
-  // Create the ACL file for the data file if necessary.
+  // Create the ACL file for the data file if necessary
 
   if (createAcl) {
     final aclFileUrl = '$fileUrl.acl';
-
-    // When the data file did not exist a moment ago, neither does its ACL, so
-    // the probe can be skipped. We know that either because we checked above
-    // (overwrite=false) or because the server answered the PUT with 201
-    // Created. Servers that answer 200 for a newly created resource simply
-    // fall back to the probe, which is correct, just one round trip slower.
-
-    final isNewFile = fileExisted == false || writeStatus == 201;
-
-    if (isNewFile ||
-        await checkResourceStatus(aclFileUrl, useHead: true) ==
-            ResourceStatus.notExist) {
+    if (await checkResourceStatus(aclFileUrl, useHead: true) ==
+        ResourceStatus.notExist) {
       await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
     }
   }

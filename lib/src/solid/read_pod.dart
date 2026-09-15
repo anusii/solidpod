@@ -92,14 +92,32 @@ Future<String> readPod(
     pathType: pathType,
   );
 
+  // Check the resource is there and readable before fetching it, so that a
+  // missing or forbidden resource is reported as such rather than as whatever
+  // the fetch happens to fail with.
+  //
+  // The probe uses HEAD, not GET: it only needs the status code, and a GET
+  // downloaded the entire resource a second time purely to discard it.
+  // checkResourceStatus() falls back to GET on any server that does not
+  // answer HEAD, so the outcome is unchanged.
+
+  final fileStatus = await checkResourceStatus(fileUrl, useHead: true);
+
+  if (fileStatus != ResourceStatus.exist) {
+    switch (fileStatus) {
+      case ResourceStatus.notExist:
+        throw ResourceNotExistException('$fileUrl does not exist');
+      case ResourceStatus.forbidden:
+        throw AccessForbiddenException('Access to $fileUrl is not allowed');
+      case ResourceStatus.unknown:
+        throw Exception('Unknown error.');
+      default:
+        {}
+    }
+  }
+
   try {
-    // Retrieve raw content.
-    //
-    // No separate existence check first: that was a second GET of the very
-    // same resource, so every read downloaded the file twice and paid two
-    // round trips instead of one. getResource() reports a missing or
-    // forbidden resource through ResourceNotExistException /
-    // AccessForbiddenException, which is what the check used to raise.
+    // Retrieve raw content
 
     final fileContent = utf8.decode(await getResource(fileUrl));
 
@@ -149,13 +167,6 @@ Future<String> readPod(
     }
 
     return decryptData(encDataStr, encKey, IV.fromBase64(ivStr));
-  } on ResourceNotExistException {
-    // A missing resource is an ordinary outcome callers handle themselves;
-    // do not dump a stack trace for it.
-
-    rethrow;
-  } on AccessForbiddenException {
-    rethrow;
   } on Object catch (e, trace) {
     debugPrint(e.toString());
     debugPrint(trace.toString());
