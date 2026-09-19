@@ -92,7 +92,16 @@ Future<String> readPod(
     pathType: pathType,
   );
 
-  final fileStatus = await checkResourceStatus(fileUrl);
+  // Check the resource is there and readable before fetching it, so that a
+  // missing or forbidden resource is reported as such rather than as whatever
+  // the fetch happens to fail with.
+  //
+  // The probe uses HEAD, not GET: it only needs the status code, and a GET
+  // downloaded the entire resource a second time purely to discard it.
+  // checkResourceStatus() falls back to GET on any server that does not
+  // answer HEAD, so the outcome is unchanged.
+
+  final fileStatus = await checkResourceStatus(fileUrl, useHead: true);
 
   if (fileStatus != ResourceStatus.exist) {
     switch (fileStatus) {
