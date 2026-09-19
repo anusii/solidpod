@@ -66,7 +66,7 @@ export 'package:solidpod/src/solid/utils/session.dart';
 /// so calling it unconditionally clears any such orphan before we write.
 
 Future<void> writeToSecureStorage(String key, String value) async {
-  await secureStorage.delete(key: key);
+  await deleteFromSecureStorage(key);
 
   try {
     await secureStorage.write(key: key, value: value);
@@ -75,7 +75,7 @@ Future<void> writeToSecureStorage(String key, String value) async {
     // synchronizable variant), purge once more and retry the write.
 
     if (_isDuplicateKeychainItem(e)) {
-      await secureStorage.delete(key: key);
+      await deleteFromSecureStorage(key);
       await secureStorage.write(key: key, value: value);
     } else {
       rethrow;

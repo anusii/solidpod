@@ -32,6 +32,8 @@
 
 library;
 
+import 'package:flutter/services.dart' show PlatformException;
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Length limit for long strings for a screen.
@@ -189,6 +191,22 @@ const String demoWebID =
 ///   NOT migrated to a new device via encrypted backups / iCloud. Losing the
 ///   DPoP key on device migration simply forces a re-login, which is expected
 ///   since the OIDC client is registered dynamically per session anyway.
+/// - macOS additionally turns `usesDataProtectionKeychain` off (the plugin
+///   defaults it on). The data protection keychain is reachable only by a
+///   process carrying a keychain access group, which Developer ID distribution
+///   cannot supply: it embeds no provisioning profile, and
+///   `keychain-access-groups` is a restricted entitlement without one. Worse,
+///   the OS then fails asymmetrically. `SecItemAdd` returns
+///   `errSecMissingEntitlement` (-34018), so the caller falls back to plaintext
+///   `shared_preferences`, while `SecItemCopyMatching` returns
+///   `errSecItemNotFound` (-25300), which reads as "never stored" and triggers
+///   no fallback. Secrets are leaked to disk and then lost on read. The
+///   file-based (login) keychain needs no entitlement and works sandboxed or
+///   not; `accessibility` is a data protection attribute and is ignored there.
+///
+///   20260920 tonypioneer Diagnosed against the notarized todopod 1.0.46 DMG,
+///   where it left the PKCE `code_verifier` unreadable and made every login
+///   fail with `invalid_grant - PKCE verification failed`.
 /// - Web: values are AES-GCM-encrypted (256-bit) via the browser's Web Crypto
 ///   API. The caveat is the encryption key: with the default options the AES
 ///   key is stored *unwrapped* in the same storage as the ciphertext, so any
@@ -206,12 +224,56 @@ FlutterSecureStorage secureStorage = const FlutterSecureStorage(
   ),
   mOptions: MacOsOptions(
     accessibility: KeychainAccessibility.first_unlock_this_device,
+    usesDataProtectionKeychain: false,
   ),
   // Web only: use sessionStorage instead of localStorage so cached secrets
   // (security key, DPoP key, tokens) do not persist beyond the browsing
   // session. Ignored on native platforms.
   webOptions: WebOptions(useSessionStorage: true),
 );
+
+/// Removes [key] from the secure storage, tolerating the one keychain error
+/// that does not mean the deletion failed.
+///
+/// `flutter_secure_storage`'s Darwin `delete()` runs `SecItemDelete` twice —
+/// once with `kSecAttrSynchronizable` true, once false — so that an item
+/// written by an earlier build is removed whichever way it was stored. An
+/// iCloud-synchronizable query needs a keychain access group, which only an
+/// embedded provisioning profile can supply, so in a Developer ID build the
+/// synchronizable pass always fails with `errSecMissingEntitlement` (-34018).
+/// The plugin then reports that status for the whole call unless the
+/// non-synchronizable pass actually deleted something:
+///
+/// ```swift
+/// let status = statusSync != errSecItemNotFound ? statusSync : statusNonSync
+/// ```
+///
+/// -34018 therefore reaches us only when the real (non-synchronizable) item
+/// was not there — the plugin returns success when it was found and removed.
+/// Swallowing it is exactly equivalent to "nothing to delete", which is what
+/// `delete()` promises for an absent key. An app that *can* reach the iCloud
+/// keychain never produces the status at all, so nothing is hidden there.
+///
+/// 20260920 tonypioneer Left unhandled this aborted login in the notarized
+/// todopod DMG: [writeToSecureStorage] deletes before every write, so
+/// `markPodStructureInitialised()` threw straight out of the login flow.
+
+Future<void> deleteFromSecureStorage(String key) async {
+  try {
+    await secureStorage.delete(key: key);
+  } on PlatformException catch (e) {
+    if (!_isMissingKeychainEntitlement(e)) rethrow;
+  }
+}
+
+/// Whether [e] reports the iOS/macOS keychain "a required entitlement is not
+/// present" error (`errSecMissingEntitlement`, OSStatus -34018).
+///
+/// The Darwin plugin puts the raw OSStatus in `details` and echoes the number
+/// in `message`, so both are checked rather than the generic `code` string.
+
+bool _isMissingKeychainEntitlement(PlatformException e) =>
+    e.details == -34018 || (e.message?.contains('-34018') ?? false);
 
 /// Enum of resource status
 
