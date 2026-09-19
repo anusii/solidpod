@@ -69,15 +69,6 @@ void closePodHttpClient() {
   _podHttpClient = null;
 }
 
-/// Replace the shared client, closing any existing one.
-///
-/// Intended for tests, which can inject a `MockClient` here.
-
-void setPodHttpClient(http.Client client) {
-  _podHttpClient?.close();
-  _podHttpClient = client;
-}
-
 /// Retries a request once when the connection dies before any response
 /// arrives.
 ///
