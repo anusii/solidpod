@@ -41,27 +41,29 @@ const _probeKey = '_solidpod_keychain_probe';
 
 /// Which macOS keychain each candidate reaches, for the log line.
 
-const _candidateNames = ['legacy keychain', 'data protection keychain'];
+const _candidateNames = ['data protection keychain', 'legacy keychain'];
 
-/// The option sets to try, in the order preferred.
+/// 20260921 gjw The option sets to try, in the order preferred.
 ///
-/// The first avoids the data protection keychain, which is only available to
-/// an app holding a keychain access group — from the `keychain-access-groups`
-/// entitlement, or the `com.apple.application-identifier` that an embedded
-/// provisioning profile supplies. A Developer ID build has neither, and its
-/// keychain calls fail with errSecMissingEntitlement (-34018), taking the
-/// security key and the DPoP key with them. `kSecAttrAccessible` is dropped
-/// along with it: that attribute is documented as available on macOS only
-/// when the data protection keychain is in use, and it is the remaining
-/// suspect for a -34018 that survives turning that keychain off.
+/// The data protection keychain comes first because it is the one worth
+/// having: items are pinned to this device after first unlock and are never
+/// carried to another machine. macOS only opens it to an app holding a
+/// keychain access group, which comes from the
+/// `com.apple.application-identifier` entitlement that an embedded
+/// provisioning profile authorises. A build carrying such a profile lands
+/// here.
 ///
-/// The second is the plugin default, which is right for a sandboxed App Store
-/// build: it ships a provisioning profile, so the data protection keychain is
-/// available and its at-rest guarantees are worth having.
+/// A build without one — an ad-hoc build, or a Developer ID build before the
+/// profile was added — is refused with errSecMissingEntitlement (-34018), and
+/// falls to the legacy file-based keychain, which needs no entitlement.
+/// `kSecAttrAccessible` is dropped there because that attribute is documented
+/// as available on macOS only when the data protection keychain is in use.
+/// The cost of the fallback is the at-rest pinning, not the secrecy: the
+/// items still live in the user's encrypted login keychain.
 
 const _candidates = [
+  MacOsOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
   MacOsOptions(accessibility: null, usesDataProtectionKeychain: false),
-  MacOsOptions(),
 ];
 
 var _probed = false;
