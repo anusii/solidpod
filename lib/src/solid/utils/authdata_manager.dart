@@ -35,7 +35,8 @@ import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:solid_auth/solid_auth.dart'
     show SolidAuthData, SolidAuthManager, SolidOidcConfig;
 
-import 'package:solidpod/src/solid/constants/common.dart' show secureStorage;
+import 'package:solidpod/src/solid/constants/common.dart'
+    show deleteFromSecureStorage, secureStorage;
 import 'package:solidpod/src/solid/utils/misc.dart' show writeToSecureStorage;
 
 /// Global auth state notifier for reactive UI updates.
@@ -174,7 +175,7 @@ class AuthDataManager {
       _webId = null;
 
       if (await secureStorage.containsKey(key: _authDataSecureStorageKey)) {
-        await secureStorage.delete(key: _authDataSecureStorageKey);
+        await deleteFromSecureStorage(_authDataSecureStorageKey);
       }
 
       authStateNotifier.value = false;

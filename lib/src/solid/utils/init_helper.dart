@@ -96,7 +96,7 @@ Future<void> clearPodStructureInitialised() async {
   try {
     final key = await _getPodInitFlagKey();
     if (await secureStorage.containsKey(key: key)) {
-      await secureStorage.delete(key: key);
+      await deleteFromSecureStorage(key);
     }
   } on NotLoggedInException {
     // Expected during account-switch flows where the caller logs out before

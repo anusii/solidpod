@@ -88,7 +88,7 @@ class KeyStorage {
     try {
       if (await secureStorage.containsKey(key: _securityKeySecureStorageKey)) {
         try {
-          await secureStorage.delete(key: _securityKeySecureStorageKey);
+          await deleteFromSecureStorage(_securityKeySecureStorageKey);
           debugPrint(
             'KeyStorage => deleteSecurityKey() removed from secure storage',
           );
