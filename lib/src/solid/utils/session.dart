@@ -41,6 +41,8 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/app_info.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/key_manager.dart';
+import 'package:solidpod/src/solid/utils/secure_storage_setup.dart'
+    show chooseSecureStorageOptions;
 
 /// Global callback for clearing application-specific caches during logout.
 /// Apps should register their cache clearing logic here.
@@ -97,6 +99,12 @@ Future<String?> resolveExternalOwner(String? ownerWebId) async =>
 /// access token is expired or not.
 
 Future<bool> isUserLoggedIn() async {
+  // 20260920 gjw Usually the first keychain touch of the session, so the
+  // usable options are settled here as well as in solidAuthenticate. The
+  // probe itself runs once per process.
+
+  await chooseSecureStorageOptions();
+
   final webId = await AuthDataManager.getWebId();
 
   if (webId != null && webId.isNotEmpty) {

@@ -46,6 +46,8 @@ import 'package:solidpod/src/solid/utils/authdata_manager.dart'
 import 'package:solidpod/src/solid/utils/exceptions.dart'
     show SolidAuthCancelledException;
 import 'package:solidpod/src/solid/utils/misc.dart' show isUserLoggedIn;
+import 'package:solidpod/src/solid/utils/secure_storage_setup.dart'
+    show chooseSecureStorageOptions;
 
 /// Selects the appropriate redirect URI from [uris] based on the runtime
 /// platform, using the URI format (and, on web, the origin) as the
@@ -229,6 +231,14 @@ Future<List<dynamic>?> solidAuthenticate(
   OidcPlatformSpecificOptions? oidcOptions,
 }) async {
   try {
+    // 20260920 gjw Settle on keychain options this build can actually use
+    // before any secret is read or written. On macOS a Developer ID build
+    // cannot reach the data protection keychain, and every call then fails
+    // with errSecMissingEntitlement (-34018), which reaches the user as a
+    // failed login or a POD that will not initialise.
+
+    await chooseSecureStorageOptions();
+
     // Return existing session without re-authenticating.
     if (await isUserLoggedIn()) {
       final authData = await AuthDataManager.loadAuthData();
