@@ -204,8 +204,21 @@ FlutterSecureStorage secureStorage = const FlutterSecureStorage(
   iOptions: IOSOptions(
     accessibility: KeychainAccessibility.first_unlock_this_device,
   ),
+  // 20260920 gjw macOS also turns OFF the data protection keychain, which is
+  // only available to an app holding a keychain access group — from the
+  // `keychain-access-groups` entitlement, or the
+  // `com.apple.application-identifier` an embedded provisioning profile
+  // supplies. A Developer ID build has neither, and every write then fails
+  // while reads quietly return null, so the security key and the DPoP key
+  // never survive. The legacy file-based keychain needs no entitlement. It
+  // ignores `kSecAttrAccessible`, so items follow the login keychain instead
+  // of being pinned to first-unlock-this-device; the attribute is left in
+  // place for a sandboxed App Store build, which ships a profile and can use
+  // the data protection keychain.
+
   mOptions: MacOsOptions(
     accessibility: KeychainAccessibility.first_unlock_this_device,
+    usesDataProtectionKeychain: false,
   ),
   // Web only: use sessionStorage instead of localStorage so cached secrets
   // (security key, DPoP key, tokens) do not persist beyond the browsing
