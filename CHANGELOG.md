@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.0
 
++ Bump solid_auth to 1.0.11 fix macOS installer [1.0.24 20260921 gjw]
 + keychain options for macOS Developer ID and key deletion [1.0.23 20260920 gjw/tony]
 + Fix always being asked to log in again on startup [1.0.22 20260911 gjw]
 + Disable caching for web [1.0.21 20260908 jesscmoore]
