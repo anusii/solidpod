@@ -37,11 +37,11 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:flutter/foundation.dart' show debugPrint;
 
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:mime/mime.dart' as mime;
 import 'package:rdf/rdf.dart';
 
+import 'package:solidpod/src/solid/api/http_client.dart';
 import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/utils/authdata_manager.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
@@ -213,7 +213,7 @@ Future<void> createResource(
   // Use PUT request for creating and replacing a file if it already exists
 
   final put = (isFile && replaceIfExist) ? true : false;
-  final httpMethod = put ? http.put : http.post;
+  final httpMethod = put ? podHttpClient.put : podHttpClient.post;
 
   // Get the name and parent container URL of the resource to be created for
   // POST request
@@ -289,7 +289,7 @@ Future<void> deleteResource(
     'DELETE',
   );
 
-  final response = await http.delete(
+  final response = await podHttpClient.delete(
     Uri.parse(resourceUrl),
     headers: <String, String>{
       'Accept': '*/*',
@@ -320,47 +320,92 @@ Future<void> deleteResource(
 
 /// Asynchronously checks whether a given resource exists on the server.
 ///
-/// This function makes an HTTP GET request to the specified resource URL to determine if the resource exists.
+/// This function makes an HTTP request to the specified resource URL to determine if the resource exists.
 /// It handles both files and directories (containers) by setting appropriate headers based on the [isFile].
+///
+/// Set [useHead] when only the existence of the resource matters. A GET
+/// downloads the whole resource just to look at its status code, which is
+/// wasteful on the write path where the body is discarded. HEAD returns the
+/// same status with no body. Servers that do not implement HEAD for a
+/// resource (405/501, or anything else unexpected) fall back to the GET, so
+/// enabling it never changes the answer — only how much is transferred.
 
 Future<ResourceStatus> checkResourceStatus(
   String resUrl, {
   bool isFile = true,
+  bool useHead = false,
 }) async {
   if (!isFile) {
     assert(resUrl.endsWith('/'));
   } else {
     assert(!resUrl.endsWith('/'));
   }
+
+  final headers = <String, String>{
+    'Content-Type': isFile
+        ? ResourceContentType.any.value
+        : ResourceContentType.directory.value,
+    'Link': isFile ? fileTypeLink : dirTypeLink,
+    ...noHttpCacheHeaders,
+  };
+
+  if (useHead) {
+    final (:accessToken, :dPopToken) =
+        await getTokensForResource(resUrl, 'HEAD');
+    final headResponse = await podHttpClient.head(
+      Uri.parse(resUrl),
+      headers: <String, String>{
+        ...headers,
+        'Authorization': 'DPoP $accessToken',
+        'DPoP': dPopToken,
+      },
+    );
+
+    final status = _statusFromCode(headResponse.statusCode);
+    if (status != null) {
+      return status;
+    }
+
+    // Unexpected code (e.g. a server without HEAD support): fall through to
+    // the GET below rather than reporting ResourceStatus.unknown.
+
+    debugPrint(
+      'HEAD $resUrl returned ${headResponse.statusCode}, retrying with GET.',
+    );
+  }
+
   final (:accessToken, :dPopToken) = await getTokensForResource(resUrl, 'GET');
-  final response = await http.get(
+  final response = await podHttpClient.get(
     Uri.parse(resUrl),
     headers: <String, String>{
-      'Content-Type': isFile
-          ? ResourceContentType.any.value
-          : ResourceContentType.directory.value,
+      ...headers,
       'Authorization': 'DPoP $accessToken',
-      'Link': isFile ? fileTypeLink : dirTypeLink,
       'DPoP': dPopToken,
-      ...noHttpCacheHeaders,
     },
   );
 
-  if (response.statusCode == 200 || response.statusCode == 204) {
-    return ResourceStatus.exist;
-  } else if (response.statusCode == 403) {
-    return ResourceStatus.forbidden;
-  } else if (response.statusCode == 404) {
-    return ResourceStatus.notExist;
-  } else {
-    debugPrint(
-      'Failed to check resource status.\n'
-      'URL: $resUrl\n'
-      'ERR: ${response.body}',
-    );
-    return ResourceStatus.unknown;
+  final status = _statusFromCode(response.statusCode);
+  if (status != null) {
+    return status;
   }
+
+  debugPrint(
+    'Failed to check resource status.\n'
+    'URL: $resUrl\n'
+    'ERR: ${response.body}',
+  );
+  return ResourceStatus.unknown;
 }
+
+/// Map an HTTP status code onto a [ResourceStatus], or null when the code
+/// says nothing about whether the resource exists.
+
+ResourceStatus? _statusFromCode(int code) => switch (code) {
+      200 || 204 => ResourceStatus.exist,
+      403 => ResourceStatus.forbidden,
+      404 => ResourceStatus.notExist,
+      _ => null,
+    };
 
 /// Asynchronously checks whether a given webId exists.
 ///
@@ -368,7 +413,7 @@ Future<ResourceStatus> checkResourceStatus(
 
 Future<ResourceStatus> checkWebIdExists(String webIdUrl) async {
   try {
-    final response = await http.get(
+    final response = await podHttpClient.get(
       Uri.parse(webIdUrl),
       headers: <String, String>{
         'Content-Type': ResourceContentType.any.value,
@@ -436,7 +481,7 @@ Future<WebIdStatus> checkWebIdProfile(String webIdUrl) async {
   // keeps the request URL and any debug logs honest.
   final uri = Uri.parse(webIdUrl).removeFragment();
 
-  final response = await http.get(
+  final response = await podHttpClient.get(
     uri,
     headers: const <String, String>{
       // Solid servers content-negotiate on `Accept`. List the common RDF
@@ -513,7 +558,7 @@ Future<void> updateFileByQuery(String fileUrl, String query) async {
     fileUrl,
     'PATCH',
   );
-  final editResponse = await http.patch(
+  final editResponse = await podHttpClient.patch(
     Uri.parse(fileUrl),
     headers: <String, String>{
       'Accept': '*/*',
@@ -553,7 +598,7 @@ Future<void> initialProfileUpdate(String profBody) async {
   final (:accessToken, :dPopToken) = await getTokensForResource(profUrl, 'PUT');
 
   // The PUT request will create the acl item in the server
-  final updateResponse = await http.put(
+  final updateResponse = await podHttpClient.put(
     Uri.parse(profUrl),
     headers: <String, String>{
       'Accept': '*/*',
@@ -576,13 +621,17 @@ Future<void> initialProfileUpdate(String profBody) async {
 /// If [resourceUrl] ends with '/', i.e., a container / directory,
 /// This function returns the bytes of a turtle string representing
 /// the list of resources in the container / directory.
+///
+/// Throws [ResourceNotExistException] on 404 and [AccessForbiddenException]
+/// on 403 so that callers can tell the two apart without first issuing a
+/// separate existence check (which would download the resource twice).
 Future<Uint8List> getResource(String resourceUrl) async {
   final (:accessToken, :dPopToken) = await getTokensForResource(
     resourceUrl,
     'GET',
   );
 
-  final response = await http.get(
+  final response = await podHttpClient.get(
     Uri.parse(resourceUrl),
     headers: <String, String>{
       'Accept': '*/*',
@@ -595,8 +644,14 @@ Future<Uint8List> getResource(String resourceUrl) async {
 
   if (response.statusCode == 200) {
     return response.bodyBytes;
+  } else if (response.statusCode == 404) {
+    throw ResourceNotExistException('$resourceUrl does not exist');
+  } else if (response.statusCode == 403) {
+    throw AccessForbiddenException('Access to $resourceUrl is not allowed');
   } else {
-    throw Exception('Failed to get resource $resourceUrl');
+    throw Exception(
+      'Failed to get resource $resourceUrl (HTTP ${response.statusCode})',
+    );
   }
 }
 
@@ -611,7 +666,7 @@ Future<({List<String> subDirs, List<String> files})> getResourcesInContainer(
 
   final (:accessToken, :dPopToken) = await getTokensForResource(url, 'GET');
 
-  final profResponse = await http.get(
+  final profResponse = await podHttpClient.get(
     Uri.parse(url),
     headers: <String, String>{
       'Accept': '*/*',
@@ -686,7 +741,7 @@ Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
     'HEAD',
   );
 
-  final response = await http.head(
+  final response = await podHttpClient.head(
     Uri.parse(resourceUrl),
     headers: <String, String>{
       'Accept': '*/*',
@@ -742,7 +797,7 @@ Future<String> updateAclFileContent(
   );
 
   // http request to update the acl file on the server
-  final editResponse = await http.put(
+  final editResponse = await podHttpClient.put(
     Uri.parse(resourceAclUrl),
     headers: <String, String>{
       'Accept': '*/*',

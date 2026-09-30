@@ -38,7 +38,10 @@ import 'package:solidpod/src/solid/constants/common.dart';
 import 'package:solidpod/src/solid/constants/path_type.dart';
 import 'package:solidpod/src/solid/utils/exceptions.dart';
 import 'package:solidpod/src/solid/utils/io_helper.dart';
+import 'package:solidpod/src/solid/utils/key_helper.dart'
+    show genRandIndividualKey;
 import 'package:solidpod/src/solid/utils/key_inheritance.dart';
+import 'package:solidpod/src/solid/utils/key_manager.dart';
 import 'package:solidpod/src/solid/utils/misc.dart';
 import 'package:solidpod/src/solid/utils/permission.dart' show genAclTurtle;
 import 'package:solidpod/src/solid/write_external_pod.dart'
@@ -154,7 +157,17 @@ Future<void> writePod(
     encKey = await configureEncKey(fileUrl, inheritKeyUrl: inheritKeyUrl);
   }
 
-  switch (await checkResourceStatus(fileUrl)) {
+  // Check what is already at the target before uploading anything, so that an
+  // existing file is never silently replaced when overwrite is false and a
+  // forbidden or indeterminate target is reported before the upload rather
+  // than through whatever the upload happens to fail with.
+  //
+  // The probe uses HEAD, not GET: only the status code is wanted, and a GET
+  // downloaded the whole file that was about to be replaced. On a server that
+  // does not answer HEAD, checkResourceStatus() falls back to GET, so the
+  // outcome is unchanged.
+
+  switch (await checkResourceStatus(fileUrl, useHead: true)) {
     case ResourceStatus.exist:
       if (overwrite) {
         debugPrint('NOTE: Overwriting existing file "$filePath"');
@@ -205,8 +218,61 @@ Future<void> writePod(
 
   if (createAcl) {
     final aclFileUrl = '$fileUrl.acl';
-    if (await checkResourceStatus(aclFileUrl) == ResourceStatus.notExist) {
+    if (await checkResourceStatus(aclFileUrl, useHead: true) ==
+        ResourceStatus.notExist) {
       await createResource(aclFileUrl, content: await genAclTurtle(fileUrl));
     }
   }
+}
+
+/// Register encryption keys for [filePaths] up front, in a single request.
+///
+/// [writePod] gives every encrypted file its own individual key and stores all
+/// of them in one file, `encryption/ind-keys.ttl`, which has to be rewritten
+/// in full whenever a key is added. Writing a batch of files one by one
+/// therefore re-uploads that file once per file, and it carries an entry for
+/// every encrypted file in the POD — so importing N records uploads O(N^2)
+/// bytes of key material on top of the data itself, and gets slower the more
+/// data the POD already holds.
+///
+/// Calling this first adds all the missing keys in one go. The subsequent
+/// [writePod] calls then find their key already registered and skip the key
+/// file entirely, which also makes them independent of each other and safe to
+/// run concurrently.
+///
+/// Paths are interpreted exactly as [writePod] interprets its `filePath`, so
+/// pass the same values (and the same [pathType]). Paths that already have a
+/// key are skipped. A key registered here for a file that is never written is
+/// harmless: it is simply unused.
+
+Future<void> prepareEncryptionKeys(
+  List<String> filePaths, {
+  PathType pathType = PathType.relativeToData,
+}) async {
+  if (!await isUserLoggedIn()) {
+    throw NotLoggedInException('User must be logged in to write to POD');
+  }
+
+  final newKeys = <String, Key>{};
+
+  for (final filePath in filePaths) {
+    final fileUrl = await generateResourceUrlFromPath(
+      resourcePath: filePath,
+      pathType: pathType,
+    );
+
+    if (await KeyManager.hasIndividualKey(fileUrl)) {
+      continue;
+    }
+
+    final resourcePath = await extractResourcePathFromUrl(fileUrl);
+
+    // Guard against duplicates within [filePaths] itself: two entries for the
+    // same file would otherwise generate two keys, the second of which would
+    // not match content encrypted with the first.
+
+    newKeys.putIfAbsent(resourcePath, genRandIndividualKey);
+  }
+
+  await KeyManager.addIndividualKeys(indKeys: newKeys);
 }
