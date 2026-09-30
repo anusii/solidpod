@@ -9,6 +9,10 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
+## 1.1
+
++ Speed POD writes with connection reuse and batched keys [1.1.0 20260930 tony]
+
 ## 1.0
 
 + Bump solid_auth to 1.0.11 fix macOS installer [1.0.24 20260921 gjw]

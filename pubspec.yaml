@@ -1,6 +1,6 @@
 name: solidpod
 description: Support access to private data from PODs on Solid servers.
-version: 1.0.24
+version: 1.1.0
 homepage: https://github.com/anusii/solidpod
 
 environment:
@@ -35,7 +35,7 @@ dependencies:
   petitparser: ^7.0.2
   pointycastle: ^4.0.0
   rdf: ^1.0.0
-  solid_auth: ^1.0.11
+  solid_auth: ^1.1.0
   universal_io: ^2.3.1
 
 dev_dependencies:
