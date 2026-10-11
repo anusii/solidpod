@@ -713,3 +713,14 @@ solidcommunity:
 icons:
 	cp assets/images/app_icon.png snap/gui/icon.png
 	dart run flutter_launcher_icons
+
+.PHONY: build_ios upload_ios
+
+
+build_ios:
+	git commit --allow-empty -m "chore: build ios"
+	git push origin HEAD
+
+upload_ios:
+	git commit --allow-empty -m "chore: upload ios"
+	git push origin HEAD
