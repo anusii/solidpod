@@ -223,10 +223,18 @@ Future<bool> logoutPod() async {
 /// via a headless HTTP request rather than launching a visible browser
 /// window. Use this when switching accounts or recovering from stale
 /// credentials.
+///
+/// [keepSecurityKey] leaves the security key in secure storage, for
+/// recovering an expired session. 20261013 gjw Clearing it there made the
+/// user type their key again after every Session Expired, though nothing
+/// about the key had changed. Keeping it is safe should a different account
+/// log in instead: the key is verified against that POD before use, and a
+/// mismatch forgets it (see KeyManager.hasSecurityKey). Switching accounts
+/// and an explicit logout still clear it.
 
-Future<bool> silentLogout() async {
+Future<bool> silentLogout({bool keepSecurityKey = false}) async {
   try {
-    await KeyManager.clear();
+    await KeyManager.clear(keepStoredSecurityKey: keepSecurityKey);
 
     // Get logout URL from discovery doc before clearing the manager.
 
@@ -266,7 +274,7 @@ Future<bool> silentLogout() async {
     debugPrint('silentLogout() CRITICAL: $e');
     try {
       await AuthDataManager.removeAuthData();
-      await KeyManager.clear();
+      await KeyManager.clear(keepStoredSecurityKey: keepSecurityKey);
     } on Object catch (_) {}
     return false;
   }

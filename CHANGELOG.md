@@ -11,6 +11,7 @@ Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
 ## 1.1
 
++ Keep the security key when renewing an expired session [1.1.2 20261013 gjw]
 + Bump solid_auth to 1.1.1 [1.1.1 20261011 gjw]
 + Speed POD writes with connection reuse and batched keys [1.1.0 20260930 tony]
 

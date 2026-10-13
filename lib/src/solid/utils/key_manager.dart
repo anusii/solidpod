@@ -88,12 +88,16 @@ class KeyManager {
   static List<int>? _salt;
 
   /// Remove stored security key and set all cached private members to null.
+  ///
+  /// With [keepStoredSecurityKey] the security key stays in secure storage
+  /// and only memory is cleared, for a session that expired and is being
+  /// renewed — see [silentLogout].
 
-  static Future<void> clear() async {
+  static Future<void> clear({bool keepStoredSecurityKey = false}) async {
     try {
       // Remove security key from storage and memory.
 
-      await forgetSecurityKey();
+      if (!keepStoredSecurityKey) await forgetSecurityKey();
 
       // Clear sensitive key material from memory.
 
