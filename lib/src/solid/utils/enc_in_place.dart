@@ -63,8 +63,7 @@ Future<String> getEncTTLStr({
     URIRef(fileUrl): {
       solidTermsNS.ns.withAttr(pathPred): filePath,
       solidTermsNS.ns.withAttr(ivPred): iv.base64,
-      if (inheritKeyFrom != null)
-        solidTermsNS.ns.withAttr(inheritKeyPred): inheritKeyFrom,
+      solidTermsNS.ns.withAttr(inheritKeyPred): ?inheritKeyFrom,
       solidTermsNS.ns.withAttr(encDataPred): encryptData(fileContent, key, iv),
     },
   };
