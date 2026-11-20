@@ -72,40 +72,30 @@ enum WebIdCheckStatus {
   valid,
 
   /// The URL is not a syntactically absolute URL.
-
   notAbsoluteUrl,
 
   /// The host looks like an IPv4 literal but is malformed (e.g. `192`,
   /// `192.168.1`, `1.2.3.4.5`, `256.0.0.1`).
-
   invalidIpv4,
 
   /// The URL could not be reached (DNS lookup or network failure).
-
   unreachable,
 
   /// The URL is reachable and responded 200/204 but the body is not an RDF
   /// profile document (typically a `text/html` page from a regular website).
-
   notProfile,
 
   /// The URL returned 404.
-
   notExist,
 
   /// Some other HTTP error (e.g. 403, 5xx) — could not determine.
-
   unknown,
 }
 
 /// Structured outcome of [validateWebId].
 
 class WebIdCheckResult {
-  const WebIdCheckResult(
-    this.status, {
-    this.host = '',
-    this.error,
-  });
+  const WebIdCheckResult(this.status, {this.host = '', this.error});
 
   /// The categorised failure mode (or [WebIdCheckStatus.valid] for success).
 
@@ -155,11 +145,7 @@ Future<WebIdCheckResult> validateWebId(String webId) async {
   try {
     status = await checkWebIdProfile(webId);
   } on Exception catch (e) {
-    return WebIdCheckResult(
-      WebIdCheckStatus.unreachable,
-      host: host,
-      error: e,
-    );
+    return WebIdCheckResult(WebIdCheckStatus.unreachable, host: host, error: e);
   }
 
   switch (status) {

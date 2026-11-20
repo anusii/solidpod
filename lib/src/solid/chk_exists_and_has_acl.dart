@@ -30,7 +30,7 @@ library;
 
 import 'dart:core';
 
-import 'package:flutter/material.dart' hide Key;
+import 'package:material_ui/material_ui.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/rest_api.dart';

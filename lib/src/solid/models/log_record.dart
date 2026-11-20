@@ -79,10 +79,10 @@ class LogRecord {
 
   // Make tooltip for permission log records
   String get toolTip => getPermissionLogTooltip(
-        recipientName: recipientName,
-        recipientWebId: recipientWebId,
-        granterName: granterName,
-        permissionTypeLabel: permissionTypeLabel,
-        permList: permissionList.split(','),
-      );
+    recipientName: recipientName,
+    recipientWebId: recipientWebId,
+    granterName: granterName,
+    permissionTypeLabel: permissionTypeLabel,
+    permList: permissionList.split(','),
+  );
 }

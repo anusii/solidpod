@@ -346,10 +346,7 @@ class KeyManager {
   /// Re-key a legacy POD to the current scheme ([kdfVersion]) without changing
   /// the security key. Returns the new master key.
 
-  static Future<Key> _migrateToV2(
-    String securityKey,
-    Key oldMasterKey,
-  ) async {
+  static Future<Key> _migrateToV2(String securityKey, Key oldMasterKey) async {
     debugPrint('KeyManager => migrating POD keys to version $kdfVersion');
     final r = await _rekeyToV2(oldMasterKey, securityKey);
     _salt = r.salt;

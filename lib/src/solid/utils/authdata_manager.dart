@@ -112,9 +112,8 @@ class AuthDataManager {
   static Future<SolidAuthData?> loadAuthData() {
     // Check if live manager already in memory.
     if (_authManager != null) {
-      return _refreshInFlight ??= _getRefreshedAuthData(
-        _authManager!,
-      ).whenComplete(() => _refreshInFlight = null);
+      return _refreshInFlight ??= _getRefreshedAuthData(_authManager!)
+          .whenComplete(() => _refreshInFlight = null);
     }
 
     return _restoreInFlight ??= _restoreFromStorage().whenComplete(
@@ -244,7 +243,8 @@ class AuthDataManager {
     try {
       var authData = manager.currentAuthData;
 
-      final needsRefresh = authData == null ||
+      final needsRefresh =
+          authData == null ||
           DateTime.now().add(_refreshBuffer).isAfter(authData.expiresAt);
 
       if (needsRefresh) {

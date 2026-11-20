@@ -30,7 +30,7 @@ library;
 
 import 'dart:core';
 
-import 'package:flutter/material.dart' hide Key;
+import 'package:material_ui/material_ui.dart' hide Key;
 
 import 'package:solidpod/src/solid/api/common_permission.dart';
 import 'package:solidpod/src/solid/api/grant_permission_api.dart';
@@ -249,15 +249,19 @@ Future<SolidFunctionCallStatus> grantPermission({
             // [encryptFileInPlace] if public/auth-user access is revoked.
 
             if (await isFileContentEncrypted(resourceUrl)) {
-              debugPrint('[grantPermission] decrypting "$resourceUrl" for '
-                  'public/authUser sharing');
+              debugPrint(
+                '[grantPermission] decrypting "$resourceUrl" for '
+                'public/authUser sharing',
+              );
               await decryptFileInPlace(
                 resourceUrl,
                 isExternalRes: isExternalRes,
               );
             } else {
-              debugPrint('[grantPermission] outer layer already plaintext: '
-                  '"$resourceUrl"');
+              debugPrint(
+                '[grantPermission] outer layer already plaintext: '
+                '"$resourceUrl"',
+              );
 
               await applyPublicShareDecryptedHookInPlace(resourceUrl);
             }

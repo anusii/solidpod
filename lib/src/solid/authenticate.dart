@@ -34,7 +34,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart'
     show debugPrint, defaultTargetPlatform, kIsWeb, TargetPlatform;
-import 'package:flutter/material.dart' show BuildContext;
+import 'package:flutter/widgets.dart' show BuildContext;
 
 import 'package:oidc/oidc.dart' show OidcPlatformSpecificOptions;
 import 'package:solid_auth/solid_auth.dart'
@@ -274,7 +274,8 @@ Future<List<dynamic>?> solidAuthenticate(
     // Reuse the manager warmed up by prewarmSolidAuthenticate() when it
     // matches this call's parameters — that's what lets the redirect below
     // fire without first re-running the WebID lookup and discovery fetch.
-    final authManager = (_prewarmedManager != null &&
+    final authManager =
+        (_prewarmedManager != null &&
             _prewarmedServerId == serverId &&
             _prewarmedClientId == clientId &&
             _prewarmedRedirectUri == effectiveRedirectUri &&

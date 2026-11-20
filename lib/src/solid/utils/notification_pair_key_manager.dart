@@ -220,7 +220,7 @@ class NotificationPairKeyManager {
   /// after a re-init). The caller is expected to log and ignore it.
 
   static Future<({String senderWebId, String outboxUrl, Key key})?>
-      decryptInvitePayload(String payload) async {
+  decryptInvitePayload(String payload) async {
     try {
       final json = jsonDecode(payload) as Map<String, dynamic>;
       final senderWebId = json['senderWebId'] as String;

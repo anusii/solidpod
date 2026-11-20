@@ -350,8 +350,10 @@ Future<ResourceStatus> checkResourceStatus(
   };
 
   if (useHead) {
-    final (:accessToken, :dPopToken) =
-        await getTokensForResource(resUrl, 'HEAD');
+    final (:accessToken, :dPopToken) = await getTokensForResource(
+      resUrl,
+      'HEAD',
+    );
     final headResponse = await podHttpClient.head(
       Uri.parse(resUrl),
       headers: <String, String>{
@@ -401,11 +403,11 @@ Future<ResourceStatus> checkResourceStatus(
 /// says nothing about whether the resource exists.
 
 ResourceStatus? _statusFromCode(int code) => switch (code) {
-      200 || 204 => ResourceStatus.exist,
-      403 => ResourceStatus.forbidden,
-      404 => ResourceStatus.notExist,
-      _ => null,
-    };
+  200 || 204 => ResourceStatus.exist,
+  403 => ResourceStatus.forbidden,
+  404 => ResourceStatus.notExist,
+  _ => null,
+};
 
 /// Asynchronously checks whether a given webId exists.
 ///
@@ -487,7 +489,8 @@ Future<WebIdStatus> checkWebIdProfile(String webIdUrl) async {
       // Solid servers content-negotiate on `Accept`. List the common RDF
       // serialisations in preference order; the trailing `*/*;q=0.1` allows
       // us to still inspect the response if the server ignores `Accept`.
-      'Accept': 'text/turtle, '
+      'Accept':
+          'text/turtle, '
           'application/ld+json;q=0.95, '
           'application/n-triples;q=0.9, '
           'application/rdf+xml;q=0.85, '
@@ -777,8 +780,8 @@ Future<ResourceMetadata> getResourceMetadata(String resourceUrl) async {
 /// Check if a file is encrypted
 Future<bool> checkFileEnc(String fileUrl, {bool isExternalRes = false}) async =>
     isExternalRes
-        ? await KeyManager.getSharedIndividualKey(fileUrl) != null
-        : await KeyManager.getIndividualKey(fileUrl) != null;
+    ? await KeyManager.getSharedIndividualKey(fileUrl) != null
+    : await KeyManager.getIndividualKey(fileUrl) != null;
 
 /// Update ACL file of a resource by http put request
 ///

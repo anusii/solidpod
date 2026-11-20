@@ -57,8 +57,9 @@ import 'package:solidpod/src/solid/utils/misc.dart'
 /// Throws if the container does not exist or a network error occurs.
 
 Future<void> deleteContainer(String parentPath, String folderName) async {
-  final folderPath =
-      parentPath.isEmpty ? folderName : '$parentPath/$folderName';
+  final folderPath = parentPath.isEmpty
+      ? folderName
+      : '$parentPath/$folderName';
   final dirUrl = await getDirUrl(await normalizeFilePath(folderPath, null));
 
   await _deleteContainerByUrl(dirUrl);
@@ -118,9 +119,7 @@ Future<void> _deleteContainerContents(String containerUrl) async {
     try {
       await _deleteContainerByUrl(subDirAbsUrl);
     } catch (e) {
-      debugPrint(
-        'Warning: could not delete subdirectory $subDirAbsUrl: $e',
-      );
+      debugPrint('Warning: could not delete subdirectory $subDirAbsUrl: $e');
     }
   }
 

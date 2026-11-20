@@ -133,8 +133,8 @@ Future<({Key masterKey, String verificationKey})> deriveKeys(
 /// Retained only to decrypt keys on PODs created before the version 2 scheme
 /// so they can be migrated. Do NOT use for new keys.
 Key genLegacyMasterKey(String securityKey) => Key.fromUtf8(
-      sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
-    );
+  sha256.convert(utf8.encode(securityKey)).toString().substring(0, 32),
+);
 
 /// Derive the verification key from the security key using the legacy
 /// (version 1) scheme: plain `sha224` truncated to 32 hex chars.
@@ -199,12 +199,9 @@ String getPredicateUrl(String pred, {Namespace? ns}) =>
 /// PODs created before the version 2 scheme have neither a salt nor a version
 /// triple; for those `saltB64` is null and `version` defaults to 1 (legacy).
 Future<
-    ({
-      String verificationKey,
-      PrvKeyRecord record,
-      String? saltB64,
-      int version,
-    })> readEncKeyFile() async {
+  ({String verificationKey, PrvKeyRecord record, String? saltB64, int version})
+>
+readEncKeyFile() async {
   final encKeyUrl = await getFileUrl(await getEncKeyPath());
 
   final tripleMap = turtleToTripleMap(
@@ -508,7 +505,8 @@ class IndKeyRecord {
   Key? key;
 
   @override
-  String toString() => 'IndividualKeyRecord {\n'
+  String toString() =>
+      'IndividualKeyRecord {\n'
       '    resourcePath: $resourcePath,\n'
       '    encIndKey: $encKeyBase64,\n'
       '    iv: $ivBase64\n'
@@ -545,7 +543,8 @@ class SharedIndKeyRecord {
   Key? key;
 
   @override
-  String toString() => 'SharedIndividualKeyRecord {\n'
+  String toString() =>
+      'SharedIndividualKeyRecord {\n'
       '    encFilePath: $resourcePath,\n'
       '    encAccessList: $accessList,\n'
       '    encKey: $key\n'

@@ -516,8 +516,9 @@ Future<void> send({
       encrypted: encrypted,
       inheritKeyFrom: inheritKeyFrom,
       createAcl: effectiveCreateAcl,
-      pathType:
-          isPodRelativePath ? PathType.relativeToPod : PathType.relativeToData,
+      pathType: isPodRelativePath
+          ? PathType.relativeToPod
+          : PathType.relativeToData,
     );
   } else {
     // Write the metadata file to the external owner's POD. The ACL of the

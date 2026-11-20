@@ -66,9 +66,7 @@ Future<void> sendNotification({
   final appName = (await getAppNameVersion()).name;
 
   if (!await isUserLoggedIn()) {
-    throw NotLoggedInException(
-      'User must be logged in to send notifications',
-    );
+    throw NotLoggedInException('User must be logged in to send notifications');
   }
 
   final senderWebId = await AuthDataManager.getWebId();
@@ -170,8 +168,9 @@ Future<void> _deliverInvite({
   );
 
   final senderPairId = derivePairId(senderWebId);
-  final inviteFileName =
-      NotificationPairKeyManager.inviteFileName(senderPairId);
+  final inviteFileName = NotificationPairKeyManager.inviteFileName(
+    senderPairId,
+  );
   final inviteUrl = recipientWebId.replaceAll(
     profCard,
     '$appDirName/$notificationDir/$inviteFileName',

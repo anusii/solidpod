@@ -9,6 +9,10 @@ utilised by the flutter version_widget package.
 
 Visit the package at [pub.dev](https://pub.dev/packages/solidpod).
 
+## 2.0
+
++ Dialogs now use material_ui, needs a material_ui app [2.0.0 20261121 gjw]
+
 ## 1.1
 
 + Keep the security key when renewing an expired session [1.1.2 20261013 gjw]

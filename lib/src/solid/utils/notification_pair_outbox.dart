@@ -123,11 +123,8 @@ class NotificationPairOutbox {
   /// envelope. Bump `v` and keep readers backwards-compatible when the
   /// envelope shape changes.
 
-  static String _wrap(IV iv, String ciphertext) => jsonEncode({
-        'v': 1,
-        'iv': iv.base64,
-        'data': ciphertext,
-      });
+  static String _wrap(IV iv, String ciphertext) =>
+      jsonEncode({'v': 1, 'iv': iv.base64, 'data': ciphertext});
 
   /// GET and AES-decrypt the notifications stored at [outboxUrl] using
   /// [pairKey]. [outboxUrl] may belong to a different POD — the caller's
@@ -172,10 +169,7 @@ class NotificationPairOutbox {
   }) async {
     final url = await outboxUrlFor(partnerWebId);
 
-    final existing = await readNotifications(
-      outboxUrl: url,
-      pairKey: pairKey,
-    );
+    final existing = await readNotifications(outboxUrl: url, pairKey: pairKey);
 
     final updated = [...existing, notification];
     final body = jsonEncode({

@@ -162,10 +162,7 @@ Future<({String accessToken, String dPopToken})> getTokensForResource(
     keyManager: authManager.keyManager,
   );
 
-  return (
-    accessToken: authData.accessToken,
-    dPopToken: dPopToken,
-  );
+  return (accessToken: authData.accessToken, dPopToken: dPopToken);
 }
 
 /// Logging out the user with comprehensive error handling and platform support

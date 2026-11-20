@@ -104,8 +104,10 @@ class PodNotification {
     int? timestamp,
   }) {
     final ts = timestamp ?? DateTime.now().millisecondsSinceEpoch;
-    final senderHash =
-        senderWebId.hashCode.toUnsigned(32).toRadixString(16).padLeft(8, '0');
+    final senderHash = senderWebId.hashCode
+        .toUnsigned(32)
+        .toRadixString(16)
+        .padLeft(8, '0');
     return PodNotification(
       id: '$ts-$senderHash',
       senderWebId: senderWebId,
@@ -120,35 +122,36 @@ class PodNotification {
   /// Returns a copy with [readStatus] set to [read].
 
   PodNotification copyWithRead(bool read) => PodNotification(
-        id: id,
-        senderWebId: senderWebId,
-        recipientWebId: recipientWebId,
-        title: title,
-        content: content,
-        priority: priority,
-        timestamp: timestamp,
-        readStatus: read,
-      );
+    id: id,
+    senderWebId: senderWebId,
+    recipientWebId: recipientWebId,
+    title: title,
+    content: content,
+    priority: priority,
+    timestamp: timestamp,
+    readStatus: read,
+  );
 
   /// Serialise to a JSON-compatible map.
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'senderWebId': senderWebId,
-        'recipientWebId': recipientWebId,
-        'title': title,
-        if (content != null) 'content': content,
-        'priority': priority,
-        'timestamp': timestamp,
-        'readStatus': readStatus,
-      };
+    'id': id,
+    'senderWebId': senderWebId,
+    'recipientWebId': recipientWebId,
+    'title': title,
+    if (content != null) 'content': content,
+    'priority': priority,
+    'timestamp': timestamp,
+    'readStatus': readStatus,
+  };
 
   /// Deserialise from a JSON-compatible map.
 
   factory PodNotification.fromJson(Map<String, dynamic> json) {
     final timestamp = (json['timestamp'] as num).toInt();
     final senderWebId = (json['senderWebId'] ?? '') as String;
-    final id = (json['id'] as String?) ??
+    final id =
+        (json['id'] as String?) ??
         '$timestamp-${senderWebId.hashCode.toUnsigned(32).toRadixString(16).padLeft(8, '0')}';
 
     return PodNotification(
@@ -164,7 +167,8 @@ class PodNotification {
   }
 
   @override
-  String toString() => 'PodNotification('
+  String toString() =>
+      'PodNotification('
       'id: $id, '
       'sender: $senderWebId, '
       'recipient: $recipientWebId, '

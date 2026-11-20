@@ -128,12 +128,11 @@ Future<void> _processPendingInvites() async {
     final fileUrl = '$notifDir$file';
     try {
       final raw = utf8.decode(await getResource(fileUrl));
-      final decrypted =
-          await NotificationPairKeyManager.decryptInvitePayload(raw);
+      final decrypted = await NotificationPairKeyManager.decryptInvitePayload(
+        raw,
+      );
       if (decrypted == null) {
-        debugPrint(
-          'fetchNotifications: dropping un-decryptable invite $file',
-        );
+        debugPrint('fetchNotifications: dropping un-decryptable invite $file');
         await _silentDelete(fileUrl);
         continue;
       }
@@ -185,9 +184,7 @@ Future<List<({String partnerWebId, dynamic key})>> _listKnownPairs() async {
 
       result.add((partnerWebId: pair.partnerWebId, key: pair.key));
     } on Object catch (e) {
-      debugPrint(
-        'fetchNotifications: failed to load key file $file: $e',
-      );
+      debugPrint('fetchNotifications: failed to load key file $file: $e');
     }
   }
   return result;

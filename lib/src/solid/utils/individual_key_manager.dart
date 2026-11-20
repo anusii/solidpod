@@ -202,8 +202,9 @@ class IndividualKeyManager {
 
       for (final entry in indKeys.entries) {
         final resourcePath = entry.key;
-        final resourceUrl =
-            await (isFile ? getFileUrl : getDirUrl)(resourcePath);
+        final resourceUrl = await (isFile ? getFileUrl : getDirUrl)(
+          resourcePath,
+        );
 
         final iv = genRandIV();
         final encIndKey = encryptData(entry.value.base64, masterKey, iv);

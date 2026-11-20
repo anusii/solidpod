@@ -212,8 +212,9 @@ Future<PodAppKey> verifyAppSecurityKey(
     );
   }
 
-  final tripleMap =
-      turtleToTripleMap(utf8.decode(await getResource(encKeysUrl)));
+  final tripleMap = turtleToTripleMap(
+    utf8.decode(await getResource(encKeysUrl)),
+  );
   final map = _subjectWith(
     tripleMap,
     getPredicateUrl(encKeyPred),
@@ -271,8 +272,9 @@ Future<Map<String, IndKeyRecord>> _loadIndKeyRecords(String root) async {
     return result;
   }
 
-  final tripleMap =
-      turtleToTripleMap(utf8.decode(await getResource(indKeysUrl)));
+  final tripleMap = turtleToTripleMap(
+    utf8.decode(await getResource(indKeysUrl)),
+  );
   final ownerBase = _podOwnerBase(root);
 
   for (final entry in tripleMap.entries) {
@@ -312,12 +314,8 @@ IndKeyRecord? _recordFor(Map<String, IndKeyRecord> records, String fileUrl) {
 // Decrypt an individual key from its record using the master key.
 
 Key _decryptIndKey(IndKeyRecord record, Key masterKey) => Key.fromBase64(
-      decryptData(
-        record.encKeyBase64,
-        masterKey,
-        IV.fromBase64(record.ivBase64),
-      ),
-    );
+  decryptData(record.encKeyBase64, masterKey, IV.fromBase64(record.ivBase64)),
+);
 
 // Result of reading one profile file: the (decrypted) turtle content and
 // whether it was encrypted at rest.
@@ -466,9 +464,7 @@ String _buildAvatarTtl(String webId, Uint8List pngBytes) {
   final subject = URIRef(webId.isEmpty ? '#me' : webId);
   final dataUri = 'data:image/png;base64,${base64Encode(pngBytes)}';
   final triples = <URIRef, Map<URIRef, dynamic>>{
-    subject: {
-      VcardPredicate.hasPhoto.uriRef: URIRef(dataUri),
-    },
+    subject: {VcardPredicate.hasPhoto.uriRef: URIRef(dataUri)},
   };
   return tripleMapToTurtle(
     triples,
@@ -491,13 +487,20 @@ Future<PodAppProfile> readAppProfile(
   }
 
   final root = _normaliseRoot(appRootUrl);
-  final indKeys =
-      key == null ? <String, IndKeyRecord>{} : await _loadIndKeyRecords(root);
+  final indKeys = key == null
+      ? <String, IndKeyRecord>{}
+      : await _loadIndKeyRecords(root);
 
-  final nameRead =
-      await _readProfileFile('$root$_displayNameRelPath', key, indKeys);
-  final avatarRead =
-      await _readProfileFile('$root$_avatarRelPath', key, indKeys);
+  final nameRead = await _readProfileFile(
+    '$root$_displayNameRelPath',
+    key,
+    indKeys,
+  );
+  final avatarRead = await _readProfileFile(
+    '$root$_avatarRelPath',
+    key,
+    indKeys,
+  );
 
   return PodAppProfile(
     displayName: nameRead.content == null
@@ -566,8 +569,9 @@ Future<void> writeAppProfile(
   // we are about to write privately. Persist the key file before the data
   // files so a partially completed write never leaves an undecryptable file.
 
-  final indKeys =
-      private ? await _loadIndKeyRecords(root) : <String, IndKeyRecord>{};
+  final indKeys = private
+      ? await _loadIndKeyRecords(root)
+      : <String, IndKeyRecord>{};
   var indKeysChanged = false;
 
   Future<Key> ensureIndKey(String fileUrl) async {
@@ -601,8 +605,10 @@ Future<void> writeAppProfile(
 
   if (displayName != null) {
     final fileUrl = '$root$_displayNameRelPath';
-    final content =
-        await wrap(fileUrl, _buildDisplayNameTtl(webId, displayName));
+    final content = await wrap(
+      fileUrl,
+      _buildDisplayNameTtl(webId, displayName),
+    );
     pending.add((url: fileUrl, content: content));
   }
 

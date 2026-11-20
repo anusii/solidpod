@@ -60,11 +60,11 @@ class SharedGroup {
   /// entries yield an empty member list rather than throwing.
 
   factory SharedGroup.fromJson(Map<String, dynamic> json) => SharedGroup(
-        name: (json['name'] ?? '').toString(),
-        webIds: (json['webIds'] is List)
-            ? (json['webIds'] as List).map((e) => e.toString()).toList()
-            : <String>[],
-      );
+    name: (json['name'] ?? '').toString(),
+    webIds: (json['webIds'] is List)
+        ? (json['webIds'] as List).map((e) => e.toString()).toList()
+        : <String>[],
+  );
 
   /// Human-readable name of the group.
 
@@ -164,8 +164,9 @@ Future<void> deleteSharedGroup(String name) async {
   }
 
   final groups = await getSharedGroups();
-  final remaining =
-      groups.where((g) => g.name.toLowerCase() != target).toList();
+  final remaining = groups
+      .where((g) => g.name.toLowerCase() != target)
+      .toList();
   if (remaining.length == groups.length) {
     // Nothing matched; avoid a redundant write.
     return;
@@ -177,8 +178,9 @@ Future<void> deleteSharedGroup(String name) async {
 /// Overwrite the saved groups cache file with [groups].
 
 Future<void> _writeSharedGroups(List<SharedGroup> groups) async {
-  final content =
-      jsonEncode({'groups': groups.map((g) => g.toJson()).toList()});
+  final content = jsonEncode({
+    'groups': groups.map((g) => g.toJson()).toList(),
+  });
   await writePod(
     sharedGroupsFileName,
     content,

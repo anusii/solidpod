@@ -87,14 +87,13 @@ Future<String> getEncTTLStrWithRandomIV({
   required String fileContent,
   required Key key,
   String? inheritKeyFrom,
-}) async =>
-    getEncTTLStr(
-      fileUrl: fileUrl,
-      fileContent: fileContent,
-      key: key,
-      iv: genRandIV(),
-      inheritKeyFrom: inheritKeyFrom,
-    );
+}) async => getEncTTLStr(
+  fileUrl: fileUrl,
+  fileContent: fileContent,
+  key: key,
+  iv: genRandIV(),
+  inheritKeyFrom: inheritKeyFrom,
+);
 
 /// Extract the `(iv, encData)` pair from the encrypted-TTL wrapper written
 /// by [getEncTTLStr] for [fileUrl], or return `null` if [rawTtl] is not a
@@ -176,8 +175,10 @@ Future<void> decryptFileInPlace(
   String fileUrl, {
   bool isExternalRes = false,
 }) async {
-  debugPrint('[decryptFileInPlace] start url="$fileUrl" '
-      'isExternalRes=$isExternalRes');
+  debugPrint(
+    '[decryptFileInPlace] start url="$fileUrl" '
+    'isExternalRes=$isExternalRes',
+  );
   final raw = utf8.decode(await getResource(fileUrl));
   final encMap = _extractEncFields(raw, fileUrl);
 
@@ -200,20 +201,14 @@ Future<void> decryptFileInPlace(
     );
   }
 
-  var plaintext = decryptData(
-    encMap.encData,
-    indKey,
-    IV.fromBase64(encMap.iv),
-  );
+  var plaintext = decryptData(encMap.encData, indKey, IV.fromBase64(encMap.iv));
 
   // Allow the host app to strip an additional application-level
   // encryption layer before the file is exposed publicly.
 
   final postHook = PublicSharingHooks.onPublicShareDecrypted;
   if (postHook != null) {
-    debugPrint(
-      '[decryptFileInPlace] applying app onPublicShareDecrypted hook',
-    );
+    debugPrint('[decryptFileInPlace] applying app onPublicShareDecrypted hook');
     plaintext = await postHook(fileUrl, plaintext);
   }
 
@@ -222,8 +217,10 @@ Future<void> decryptFileInPlace(
     content: plaintext,
     contentType: ResourceContentType.turtleText,
   );
-  debugPrint('[decryptFileInPlace] wrote plaintext (${plaintext.length} '
-      'bytes) to "$fileUrl"');
+  debugPrint(
+    '[decryptFileInPlace] wrote plaintext (${plaintext.length} '
+    'bytes) to "$fileUrl"',
+  );
 }
 
 /// Apply the [PublicSharingHooks.onPublicShareDecrypted] transformer to
@@ -291,21 +288,27 @@ Future<void> encryptFileInPlace(
   String fileUrl, {
   bool isExternalRes = false,
 }) async {
-  debugPrint('[encryptFileInPlace] start url="$fileUrl" '
-      'isExternalRes=$isExternalRes');
+  debugPrint(
+    '[encryptFileInPlace] start url="$fileUrl" '
+    'isExternalRes=$isExternalRes',
+  );
   final indKey = isExternalRes
       ? await KeyManager.getSharedIndividualKey(fileUrl)
       : await KeyManager.getIndividualKey(fileUrl);
   if (indKey == null) {
-    debugPrint('[encryptFileInPlace] no individual key for "$fileUrl", '
-        'leaving file as plaintext');
+    debugPrint(
+      '[encryptFileInPlace] no individual key for "$fileUrl", '
+      'leaving file as plaintext',
+    );
     return;
   }
 
   final raw = utf8.decode(await getResource(fileUrl));
   if (_extractEncFields(raw, fileUrl) != null) {
-    debugPrint('[encryptFileInPlace] file already encrypted, nothing to do: '
-        '"$fileUrl"');
+    debugPrint(
+      '[encryptFileInPlace] file already encrypted, nothing to do: '
+      '"$fileUrl"',
+    );
     return;
   }
 
@@ -318,9 +321,7 @@ Future<void> encryptFileInPlace(
 
   final preHook = PublicSharingHooks.onPublicShareRevoked;
   if (preHook != null) {
-    debugPrint(
-      '[encryptFileInPlace] applying app onPublicShareRevoked hook',
-    );
+    debugPrint('[encryptFileInPlace] applying app onPublicShareRevoked hook');
     plaintext = await preHook(fileUrl, plaintext);
   }
 

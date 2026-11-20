@@ -205,10 +205,7 @@ class _ZipFileEntry {
 
   final String zipPath;
 
-  const _ZipFileEntry({
-    required this.podRelativePath,
-    required this.zipPath,
-  });
+  const _ZipFileEntry({required this.podRelativePath, required this.zipPath});
 }
 
 /// Recursively traverses a container, collecting file entries into
@@ -270,12 +267,7 @@ Future<void> _traverseContainer({
     final podPath = '$containerPodPath/$fileName';
     final zipPath = '$zipPrefix/${cleanEncryptedFileName(fileName)}';
 
-    fileEntries.add(
-      _ZipFileEntry(
-        podRelativePath: podPath,
-        zipPath: zipPath,
-      ),
-    );
+    fileEntries.add(_ZipFileEntry(podRelativePath: podPath, zipPath: zipPath));
   }
 
   // Recurse into visible subdirectories.

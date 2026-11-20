@@ -55,20 +55,16 @@ enum EncryptionStatus {
   /// The resource exists but is stored as plaintext (not encrypted by
   /// solidpod). Non-Turtle files always fall into this bucket because
   /// solidpod only encrypts content as Turtle.
-
   notEncrypted,
 
   /// The resource does not exist on the POD.
-
   notExist,
 
   /// The current user is not allowed to access the resource.
-
   forbidden,
 
   /// An unexpected error occurred while inspecting the resource. Inspect
   /// debug logs for further details.
-
   unknown,
 }
 
@@ -183,10 +179,7 @@ Future<EncryptionStatus> getFileEncryptionStatus(
 /// Returns `true` when either layout is detected and `false` otherwise
 /// (including when [content] is not parseable Turtle).
 
-bool isContentEncrypted({
-  required String fileUrl,
-  required String content,
-}) {
+bool isContentEncrypted({required String fileUrl, required String content}) {
   // A non-Turtle payload cannot match either layout, so short-circuit.
 
   if (!fileUrl.toLowerCase().endsWith('.ttl')) {

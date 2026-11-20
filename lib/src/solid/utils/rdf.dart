@@ -50,9 +50,9 @@ const String _literalEnd = '\u0003';
 // ignore_for_file: non_constant_identifier_names
 class _LiteralPreservingEvaluator extends EvaluatorDefinition {
   @override
-  Parser STRING_LITERAL_QUOTE() => super
-      .STRING_LITERAL_QUOTE()
-      .map((value) => '$_literalStart$value$_literalEnd');
+  Parser STRING_LITERAL_QUOTE() => super.STRING_LITERAL_QUOTE().map(
+    (value) => '$_literalStart$value$_literalEnd',
+  );
 
   @override
   Parser STRING_LITERAL_SINGLE_QUOTE() => super
@@ -60,9 +60,9 @@ class _LiteralPreservingEvaluator extends EvaluatorDefinition {
       .map((value) => '$_literalStart$value$_literalEnd');
 
   @override
-  Parser STRING_LITERAL_LONG_QUOTE() => super
-      .STRING_LITERAL_LONG_QUOTE()
-      .map((value) => '$_literalStart$value$_literalEnd');
+  Parser STRING_LITERAL_LONG_QUOTE() => super.STRING_LITERAL_LONG_QUOTE().map(
+    (value) => '$_literalStart$value$_literalEnd',
+  );
 
   @override
   Parser STRING_LITERAL_LONG_SINGLE_QUOTE() => super
@@ -127,8 +127,10 @@ Map<String, Map<String, dynamic>> turtleToTripleMap(String turtleStr) {
       if (subjectRaw is! String || predicateObjectList is! List) continue;
 
       final subject = _expandIri(subjectRaw, prefixes, baseIri);
-      final subjectEntry =
-          tripleMap.putIfAbsent(subject, () => <String, dynamic>{});
+      final subjectEntry = tripleMap.putIfAbsent(
+        subject,
+        () => <String, dynamic>{},
+      );
 
       for (final predicateObject in predicateObjectList) {
         if (predicateObject is! List || predicateObject.length < 2) continue;
@@ -145,8 +147,9 @@ Map<String, Map<String, dynamic>> turtleToTripleMap(String turtleStr) {
 
           if (subjectEntry.containsKey(predicate)) {
             final existing = subjectEntry[predicate];
-            subjectEntry[predicate] =
-                existing is List ? existing + [value] : [existing, value];
+            subjectEntry[predicate] = existing is List
+                ? existing + [value]
+                : [existing, value];
           } else {
             subjectEntry[predicate] = value;
           }
@@ -413,11 +416,11 @@ Map<String, dynamic> parseACL(String aclContent) {
 /// Generate permission log file content
 
 String genPermLogTTLStr(String resourceUrl) => tripleMapToTurtle(
-      {
-        URIRef(resourceUrl): {
-          termsNS.ns.withAttr(titlePred): logFileTitle,
-          rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
-        },
-      },
-      bindNamespaces: {termsNS.prefix: termsNS.ns},
-    );
+  {
+    URIRef(resourceUrl): {
+      termsNS.ns.withAttr(titlePred): logFileTitle,
+      rdfNS.ns.withAttr(typePred): foafNS.ns.withAttr(profileDoc),
+    },
+  },
+  bindNamespaces: {termsNS.prefix: termsNS.ns},
+);

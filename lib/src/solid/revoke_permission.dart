@@ -155,8 +155,10 @@ Future<SolidFunctionCallStatus> revokePermission({
     // encrypted TTL format or when no individual key is available.
 
     if (fileIsEncrypted && !specificRecipientTypeList.contains(recipientType)) {
-      debugPrint('[revokePermission] re-encrypting "$resourceUrl" after '
-          'revoking $recipientType access');
+      debugPrint(
+        '[revokePermission] re-encrypting "$resourceUrl" after '
+        'revoking $recipientType access',
+      );
       await encryptFileInPlace(resourceUrl, isExternalRes: isExternalRes);
     }
 

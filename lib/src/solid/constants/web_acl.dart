@@ -186,11 +186,11 @@ enum AccessMode {
   String get description => _description;
 
   static List<AccessMode> getAllModes() => [
-        AccessMode.read,
-        AccessMode.write,
-        AccessMode.control,
-        AccessMode.append,
-      ];
+    AccessMode.read,
+    AccessMode.write,
+    AccessMode.control,
+    AccessMode.append,
+  ];
 }
 
 /// Return access mode based on a given String value
@@ -299,9 +299,7 @@ String getRecipientName({
 }
 
 /// Get name from webId
-String getWebIdName({
-  required String webId,
-}) {
+String getWebIdName({required String webId}) {
   final String name;
 
   if (webId == pubAgent) {
@@ -316,9 +314,7 @@ String getWebIdName({
 }
 
 /// Get name from webId
-String getPermissionTypeLabel({
-  required String permissionType,
-}) {
+String getPermissionTypeLabel({required String permissionType}) {
   final String permissionTypeLabel;
 
   if (permissionType == 'grant') {
@@ -341,18 +337,22 @@ String getPermissionTooltip({
   String toolTip;
 
   if (recipientType == RecipientType.public) {
-    toolTip = 'Accessible with ${permList.join(', ')}'
+    toolTip =
+        'Accessible with ${permList.join(', ')}'
         ' access to anyone';
   } else if (recipientType == RecipientType.authUser) {
-    toolTip = 'Accessible to all loggedin users '
+    toolTip =
+        'Accessible to all loggedin users '
         'with ${permList.join(', ')} access';
   } else {
-    toolTip = 'Accessible to $recipientName '
+    toolTip =
+        'Accessible to $recipientName '
         'with ${permList.join(', ')} access';
   }
 
   if (permList.contains('Control')) {
-    toolTip = '$toolTip '
+    toolTip =
+        '$toolTip '
         '(i.e. they can share or revoke access to others)';
   }
 
@@ -371,21 +371,25 @@ String getPermissionLogTooltip({
   String toolTip;
 
   if (recipientWebId == pubAgent) {
-    toolTip = '$granterName $permissionTypeLabel '
+    toolTip =
+        '$granterName $permissionTypeLabel '
         '${permList.join(', ')} '
         'access to anyone ';
   } else if (recipientWebId == authAgent) {
-    toolTip = '$granterName $permissionTypeLabel '
+    toolTip =
+        '$granterName $permissionTypeLabel '
         '${permList.join(', ')} '
         'access to all logged in users ';
   } else {
-    toolTip = '$granterName $permissionTypeLabel '
+    toolTip =
+        '$granterName $permissionTypeLabel '
         '${permList.join(', ')} '
         'access to $recipientName';
   }
 
   if (permList.contains('control')) {
-    toolTip = '$toolTip '
+    toolTip =
+        '$toolTip '
         '(i.e. $recipientName had permission to share or revoke access to others)';
   }
 

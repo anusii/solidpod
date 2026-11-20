@@ -58,9 +58,7 @@ Future<List<LogRecord>> sharedResourcesHistory({
   final logFileUrl = await getFileUrl(logFilePath);
 
   // Read log file
-  final logContent = utf8.decode(
-    await getResource(logFileUrl),
-  );
+  final logContent = utf8.decode(await getResource(logFileUrl));
 
   // Convert log from TTL to triple map
   final logDataMap = parseTTLMap(logContent);

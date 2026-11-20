@@ -62,9 +62,7 @@ class KeyStorage {
     try {
       return await secureStorage.read(key: _securityKeySecureStorageKey);
     } catch (e) {
-      debugPrint(
-        'KeyStorage => readSecurityKey() error: ${e.runtimeType}',
-      );
+      debugPrint('KeyStorage => readSecurityKey() error: ${e.runtimeType}');
       return null;
     }
   }
@@ -72,10 +70,7 @@ class KeyStorage {
   /// Write the security key to secure storage.
 
   static Future<void> writeSecurityKey(String securityKey) async {
-    await writeToSecureStorage(
-      _securityKeySecureStorageKey,
-      securityKey,
-    );
+    await writeToSecureStorage(_securityKeySecureStorageKey, securityKey);
   }
 
   /// Remove the security key from secure storage.

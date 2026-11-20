@@ -221,9 +221,11 @@ Future<void> initPod(
   final indKeyUrl = await getFileUrl(await getIndKeyPath());
   final pubKeyUrl = await getFileUrl(await getPubKeyPath());
 
-  final encDirExists = await checkResourceStatus(encDirUrl, isFile: false) ==
+  final encDirExists =
+      await checkResourceStatus(encDirUrl, isFile: false) ==
       ResourceStatus.exist;
-  final encKeyExists = encDirExists &&
+  final encKeyExists =
+      encDirExists &&
       await checkResourceStatus(encKeyUrl) == ResourceStatus.exist;
 
   // Only require the encryption directory in the missing-folder list when

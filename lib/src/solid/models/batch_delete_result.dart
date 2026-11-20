@@ -42,10 +42,7 @@ class BatchDeleteResult {
 
   final Map<String, String> failed;
 
-  const BatchDeleteResult({
-    required this.succeeded,
-    required this.failed,
-  });
+  const BatchDeleteResult({required this.succeeded, required this.failed});
 
   /// Whether any item failed to delete.
 

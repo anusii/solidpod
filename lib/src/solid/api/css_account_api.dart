@@ -42,9 +42,7 @@ import 'package:solidpod/src/solid/utils/exceptions.dart';
 /// parse the (empty) body as JSON when the header is present and fails with
 /// an "Unexpected end of JSON input" internal server error.
 
-const _getHeaders = <String, String>{
-  'Accept': 'application/json',
-};
+const _getHeaders = <String, String>{'Accept': 'application/json'};
 
 /// Headers sent with POST requests (carrying a JSON body) to the CSS
 /// account API.
@@ -99,8 +97,10 @@ Future<void> changeCssAccountPassword({
       headers: _getHeaders,
     );
   } on Object catch (e) {
-    debugPrint('changeCssAccountPassword() failed to reach $accountIndexUrl:'
-        ' $e');
+    debugPrint(
+      'changeCssAccountPassword() failed to reach $accountIndexUrl:'
+      ' $e',
+    );
     throw CssAccountApiNotSupportedException(
       'Could not reach the account API at $accountIndexUrl',
     );
@@ -162,9 +162,7 @@ Future<void> changeCssAccountPassword({
   final loginBody = jsonDecode(loginResponse.body) as Map<String, dynamic>;
   final accountToken = loginBody['authorization'] as String?;
   if (accountToken == null) {
-    throw Exception(
-      'Account API login did not return an authorization token',
-    );
+    throw Exception('Account API login did not return an authorization token');
   }
 
   final authGetHeaders = <String, String>{
@@ -247,9 +245,7 @@ Future<void> changeCssAccountPassword({
   }
 
   if (passwordResourceUrl == null) {
-    throw Exception(
-      'No password login found for "$email" on this account',
-    );
+    throw Exception('No password login found for "$email" on this account');
   }
 
   // Step 5: Update the password.
@@ -264,9 +260,7 @@ Future<void> changeCssAccountPassword({
   // it does not match.
 
   if (updateResponse.statusCode == 401 || updateResponse.statusCode == 400) {
-    throw CssWrongCredentialsException(
-      'The current password is incorrect',
-    );
+    throw CssWrongCredentialsException('The current password is incorrect');
   }
   if (updateResponse.statusCode < 200 || updateResponse.statusCode >= 300) {
     throw Exception(
@@ -382,9 +376,7 @@ Future<String?> createCssAccount({
   final createBody = jsonDecode(createResponse.body) as Map<String, dynamic>;
   final accountToken = createBody['authorization'] as String?;
   if (accountToken == null) {
-    throw Exception(
-      'Account creation did not return an authorization token',
-    );
+    throw Exception('Account creation did not return an authorization token');
   }
 
   final authGetHeaders = <String, String>{
@@ -426,9 +418,7 @@ Future<String?> createCssAccount({
     passwordCreateUrl = authPasswordControls?['create'] as String?;
     podCreateUrl = authAccountControls?['pod'] as String?;
   } on Object catch (e) {
-    debugPrint(
-      'createCssAccount() failed to parse authenticated controls: $e',
-    );
+    debugPrint('createCssAccount() failed to parse authenticated controls: $e');
     throw CssAccountApiNotSupportedException(
       'Unexpected response from the account API at $accountIndexUrl',
     );

@@ -110,9 +110,7 @@ Future<void> createDir(String dirUrl) async {
 /// These characters are either URL-unsafe (causing percent-encoding issues
 /// such as spaces becoming `%20`) or filesystem-unsafe on common platforms.
 
-final RegExp _invalidContainerNameChars = RegExp(
-  r'''[ /#?%&+@=<>"|*:!\\]''',
-);
+final RegExp _invalidContainerNameChars = RegExp(r'''[ /#?%&+@=<>"|*:!\\]''');
 
 /// Validates that [folderName] is a safe container name.
 ///
@@ -180,8 +178,9 @@ Future<void> createContainer(
   // getDirUrl() resolves relative to the POD root, so without this the folder
   // would be created at the POD root instead of inside the data directory.
 
-  final folderPath =
-      parentPath.isEmpty ? folderName : '$parentPath/$folderName';
+  final folderPath = parentPath.isEmpty
+      ? folderName
+      : '$parentPath/$folderName';
   final dirUrl = await getDirUrl(await normalizeFilePath(folderPath, null));
   await createDir(dirUrl);
 

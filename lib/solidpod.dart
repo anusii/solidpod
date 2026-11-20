@@ -87,6 +87,7 @@ export 'src/solid/utils/app_info.dart';
 
 export 'package:solidpod/src/solid/utils/key_inheritance.dart'
     show setInheritKeyDir;
+
 export 'src/solid/utils/key_manager.dart' show KeyManager;
 export 'src/solid/utils/key_helper.dart' show verifySecurityKey;
 
